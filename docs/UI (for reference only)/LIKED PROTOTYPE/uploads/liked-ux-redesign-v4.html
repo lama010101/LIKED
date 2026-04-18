@@ -1,0 +1,1531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIKED — UIX v4</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Fraunces:wght@700&display=swap" rel="stylesheet">
+
+<!-- SVG icon symbols — flat feather-style, mono -->
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="ic-search"    viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol>
+  <symbol id="ic-bell"      viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></symbol>
+  <symbol id="ic-sliders"   viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></symbol>
+  <symbol id="ic-plus"      viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+  <symbol id="ic-chevl"     viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></symbol>
+  <symbol id="ic-chevu"     viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></symbol>
+  <symbol id="ic-chevd"     viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></symbol>
+  <symbol id="ic-ext"       viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></symbol>
+  <symbol id="ic-share"     viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></symbol>
+  <symbol id="ic-trash"     viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></symbol>
+  <symbol id="ic-x"         viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
+  <symbol id="ic-max"       viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></symbol>
+  <symbol id="ic-play"      viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></symbol>
+  <symbol id="ic-users"     viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+  <symbol id="ic-check"     viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
+  <symbol id="ic-sort"      viewBox="0 0 24 24"><polyline points="7 16 12 21 17 16"/><polyline points="7 8 12 3 17 8"/></symbol>
+  <symbol id="ic-grid"      viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></symbol>
+  <symbol id="ic-cols"      viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="18" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/></symbol>
+  <symbol id="ic-list"      viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></symbol>
+  <symbol id="ic-rows"      viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="5" rx="1"/><rect x="3" y="10" width="18" height="5" rx="1"/><rect x="3" y="17" width="18" height="4" rx="1"/></symbol>
+  <symbol id="ic-canvas"    viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="5" cy="7" r="1"/><circle cx="19" cy="7" r="1"/><circle cx="5" cy="17" r="1"/><circle cx="19" cy="17" r="1"/><path d="M12 13v3m0-9v2M6 7h2M16 7h2M6 17h2M16 17h2"/></symbol>
+  <symbol id="ic-folder"    viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></symbol>
+  <symbol id="ic-tag"       viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></symbol>
+  <symbol id="ic-user-plus" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></symbol>
+  <symbol id="ic-settings"  viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
+</svg>
+
+<style>
+*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+:root {
+  --bg:#0e0f14; --bg2:#16181f; --bg3:#1e2029; --bg4:#252733; --bg5:#2e3040;
+  --border:rgba(255,255,255,.07); --border2:rgba(255,255,255,.12);
+  --text:#f0f1f5; --text2:#9395a0; --text3:#5a5d6b;
+  --accent:#f5a623; --red:#ff6b6b; --blue:#60c5f1; --purple:#a78bfa; --green:#4ad58a;
+  --shadow:0 8px 32px rgba(0,0,0,.5); --shadow-sm:0 2px 10px rgba(0,0,0,.3);
+}
+body { background:#0a0b10; color:var(--text); font-family:'DM Sans',sans-serif; font-size:14px; }
+.page { max-width:1400px; margin:0 auto; padding:32px 24px; }
+
+/* icons */
+.ic { display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; }
+svg.si { fill:none; stroke:currentColor; stroke-width:1.75; stroke-linecap:round; stroke-linejoin:round; }
+.ic16 { width:16px; height:16px; }
+.ic14 { width:14px; height:14px; }
+.ic18 { width:18px; height:18px; }
+.ic20 { width:20px; height:20px; }
+
+/* layout */
+.page-title { font-family:'Fraunces',serif; font-size:28px; font-weight:700; margin-bottom:5px; }
+.page-sub { color:var(--text2); font-size:13px; margin-bottom:28px; }
+.page-sub b { color:var(--accent); }
+.color-band { height:3px; background:linear-gradient(90deg,var(--accent),var(--red),var(--blue),var(--purple)); border-radius:2px; margin-bottom:26px; }
+
+/* tabs */
+.tabs { display:flex; gap:6px; margin-bottom:28px; flex-wrap:wrap; }
+.tab { padding:7px 16px; border-radius:100px; background:var(--bg3); color:var(--text2); cursor:pointer; font-size:12px; font-weight:500; border:1px solid var(--border); transition:all .15s; user-select:none; }
+.tab:hover { background:var(--bg4); color:var(--text); }
+.tab.on { background:var(--accent); color:#000; border-color:transparent; font-weight:700; }
+.panel { display:none; }
+.panel.on { display:block; }
+
+/* section */
+.sh { display:flex; align-items:flex-start; gap:10px; margin:32px 0 16px; }
+.sh:first-child { margin-top:0; }
+.sh-n { font-family:'Fraunces',serif; font-size:24px; color:var(--accent); line-height:1.1; flex-shrink:0; }
+.sh-t { font-size:16px; font-weight:600; }
+.sh-s { font-size:12px; color:var(--text2); margin-top:2px; }
+.divl { height:1px; background:var(--border); margin:28px 0; }
+
+/* badges */
+.b { display:inline-flex; align-items:center; padding:2px 9px; border-radius:100px; font-size:10px; font-weight:700; }
+.bg { background:rgba(74,213,138,.1); color:var(--green); border:1px solid rgba(74,213,138,.2); }
+.br { background:rgba(255,107,107,.1); color:var(--red); border:1px solid rgba(255,107,107,.2); }
+
+/* table */
+.T { width:100%; border-collapse:collapse; margin-bottom:20px; font-size:12px; }
+.T th { text-align:left; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text3); padding:7px 11px; border-bottom:1px solid var(--border); }
+.T td { padding:9px 11px; color:var(--text2); border-bottom:1px solid rgba(255,255,255,.03); vertical-align:top; line-height:1.5; }
+.T td:first-child { color:var(--text); font-weight:500; white-space:nowrap; }
+code { font-family:monospace; color:var(--accent); font-size:11px; }
+
+/* ann grid */
+.ag { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:9px; margin-bottom:24px; }
+.an { background:var(--bg2); border:1px solid var(--border); border-radius:11px; padding:13px; }
+.an-h { display:flex; align-items:center; gap:8px; margin-bottom:7px; }
+.an-n { width:20px; height:20px; background:var(--accent); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; color:#000; flex-shrink:0; }
+.an-t { font-size:12px; font-weight:700; }
+.an-b { font-size:11px; color:var(--text2); line-height:1.55; }
+.an-w { margin-top:7px; padding:6px 9px; background:rgba(245,166,35,.06); border-radius:6px; border-left:2px solid var(--accent); font-size:10px; color:var(--text2); line-height:1.5; }
+.an-w b { color:var(--accent); }
+
+/* ═══════════════════════ PHONE SHELL ═══════════════════════ */
+.pr { display:flex; gap:24px; flex-wrap:wrap; align-items:flex-start; margin-bottom:32px; }
+.pw { display:flex; flex-direction:column; align-items:center; gap:9px; flex-shrink:0; }
+.pl { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--text2); text-align:center; max-width:160px; }
+
+.phone {
+  width:290px; height:630px;
+  background:var(--bg2);
+  border-radius:42px;
+  border:2px solid var(--bg4);
+  box-shadow:var(--shadow), 0 0 0 5px var(--bg3);
+  display:flex; flex-direction:column;
+  overflow:hidden;
+  position:relative;
+}
+.notch {
+  width:88px; height:24px; background:var(--bg3);
+  border-radius:0 0 14px 14px;
+  position:absolute; top:0; left:50%; transform:translateX(-50%);
+  z-index:20; display:flex; align-items:center; justify-content:center; gap:5px;
+}
+.ns { width:30px; height:3px; background:#252733; border-radius:3px; }
+.nc { width:6px; height:6px; background:#252733; border-radius:50%; }
+
+/* top bar */
+.tb { padding:28px 13px 7px; display:flex; align-items:center; justify-content:space-between; background:var(--bg2); flex-shrink:0; }
+.tb-logo { font-family:'Fraunces',serif; font-size:19px; font-weight:700; color:var(--accent); letter-spacing:-.5px; }
+.tb-logo span { color:var(--text); }
+.tb-r { display:flex; gap:5px; align-items:center; }
+.ib { width:32px; height:32px; background:var(--bg3); border-radius:10px; display:flex; align-items:center; justify-content:center; color:var(--text2); position:relative; flex-shrink:0; }
+.ib .bd { position:absolute; top:-2px; right:-2px; width:12px; height:12px; background:var(--red); border-radius:50%; font-size:7px; font-weight:800; color:#fff; display:flex; align-items:center; justify-content:center; border:1.5px solid var(--bg2); }
+.ib.filt-on { background:rgba(245,166,35,.14); color:var(--accent); }
+.uav { width:30px; height:30px; border-radius:50%; background:linear-gradient(135deg,#f5a623,#ff6b6b); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; color:#fff; border:1.5px solid var(--bg4); flex-shrink:0; }
+
+/* feed tabs */
+.ft { display:flex; padding:5px 13px 0; gap:3px; background:var(--bg2); flex-shrink:0; }
+.ft-t { flex:1; text-align:center; padding:6px 2px; border-radius:8px; font-size:11px; font-weight:500; color:var(--text3); }
+.ft-t.all  { background:var(--bg4); color:var(--text2); font-weight:700; }
+.ft-t.mine { background:var(--bg4); color:var(--accent); font-weight:700; }
+.ft-t.recv { background:var(--bg4); color:var(--blue);   font-weight:700; }
+
+/* context strip */
+.ctx { display:flex; gap:4px; padding:4px 13px; background:var(--bg2); overflow-x:auto; scrollbar-width:none; flex-shrink:0; align-items:center; }
+.ctx::-webkit-scrollbar { display:none; }
+.cp { display:flex; align-items:center; gap:3px; padding:3px 8px; border-radius:100px; font-size:10px; font-weight:600; flex-shrink:0; }
+.cx { font-size:9px; opacity:.5; cursor:pointer; }
+
+/* sort/view row */
+.sr { display:flex; align-items:center; justify-content:space-between; padding:5px 13px 4px; background:var(--bg2); flex-shrink:0; border-bottom:1px solid var(--border); }
+.sb { display:flex; align-items:center; gap:4px; font-size:11px; color:var(--text2); background:var(--bg3); padding:4px 8px; border-radius:7px; }
+.vi { display:flex; gap:2px; }
+.vb { width:25px; height:25px; background:var(--bg3); border-radius:6px; display:flex; align-items:center; justify-content:center; color:var(--text3); }
+.vb.on { background:rgba(245,166,35,.15); color:var(--accent); }
+
+/* breadcrumb */
+.bc { display:flex; align-items:center; gap:4px; padding:5px 13px; background:var(--bg2); font-size:10px; color:var(--text2); flex-shrink:0; border-bottom:1px solid var(--border); }
+.bc-back { width:22px; height:22px; background:var(--bg3); border-radius:6px; display:flex; align-items:center; justify-content:center; color:var(--text2); flex-shrink:0; }
+.bc-sep { color:var(--text3); }
+.bc-cur { font-weight:700; color:var(--text); }
+
+/* feed area */
+.feed { flex:1; overflow-y:auto; scrollbar-width:none; padding:4px; background:var(--bg); min-height:0; }
+.feed::-webkit-scrollbar { display:none; }
+.g5 { display:grid; grid-template-columns:repeat(5,1fr); gap:3px; }
+.ci { aspect-ratio:1; border-radius:8px; position:relative; overflow:hidden; }
+.cb { width:100%; height:100%; }
+/* sent badge — purple square top-left */
+.sent { position:absolute; top:2px; left:2px; width:9px; height:9px; border-radius:2px; background:rgba(167,139,250,.95); border:1px solid var(--bg2); }
+/* recv/mine direction dot bottom-right */
+.dd { position:absolute; bottom:2px; right:2px; width:9px; height:9px; border-radius:50%; border:1.5px solid var(--bg2); }
+.dd.r { background:var(--blue); }
+.dd.m { background:var(--accent); }
+
+/* folder tile (5-col grid, same as card) */
+.ft-tile { aspect-ratio:1; border-radius:8px; overflow:hidden; position:relative; cursor:pointer; }
+.ft-grid { display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; width:100%; height:100%; gap:1px; }
+.ft-q { } /* quarter thumbnail */
+.ft-overlay { position:absolute; bottom:0; left:0; right:0; padding:3px 4px 4px; background:linear-gradient(to top,rgba(0,0,0,.8) 0%,transparent 100%); }
+.ft-name { font-size:8px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ft-dot { position:absolute; top:3px; left:3px; width:7px; height:7px; border-radius:2px; }
+/* folder tile large (folder view) */
+.ft-lg { border-radius:10px; overflow:hidden; position:relative; cursor:pointer; background:var(--bg3); }
+.ft-lg-grid { display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; height:80px; gap:1px; }
+.ft-lg-meta { padding:6px 8px 7px; }
+.ft-lg-name { font-size:11px; font-weight:700; color:var(--text); margin-bottom:2px; }
+.ft-lg-count { font-size:9px; color:var(--text3); }
+
+/* masonry */
+.mas { columns:2; column-gap:3px; }
+.mc { break-inside:avoid; margin-bottom:3px; border-radius:10px; overflow:hidden; background:var(--bg3); }
+.mc-i { width:100%; display:block; }
+.mc-m { padding:4px 7px 6px; }
+.mc-t { font-size:9px; font-weight:500; color:var(--text); line-height:1.3; margin-bottom:2px; }
+.mc-tags { display:flex; gap:2px; }
+.mc-tag { font-size:8px; padding:1px 4px; border-radius:3px; color:#fff; font-weight:700; }
+
+/* ── BOTTOM AREA ── */
+.ba {
+  flex-shrink:0;
+  background:var(--bg2);
+  border-top:1px solid var(--border);
+  position:relative;
+  padding-top:22px; /* space for floating FAB */
+}
+/* floating FAB */
+.fab {
+  position:absolute;
+  top:-20px; left:50%; transform:translateX(-50%);
+  width:42px; height:42px;
+  border-radius:50%;
+  background:var(--accent);
+  display:flex; align-items:center; justify-content:center;
+  color:#000;
+  box-shadow:0 4px 16px rgba(245,166,35,.5), 0 0 0 3px var(--bg2);
+  cursor:pointer;
+  z-index:10;
+}
+/* panel expand handle above friends strip */
+.expand-handle {
+  display:flex; align-items:center; justify-content:center;
+  padding:2px 0 4px;
+  cursor:pointer;
+  color:var(--text3);
+}
+/* friends strip */
+.fs { display:flex; overflow-x:auto; scrollbar-width:none; padding:0 6px 12px; gap:0; }
+.fs::-webkit-scrollbar { display:none; }
+/* friend item */
+.fi { display:flex; flex-direction:column; align-items:center; gap:3px; padding:0 7px; cursor:pointer; flex-shrink:0; }
+.fav { width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:#fff; position:relative; }
+.fav.nr { outline:2px solid var(--accent); outline-offset:2px; }
+.fav.fon { outline:2.5px solid var(--blue); outline-offset:2px; }
+.fav .nd { position:absolute; bottom:0px; right:0px; width:9px; height:9px; background:var(--accent); border-radius:50%; border:1.5px solid var(--bg2); }
+/* group item — rounded square */
+.gi { display:flex; flex-direction:column; align-items:center; gap:3px; padding:0 7px; cursor:pointer; flex-shrink:0; }
+.gav { width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:#fff; position:relative; overflow:hidden; }
+/* tiny member avatars inside group chip */
+.gm-stack { position:absolute; bottom:2px; right:2px; display:flex; }
+.gm-s { width:11px; height:11px; border-radius:50%; border:1px solid rgba(0,0,0,.4); margin-left:-4px; font-size:6px; font-weight:700; color:#fff; display:flex; align-items:center; justify-content:center; }
+.gm-s:first-child { margin-left:0; }
+.fn { font-size:8px; color:var(--text2); white-space:nowrap; max-width:44px; overflow:hidden; text-overflow:ellipsis; text-align:center; }
+
+/* ═══════════════════════ PANELS & SHEETS ═══════════════════════ */
+/* full-height expanded panel (friends expand / drag panel) */
+.ep {
+  flex-shrink:0;
+  background:var(--bg2);
+  border-top:1px solid var(--border2);
+  display:flex; flex-direction:column;
+}
+.ep-drag { width:26px; height:3px; background:var(--bg5); border-radius:2px; margin:9px auto 0; flex-shrink:0; }
+.ep-hdr { display:flex; align-items:center; justify-content:space-between; padding:10px 13px 6px; flex-shrink:0; }
+.ep-title { font-size:13px; font-weight:700; }
+.ep-close { width:26px; height:26px; background:var(--bg3); border-radius:8px; display:flex; align-items:center; justify-content:center; color:var(--text2); }
+/* search inside panel */
+.ps { display:flex; align-items:center; gap:6px; margin:0 13px 8px; background:var(--bg3); border-radius:9px; padding:7px 10px; border:1px solid var(--border); flex-shrink:0; }
+.ps-txt { font-size:11px; color:var(--text3); flex:1; }
+.ps-val { font-size:11px; color:var(--text); flex:1; }
+/* friends grid for selection */
+.sg { display:grid; grid-template-columns:repeat(5,1fr); gap:5px; padding:0 13px; margin-bottom:8px; flex-shrink:0; }
+.sgi { display:flex; flex-direction:column; align-items:center; gap:2px; cursor:pointer; }
+.sga { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#fff; border:2px solid transparent; position:relative; }
+.sga.on { border-color:var(--accent); }
+.sga.on::after { content:''; position:absolute; bottom:-2px; right:-2px; width:12px; height:12px; background:var(--accent); border-radius:50%; border:1.5px solid var(--bg2); background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E"); background-size:8px; background-repeat:no-repeat; background-position:center; }
+.sgn { font-size:8px; color:var(--text2); white-space:nowrap; max-width:40px; overflow:hidden; text-overflow:ellipsis; text-align:center; }
+/* group grid for selection — rounded square avatars */
+.sgg { width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#fff; border:2px solid transparent; position:relative; }
+.sgg.on { border-color:var(--accent); }
+.sgg.on::after { content:''; position:absolute; bottom:-2px; right:-2px; width:12px; height:12px; background:var(--accent); border-radius:50%; border:1.5px solid var(--bg2); background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E"); background-size:8px; background-repeat:no-repeat; background-position:center; }
+/* folder grid for selection — collage thumbnails */
+.sfg { display:grid; grid-template-columns:repeat(4,1fr); gap:5px; padding:0 13px; margin-bottom:8px; flex-shrink:0; }
+.sfgi { display:flex; flex-direction:column; align-items:center; gap:2px; cursor:pointer; }
+.sfga { width:48px; height:40px; border-radius:8px; overflow:hidden; position:relative; border:2px solid transparent; }
+.sfga.on { border-color:var(--accent); }
+.sfga-grid { display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; width:100%; height:100%; gap:1px; }
+.sfga.on::after { content:''; position:absolute; bottom:-2px; right:-2px; width:12px; height:12px; background:var(--accent); border-radius:50%; border:1.5px solid var(--bg2); background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E"); background-size:8px; background-repeat:no-repeat; background-position:center; }
+.sfga-dot { position:absolute; top:2px; left:2px; width:6px; height:6px; border-radius:1px; }
+.sfgn { font-size:8px; color:var(--text2); white-space:nowrap; max-width:52px; overflow:hidden; text-overflow:ellipsis; text-align:center; }
+/* section label inside panel */
+.plbl { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--text3); padding:0 13px; margin-bottom:6px; flex-shrink:0; }
+/* confirm button */
+.btn-confirm { margin:0 13px 12px; padding:10px; background:var(--accent); border-radius:10px; font-size:12px; font-weight:800; color:#000; text-align:center; cursor:pointer; flex-shrink:0; }
+.btn-confirm.off { background:var(--bg4); color:var(--text3); }
+/* cancel hint */
+.cancel-hint { text-align:center; padding:0 0 10px; font-size:9px; color:var(--text3); flex-shrink:0; }
+/* section separator inside panel */
+.psep { height:1px; background:var(--border); margin:4px 13px 10px; flex-shrink:0; }
+
+/* sheet (bottom sheet rendered as flex child, no absolute) */
+.sheet { flex-shrink:0; background:var(--bg2); border-radius:18px 18px 0 0; border-top:1px solid var(--border); display:flex; flex-direction:column; }
+.sh-drag { width:26px; height:3px; background:var(--bg4); border-radius:2px; margin:9px auto 10px; flex-shrink:0; }
+.sh-ttl { font-size:13px; font-weight:700; padding:0 13px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0; }
+.sh-clear { font-size:11px; color:var(--accent); font-weight:600; }
+.sh-sec { padding:0 13px; margin-bottom:9px; flex-shrink:0; }
+.sh-sl { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--text3); margin-bottom:6px; }
+/* chip row */
+.cr { display:flex; gap:4px; flex-wrap:wrap; }
+.chip { padding:4px 10px; border-radius:7px; font-size:10px; font-weight:600; border:1px solid var(--border); color:var(--text2); background:var(--bg3); }
+.chip.on { border-color:var(--accent); color:var(--accent); background:rgba(245,166,35,.08); }
+/* avatar selection row (add sheet quick share) */
+.avr { display:flex; gap:7px; overflow-x:auto; scrollbar-width:none; }
+.avr::-webkit-scrollbar { display:none; }
+.avi { display:flex; flex-direction:column; align-items:center; gap:2px; flex-shrink:0; }
+.avc { width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#fff; border:2px solid transparent; position:relative; }
+.avc.on { border-color:var(--accent); }
+.avc.on::after { content:''; position:absolute; bottom:-2px; right:-2px; width:11px; height:11px; background:var(--accent); border-radius:50%; border:1.5px solid var(--bg2); background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E"); background-size:7px; background-repeat:no-repeat; background-position:center; }
+.avn { font-size:8px; color:var(--text2); }
+/* add input */
+.ai { display:flex; align-items:center; gap:6px; margin:0 13px 8px; background:var(--bg3); border-radius:9px; padding:7px 10px; border:1px solid var(--border); flex-shrink:0; }
+.ai-p { font-size:11px; color:var(--text3); flex:1; }
+/* url preview */
+.up { margin:0 13px 9px; background:var(--bg3); border-radius:8px; padding:8px 9px; display:flex; gap:8px; align-items:center; border:1px solid var(--border); flex-shrink:0; }
+.up-img { width:38px; height:38px; border-radius:7px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:18px; }
+.up-t { font-size:10px; font-weight:600; color:var(--text); margin-bottom:1px; }
+.up-d { font-size:9px; color:var(--text3); }
+/* confirm/submit */
+.btn-s { margin:0 13px 12px; padding:10px; background:var(--accent); border-radius:10px; font-size:12px; font-weight:800; color:#000; text-align:center; flex-shrink:0; }
+
+/* card detail media */
+.cdm { flex-shrink:0; position:relative; overflow:hidden; }
+.cdm-bg { position:absolute; inset:0; }
+.cdm-dh { position:absolute; top:9px; left:50%; transform:translateX(-50%); width:26px; height:3px; background:rgba(255,255,255,.2); border-radius:2px; }
+.cdm-fs { position:absolute; top:10px; right:10px; width:28px; height:28px; background:rgba(0,0,0,.5); border-radius:7px; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,.8); }
+/* youtube player chrome */
+.yt-bar { position:absolute; bottom:0; left:0; right:0; padding:8px 10px 10px; background:linear-gradient(to top,rgba(0,0,0,.9),transparent); }
+.yt-prog { height:3px; background:rgba(255,255,255,.25); border-radius:2px; margin-bottom:7px; }
+.yt-fill { height:100%; width:35%; background:#ff0000; border-radius:2px; }
+.yt-ctrls { display:flex; align-items:center; gap:8px; color:rgba(255,255,255,.85); }
+.yt-time { font-size:9px; margin-left:auto; color:rgba(255,255,255,.6); }
+/* open primary button */
+.btn-open { margin:10px 13px 8px; padding:11px; background:var(--blue); border-radius:10px; font-size:12px; font-weight:800; color:#000; text-align:center; display:flex; align-items:center; justify-content:center; gap:6px; flex-shrink:0; }
+
+/* meta pills */
+.mp { display:flex; gap:4px; flex-wrap:wrap; padding:0 13px; margin-bottom:7px; flex-shrink:0; }
+.mp-p { font-size:9px; padding:3px 7px; background:var(--bg3); border-radius:6px; color:var(--text2); }
+/* rating row */
+.rr { display:flex; align-items:center; gap:7px; padding:0 13px; margin-bottom:8px; flex-shrink:0; }
+.rr-l { font-size:9px; color:var(--text2); white-space:nowrap; }
+.rr-t { flex:1; height:4px; background:var(--bg4); border-radius:2px; position:relative; }
+.rr-f { position:absolute; left:0; top:0; bottom:0; background:var(--accent); border-radius:2px; width:72%; }
+.rr-th { position:absolute; top:50%; right:28%; transform:translate(50%,-50%); width:12px; height:12px; background:#fff; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,.4); }
+.rr-v { font-size:11px; font-weight:700; color:var(--accent); min-width:20px; text-align:right; }
+/* action strip — 2 actions */
+.as2 { display:grid; grid-template-columns:1fr 1fr; gap:5px; padding:0 13px 12px; flex-shrink:0; }
+.ac { display:flex; flex-direction:column; align-items:center; gap:3px; padding:8px 4px; background:var(--bg3); border-radius:9px; }
+.ac-l { font-size:9px; color:var(--text2); }
+/* shared with row in detail */
+.sw { padding:0 13px 8px; flex-shrink:0; }
+.sw-l { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text3); margin-bottom:5px; }
+.sw-r { display:flex; gap:5px; }
+.sw-av { width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; color:#fff; }
+
+/* ═══════════════════════ DESKTOP ═══════════════════════ */
+.dsk { background:var(--bg2); border:1px solid var(--border); border-radius:16px; overflow:hidden; box-shadow:var(--shadow); margin-bottom:32px; }
+.dc { background:var(--bg3); padding:8px 13px; display:flex; align-items:center; gap:6px; border-bottom:1px solid var(--border); }
+.dd3 { width:9px; height:9px; border-radius:50%; }
+.du { flex:1; background:var(--bg4); border-radius:5px; padding:3px 10px; font-size:10px; color:var(--text2); margin:0 8px; }
+.dl { display:flex; height:540px; }
+.dsb { width:200px; flex-shrink:0; background:var(--bg2); border-right:1px solid var(--border); display:flex; flex-direction:column; overflow:hidden; }
+.dsb-t { padding:14px 13px 9px; }
+.dlogo { font-family:'Fraunces',serif; font-size:18px; font-weight:700; color:var(--accent); }
+.dlogo span { color:var(--text); }
+.dsc { margin:0 9px 9px; background:var(--bg3); border-radius:8px; padding:6px 10px; display:flex; align-items:center; gap:5px; border:1px solid var(--border); }
+.dsc-t { font-size:11px; color:var(--text3); }
+.dn { padding:0 6px; display:flex; flex-direction:column; gap:1px; }
+.dni { display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:8px; cursor:pointer; color:var(--text2); font-size:11px; font-weight:500; }
+.dni:hover { background:var(--bg3); }
+.dni.on { background:rgba(245,166,35,.1); color:var(--accent); }
+.dni-b { margin-left:auto; background:var(--red); color:#fff; border-radius:100px; font-size:8px; font-weight:700; padding:1px 5px; }
+.dsec { padding:9px 15px 3px; font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--text3); }
+.dfl { padding:0 6px; display:flex; flex-direction:column; gap:1px; }
+.dfr { display:flex; align-items:center; gap:6px; padding:4px 8px; border-radius:7px; cursor:pointer; }
+.dfr:hover { background:var(--bg3); }
+.dfr-av { width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:8px; font-weight:700; color:#fff; }
+.dfr-n { font-size:11px; color:var(--text2); flex:1; }
+.dfr-new { width:6px; height:6px; border-radius:50%; background:var(--accent); }
+/* group in sidebar — rounded square */
+.dgrp { display:flex; align-items:center; gap:6px; padding:4px 8px; border-radius:7px; cursor:pointer; }
+.dgrp:hover { background:var(--bg3); }
+.dgrp-av { width:22px; height:22px; border-radius:5px; display:flex; align-items:center; justify-content:center; font-size:8px; font-weight:700; color:#fff; }
+.dgrp-n { font-size:11px; color:var(--text2); flex:1; }
+.dfo { display:flex; align-items:center; gap:6px; padding:4px 8px; border-radius:7px; cursor:pointer; }
+.dfo:hover { background:var(--bg3); }
+.dfo-d { width:7px; height:7px; border-radius:2px; flex-shrink:0; }
+.dfo-n { font-size:11px; color:var(--text2); flex:1; }
+.dfo-c { font-size:9px; color:var(--text3); }
+.dtags { padding:0 9px 7px; display:flex; flex-wrap:wrap; gap:3px; }
+.dtag { font-size:9px; padding:2px 7px; border-radius:5px; color:#fff; font-weight:700; cursor:pointer; opacity:.8; }
+.dsb-bot { margin-top:auto; padding:9px; border-top:1px solid var(--border); display:flex; align-items:center; gap:7px; }
+.dme { width:28px; height:28px; border-radius:50%; background:linear-gradient(135deg,#f5a623,#ff6b6b); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; color:#fff; }
+.dme-n { font-size:11px; color:var(--text); flex:1; }
+.dm { flex:1; display:flex; flex-direction:column; overflow:hidden; position:relative; }
+.dtb { padding:9px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:9px; background:var(--bg2); flex-shrink:0; }
+.dft { display:flex; gap:3px; }
+.dftab { padding:5px 11px; border-radius:7px; font-size:10px; font-weight:500; color:var(--text2); cursor:pointer; }
+.dftab.all  { background:rgba(176,179,192,.1); color:var(--text2); font-weight:700; }
+.dftab.mine { background:rgba(245,166,35,.1); color:var(--accent); font-weight:700; }
+.dftab.recv { background:rgba(96,197,241,.1); color:var(--blue); font-weight:700; }
+.dtr { margin-left:auto; display:flex; align-items:center; gap:6px; }
+.dso { display:flex; align-items:center; gap:3px; padding:5px 10px; background:var(--bg3); border-radius:7px; font-size:10px; color:var(--text2); border:1px solid var(--border); }
+.dvs { display:flex; gap:2px; background:var(--bg3); padding:2px; border-radius:8px; }
+.dv { padding:4px 6px; border-radius:6px; font-size:9px; color:var(--text3); cursor:pointer; }
+.dv.on { background:var(--bg4); color:var(--text); }
+.dib { width:28px; height:28px; background:var(--bg3); border-radius:7px; display:flex; align-items:center; justify-content:center; color:var(--text2); border:1px solid var(--border); position:relative; }
+.dib .bd { position:absolute; top:-3px; right:-3px; background:var(--red); border-radius:50%; width:11px; height:11px; font-size:7px; font-weight:800; color:#fff; display:flex; align-items:center; justify-content:center; }
+.dfeed { flex:1; overflow-y:auto; padding:12px; columns:4; column-gap:8px; background:var(--bg); scrollbar-width:thin; scrollbar-color:var(--bg4) transparent; }
+.dc2 { break-inside:avoid; margin-bottom:8px; border-radius:10px; overflow:hidden; cursor:pointer; background:var(--bg3); transition:transform .15s; position:relative; }
+.dc2:hover { transform:translateY(-2px); }
+.dci { width:100%; display:block; }
+.dov { position:absolute; inset:0; background:linear-gradient(to bottom,transparent 50%,rgba(0,0,0,.7) 100%); opacity:0; transition:opacity .15s; display:flex; align-items:flex-end; padding:7px; gap:4px; }
+.dc2:hover .dov { opacity:1; }
+.dqb { padding:3px 8px; background:rgba(255,255,255,.9); border-radius:4px; font-size:8px; font-weight:700; color:#000; }
+.dcm { padding:6px 8px; }
+.dct { font-size:9px; font-weight:500; color:var(--text); margin-bottom:2px; line-height:1.3; }
+.dctags { display:flex; gap:2px; overflow:hidden; }
+.dctag { font-size:7px; padding:1px 5px; border-radius:3px; color:#fff; font-weight:700; white-space:nowrap; }
+.dcbdg { position:absolute; top:6px; right:6px; padding:2px 5px; border-radius:4px; font-size:7px; font-weight:800; }
+.dcbdg.r { background:rgba(96,197,241,.9); color:#000; }
+.dcbdg.m { background:rgba(245,166,35,.9); color:#000; }
+.dc-sent { position:absolute; top:6px; left:6px; background:rgba(167,139,250,.9); border-radius:3px; padding:2px 5px; font-size:7px; font-weight:700; color:#fff; }
+.dc-rt { position:absolute; bottom:30px; left:6px; background:rgba(0,0,0,.6); color:var(--accent); font-size:8px; font-weight:700; padding:2px 5px; border-radius:4px; }
+.dfab { position:absolute; bottom:16px; right:16px; width:40px; height:40px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; color:#000; box-shadow:0 4px 16px rgba(245,166,35,.45); cursor:pointer; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+  <div>
+    <div class="page-title">LIKED — UIX v4</div>
+    <div class="page-sub">Floating FAB · Folder collage tiles · Groups in strip · Friends/Folder panel with search · <b>All decisions final</b></div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;">
+    <div class="b bg">v4 — Settled</div>
+    <div style="font-size:10px;color:var(--text3);">April 2025</div>
+  </div>
+</div>
+<div class="color-band"></div>
+
+<div class="tabs">
+  <div class="tab on"  onclick="sw('dec')">📋 Decisions</div>
+  <div class="tab" onclick="sw('home')">📱 Home</div>
+  <div class="tab" onclick="sw('fold')">📁 Folders</div>
+  <div class="tab" onclick="sw('drag-f')">✋ Drag · Friends</div>
+  <div class="tab" onclick="sw('drag-d')">📂 Drag · Folders</div>
+  <div class="tab" onclick="sw('panel')">👥 Friends Panel</div>
+  <div class="tab" onclick="sw('sheets')">📄 Sheets</div>
+  <div class="tab" onclick="sw('desk')">🖥 Desktop</div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     DECISIONS
+══════════════════════════════════════════════ -->
+<div class="panel on" id="tab-dec">
+  <div class="sh" style="margin-top:0;"><div class="sh-n">01</div><div><div class="sh-t">All changes v3 → v4</div><div class="sh-s">Final decisions</div></div></div>
+  <table class="T">
+    <thead><tr><th>Item</th><th>v3</th><th>v4</th></tr></thead>
+    <tbody>
+      <tr><td>FAB</td><td>Pill with text "Add to LIKED"</td><td><span class="b bg">Floating circle</span> · <code>+</code> icon only · shadow ring · floats 20px above friends strip</td></tr>
+      <tr><td>Filter trigger</td><td>⚙️ gear icon (misleading)</td><td><span class="b bg">Sliders icon</span> (feather <code>sliders</code>) · universally understood as filters · badge shows active count</td></tr>
+      <tr><td>Folder tiles</td><td>Folder emoji tiles</td><td><span class="b bg">2×2 collage</span> of card thumbnails · folder name overlay · color dot · access avatars bottom-right</td></tr>
+      <tr><td>Friends strip</td><td>Circles only</td><td><span class="b bg">Circles (friends) + rounded squares (groups)</span> · group has member micro-avatar stack inside</td></tr>
+      <tr><td>Friends strip position</td><td>Bottom, static</td><td>Bottom, static + <span class="b bg">chevron handle</span> to expand full panel anytime (browse, filter, organise groups)</td></tr>
+      <tr><td>Drag · friends panel</td><td>Search + avatar grid</td><td>Same, now also includes <span class="b bg">groups section</span> (rounded squares) below friends</td></tr>
+      <tr><td>Drag · folder panel</td><td>Chip row only</td><td><span class="b bg">Search + folder collage grid + multi-select</span> · same UX as friends panel</td></tr>
+      <tr><td>Card detail actions</td><td>4 icons: Share · Folder · Open · Trash</td><td><span class="b bg">Open (primary, full-width blue)</span> + Share · Trash grid · no Folder icon (use long press)</td></tr>
+      <tr><td>Card detail media (YouTube)</td><td>Gradient placeholder</td><td><span class="b bg">YouTube player chrome</span>: progress bar, play/pause, fullscreen button top-right</td></tr>
+      <tr><td>Add card input</td><td>Static single line</td><td><span class="b bg">Grows with content</span> · starts 1 line · expands up to 40% sheet height · then scrolls internally</td></tr>
+      <tr><td>Icons throughout</td><td>Emoji (🔔🔍⚙️📁)</td><td><span class="b bg">Flat SVG (feather-style)</span> · mono stroke · consistent weight · no color</td></tr>
+    </tbody>
+  </table>
+
+  <div class="divl"></div>
+  <div class="sh"><div class="sh-n">02</div><div><div class="sh-t">How to trigger Filter Feed</div><div class="sh-s">Was ambiguous — now explicit</div></div></div>
+  <div class="ag">
+    <div class="an"><div class="an-h"><div class="an-n">1</div><div class="an-t">Sliders icon in top bar</div></div><div class="an-b">Top bar: Logo · [Sliders icon with badge] · Bell · Avatar. The sliders icon is the universal filter/adjust symbol. Badge shows "2" when 2 filters active.</div><div class="an-w"><b>Why sliders not funnel:</b> The funnel icon means "filter" conceptually. Sliders means "adjust/customise what you see" — closer to what Filter Feed actually does (sort + friends + tags + folders in one surface).</div></div>
+    <div class="an"><div class="an-h"><div class="an-n">2</div><div class="an-t">Tap → Filter Sheet slides up</div></div><div class="an-b">Standard bottom sheet: Friends · Tags · Folders · Sort. Multi-select each. Apply button shows active count. Clear all link top-right.</div></div>
+    <div class="an"><div class="an-h"><div class="an-n">3</div><div class="an-t">Shortcut: tap friend in strip</div></div><div class="an-b">Tapping a friend avatar in the bottom strip applies a quick friend filter without opening the full sheet. Context pill appears. For multi-filter, open the sheet.</div></div>
+  </div>
+
+  <div class="divl"></div>
+  <div class="sh"><div class="sh-n">03</div><div><div class="sh-t">Move card from subfolder ABC (N+2) → subfolder XYZ (N+1)</div><div class="sh-s">Deep folder move edge case</div></div></div>
+  <div class="ag">
+    <div class="an"><div class="an-h"><div class="an-n">A</div><div class="an-t">Method 1: Long press → Move</div></div><div class="an-b">Long press card → context menu → "Move to folder" → opens a <b>folder tree picker sheet</b>: full indented hierarchy, searchable by name. Tap any folder at any depth to move.</div><div class="an-w"><b>This handles all depths.</b> The flat chip row in the drag panel only shows recent/top-level folders. Deep moves use the tree picker.</div></div>
+    <div class="an"><div class="an-h"><div class="an-n">B</div><div class="an-t">Method 2: Drag + "Browse all"</div></div><div class="an-b">During drag, the folder panel chip grid shows recent + top-level folders. A "Browse all →" link at the end opens the full tree picker without cancelling the drag.</div></div>
+    <div class="an"><div class="an-h"><div class="an-n">C</div><div class="an-t">Folder tree picker</div></div><div class="an-b">Separate modal/sheet. Shows folder hierarchy indented by depth. Search bar at top. Currently selected folder highlighted. Tap to confirm move. Back arrow to cancel.</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     HOME FEED
+══════════════════════════════════════════════ -->
+<div class="panel" id="tab-home">
+  <div class="sh" style="margin-top:0;"><div class="sh-n">📱</div><div><div class="sh-t">Home Feed</div><div class="sh-s">Flat icons · Floating FAB · Groups + Friends in strip · Folder collage tiles visible in Mine view</div></div></div>
+  <div class="pr">
+
+    <!-- ALL default -->
+    <div class="pw">
+      <div class="pl">All — Default</div>
+      <div class="phone">
+        <div class="notch"><div class="ns"></div><div class="nc"></div></div>
+        <div class="tb">
+          <div class="tb-logo">liked<span>.</span></div>
+          <div class="tb-r">
+            <div class="ib"><svg class="si ic16"><use href="#ic-sliders"/></svg></div>
+            <div class="ib"><svg class="si ic16"><use href="#ic-bell"/></svg><div class="bd">2</div></div>
+            <div class="uav">JS</div>
+          </div>
+        </div>
+        <div class="ft">
+          <div class="ft-t all">All</div>
+          <div class="ft-t">Mine</div>
+          <div class="ft-t">Received</div>
+        </div>
+        <div class="sr">
+          <div class="sb"><svg class="si ic14"><use href="#ic-sort"/></svg> Newest</div>
+          <div class="vi">
+            <div class="vb on"><svg class="si ic14"><use href="#ic-grid"/></svg></div>
+            <div class="vb"><svg class="si ic14"><use href="#ic-cols"/></svg></div>
+            <div class="vb"><svg class="si ic14"><use href="#ic-list"/></svg></div>
+            <div class="vb"><svg class="si ic14"><use href="#ic-rows"/></svg></div>
+            <div class="vb"><svg class="si ic14"><use href="#ic-canvas"/></svg></div>
+          </div>
+        </div>
+        <div class="feed">
+          <div class="g5">
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#1c2040,#4a2060)"></div><div class="dd r"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#2d4a1c,#1c3a2d)"></div><div class="dd m"></div><div class="sent"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#4a2020,#3d1060)"></div><div class="dd r"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#1c3a4a,#0d2a3d)"></div><div class="dd r"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#3d3010,#4a2510)"></div><div class="dd m"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#102040,#1c1040)"></div><div class="dd r"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#402010,#4a1520)"></div><div class="dd m"></div><div class="sent"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#0d3030,#1c4a2d)"></div><div class="dd r"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#2d1040,#3d2060)"></div><div class="dd r"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#3a2010,#4a3010)"></div><div class="dd m"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#1a3a20,#0d2a1c)"></div><div class="dd r"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#3a0d20,#601040)"></div><div class="dd m"></div><div class="sent"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#1c2a40,#2d1a60)"></div><div class="dd r"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#3d2a10,#4a3a15)"></div><div class="dd r"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#102030,#1c3040)"></div><div class="dd m"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#401020,#3d0d30)"></div><div class="dd r"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#1a4020,#0d3010)"></div><div class="dd m"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#401a10,#601520)"></div><div class="dd r"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#1c1040,#2d1560)"></div><div class="dd r"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#2a3a10,#3a4a15)"></div><div class="dd m"></div><div class="sent"></div></div>
+          </div>
+        </div>
+        <!-- BOTTOM: floating FAB + friends/groups strip -->
+        <div class="ba">
+          <div class="fab"><svg class="si ic18"><use href="#ic-plus"/></svg></div>
+          <div class="expand-handle"><svg class="si ic14"><use href="#ic-chevu"/></svg></div>
+          <div class="fs">
+            <!-- me -->
+            <div class="fi"><div class="fav" style="background:linear-gradient(135deg,#f5a623,#ff6b6b);">JS</div><div class="fn">Me</div></div>
+            <!-- friends with new ring -->
+            <div class="fi"><div class="fav nr" style="background:linear-gradient(135deg,#4a9fd5,#1c6fa0);">A<div class="nd"></div></div><div class="fn">Alice</div></div>
+            <div class="fi"><div class="fav nr" style="background:linear-gradient(135deg,#d54a9f,#a01c6f);">B<div class="nd"></div></div><div class="fn">Bob</div></div>
+            <!-- group — rounded square -->
+            <div class="gi"><div class="gav" style="background:linear-gradient(135deg,#3a5cd5,#1c3aa0);">M<div class="gm-stack"><div class="gm-s" style="background:#4a9fd5;">A</div><div class="gm-s" style="background:#d54a9f;">B</div><div class="gm-s" style="background:#4ad58a;">C</div></div></div><div class="fn">Music</div></div>
+            <!-- more friends -->
+            <div class="fi"><div class="fav" style="background:linear-gradient(135deg,#4ad58a,#1ca06f);">C</div><div class="fn">Chiara</div></div>
+            <!-- another group -->
+            <div class="gi"><div class="gav" style="background:linear-gradient(135deg,#c43a5a,#8a1c3a);">T<div class="gm-stack"><div class="gm-s" style="background:#d5a44a;">D</div><div class="gm-s" style="background:#7b3ad5;">E</div></div></div><div class="fn">Tech</div></div>
+            <div class="fi"><div class="fav" style="background:linear-gradient(135deg,#d5a44a,#a07a1c);">D</div><div class="fn">Diego</div></div>
+            <div class="fi"><div class="fav" style="background:linear-gradient(135deg,#7b3ad5,#4a1ca0);">E</div><div class="fn">Elena</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MINE with filter active -->
+    <div class="pw">
+      <div class="pl">Mine + filter active</div>
+      <div class="phone">
+        <div class="notch"><div class="ns"></div><div class="nc"></div></div>
+        <div class="tb">
+          <div class="tb-logo">liked<span>.</span></div>
+          <div class="tb-r">
+            <div class="ib filt-on"><svg class="si ic16"><use href="#ic-sliders"/></svg><div class="bd" style="background:var(--accent);color:#000;">1</div></div>
+            <div class="ib"><svg class="si ic16"><use href="#ic-bell"/></svg></div>
+            <div class="uav">JS</div>
+          </div>
+        </div>
+        <div class="ft">
+          <div class="ft-t">All</div>
+          <div class="ft-t mine">Mine</div>
+          <div class="ft-t">Received</div>
+        </div>
+        <div class="ctx">
+          <div class="cp" style="background:rgba(96,197,241,.12);color:var(--blue);">
+            <div style="width:13px;height:13px;border-radius:50%;background:linear-gradient(135deg,#4a9fd5,#1c6fa0);font-size:7px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">A</div>
+            Alice <span class="cx"><svg class="si ic14"><use href="#ic-x"/></svg></span>
+          </div>
+          <div class="cp" style="color:var(--red);font-size:9px;cursor:pointer;">Clear all</div>
+        </div>
+        <div class="sr">
+          <div class="sb"><svg class="si ic14"><use href="#ic-sort"/></svg> Newest</div>
+          <div class="vi">
+            <div class="vb on"><svg class="si ic14"><use href="#ic-grid"/></svg></div>
+            <div class="vb"><svg class="si ic14"><use href="#ic-cols"/></svg></div>
+            <div class="vb"><svg class="si ic14"><use href="#ic-list"/></svg></div>
+            <div class="vb"><svg class="si ic14"><use href="#ic-rows"/></svg></div>
+            <div class="vb"><svg class="si ic14"><use href="#ic-canvas"/></svg></div>
+          </div>
+        </div>
+        <div class="feed">
+          <div class="g5">
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#2d4a1c,#1c3a2d)"></div><div class="dd m"></div><div class="sent"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#3d3010,#4a2510)"></div><div class="dd m"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#402010,#4a1520)"></div><div class="dd m"></div><div class="sent"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#3a2010,#4a3010)"></div><div class="dd m"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#3a0d20,#601040)"></div><div class="dd m"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#102030,#1c3040)"></div><div class="dd m"></div></div>
+          </div>
+        </div>
+        <div class="ba">
+          <div class="fab"><svg class="si ic18"><use href="#ic-plus"/></svg></div>
+          <div class="expand-handle"><svg class="si ic14"><use href="#ic-chevu"/></svg></div>
+          <div class="fs">
+            <div class="fi"><div class="fav" style="background:linear-gradient(135deg,#f5a623,#ff6b6b);">JS</div><div class="fn">Me</div></div>
+            <div class="fi"><div class="fav fon" style="background:linear-gradient(135deg,#4a9fd5,#1c6fa0);">A</div><div class="fn" style="color:var(--blue);font-weight:700;">Alice</div></div>
+            <div class="fi"><div class="fav" style="background:linear-gradient(135deg,#d54a9f,#a01c6f);">B</div><div class="fn">Bob</div></div>
+            <div class="gi"><div class="gav" style="background:linear-gradient(135deg,#3a5cd5,#1c3aa0);">M<div class="gm-stack"><div class="gm-s" style="background:#4a9fd5;">A</div><div class="gm-s" style="background:#d54a9f;">B</div></div></div><div class="fn">Music</div></div>
+            <div class="fi"><div class="fav" style="background:linear-gradient(135deg,#4ad58a,#1ca06f);">C</div><div class="fn">Chiara</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RECEIVED masonry -->
+    <div class="pw">
+      <div class="pl">Received — Masonry</div>
+      <div class="phone">
+        <div class="notch"><div class="ns"></div><div class="nc"></div></div>
+        <div class="tb">
+          <div class="tb-logo">liked<span>.</span></div>
+          <div class="tb-r">
+            <div class="ib"><svg class="si ic16"><use href="#ic-sliders"/></svg></div>
+            <div class="ib"><svg class="si ic16"><use href="#ic-bell"/></svg></div>
+            <div class="uav">JS</div>
+          </div>
+        </div>
+        <div class="ft">
+          <div class="ft-t">All</div>
+          <div class="ft-t">Mine</div>
+          <div class="ft-t recv">Received</div>
+        </div>
+        <div class="sr">
+          <div class="sb"><svg class="si ic14"><use href="#ic-sort"/></svg> Newest</div>
+          <div class="vi">
+            <div class="vb"><svg class="si ic14"><use href="#ic-grid"/></svg></div>
+            <div class="vb on"><svg class="si ic14"><use href="#ic-cols"/></svg></div>
+            <div class="vb"><svg class="si ic14"><use href="#ic-list"/></svg></div>
+            <div class="vb"><svg class="si ic14"><use href="#ic-rows"/></svg></div>
+            <div class="vb"><svg class="si ic14"><use href="#ic-canvas"/></svg></div>
+          </div>
+        </div>
+        <div class="feed">
+          <div class="mas">
+            <div class="mc"><div class="mc-i" style="height:80px;background:linear-gradient(135deg,#1c2040,#4a2060);"></div><div class="mc-m"><div class="mc-t">Morning routine triggers</div><div class="mc-tags"><span class="mc-tag" style="background:#e05c3a">Prod</span></div></div></div>
+            <div class="mc"><div class="mc-i" style="height:58px;background:linear-gradient(135deg,#0d3030,#1c4a2d);"></div><div class="mc-m"><div class="mc-t">In Rainbows</div><div class="mc-tags"><span class="mc-tag" style="background:#3a7bd5">Music</span></div></div></div>
+            <div class="mc"><div class="mc-i" style="height:96px;background:linear-gradient(135deg,#3d2a10,#4a3a15);"></div><div class="mc-m"><div class="mc-t">Japanese jazz history</div><div class="mc-tags"><span class="mc-tag" style="background:#3a7bd5">Music</span></div></div></div>
+            <div class="mc"><div class="mc-i" style="height:68px;background:linear-gradient(135deg,#102040,#1c1040);"></div><div class="mc-m"><div class="mc-t">BTFD investing</div><div class="mc-tags"><span class="mc-tag" style="background:#2a8a4a">Finance</span></div></div></div>
+            <div class="mc"><div class="mc-i" style="height:76px;background:linear-gradient(135deg,#3a0d20,#601040);"></div><div class="mc-m"><div class="mc-t">Past Lives</div><div class="mc-tags"><span class="mc-tag" style="background:#c43a5a">Film</span></div></div></div>
+            <div class="mc"><div class="mc-i" style="height:52px;background:linear-gradient(135deg,#1a4020,#0d3010);"></div><div class="mc-m"><div class="mc-t">Fermented foods</div><div class="mc-tags"><span class="mc-tag" style="background:#7a9a2a">Health</span></div></div></div>
+          </div>
+        </div>
+        <div class="ba">
+          <div class="fab"><svg class="si ic18"><use href="#ic-plus"/></svg></div>
+          <div class="expand-handle"><svg class="si ic14"><use href="#ic-chevu"/></svg></div>
+          <div class="fs">
+            <div class="fi"><div class="fav" style="background:linear-gradient(135deg,#f5a623,#ff6b6b);">JS</div><div class="fn">Me</div></div>
+            <div class="fi"><div class="fav nr" style="background:linear-gradient(135deg,#4a9fd5,#1c6fa0);">A<div class="nd"></div></div><div class="fn">Alice</div></div>
+            <div class="gi"><div class="gav" style="background:linear-gradient(135deg,#3a5cd5,#1c3aa0);">M<div class="gm-stack"><div class="gm-s" style="background:#4a9fd5;">A</div><div class="gm-s" style="background:#d54a9f;">B</div></div></div><div class="fn">Music</div></div>
+            <div class="fi"><div class="fav" style="background:linear-gradient(135deg,#d54a9f,#a01c6f);">B</div><div class="fn">Bob</div></div>
+            <div class="fi"><div class="fav" style="background:linear-gradient(135deg,#4ad58a,#1ca06f);">C</div><div class="fn">Chiara</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     FOLDERS
+══════════════════════════════════════════════ -->
+<div class="panel" id="tab-fold">
+  <div class="sh" style="margin-top:0;"><div class="sh-n">📁</div><div><div class="sh-t">Folder View — Collage Tiles</div><div class="sh-s">Sub-folders shown as 2×2 thumbnail collages · Breadcrumb navigation</div></div></div>
+  <div class="pr">
+
+    <div class="pw">
+      <div class="pl">Top-level Folder</div>
+      <div class="phone">
+        <div class="notch"><div class="ns"></div><div class="nc"></div></div>
+        <div class="tb">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="width:9px;height:9px;border-radius:2px;background:#e05c3a;flex-shrink:0;"></div>
+            <span style="font-family:'Fraunces',serif;font-size:17px;font-weight:700;">Favorites</span>
+          </div>
+          <div class="tb-r">
+            <div class="ib"><svg class="si ic16"><use href="#ic-sliders"/></svg></div>
+            <div class="ib" style="font-size:16px; font-weight:500; color:var(--text2); background:transparent;">⋯</div>
+          </div>
+        </div>
+        <div class="bc">
+          <div class="bc-back"><svg class="si ic14"><use href="#ic-chevl"/></svg></div>
+          <span style="color:var(--text3);">Feed</span>
+          <span class="bc-sep">›</span>
+          <span class="bc-cur">Favorites</span>
+        </div>
+        <div class="sr">
+          <div class="sb"><svg class="si ic14"><use href="#ic-sort"/></svg> Newest</div>
+          <div class="vi">
+            <div class="vb on"><svg class="si ic14"><use href="#ic-grid"/></svg></div>
+            <div class="vb"><svg class="si ic14"><use href="#ic-cols"/></svg></div>
+            <div class="vb"><svg class="si ic14"><use href="#ic-list"/></svg></div>
+            <div class="vb"><svg class="si ic14"><use href="#ic-rows"/></svg></div>
+            <div class="vb"><svg class="si ic14"><use href="#ic-canvas"/></svg></div>
+          </div>
+        </div>
+        <div class="feed">
+          <div class="g5">
+            <!-- sub-folder tile: Summer 2025 -->
+            <div class="ft-tile">
+              <div class="ft-grid">
+                <div style="background:linear-gradient(135deg,#1c4a4a,#0d2a2d);"></div>
+                <div style="background:linear-gradient(135deg,#4a3010,#3a2010);"></div>
+                <div style="background:linear-gradient(135deg,#1c2040,#2d1060);"></div>
+                <div style="background:linear-gradient(135deg,#2a4a1c,#1a3010);"></div>
+              </div>
+              <div class="ft-dot" style="background:#3a7bd5;"></div>
+              <div class="ft-overlay"><div class="ft-name">Summer 25</div></div>
+            </div>
+            <!-- sub-folder tile: Tokyo -->
+            <div class="ft-tile">
+              <div class="ft-grid">
+                <div style="background:linear-gradient(135deg,#3a0d20,#601040);"></div>
+                <div style="background:linear-gradient(135deg,#102040,#1c1040);"></div>
+                <div style="background:linear-gradient(135deg,#1a4020,#0d3010);"></div>
+                <div style="background:linear-gradient(135deg,#2d1040,#3d2060);"></div>
+              </div>
+              <div class="ft-dot" style="background:#7b3ad5;"></div>
+              <div class="ft-overlay"><div class="ft-name">Tokyo Trip</div></div>
+            </div>
+            <!-- regular cards -->
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#1c2040,#4a2060)"></div><div class="dd m"></div><div class="sent"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#2d4a1c,#1c3a2d)"></div><div class="dd r"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#3d3010,#4a2510)"></div><div class="dd m"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#1c3a4a,#0d2a3d)"></div><div class="dd r"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#402010,#4a1520)"></div><div class="dd m"></div><div class="sent"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#0d3030,#1c4a2d)"></div><div class="dd r"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#2d1040,#3d2060)"></div><div class="dd m"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#3a2010,#4a3010)"></div><div class="dd r"></div></div>
+          </div>
+        </div>
+        <div class="ba">
+          <div class="fab"><svg class="si ic18"><use href="#ic-plus"/></svg></div>
+          <div class="expand-handle"><svg class="si ic14"><use href="#ic-chevu"/></svg></div>
+          <div class="fs">
+            <div class="fi"><div class="fav" style="background:linear-gradient(135deg,#f5a623,#ff6b6b);">JS</div><div class="fn">Me</div></div>
+            <div class="fi"><div class="fav" style="background:linear-gradient(135deg,#4a9fd5,#1c6fa0);">A</div><div class="fn">Alice</div></div>
+            <div class="gi"><div class="gav" style="background:linear-gradient(135deg,#3a5cd5,#1c3aa0);">M<div class="gm-stack"><div class="gm-s" style="background:#4a9fd5;">A</div><div class="gm-s" style="background:#d54a9f;">B</div></div></div><div class="fn">Music</div></div>
+            <div class="fi"><div class="fav" style="background:linear-gradient(135deg,#4ad58a,#1ca06f);">C</div><div class="fn">Chiara</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pw">
+      <div class="pl">Nested Subfolder</div>
+      <div class="phone">
+        <div class="notch"><div class="ns"></div><div class="nc"></div></div>
+        <div class="tb">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="width:9px;height:9px;border-radius:2px;background:#3a7bd5;flex-shrink:0;"></div>
+            <span style="font-family:'Fraunces',serif;font-size:17px;font-weight:700;">Summer 2025</span>
+          </div>
+          <div class="tb-r">
+            <div class="ib" style="font-size:16px;font-weight:500;color:var(--text2);background:transparent;">⋯</div>
+          </div>
+        </div>
+        <div class="bc">
+          <div class="bc-back"><svg class="si ic14"><use href="#ic-chevl"/></svg></div>
+          <span style="color:var(--text3);">Feed</span>
+          <span class="bc-sep">›</span>
+          <span style="color:var(--text2);">Favorites</span>
+          <span class="bc-sep">›</span>
+          <span class="bc-cur">Summer 2025</span>
+        </div>
+        <div class="sr">
+          <div class="sb"><svg class="si ic14"><use href="#ic-sort"/></svg> Newest</div>
+          <div class="vi">
+            <div class="vb"><svg class="si ic14"><use href="#ic-grid"/></svg></div>
+            <div class="vb on"><svg class="si ic14"><use href="#ic-cols"/></svg></div>
+            <div class="vb"><svg class="si ic14"><use href="#ic-list"/></svg></div>
+            <div class="vb"><svg class="si ic14"><use href="#ic-rows"/></svg></div>
+            <div class="vb"><svg class="si ic14"><use href="#ic-canvas"/></svg></div>
+          </div>
+        </div>
+        <div class="feed">
+          <div class="mas">
+            <div class="mc"><div class="mc-i" style="height:78px;background:linear-gradient(135deg,#1c2040,#4a2060);"></div><div class="mc-m"><div class="mc-t">Amalfi restaurants</div><div class="mc-tags"><span class="mc-tag" style="background:#e05c3a">Food</span></div></div></div>
+            <div class="mc"><div class="mc-i" style="height:58px;background:linear-gradient(135deg,#0d3030,#1c4a2d);"></div><div class="mc-m"><div class="mc-t">Best beaches</div><div class="mc-tags"><span class="mc-tag" style="background:#3a7bd5">Travel</span></div></div></div>
+            <div class="mc"><div class="mc-i" style="height:92px;background:linear-gradient(135deg,#3d2a10,#4a3a15);"></div><div class="mc-m"><div class="mc-t">Hotel Marincanto</div><div class="mc-tags"><span class="mc-tag" style="background:#7b3ad5">Hotels</span></div></div></div>
+            <div class="mc"><div class="mc-i" style="height:62px;background:linear-gradient(135deg,#102040,#1c1040);"></div><div class="mc-m"><div class="mc-t">Rome → Naples</div><div class="mc-tags"><span class="mc-tag" style="background:#2a8a4a">Transport</span></div></div></div>
+          </div>
+        </div>
+        <div class="ba">
+          <div class="fab"><svg class="si ic18"><use href="#ic-plus"/></svg></div>
+          <div class="expand-handle"><svg class="si ic14"><use href="#ic-chevu"/></svg></div>
+          <div class="fs">
+            <div class="fi"><div class="fav" style="background:linear-gradient(135deg,#f5a623,#ff6b6b);">JS</div><div class="fn">Me</div></div>
+            <div class="fi"><div class="fav" style="background:linear-gradient(135deg,#4a9fd5,#1c6fa0);">A</div><div class="fn">Alice</div></div>
+            <div class="fi"><div class="fav" style="background:linear-gradient(135deg,#4ad58a,#1ca06f);">C</div><div class="fn">Chiara</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     DRAG · FRIENDS
+══════════════════════════════════════════════ -->
+<div class="panel" id="tab-drag-f">
+  <div class="sh" style="margin-top:0;"><div class="sh-n">✋</div><div><div class="sh-t">Drag to Share — Friends &amp; Groups</div><div class="sh-s">Search · multi-select friends and groups · confirm</div></div></div>
+  <div class="pr">
+
+    <!-- state 1: panel open, no selection -->
+    <div class="pw">
+      <div class="pl">Panel open, no selection</div>
+      <div class="phone">
+        <div class="notch"><div class="ns"></div><div class="nc"></div></div>
+        <div class="tb">
+          <div class="tb-logo">liked<span>.</span></div>
+          <div class="tb-r"><div class="ib"><svg class="si ic16"><use href="#ic-bell"/></svg></div><div class="uav">JS</div></div>
+        </div>
+        <div class="ft"><div class="ft-t all">All</div><div class="ft-t">Mine</div><div class="ft-t">Received</div></div>
+        <!-- dimmed feed + floating card -->
+        <div class="feed" style="position:relative;">
+          <div class="g5" style="opacity:.3;">
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#1c2040,#4a2060)"></div></div>
+            <div class="ci" style="opacity:.1;"><div class="cb" style="background:linear-gradient(135deg,#2d4a1c,#1c3a2d)"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#4a2020,#3d1060)"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#1c3a4a,#0d2a3d)"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#3d3010,#4a2510)"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#102040,#1c1040)"></div></div>
+          </div>
+          <div style="position:absolute;top:18px;left:55px;width:52px;height:52px;border-radius:8px;background:linear-gradient(135deg,#2d4a1c,#1c3a2d);border:2px solid var(--accent);box-shadow:0 10px 28px rgba(0,0,0,.6);transform:rotate(5deg) scale(1.1);z-index:10;"></div>
+        </div>
+        <!-- drag panel: friends -->
+        <div class="ep">
+          <div class="ep-drag"></div>
+          <div class="ep-hdr"><div class="ep-title">Share with</div><div class="ep-close"><svg class="si ic14"><use href="#ic-x"/></svg></div></div>
+          <div class="ps"><svg class="si ic14"><use href="#ic-search"/></svg><div class="ps-txt">Search friends or groups...</div></div>
+          <div class="plbl">Friends</div>
+          <div class="sg">
+            <div class="sgi"><div class="sga" style="background:linear-gradient(135deg,#4a9fd5,#1c6fa0);">A</div><div class="sgn">Alice</div></div>
+            <div class="sgi"><div class="sga" style="background:linear-gradient(135deg,#d54a9f,#a01c6f);">B</div><div class="sgn">Bob</div></div>
+            <div class="sgi"><div class="sga" style="background:linear-gradient(135deg,#4ad58a,#1ca06f);">C</div><div class="sgn">Chiara</div></div>
+            <div class="sgi"><div class="sga" style="background:linear-gradient(135deg,#d5a44a,#a07a1c);">D</div><div class="sgn">Diego</div></div>
+            <div class="sgi"><div class="sga" style="background:linear-gradient(135deg,#7b3ad5,#4a1ca0);">E</div><div class="sgn">Elena</div></div>
+            <div class="sgi"><div class="sga" style="background:linear-gradient(135deg,#d53a3a,#a01c1c);">F</div><div class="sgn">Fabio</div></div>
+            <div class="sgi"><div class="sga" style="background:linear-gradient(135deg,#3ad5c5,#1c9fa0);">G</div><div class="sgn">Giulia</div></div>
+            <div class="sgi"><div class="sga" style="background:linear-gradient(135deg,#a0d53a,#6fa01c);">H</div><div class="sgn">Hugo</div></div>
+            <div class="sgi"><div class="sga" style="background:linear-gradient(135deg,#d5953a,#a06a1c);">I</div><div class="sgn">Iris</div></div>
+            <div class="sgi"><div class="sga" style="background:linear-gradient(135deg,#3a50d5,#1c30a0);">J</div><div class="sgn">Jean</div></div>
+          </div>
+          <div class="psep"></div>
+          <div class="plbl">Groups</div>
+          <div class="sg">
+            <div class="sgi"><div class="sgg" style="background:linear-gradient(135deg,#3a5cd5,#1c3aa0);">M</div><div class="sgn">Music</div></div>
+            <div class="sgi"><div class="sgg" style="background:linear-gradient(135deg,#c43a5a,#8a1c3a);">T</div><div class="sgn">Tech</div></div>
+            <div class="sgi"><div class="sgg" style="background:linear-gradient(135deg,#2a8a4a,#1a5a30);">H</div><div class="sgn">Health</div></div>
+          </div>
+          <div class="btn-confirm off">Select to share</div>
+          <div class="cancel-hint">Release anywhere else to cancel</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- state 2: searched + 3 selected -->
+    <div class="pw">
+      <div class="pl">Searched "al" · 3 selected</div>
+      <div class="phone">
+        <div class="notch"><div class="ns"></div><div class="nc"></div></div>
+        <div class="tb">
+          <div class="tb-logo">liked<span>.</span></div>
+          <div class="tb-r"><div class="ib"><svg class="si ic16"><use href="#ic-bell"/></svg></div><div class="uav">JS</div></div>
+        </div>
+        <div class="ft"><div class="ft-t all">All</div><div class="ft-t">Mine</div><div class="ft-t">Received</div></div>
+        <div class="feed" style="position:relative;">
+          <div class="g5" style="opacity:.25;">
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#1c2040,#4a2060)"></div></div>
+            <div class="ci" style="opacity:.1;"><div class="cb" style="background:linear-gradient(135deg,#2d4a1c,#1c3a2d)"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#4a2020,#3d1060)"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#1c3a4a,#0d2a3d)"></div></div>
+          </div>
+          <div style="position:absolute;top:18px;left:55px;width:52px;height:52px;border-radius:8px;background:linear-gradient(135deg,#2d4a1c,#1c3a2d);border:2px solid var(--accent);box-shadow:0 10px 28px rgba(0,0,0,.6);transform:rotate(5deg) scale(1.1);z-index:10;"></div>
+        </div>
+        <div class="ep">
+          <div class="ep-drag"></div>
+          <div class="ep-hdr"><div class="ep-title">Share with</div><div class="ep-close"><svg class="si ic14"><use href="#ic-x"/></svg></div></div>
+          <!-- search with query -->
+          <div class="ps" style="border-color:rgba(245,166,35,.35);">
+            <svg class="si ic14"><use href="#ic-search"/></svg>
+            <div class="ps-val">al</div>
+            <svg class="si ic14" style="color:var(--text3);cursor:pointer;"><use href="#ic-x"/></svg>
+          </div>
+          <div style="padding:0 13px;margin-bottom:6px;font-size:9px;color:var(--text3);">Results for "al" · <span style="color:var(--accent);font-weight:700;">3 selected</span></div>
+          <!-- only match + pinned selected -->
+          <div class="sg">
+            <div class="sgi"><div class="sga on" style="background:linear-gradient(135deg,#4a9fd5,#1c6fa0);">A</div><div class="sgn" style="color:var(--accent);font-weight:700;">Alice</div></div>
+            <div class="sgi"><div class="sga on" style="background:linear-gradient(135deg,#4ad58a,#1ca06f);">C</div><div class="sgn" style="color:var(--accent);font-weight:700;">Chiara</div></div>
+            <div class="sgi"><div class="sga on" style="background:linear-gradient(135deg,#3a5cd5,#1c3aa0);border-radius:8px;">M</div><div class="sgn" style="color:var(--accent);font-weight:700;">Music</div></div>
+          </div>
+          <div class="btn-confirm">Share with 3 →</div>
+          <div class="cancel-hint">Release anywhere else to cancel</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     DRAG · FOLDERS
+══════════════════════════════════════════════ -->
+<div class="panel" id="tab-drag-d">
+  <div class="sh" style="margin-top:0;"><div class="sh-n">📂</div><div><div class="sh-t">Drag to Move — Folder Search &amp; Multi-select</div><div class="sh-s">Same UX as friends panel · Search folders · Multi-select · Confirm · Not exclusive with sharing</div></div></div>
+  <div class="pr">
+
+    <!-- folder panel, no selection -->
+    <div class="pw">
+      <div class="pl">Folder panel — no selection</div>
+      <div class="phone">
+        <div class="notch"><div class="ns"></div><div class="nc"></div></div>
+        <div class="tb">
+          <div class="tb-logo">liked<span>.</span></div>
+          <div class="tb-r"><div class="ib"><svg class="si ic16"><use href="#ic-bell"/></svg></div><div class="uav">JS</div></div>
+        </div>
+        <div class="ft"><div class="ft-t all">All</div><div class="ft-t">Mine</div><div class="ft-t">Received</div></div>
+        <div class="feed" style="position:relative;">
+          <div class="g5" style="opacity:.3;">
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#1c2040,#4a2060)"></div></div>
+            <div class="ci" style="opacity:.1;"><div class="cb" style="background:linear-gradient(135deg,#2d4a1c,#1c3a2d)"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#4a2020,#3d1060)"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#1c3a4a,#0d2a3d)"></div></div>
+          </div>
+          <div style="position:absolute;top:18px;left:55px;width:52px;height:52px;border-radius:8px;background:linear-gradient(135deg,#2d4a1c,#1c3a2d);border:2px solid var(--accent);box-shadow:0 10px 28px rgba(0,0,0,.6);transform:rotate(5deg) scale(1.1);z-index:10;"></div>
+        </div>
+        <div class="ep">
+          <div class="ep-drag"></div>
+          <div class="ep-hdr"><div class="ep-title">Move to folder</div><div class="ep-close"><svg class="si ic14"><use href="#ic-x"/></svg></div></div>
+          <div class="ps"><svg class="si ic14"><use href="#ic-search"/></svg><div class="ps-txt">Search folders...</div></div>
+          <div class="plbl">All folders</div>
+          <!-- folder grid: collage tiles, 4-per-row -->
+          <div class="sfg">
+            <!-- Favorites -->
+            <div class="sfgi">
+              <div class="sfga">
+                <div class="sfga-grid">
+                  <div style="background:linear-gradient(135deg,#1c2040,#4a2060);"></div>
+                  <div style="background:linear-gradient(135deg,#2d4a1c,#1c3a2d);"></div>
+                  <div style="background:linear-gradient(135deg,#4a2020,#3d1060);"></div>
+                  <div style="background:linear-gradient(135deg,#1c3a4a,#0d2a3d);"></div>
+                </div>
+                <div class="sfga-dot" style="background:#e05c3a;"></div>
+              </div>
+              <div class="sfgn">Favorites</div>
+            </div>
+            <!-- Watch Later -->
+            <div class="sfgi">
+              <div class="sfga">
+                <div class="sfga-grid">
+                  <div style="background:linear-gradient(135deg,#3d2a10,#4a3a15);"></div>
+                  <div style="background:linear-gradient(135deg,#102040,#1c1040);"></div>
+                  <div style="background:linear-gradient(135deg,#3a0d20,#601040);"></div>
+                  <div style="background:linear-gradient(135deg,#1a4020,#0d3010);"></div>
+                </div>
+                <div class="sfga-dot" style="background:#3a7bd5;"></div>
+              </div>
+              <div class="sfgn">Watch Later</div>
+            </div>
+            <!-- Research -->
+            <div class="sfgi">
+              <div class="sfga">
+                <div class="sfga-grid">
+                  <div style="background:linear-gradient(135deg,#2d1040,#3d2060);"></div>
+                  <div style="background:linear-gradient(135deg,#402010,#4a1520);"></div>
+                  <div style="background:linear-gradient(135deg,#1c1040,#2d1560);"></div>
+                  <div style="background:linear-gradient(135deg,#2a3a10,#3a4a15);"></div>
+                </div>
+                <div class="sfga-dot" style="background:#7b3ad5;"></div>
+              </div>
+              <div class="sfgn">Research</div>
+            </div>
+            <!-- Summer 25 -->
+            <div class="sfgi">
+              <div class="sfga">
+                <div class="sfga-grid">
+                  <div style="background:linear-gradient(135deg,#1c4a4a,#0d2a2d);"></div>
+                  <div style="background:linear-gradient(135deg,#4a3010,#3a2010);"></div>
+                  <div style="background:linear-gradient(135deg,#1c2040,#2d1060);"></div>
+                  <div style="background:linear-gradient(135deg,#2a4a1c,#1a3010);"></div>
+                </div>
+                <div class="sfga-dot" style="background:#3a7bd5;"></div>
+              </div>
+              <div class="sfgn">Summer 25</div>
+            </div>
+            <!-- Tokyo Trip -->
+            <div class="sfgi">
+              <div class="sfga">
+                <div class="sfga-grid">
+                  <div style="background:linear-gradient(135deg,#3a0d20,#601040);"></div>
+                  <div style="background:linear-gradient(135deg,#102040,#1c1040);"></div>
+                  <div style="background:linear-gradient(135deg,#1a4020,#0d3010);"></div>
+                  <div style="background:linear-gradient(135deg,#2d1040,#3d2060);"></div>
+                </div>
+                <div class="sfga-dot" style="background:#7b3ad5;"></div>
+              </div>
+              <div class="sfgn">Tokyo Trip</div>
+            </div>
+            <!-- Browse all link -->
+            <div class="sfgi">
+              <div style="width:48px;height:40px;border-radius:8px;background:var(--bg4);display:flex;align-items:center;justify-content:center;color:var(--text3);">
+                <svg class="si ic18"><use href="#ic-chevd"/></svg>
+              </div>
+              <div class="sfgn" style="color:var(--accent);">All…</div>
+            </div>
+          </div>
+          <div class="btn-confirm off">Select folder to move</div>
+          <div class="cancel-hint">Release anywhere else to cancel</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- folder panel: searched + 2 selected -->
+    <div class="pw">
+      <div class="pl">Searched "fav" · 1 selected</div>
+      <div class="phone">
+        <div class="notch"><div class="ns"></div><div class="nc"></div></div>
+        <div class="tb">
+          <div class="tb-logo">liked<span>.</span></div>
+          <div class="tb-r"><div class="ib"><svg class="si ic16"><use href="#ic-bell"/></svg></div><div class="uav">JS</div></div>
+        </div>
+        <div class="ft"><div class="ft-t all">All</div><div class="ft-t">Mine</div><div class="ft-t">Received</div></div>
+        <div class="feed" style="position:relative;">
+          <div class="g5" style="opacity:.25;">
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#1c2040,#4a2060)"></div></div>
+            <div class="ci" style="opacity:.1;"><div class="cb" style="background:linear-gradient(135deg,#2d4a1c,#1c3a2d)"></div></div>
+          </div>
+          <div style="position:absolute;top:18px;left:55px;width:52px;height:52px;border-radius:8px;background:linear-gradient(135deg,#2d4a1c,#1c3a2d);border:2px solid var(--accent);box-shadow:0 10px 28px rgba(0,0,0,.6);transform:rotate(5deg) scale(1.1);z-index:10;"></div>
+        </div>
+        <div class="ep">
+          <div class="ep-drag"></div>
+          <div class="ep-hdr"><div class="ep-title">Move to folder</div><div class="ep-close"><svg class="si ic14"><use href="#ic-x"/></svg></div></div>
+          <div class="ps" style="border-color:rgba(245,166,35,.35);">
+            <svg class="si ic14"><use href="#ic-search"/></svg>
+            <div class="ps-val">fav</div>
+            <svg class="si ic14" style="color:var(--text3);cursor:pointer;"><use href="#ic-x"/></svg>
+          </div>
+          <div style="padding:0 13px;margin-bottom:6px;font-size:9px;color:var(--text3);">Results for "fav" · <span style="color:var(--accent);font-weight:700;">1 selected</span></div>
+          <div class="sfg">
+            <!-- Favorites — selected + match -->
+            <div class="sfgi">
+              <div class="sfga on">
+                <div class="sfga-grid">
+                  <div style="background:linear-gradient(135deg,#1c2040,#4a2060);"></div>
+                  <div style="background:linear-gradient(135deg,#2d4a1c,#1c3a2d);"></div>
+                  <div style="background:linear-gradient(135deg,#4a2020,#3d1060);"></div>
+                  <div style="background:linear-gradient(135deg,#1c3a4a,#0d2a3d);"></div>
+                </div>
+                <div class="sfga-dot" style="background:#e05c3a;"></div>
+              </div>
+              <div class="sfgn" style="color:var(--accent);font-weight:700;">Favorites</div>
+            </div>
+            <!-- sub-folder Summer 25 (child of Favorites) shown indented hint -->
+            <div class="sfgi" style="opacity:.7;">
+              <div class="sfga" style="border-color:transparent;">
+                <div class="sfga-grid">
+                  <div style="background:linear-gradient(135deg,#1c4a4a,#0d2a2d);"></div>
+                  <div style="background:linear-gradient(135deg,#4a3010,#3a2010);"></div>
+                  <div style="background:linear-gradient(135deg,#1c2040,#2d1060);"></div>
+                  <div style="background:linear-gradient(135deg,#2a4a1c,#1a3010);"></div>
+                </div>
+                <div class="sfga-dot" style="background:#3a7bd5;"></div>
+              </div>
+              <div class="sfgn" style="color:var(--text2);">↳ Summer</div>
+            </div>
+          </div>
+          <div class="btn-confirm">Move to Favorites →</div>
+          <div class="cancel-hint">Release anywhere else to cancel</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pw" style="flex:1;max-width:320px;">
+      <div class="pl">Notes</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:9px;">
+        <div class="an"><div class="an-h"><div class="an-n">1</div><div class="an-t">Symmetric UX with friends</div></div><div class="an-b">Search bar, collage thumbnail grid, multi-select with checkmark, confirm button — identical interaction pattern to the friends panel.</div></div>
+        <div class="an"><div class="an-h"><div class="an-n">2</div><div class="an-t">Collage identifies folder visually</div></div><div class="an-b">No folder name needed at a glance — the thumbnail collage is enough. Name confirms on tap. Color dot = folder color.</div></div>
+        <div class="an"><div class="an-h"><div class="an-n">3</div><div class="an-t">Search shows sub-folders indented</div></div><div class="an-b">When "Favorites" matches, its sub-folders appear below it with an indent arrow ↳. They're selectable as individual targets.</div></div>
+        <div class="an"><div class="an-h"><div class="an-n">4</div><div class="an-t">Not exclusive with sharing</div></div><div class="an-b">The full drag panel has both tabs: Share (friends/groups) and Move (folders). User can share to Alice AND move to Favorites in one gesture before confirming.</div></div>
+        <div class="an"><div class="an-h"><div class="an-n">5</div><div class="an-t">"All…" tile opens tree picker</div></div><div class="an-b">Last tile in folder grid. Tap → full folder hierarchy sheet (indented, searchable). Handles deep N+2 moves without losing drag state.</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     FRIENDS PANEL (expanded anytime)
+══════════════════════════════════════════════ -->
+<div class="panel" id="tab-panel">
+  <div class="sh" style="margin-top:0;"><div class="sh-n">👥</div><div><div class="sh-t">Friends Panel — Expand Anytime</div><div class="sh-s">Tap chevron above strip → full panel · Browse · Filter · Organise groups</div></div></div>
+  <div class="pr">
+
+    <!-- browse mode -->
+    <div class="pw">
+      <div class="pl">Browse &amp; Filter mode</div>
+      <div class="phone">
+        <div class="notch"><div class="ns"></div><div class="nc"></div></div>
+        <div class="tb">
+          <div class="tb-logo">liked<span>.</span></div>
+          <div class="tb-r"><div class="ib"><svg class="si ic16"><use href="#ic-sliders"/></svg></div><div class="ib"><svg class="si ic16"><use href="#ic-bell"/></svg></div><div class="uav">JS</div></div>
+        </div>
+        <div class="ft"><div class="ft-t all">All</div><div class="ft-t">Mine</div><div class="ft-t">Received</div></div>
+        <!-- Feed compressed behind -->
+        <div class="feed" style="opacity:.15;pointer-events:none;">
+          <div class="g5">
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#1c2040,#4a2060)"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#2d4a1c,#1c3a2d)"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#4a2020,#3d1060)"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#1c3a4a,#0d2a3d)"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#3d3010,#4a2510)"></div></div>
+          </div>
+        </div>
+        <!-- FULL PANEL -->
+        <div class="ep" style="flex:1;overflow:hidden;">
+          <div class="ep-drag"></div>
+          <div class="ep-hdr">
+            <div class="ep-title">Friends &amp; Groups</div>
+            <div style="display:flex;gap:6px;">
+              <div class="ep-close" style="width:auto;padding:0 8px;border-radius:8px;font-size:10px;font-weight:700;color:var(--accent);background:rgba(245,166,35,.1);">+ Invite</div>
+              <div class="ep-close"><svg class="si ic14"><use href="#ic-chevd"/></svg></div>
+            </div>
+          </div>
+          <div class="ps"><svg class="si ic14"><use href="#ic-search"/></svg><div class="ps-txt">Search friends or groups...</div></div>
+          <!-- friends list with activity -->
+          <div class="plbl">Friends (8)</div>
+          <div style="padding:0 13px;display:flex;flex-direction:column;gap:2px;overflow-y:auto;flex:1;">
+            <!-- friend row with activity -->
+            <div style="display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--border);">
+              <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#4a9fd5,#1c6fa0);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;outline:2px solid var(--accent);outline-offset:2px;flex-shrink:0;">A</div>
+              <div style="flex:1;">
+                <div style="font-size:12px;font-weight:600;color:var(--text);">Alice</div>
+                <div style="font-size:9px;color:var(--text3);">Shared 3 cards · 2h ago</div>
+              </div>
+              <div style="width:7px;height:7px;border-radius:50%;background:var(--accent);flex-shrink:0;"></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--border);">
+              <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#d54a9f,#a01c6f);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;outline:2px solid var(--accent);outline-offset:2px;flex-shrink:0;">B</div>
+              <div style="flex:1;"><div style="font-size:12px;font-weight:600;color:var(--text);">Bob</div><div style="font-size:9px;color:var(--text3);">Shared 1 card · 5h ago</div></div>
+              <div style="width:7px;height:7px;border-radius:50%;background:var(--accent);flex-shrink:0;"></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--border);">
+              <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#4ad58a,#1ca06f);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;">C</div>
+              <div style="flex:1;"><div style="font-size:12px;font-weight:600;color:var(--text);">Chiara</div><div style="font-size:9px;color:var(--text3);">Last activity · 2d ago</div></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--border);">
+              <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#d5a44a,#a07a1c);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;">D</div>
+              <div style="flex:1;"><div style="font-size:12px;font-weight:600;color:var(--text);">Diego</div><div style="font-size:9px;color:var(--text3);">Last activity · 4d ago</div></div>
+            </div>
+          </div>
+          <!-- groups section -->
+          <div class="psep"></div>
+          <div class="plbl">Groups</div>
+          <div style="padding:0 13px 10px;display:flex;flex-direction:column;gap:3px;">
+            <div style="display:flex;align-items:center;gap:9px;padding:6px 0;">
+              <div style="width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#3a5cd5,#1c3aa0);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;">M</div>
+              <div style="flex:1;"><div style="font-size:12px;font-weight:600;color:var(--text);">Music</div><div style="font-size:9px;color:var(--text3);">Alice, Bob, Chiara · 3 members</div></div>
+              <div style="font-size:10px;color:var(--text3);">›</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:9px;padding:6px 0;">
+              <div style="width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#c43a5a,#8a1c3a);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;">T</div>
+              <div style="flex:1;"><div style="font-size:12px;font-weight:600;color:var(--text);">Tech</div><div style="font-size:9px;color:var(--text3);">Diego, Elena · 2 members</div></div>
+              <div style="font-size:10px;color:var(--text3);">›</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- organise group mode -->
+    <div class="pw">
+      <div class="pl">Organise group (drag in/out)</div>
+      <div class="phone">
+        <div class="notch"><div class="ns"></div><div class="nc"></div></div>
+        <div class="tb">
+          <div style="font-family:'Fraunces',serif;font-size:17px;font-weight:700;display:flex;align-items:center;gap:7px;">
+            <div style="width:9px;height:9px;border-radius:2px;background:linear-gradient(135deg,#3a5cd5,#1c3aa0);"></div>
+            Music
+          </div>
+          <div class="tb-r">
+            <div class="ib"><svg class="si ic14"><use href="#ic-x"/></svg></div>
+          </div>
+        </div>
+        <div style="padding:8px 13px;font-size:10px;color:var(--text3);background:var(--bg2);flex-shrink:0;">Drag friends in or out of this group</div>
+        <!-- group members at top -->
+        <div style="background:var(--bg2);padding:8px 13px;flex-shrink:0;border-bottom:1px solid var(--border);">
+          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:7px;">Members (3)</div>
+          <div style="display:flex;gap:8px;">
+            <div class="sgi" style="position:relative;">
+              <div class="sga" style="background:linear-gradient(135deg,#4a9fd5,#1c6fa0);">A</div>
+              <div class="sgn">Alice</div>
+              <div style="position:absolute;top:-2px;right:4px;width:13px;height:13px;background:var(--red);border-radius:50%;border:1.5px solid var(--bg2);display:flex;align-items:center;justify-content:center;color:#fff;font-size:8px;cursor:pointer;">−</div>
+            </div>
+            <div class="sgi" style="position:relative;">
+              <div class="sga" style="background:linear-gradient(135deg,#d54a9f,#a01c6f);">B</div>
+              <div class="sgn">Bob</div>
+              <div style="position:absolute;top:-2px;right:4px;width:13px;height:13px;background:var(--red);border-radius:50%;border:1.5px solid var(--bg2);display:flex;align-items:center;justify-content:center;color:#fff;font-size:8px;cursor:pointer;">−</div>
+            </div>
+            <div class="sgi" style="position:relative;">
+              <div class="sga" style="background:linear-gradient(135deg,#4ad58a,#1ca06f);">C</div>
+              <div class="sgn">Chiara</div>
+              <div style="position:absolute;top:-2px;right:4px;width:13px;height:13px;background:var(--red);border-radius:50%;border:1.5px solid var(--bg2);display:flex;align-items:center;justify-content:center;color:#fff;font-size:8px;cursor:pointer;">−</div>
+            </div>
+          </div>
+        </div>
+        <!-- all friends: drag into group -->
+        <div style="flex:1;overflow-y:auto;padding:8px 13px;background:var(--bg);">
+          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:7px;">Add from friends</div>
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <div style="display:flex;align-items:center;gap:9px;padding:6px 8px;border-radius:8px;background:var(--bg3);opacity:.4;">
+              <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#4a9fd5,#1c6fa0);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;">A</div>
+              <div style="font-size:11px;color:var(--text2);">Alice</div>
+              <div style="margin-left:auto;font-size:9px;color:var(--text3);">already in</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:9px;padding:6px 8px;border-radius:8px;background:var(--bg3);">
+              <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#d5a44a,#a07a1c);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;">D</div>
+              <div style="font-size:11px;color:var(--text);">Diego</div>
+              <div style="margin-left:auto;width:22px;height:22px;background:rgba(245,166,35,.15);border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--accent);"><svg class="si ic14"><use href="#ic-plus"/></svg></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:9px;padding:6px 8px;border-radius:8px;background:var(--bg3);">
+              <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#7b3ad5,#4a1ca0);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;">E</div>
+              <div style="font-size:11px;color:var(--text);">Elena</div>
+              <div style="margin-left:auto;width:22px;height:22px;background:rgba(245,166,35,.15);border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--accent);"><svg class="si ic14"><use href="#ic-plus"/></svg></div>
+            </div>
+          </div>
+        </div>
+        <!-- done -->
+        <div style="padding:10px 13px 16px;background:var(--bg2);flex-shrink:0;">
+          <div class="btn-confirm">Save group</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SHEETS
+══════════════════════════════════════════════ -->
+<div class="panel" id="tab-sheets">
+  <div class="sh" style="margin-top:0;"><div class="sh-n">📄</div><div><div class="sh-t">Bottom Sheets</div><div class="sh-s">All rendered as flex children — no overflow</div></div></div>
+  <div class="pr">
+
+    <!-- ADD SHEET: single input, auto-detect, expanding textarea -->
+    <div class="pw">
+      <div class="pl">Add Card — URL detected</div>
+      <div class="phone">
+        <div class="notch"><div class="ns"></div><div class="nc"></div></div>
+        <div class="feed" style="opacity:.18;pointer-events:none;flex:0 0 80px;">
+          <div class="g5">
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#1c2040,#4a2060)"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#2d4a1c,#1c3a2d)"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#4a2020,#3d1060)"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#1c3a4a,#0d2a3d)"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#3d3010,#4a2510)"></div></div>
+          </div>
+        </div>
+        <div class="sheet">
+          <div class="sh-drag"></div>
+          <div class="sh-ttl">Add to LIKED</div>
+          <!-- single input, grows with content -->
+          <div class="ai" style="align-items:flex-start;min-height:36px;">
+            <svg class="si ic14" style="margin-top:1px;color:var(--text3);flex-shrink:0;"><use href="#ic-search"/></svg>
+            <div style="font-size:11px;color:var(--text);flex:1;line-height:1.5;">https://youtube.com/watch?v=abc123</div>
+          </div>
+          <!-- URL preview -->
+          <div class="up">
+            <div class="up-img" style="background:linear-gradient(135deg,#1a0000,#3a0000);">▶</div>
+            <div><div class="up-t">Radiohead – In Rainbows Full Album</div><div class="up-d">youtube.com · auto-detected</div></div>
+          </div>
+          <div class="sh-sec">
+            <div class="sh-sl">Auto-tags</div>
+            <div class="cr"><div class="chip on">Music</div><div class="chip on">Radiohead</div><div class="chip">+ add</div></div>
+          </div>
+          <div class="sh-sec">
+            <div class="sh-sl">Share with (optional)</div>
+            <div class="avr">
+              <div class="avi"><div class="avc on" style="background:linear-gradient(135deg,#4a9fd5,#1c6fa0);">A</div><div class="avn">Alice</div></div>
+              <div class="avi"><div class="avc" style="background:linear-gradient(135deg,#d54a9f,#a01c6f);">B</div><div class="avn">Bob</div></div>
+              <div class="avi"><div class="avc" style="background:linear-gradient(135deg,#4ad58a,#1ca06f);">C</div><div class="avn">Chiara</div></div>
+              <div class="avi"><div class="avc" style="background:linear-gradient(135deg,#d5a44a,#a07a1c);">D</div><div class="avn">Diego</div></div>
+            </div>
+          </div>
+          <div class="btn-s">Save to LIKED</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FILTER SHEET -->
+    <div class="pw">
+      <div class="pl">Filter Feed</div>
+      <div class="phone">
+        <div class="notch"><div class="ns"></div><div class="nc"></div></div>
+        <div class="feed" style="opacity:.18;pointer-events:none;flex:0 0 80px;">
+          <div class="g5">
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#1c2040,#4a2060)"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#2d4a1c,#1c3a2d)"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#4a2020,#3d1060)"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#1c3a4a,#0d2a3d)"></div></div>
+            <div class="ci"><div class="cb" style="background:linear-gradient(135deg,#3d3010,#4a2510)"></div></div>
+          </div>
+        </div>
+        <div class="sheet">
+          <div class="sh-drag"></div>
+          <div class="sh-ttl">Filter Feed <span class="sh-clear">Clear all</span></div>
+          <div class="sh-sec">
+            <div class="sh-sl">Friends</div>
+            <div class="avr">
+              <div class="avi"><div class="avc on" style="background:linear-gradient(135deg,#4a9fd5,#1c6fa0);">A</div><div class="avn">Alice</div></div>
+              <div class="avi"><div class="avc" style="background:linear-gradient(135deg,#d54a9f,#a01c6f);">B</div><div class="avn">Bob</div></div>
+              <div class="avi"><div class="avc" style="background:linear-gradient(135deg,#4ad58a,#1ca06f);">C</div><div class="avn">Chiara</div></div>
+              <div class="avi"><div class="avc" style="background:linear-gradient(135deg,#d5a44a,#a07a1c);">D</div><div class="avn">Diego</div></div>
+            </div>
+          </div>
+          <div class="sh-sec">
+            <div class="sh-sl">Tags</div>
+            <div class="cr"><div class="chip on">Music</div><div class="chip">Books</div><div class="chip">Film</div><div class="chip">Finance</div><div class="chip">Health</div></div>
+          </div>
+          <div class="sh-sec">
+            <div class="sh-sl">Folder</div>
+            <div class="cr"><div class="chip">Favorites</div><div class="chip">Watch Later</div><div class="chip">Research</div></div>
+          </div>
+          <div class="sh-sec">
+            <div class="sh-sl">Sort</div>
+            <div class="cr"><div class="chip on">Newest</div><div class="chip">Highest rated</div><div class="chip">Most shared</div></div>
+          </div>
+          <div class="btn-s">Apply (2 active)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD DETAIL: YouTube player -->
+    <div class="pw">
+      <div class="pl">Card Detail — YouTube</div>
+      <div class="phone">
+        <div class="notch"><div class="ns"></div><div class="nc"></div></div>
+        <!-- YouTube player -->
+        <div class="cdm" style="height:175px;">
+          <div class="cdm-bg" style="background:#000;"></div>
+          <!-- video thumbnail area -->
+          <div style="position:absolute;inset:0;background:linear-gradient(135deg,#1a1a2e,#16213e);display:flex;align-items:center;justify-content:center;">
+            <div style="width:44px;height:44px;border-radius:50%;background:rgba(255,0,0,.85);display:flex;align-items:center;justify-content:center;color:#fff;padding-left:3px;">
+              <svg class="si ic18"><use href="#ic-play"/></svg>
+            </div>
+          </div>
+          <!-- fullscreen button -->
+          <div class="cdm-fs"><svg class="si ic14"><use href="#ic-max"/></svg></div>
+          <!-- drag handle -->
+          <div class="cdm-dh"></div>
+          <!-- YT progress bar + controls -->
+          <div class="yt-bar">
+            <div class="yt-prog"><div class="yt-fill"></div></div>
+            <div class="yt-ctrls">
+              <svg class="si ic14"><use href="#ic-play"/></svg>
+              <span style="font-size:9px;">Radiohead – In Rainbows</span>
+              <span class="yt-time">12:34 / 51:07</span>
+            </div>
+          </div>
+        </div>
+        <!-- detail content as scrollable flex child -->
+        <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;background:var(--bg2);">
+          <!-- primary CTA: open in YouTube -->
+          <div class="btn-open">
+            <svg class="si ic14"><use href="#ic-ext"/></svg>
+            Open in YouTube
+          </div>
+          <div class="mp">
+            <div class="mp-p">★ 8.5 avg</div>
+            <div class="mp-p">24 views</div>
+            <div class="mp-p">6 shares</div>
+            <div class="mp-p" style="color:var(--blue);">↓ Received</div>
+            <div class="mp-p" style="color:var(--purple);">↑ Sent to 3</div>
+          </div>
+          <div class="rr">
+            <div class="rr-l">Your rating</div>
+            <div class="rr-t"><div class="rr-f"></div><div class="rr-th"></div></div>
+            <div class="rr-v">7.0</div>
+          </div>
+          <div class="sh-sec" style="margin-bottom:8px;">
+            <div class="cr"><div class="chip on" style="font-size:9px;">Music</div><div class="chip on" style="font-size:9px;">Radiohead</div></div>
+          </div>
+          <div class="sw">
+            <div class="sw-l">Shared with</div>
+            <div class="sw-r">
+              <div class="sw-av" style="background:linear-gradient(135deg,#4a9fd5,#1c6fa0);">A</div>
+              <div class="sw-av" style="background:linear-gradient(135deg,#4ad58a,#1ca06f);">C</div>
+              <div class="sw-av" style="background:linear-gradient(135deg,#7b3ad5,#4a1ca0);">E</div>
+            </div>
+          </div>
+          <!-- 2 actions: share + trash -->
+          <div class="as2">
+            <div class="ac"><svg class="si ic16"><use href="#ic-share"/></svg><div class="ac-l">Share</div></div>
+            <div class="ac"><svg class="si ic16" style="color:var(--red);"><use href="#ic-trash"/></svg><div class="ac-l">Trash</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     DESKTOP
+══════════════════════════════════════════════ -->
+<div class="panel" id="tab-desk">
+  <div class="sh" style="margin-top:0;"><div class="sh-n">🖥</div><div><div class="sh-t">Desktop — Sidebar + Masonry</div><div class="sh-s">Friends + Groups in sidebar · Sent indicator on cards · FAB as floating circle · Flat icons</div></div></div>
+  <div class="dsk">
+    <div class="dc">
+      <div class="dd3" style="background:#ff5f57"></div>
+      <div class="dd3" style="background:#febc2e"></div>
+      <div class="dd3" style="background:#28c840"></div>
+      <div class="du">liked.app/feed</div>
+    </div>
+    <div class="dl" style="position:relative;">
+      <div class="dsb">
+        <div class="dsb-t"><div class="dlogo">liked<span>.</span></div></div>
+        <div class="dsc"><svg class="si ic14"><use href="#ic-search"/></svg><div class="dsc-t">Search...</div></div>
+        <div class="dn">
+          <div class="dni on"><svg class="si ic14"><use href="#ic-rows"/></svg>Feed</div>
+          <div class="dni"><svg class="si ic14"><use href="#ic-folder"/></svg>Folders</div>
+          <div class="dni"><svg class="si ic14"><use href="#ic-trash"/></svg>Trash<span class="dni-b">4</span></div>
+        </div>
+        <div class="dsec">Friends</div>
+        <div class="dfl">
+          <div class="dfr"><div class="dfr-av" style="background:linear-gradient(135deg,#4a9fd5,#1c6fa0)">A</div><div class="dfr-n">Alice</div><div class="dfr-new"></div></div>
+          <div class="dfr"><div class="dfr-av" style="background:linear-gradient(135deg,#d54a9f,#a01c6f)">B</div><div class="dfr-n">Bob</div><div class="dfr-new"></div></div>
+          <div class="dfr"><div class="dfr-av" style="background:linear-gradient(135deg,#4ad58a,#1ca06f)">C</div><div class="dfr-n">Chiara</div></div>
+          <div class="dfr"><div class="dfr-av" style="background:linear-gradient(135deg,#d5a44a,#a07a1c)">D</div><div class="dfr-n">Diego</div></div>
+        </div>
+        <div class="dsec">Groups</div>
+        <div class="dfl">
+          <div class="dgrp"><div class="dgrp-av" style="background:linear-gradient(135deg,#3a5cd5,#1c3aa0)">M</div><div class="dgrp-n">Music</div></div>
+          <div class="dgrp"><div class="dgrp-av" style="background:linear-gradient(135deg,#c43a5a,#8a1c3a)">T</div><div class="dgrp-n">Tech</div></div>
+        </div>
+        <div class="dsec">Folders</div>
+        <div class="dfl">
+          <div class="dfo"><div class="dfo-d" style="background:#e05c3a"></div><div class="dfo-n">Favorites</div><div class="dfo-c">24</div></div>
+          <div class="dfo" style="padding-left:18px;"><div class="dfo-d" style="background:#3a7bd5"></div><div class="dfo-n">Summer 25</div><div class="dfo-c">8</div></div>
+          <div class="dfo" style="padding-left:18px;"><div class="dfo-d" style="background:#7b3ad5"></div><div class="dfo-n">Tokyo Trip</div><div class="dfo-c">5</div></div>
+          <div class="dfo"><div class="dfo-d" style="background:#2a8a4a"></div><div class="dfo-n">Watch Later</div><div class="dfo-c">17</div></div>
+        </div>
+        <div class="dtags">
+          <div class="dtag" style="background:#3a7bd5">Music</div>
+          <div class="dtag" style="background:#c43a5a">Film</div>
+          <div class="dtag" style="background:#e05c3a">Prod</div>
+          <div class="dtag" style="background:#2a8a4a">Health</div>
+          <div class="dtag" style="background:#7b3ad5">Tech</div>
+        </div>
+        <div class="dsb-bot">
+          <div class="dme">JS</div>
+          <div class="dme-n">jean.sophie</div>
+          <svg class="si ic14" style="color:var(--text2);cursor:pointer;"><use href="#ic-settings"/></svg>
+        </div>
+      </div>
+      <div class="dm">
+        <div class="dtb">
+          <div class="dft">
+            <div class="dftab all">All</div>
+            <div class="dftab">Mine</div>
+            <div class="dftab">Received</div>
+          </div>
+          <div class="dtr">
+            <div class="dso"><svg class="si ic14"><use href="#ic-sort"/></svg> Newest</div>
+            <div class="dvs">
+              <div class="dv on"><svg class="si ic14"><use href="#ic-cols"/></svg></div>
+              <div class="dv"><svg class="si ic14"><use href="#ic-grid"/></svg></div>
+              <div class="dv"><svg class="si ic14"><use href="#ic-list"/></svg></div>
+              <div class="dv"><svg class="si ic14"><use href="#ic-rows"/></svg></div>
+              <div class="dv"><svg class="si ic14"><use href="#ic-canvas"/></svg></div>
+            </div>
+            <div class="dib"><svg class="si ic14"><use href="#ic-bell"/></svg><div class="bd">2</div></div>
+          </div>
+        </div>
+        <div class="dfeed">
+          <div class="dc2"><div class="dci" style="height:120px;background:linear-gradient(135deg,#1c2040,#4a2060);"></div><div class="dov"><div class="dqb">Share</div><div class="dqb">Folder</div></div><div class="dcbdg r">↓</div><div class="dc-rt">★ 8.5</div><div class="dcm"><div class="dct">Morning routine triggers</div><div class="dctags"><span class="dctag" style="background:#e05c3a">Prod</span></div></div></div>
+          <div class="dc2"><div class="dci" style="height:82px;background:linear-gradient(135deg,#0d3030,#1c4a2d);"></div><div class="dov"><div class="dqb">Share</div></div><div class="dcbdg m">mine</div><div class="dc-sent">↑ sent</div><div class="dcm"><div class="dct">Fermented foods guide</div><div class="dctags"><span class="dctag" style="background:#2a8a4a">Health</span></div></div></div>
+          <div class="dc2"><div class="dci" style="height:104px;background:linear-gradient(135deg,#3d2a10,#4a3a15);"></div><div class="dov"><div class="dqb">Share</div><div class="dqb">Folder</div></div><div class="dcbdg r">↓</div><div class="dc-rt">★ 9.0</div><div class="dcm"><div class="dct">Japanese jazz history</div><div class="dctags"><span class="dctag" style="background:#3a7bd5">Music</span></div></div></div>
+          <div class="dc2"><div class="dci" style="height:112px;background:linear-gradient(135deg,#102040,#1c1040);"></div><div class="dov"><div class="dqb">Share</div></div><div class="dcbdg m">mine</div><div class="dc-sent">↑ sent</div><div class="dcm"><div class="dct">Film: Past Lives</div><div class="dctags"><span class="dctag" style="background:#c43a5a">Film</span></div></div></div>
+          <div class="dc2"><div class="dci" style="height:74px;background:linear-gradient(135deg,#3a0d20,#601040);"></div><div class="dov"><div class="dqb">Share</div></div><div class="dcbdg m">mine</div><div class="dc-rt">★ 7.5</div><div class="dcm"><div class="dct">BTFD investing</div><div class="dctags"><span class="dctag" style="background:#2a8a4a">Finance</span></div></div></div>
+          <div class="dc2"><div class="dci" style="height:122px;background:linear-gradient(135deg,#1a4020,#0d3010);"></div><div class="dov"><div class="dqb">Share</div></div><div class="dcbdg r">↓</div><div class="dcm"><div class="dct">Radiohead – In Rainbows</div><div class="dctags"><span class="dctag" style="background:#3a7bd5">Music</span></div></div></div>
+          <div class="dc2"><div class="dci" style="height:95px;background:linear-gradient(135deg,#2d1040,#3d2060);"></div><div class="dov"><div class="dqb">Share</div><div class="dqb">Folder</div></div><div class="dcbdg m">mine</div><div class="dc-sent">↑ sent</div><div class="dc-rt">★ 8.0</div><div class="dcm"><div class="dct">How transformers work</div><div class="dctags"><span class="dctag" style="background:#7b3ad5">Tech</span></div></div></div>
+          <div class="dc2"><div class="dci" style="height:84px;background:linear-gradient(135deg,#402010,#4a1520);"></div><div class="dov"><div class="dqb">Share</div></div><div class="dcbdg r">↓</div><div class="dcm"><div class="dct">Sourdough starter 101</div><div class="dctags"><span class="dctag" style="background:#7a9a2a">Food</span></div></div></div>
+        </div>
+      </div>
+      <!-- floating circle FAB -->
+      <div class="dfab"><svg class="si ic18"><use href="#ic-plus"/></svg></div>
+    </div>
+  </div>
+</div>
+
+</div>
+<script>
+function sw(id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
+  document.getElementById('tab-' + id).classList.add('on');
+  event.target.classList.add('on');
+}
+</script>
+</body>
+</html>
