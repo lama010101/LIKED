@@ -55,7 +55,7 @@ body{font-family:'Inter',sans-serif;background:#e8e8ec;display:flex;gap:20px;pad
 .phone.dark .search-field input{color:#fff}
 .search-clear{width:18px;height:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
 .search-clear svg{width:12px;height:12px;fill:none;stroke:#888;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.topbar-r.search-active .icon-btn:not(#search-icon-btn),.topbar-r.search-active .avatar-btn{visibility:hidden;opacity:0;transition:opacity .15s ease,visibility 0s .15s}
+.topbar-r.search-active .icon-btn,.topbar-r.search-active .avatar-btn{visibility:hidden;opacity:0;transition:opacity .15s ease,visibility 0s .15s}
 .icon-btn{width:36px;height:36px;border-radius:12px;background:#f0f0f3;display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;flex-shrink:0}
 .phone.dark .icon-btn{background:#2a2a2e}
 .icon-btn svg{width:18px;height:18px;fill:none;stroke:#555;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
@@ -93,8 +93,9 @@ body{font-family:'Inter',sans-serif;background:#e8e8ec;display:flex;gap:20px;pad
 .sort-arrows svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .sort-opt .sort-arrows{opacity:.4}
 .sort-opt.active .sort-arrows{opacity:1}
-.col-ctrl{display:flex;align-items:center;gap:2px;padding:3px;background:#fff;border-radius:9px;border:1px solid #e8e8e8}
+.col-ctrl{display:flex;align-items:center;gap:2px;padding:3px;background:#fff;border-radius:9px;border:1px solid #e8e8e8;visibility:visible}
 .phone.dark .col-ctrl{background:#2a2a2e;border-color:#333}
+.col-ctrl.hidden{visibility:hidden}
 .col-btn{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s}
 .col-btn:hover{background:#f0f0f3}
 .phone.dark .col-btn:hover{background:#3a3a3e}
@@ -108,20 +109,14 @@ body{font-family:'Inter',sans-serif;background:#e8e8ec;display:flex;gap:20px;pad
 .vbtn svg{width:14px;height:14px;fill:none;stroke:#bbb;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .vbtn.active svg{stroke:#7c5cbf}
 .vbtn.active{background:rgba(124,92,191,.12)}
-.plus-vbtn{width:26px;height:26px;border-radius:6px;background:#f0f0f3;display:flex;align-items:center;justify-content:center}
-.phone.dark .plus-vbtn{background:#3a3a3e}
-.plus-vbtn svg{width:14px;height:14px;fill:none;stroke:#999;stroke-width:2}
+#vbtn-free svg{width:14px;height:14px;fill:none;stroke:#bbb;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#vbtn-free.active svg{stroke:#7c5cbf}
 
 /* FEED */
 .feed{flex:1;overflow-y:auto;padding:6px 10px;scrollbar-width:none;background:#f2f2f6;min-height:0}
 .feed::-webkit-scrollbar{display:none}
 .phone.dark .feed{background:#111}
 .feed-grid{display:grid;gap:6px}
-.feed-grid.masonry{grid-template-rows:masonry;grid-template-columns:repeat(2,1fr)}
-.feed-grid.list{grid-template-columns:1fr !important}
-.feed-grid.list .ccard,.feed-grid.list .fcard{aspect-ratio:auto;height:auto;min-height:80px}
-.feed-grid.free{display:flex;flex-wrap:wrap;gap:6px}
-.feed-grid.free .ccard,.feed-grid.free .fcard{width:calc(50% - 3px);height:auto}
 
 /* CARDS */
 .fcard{border-radius:16px;overflow:hidden;position:relative;cursor:pointer;background:#ddd}
@@ -148,21 +143,23 @@ body{font-family:'Inter',sans-serif;background:#e8e8ec;display:flex;gap:20px;pad
 .phone.dark .bottom-area{background:#111}
 .phone.dark .sd-bg{background:rgba(30,30,36,.96);border-color:rgba(255,255,255,.08);box-shadow:0 -6px 24px rgba(0,0,0,.5)}
 .phone.dark .sd-label{color:#eee;text-shadow:0 1px 2px rgba(0,0,0,.4)}
-.fab{position:absolute;top:-23px;left:50%;transform:translateX(-50%);width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 4px 24px rgba(124,92,191,.6),0 0 0 3px rgba(255,255,255,.25);cursor:pointer;z-index:12;transition:background .3s,transform .2s,box-shadow .3s}
+.fab{position:absolute;top:-23px;left:50%;transform:translateX(-50%);width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 4px 24px rgba(124,92,191,.6),0 0 0 3px rgba(255,255,255,.25);cursor:pointer;z-index:22;transition:background .3s,transform .2s,box-shadow .3s}
 .phone.dark .fab{box-shadow:0 4px 24px rgba(0,0,0,.5),0 0 0 3px rgba(255,255,255,.12)}
 .fab svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
 .friends-handle{display:flex;flex-direction:row;align-items:center;justify-content:space-between;padding:6px 14px 4px;cursor:pointer;gap:10px}
-.fh-section{display:flex;align-items:center;gap:6px;font-size:9px;font-weight:700;letter-spacing:.08em;color:#aaa;text-transform:uppercase;flex:1}
-.fh-section.left{justify-content:flex-start}
-.fh-section.right{justify-content:flex-end}
-.fh-section svg{width:10px;height:10px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.fh-pill{width:36px;height:3px;border-radius:2px;background:rgba(0,0,0,.15);flex-shrink:0}
-.phone.dark .fh-pill{background:rgba(255,255,255,.18)}
-.fh-label{font-size:9px;font-weight:700;letter-spacing:.1em;color:#aaa;text-transform:uppercase}
+.fh-label{font-size:9px;font-weight:700;letter-spacing:.08em;color:#aaa;text-transform:uppercase}
+.fh-controls{display:flex;align-items:center;gap:8px}
+.fh-btn{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s}
+.fh-btn:hover{background:#f0f0f3}
+.phone.dark .fh-btn:hover{background:#3a3a3e}
+.fh-btn svg{width:14px;height:14px;fill:none;stroke:#888;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.phone.dark .fh-btn svg{stroke:#aaa}
+.fh-btn.full-view svg{stroke:#7c5cbf}
+.fh-btn.full-view:hover{background:rgba(124,92,191,.1)}
 /* SPEED-DIAL */
-.fab-scrim{position:absolute;inset:0;background:rgba(0,0,0,.4);z-index:8;opacity:0;pointer-events:none;transition:opacity .2s}
+.fab-scrim{position:absolute;inset:0;background:rgba(0,0,0,.7);z-index:20;opacity:0;pointer-events:none;transition:opacity .2s}
 .fab-scrim.open{opacity:1;pointer-events:all}
-.speed-dial{position:absolute;bottom:calc(100% - 26px);left:50%;transform:translateX(-50%);width:260px;height:130px;z-index:11;pointer-events:none}
+.speed-dial{position:absolute;bottom:calc(100% - 26px);left:50%;transform:translateX(-50%);width:260px;height:130px;z-index:21;pointer-events:none}
 .speed-dial.open{pointer-events:all}
 .sd-bg{display:none}
 .sd-item{position:absolute;left:50%;bottom:0;display:flex;flex-direction:column;align-items:center;gap:6px;transform-origin:center bottom;pointer-events:none}
@@ -291,6 +288,34 @@ body{font-family:'Inter',sans-serif;background:#e8e8ec;display:flex;gap:20px;pad
 .detail-meta-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
 .dmeta{padding:4px 10px;background:#f0f0f3;border-radius:8px;font-size:11px;color:#666;font-weight:500}
 .phone.dark .dmeta{background:#2a2a2e;color:#aaa}
+/* rating slider - from v4 */
+.rr{display:flex;align-items:center;gap:7px;margin-bottom:12px;flex-shrink:0}
+.rr-l{font-size:9px;color:#888;white-space:nowrap;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+.phone.dark .rr-l{color:#aaa}
+.rr-t{flex:1;height:4px;background:#e0e0e0;border-radius:2px;position:relative}
+.phone.dark .rr-t{background:#3a3a3e}
+.rr-f{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#2a9d8f,#1a7a6e);border-radius:2px;width:70%}
+.phone.dark .rr-f{background:linear-gradient(90deg,#2a9d8f,#1a7a6e)}
+.rr-th{position:absolute;top:50%;right:30%;transform:translate(50%,-50%);width:12px;height:12px;background:#fff;border-radius:50%;box-shadow:0 2px 5px rgba(0,0,0,.4)}
+.phone.dark .rr-th{background:#f0f0f0}
+.rr-pill{padding:2px 8px;background:rgba(42,157,143,.15);border-radius:100px;font-size:11px;font-weight:700;color:#2a9d8f;min-width:24px;text-align:center}
+.phone.dark .rr-pill{background:rgba(42,157,143,.2);color:#3ac9b8}
+/* shared with section */
+.shared-with{display:flex;align-items:center;gap:8px;margin-bottom:12px;padding:0 4px}
+.sw-label{font-size:9px;color:#888;text-transform:uppercase;letter-spacing:.08em;font-weight:700;white-space:nowrap}
+.phone.dark .sw-label{color:#aaa}
+.sw-avatars{display:flex;align-items:center;gap:-4px}
+.sw-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;border:2px solid #fff;position:relative;z-index:1;margin-left:-6px}
+.phone.dark .sw-av{border-color:#1c1c1f}
+.sw-av:first-child{margin-left:0}
+.sw-av.sender{z-index:2;box-shadow:0 0 0 2px #7c5cbf}
+.phone.dark .sw-av.sender{box-shadow:0 0 0 2px #8b5cf6}
+.avg-rating{display:flex;align-items:center;gap:7px;margin-bottom:12px;padding:0 4px}
+.ar-label{font-size:9px;color:#888;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+.phone.dark .ar-label{color:#aaa}
+.ar-pill{padding:3px 10px;background:#f0f0f3;border-radius:100px;font-size:11px;font-weight:700;color:#7c5cbf}
+.phone.dark .ar-pill{background:#2a2a2e;color:#a080d0}
+/* old rating styles - kept for compatibility */
 .detail-rating{display:flex;align-items:center;gap:8px;margin-bottom:12px}
 .rating-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#aaa}
 .stars{display:flex;gap:3px}
@@ -383,6 +408,8 @@ body{font-family:'Inter',sans-serif;background:#e8e8ec;display:flex;gap:20px;pad
 <!-- PHONE -->
 <div class="phone-wrap">
   <div class="phone" id="phone">
+    <!-- FAB scrim - covers entire phone -->
+    <div class="fab-scrim" id="fab-scrim" onclick="closeDial()"></div>
     <!-- STATUS -->
     <div class="status"><span style="font-size:15px;font-weight:700">9:41</span><span>●●●●● 100%</span></div>
 
@@ -390,13 +417,13 @@ body{font-family:'Inter',sans-serif;background:#e8e8ec;display:flex;gap:20px;pad
     <div class="topbar">
       <div class="logo" id="logo">liked<span class="logo-dot">.</span></div>
       <div class="topbar-r" id="topbar-r">
-  <div class="icon-btn" id="search-icon-btn" onclick="toggleSearch()" style="position:relative;z-index:11">
+  <div class="icon-btn" id="search-icon-btn" onclick="toggleSearch()" style="position:relative">
     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
   </div>
   <div class="search-expand" id="search-expand">
     <div class="search-field">
       <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" id="top-search-input" placeholder="Search..." onkeydown="if(event.key==='Enter')doSearch(this.value)" onblur="if(!this.value.trim())closeSearch()">
+      <input type="text" id="top-search-input" placeholder="Search..." oninput="filterFeed(this.value)" onkeydown="if(event.key==='Enter'){doSearch(this.value);}">
       <div class="search-clear" onclick="clearTopSearch()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
     </div>
   </div>
@@ -470,7 +497,7 @@ body{font-family:'Inter',sans-serif;background:#e8e8ec;display:flex;gap:20px;pad
           <div class="vbtn active" id="vbtn-col" onclick="setView('col',null)"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg></div>
           <div class="vbtn" id="vbtn-mas" onclick="setView('masonry',null)"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="18" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/></svg></div>
           <div class="vbtn" id="vbtn-list" onclick="setView('list',null)"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></div>
-          <div class="plus-vbtn" onclick="setView('free',null)"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+          <div class="vbtn" id="vbtn-free" onclick="setView('free',null)"><svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg></div>
         </div>
       </div>
     </div>
@@ -482,9 +509,6 @@ body{font-family:'Inter',sans-serif;background:#e8e8ec;display:flex;gap:20px;pad
 
     <!-- BOTTOM AREA -->
     <div class="bottom-area" id="bottom-area">
-      <!-- FAB scrim -->
-      <div class="fab-scrim" id="fab-scrim" onclick="closeDial()"></div>
-
       <!-- SPEED-DIAL radial arc -->
       <div class="speed-dial" id="speed-dial">
         <div class="sd-bg"></div>
@@ -525,15 +549,15 @@ body{font-family:'Inter',sans-serif;background:#e8e8ec;display:flex;gap:20px;pad
 
       <!-- FRIENDS AREA -->
       <div id="friends-area">
-        <div class="friends-handle" id="friends-handle" onclick="cycleStrip()">
-          <div class="fh-section left">
-            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-            <span>FRIENDS (11)</span>
-          </div>
-          <div class="fh-pill"></div>
-          <div class="fh-section right">
-            <span>GROUPS (4)</span>
-            <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        <div class="friends-handle" id="friends-handle" onclick="if(event.target.closest('.fh-btn.full-view'))return;showFriendsStrip()">
+          <div class="fh-label">FRIENDS</div>
+          <div class="fh-controls">
+            <div class="fh-btn" id="fh-toggle-btn" onclick="event.stopPropagation();toggleFriendsStrip()" title="Toggle">
+              <svg id="fh-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="fh-btn full-view" onclick="event.stopPropagation();openSheet('friends')" title="Full view">
+              <svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+            </div>
           </div>
         </div>
         <div class="friends-strip-wrap strip-visible" id="friends-strip-wrap">
@@ -583,15 +607,15 @@ body{font-family:'Inter',sans-serif;background:#e8e8ec;display:flex;gap:20px;pad
         </div>
         <div class="bottom-area" style="background:#f2f2f6">
           <div class="fab" onclick="tryAction('fab')"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
-          <div class="friends-handle">
-            <div class="fh-section left">
-              <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-              <span>FRIENDS (4)</span>
-            </div>
-            <div class="fh-pill"></div>
-            <div class="fh-section right">
-              <span>GROUPS (0)</span>
-              <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+          <div class="friends-handle" onclick="if(event.target.closest('.fh-btn.full-view'))return;showFriendsStrip()">
+            <div class="fh-label">FRIENDS</div>
+            <div class="fh-controls">
+              <div class="fh-btn" id="fh-toggle-btn-folders" onclick="event.stopPropagation();toggleFriendsStrip()">
+                <svg id="fh-chevron-folders" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+              <div class="fh-btn full-view" onclick="event.stopPropagation();openSheet('friends')">
+                <svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+              </div>
             </div>
           </div>
           <div class="friends-strip-container">
@@ -693,7 +717,7 @@ body{font-family:'Inter',sans-serif;background:#e8e8ec;display:flex;gap:20px;pad
 <div class="sheet" id="sheet-tag" style="max-height:55%">
   <div class="sheet-handle"></div>
   <div class="sheet-hdr">
-    <div><div class="sheet-title">Tag Mode</div><div class="sheet-sub">Tap cards in the feed to apply the selected tag</div></div>
+    <div><div class="sheet-title">Tag Mode</div><div class="sheet-sub">Drag a tag and drop it onto a card or folder</div></div>
     <div class="sheet-x" onclick="closeSheet('tag')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
   </div>
   <div class="sheet-search">
@@ -849,16 +873,23 @@ body{font-family:'Inter',sans-serif;background:#e8e8ec;display:flex;gap:20px;pad
           <div class="dmeta">From Alice</div>
           <div class="dmeta">0d ago</div>
         </div>
-        <div class="detail-rating">
-          <div class="rating-label">RATING</div>
-          <div class="stars" id="star-row">
-            <div class="star" onclick="setRating(1)"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
-            <div class="star" onclick="setRating(2)"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
-            <div class="star" onclick="setRating(3)"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
-            <div class="star" onclick="setRating(4)"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
-            <div class="star" onclick="setRating(5)"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+        <div class="rr">
+          <div class="rr-l">My rating</div>
+          <div class="rr-t"><div class="rr-f" id="rating-fill"></div><div class="rr-th" id="rating-thumb"></div></div>
+          <div class="rr-pill" id="rating-value">7.0</div>
+        </div>
+        <div class="avg-rating">
+          <div class="ar-label">Avg rating</div>
+          <div class="ar-pill">4.2</div>
+        </div>
+        <div class="shared-with">
+          <div class="sw-label">Shared with</div>
+          <div class="sw-avatars">
+            <div class="sw-av sender" style="background:linear-gradient(135deg,#4a9fd5,#1c6fa0)">A</div>
+            <div class="sw-av" style="background:linear-gradient(135deg,#cc3399,#aa1a77)">B</div>
+            <div class="sw-av" style="background:linear-gradient(135deg,#22bb77,#1a8855)">C</div>
+            <div class="sw-av" style="background:linear-gradient(135deg,#cc9922,#aa7710)">D</div>
           </div>
-          <span class="star-clear" id="star-clear-btn" onclick="setRating(0)">Clear</span>
         </div>
         <div class="detail-open-btn" id="open-yt-btn">
           <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
@@ -892,6 +923,7 @@ var tagsData=[
 ];
 var activeTagIds=[];
 var tagSearchQuery='';
+var feedSearchQuery='';
 
 var FRIENDS=[
   {init:'JS',name:'Me',color:'linear-gradient(135deg,#f5a623,#e06020)',group:false},
@@ -911,53 +943,130 @@ var FRIENDS=[
   {init:'F',name:'Film',color:'linear-gradient(135deg,#dd8822,#bb6610)',group:true}
 ];
 
-var CARDS=[
-  {type:'folder',name:'Favorites',count:'42 items',color:'#e84040',colors:['linear-gradient(135deg,#7c3aed,#4c1d95)','linear-gradient(135deg,#1a8888,#0d5f5f)','linear-gradient(135deg,#e84040,#c02020)','linear-gradient(135deg,#f5a623,#c07820)']},
-  {type:'folder',name:'Travel',count:'28 items',color:'#60c5f1',colors:['linear-gradient(135deg,#2a88cc,#1a5599)','linear-gradient(135deg,#1a4488,#0d2255)','linear-gradient(135deg,#3399dd,#1a66aa)','linear-gradient(135deg,#4a9fd5,#1c6fa0)']},
-  {type:'folder',name:'Read Later',color:'#9b59b6',count:'64 items',colors:['linear-gradient(135deg,#7c3aed,#5b21b6)','linear-gradient(135deg,#4c1d95,#2d0f5c)','linear-gradient(135deg,#6d28d9,#4c1d95)','linear-gradient(135deg,#8b5cf6,#6d28d9)']},
-  {type:'folder',name:'Watch',color:'#e84040',count:'19 items',colors:['linear-gradient(135deg,#e84040,#c02020)','linear-gradient(135deg,#cc3366,#aa1144)','linear-gradient(135deg,#dd5577,#bb2244)','linear-gradient(135deg,#8bc34a,#558b2f)']},
-  {type:'card',title:'Recipes',tag:'Food',tagColor:'#e67e22',rating:0,dot:'mine'},
-  {type:'card',title:'Morning routine triggers',tag:'Health',tagColor:'#d35400',rating:5,dot:'recv'},
-  {type:'card',title:'Market Analysis Q3',tag:'Finance',tagColor:'#16a085',rating:4,dot:'recv'},
-  {type:'card',title:'Design Systems 2025',tag:'Design',tagColor:'#7c5cbf',rating:0,dot:'mine'},
-  {type:'card',title:'Your Job Is Your Bullshit',tag:'Books',tagColor:'#2c3e50',rating:3,dot:'recv'},
-  {type:'card',title:'Atomic Habits summary',tag:'Books',tagColor:'#2c3e50',rating:5,dot:'mine'}
+var feedItems=[
+  {type:'folder',name:'Favorites',count:'42 items',dot:'#e84040',colors:['#5533a0','#1a7a7a','#c04060','#2a6a20'],avgRating:8.5},
+  {type:'folder',name:'Travel',count:'28 items',dot:'#60c5f1',colors:['#1a7aaa','#2a5aaa','#1a3a80','#2a6aaa'],avgRating:6.2},
+  {type:'folder',name:'Read Later',count:'64 items',dot:'#8855cc',colors:['#6633aa','#8833aa','#aa8833','#2a88aa'],avgRating:4.8},
+  {type:'folder',name:'Watch',count:'19 items',dot:'#e84040',colors:['#cc3355','#cc4433','#aa6633','#aabb33'],avgRating:7.3},
+  {type:'folder',name:'Recipes',count:'33 items',dot:'#4ad58a',colors:['#ee6633','#33aa55','#cc3355','#33aa88'],avgRating:9.1},
+  {type:'card',title:'Morning routine triggers',tag:'Health',tagColor:'#2a8a4a',star:5,dot:'recv',bg:'#6644cc,#4422aa',avgRating:7.8},
+  {type:'card',title:'In Rainbows — 20 years',tag:'Music',tagColor:'#3a7bd5',star:0,dot:'mine',bg:'#3355aa,#1a3388',avgRating:2.1},
+  {type:'card',title:'BTFD — a retrospective',tag:'Finance',tagColor:'#e05c3a',star:4,dot:'recv',bg:'#1a6688,#0d4466',avgRating:5.5},
+  {type:'card',title:'Past Lives',tag:'Film',tagColor:'#c43a5a',star:5,dot:'recv',bg:'#2244aa,#1a3388',avgRating:8.9},
+  {type:'card',title:'Japanese jazz history',tag:'Music',tagColor:'#3a7bd5',star:4,dot:'recv',bg:'#4422aa,#2a1188',avgRating:6.7},
+  {type:'card',title:'Obsidian plugin...',tag:'Tech',tagColor:'#7b3ad5',star:0,dot:'mine',bg:'#aa8833,#886620',avgRating:3.4},
+  {type:'card',title:'Fermented foods 101',tag:'Health',tagColor:'#2a8a4a',star:5,dot:'recv',bg:'#2288aa,#1a6688',avgRating:9.5},
 ];
 
+function buildFeedItem(item, cols) {
+  var size = cols >= 5 ? 48 : (cols >= 4 ? 70 : (cols >= 3 ? 88 : 110));
+  if (item.type === 'folder') {
+    var c = item.colors;
+    return '<div class="fcard" onclick="tryAction(\'card\')">'
+      +'<div class="fcard-collage" style="height:'+size+'px">'
+      +'<div style="background:linear-gradient(135deg,'+c[0]+','+c[0]+'99)"></div>'
+      +'<div style="background:linear-gradient(135deg,'+c[1]+','+c[1]+'99)"></div>'
+      +'<div style="background:linear-gradient(135deg,'+c[2]+','+c[2]+'99)"></div>'
+      +'<div style="background:linear-gradient(135deg,'+c[3]+','+c[3]+'99)"></div>'
+      +'</div>'
+      +'<div class="fcard-dot" style="background:'+item.dot+'"></div>'
+      +'<div class="fcard-overlay"><div class="fcard-name">'+item.name+'</div>'
+      +(cols <= 3 ? '<div class="fcard-count">'+item.count+'</div>' : '')
+      +'</div></div>';
+  } else {
+    var starBadge = item.star ? '<div class="ccard-star">★ '+item.star+'</div>' : '';
+    var meta = cols <= 3 ? '<div class="ccard-meta"><div class="ccard-title">'+item.title+'</div><div class="ccard-tags"><span class="ctag" style="background:'+item.tagColor+'">'+item.tag+'</span></div></div>' : '';
+    return '<div class="ccard" onclick="tryAction(\'card\')">'
+      +'<div class="ccard-img" style="height:'+size+'px;background:linear-gradient(135deg,'+item.bg+')"></div>'
+      +starBadge
+      +'<div class="ccard-dot '+item.dot+'"></div>'
+      +meta+'</div>';
+  }
+}
+
 function renderFeed(){
+  var c=state.cols;
   var grid=document.getElementById('feed-grid');
   if(!grid)return;
-  grid.classList.remove('masonry','list','free');
-  var cols=state.cols;
-  if(state.view==='list'){
-    grid.classList.add('list');
-    cols=1;
-  }else if(state.view==='masonry'){
-    grid.classList.add('masonry');
-    cols=2;
-  }else if(state.view==='free'){
-    grid.classList.add('free');
-  }else{
-    grid.style.gridTemplateColumns='repeat('+cols+',1fr)';
+  document.getElementById('col-label').textContent=c+' col';
+  var colDisplay=document.getElementById('col-display');
+  if(state.view==='col')colDisplay.classList.remove('hidden');
+  else colDisplay.classList.add('hidden');
+
+  // Filter items by search query
+  var itemsToRender=feedItems;
+  if(feedSearchQuery){
+    itemsToRender=feedItems.filter(function(item){
+      if(item.type==='folder'){
+        return item.name.toLowerCase().indexOf(feedSearchQuery)!==-1;
+      }else{
+        return item.title.toLowerCase().indexOf(feedSearchQuery)!==-1||
+               item.tag.toLowerCase().indexOf(feedSearchQuery)!==-1;
+      }
+    });
   }
-  grid.innerHTML=CARDS.map(function(c){
-    if(c.type==='folder'){
-      return '<div class="fcard" onclick="tryAction(\'folders\')">'
-        +'<div class="fcard-collage">'+c.colors.map(function(g){return '<div style="background:'+g+'"></div>';}).join('')+'</div>'
-        +'<div class="fcard-dot" style="background:'+c.color+'"></div>'
-        +'<div class="fcard-overlay"><div class="fcard-name">'+c.name+'</div><div class="fcard-count">'+c.count+'</div></div>'
+
+  if(state.view==='list'){
+    grid.style.gridTemplateColumns='1fr';
+    grid.style.display='';grid.style.columns='';
+    // Sort by avgRating high to low
+    var sortedItems=itemsToRender.slice().sort(function(a,b){return(b.avgRating||0)-(a.avgRating||0);});
+    grid.innerHTML=sortedItems.map(function(item){
+      var bg=item.type==='folder'?'linear-gradient(135deg,'+item.colors[0]+','+item.colors[2]+')':'linear-gradient(135deg,'+item.bg+')';
+      var label=item.type==='folder'?item.name+' — '+item.count:item.title;
+      // Rating pill color: red(0-2.5)->orange(2.5-5)->blue(5-7.5)->green(7.5-10)
+      var r=item.avgRating||0;
+      var pillColor=r<2.5?'#e84040':r<5?'#f5a623':r<7.5?'#3a7bd5':'#2a9d8f';
+      var pillBg='rgba('+(r<2.5?'232,64,64':r<5?'245,166,35':r<7.5?'58,123,213':'42,157,143')+',.15)';
+      var ratingPill='<div style="padding:3px 10px;border-radius:100px;font-size:11px;font-weight:700;color:'+pillColor+';background:'+pillBg+'">'+r.toFixed(1)+'</div>';
+      return '<div style="display:flex;align-items:center;gap:10px;padding:8px;background:#fff;border-radius:12px;cursor:pointer" onclick="tryAction(\'card\')">'
+        +'<div style="width:48px;height:48px;border-radius:10px;background:'+bg+';flex-shrink:0"></div>'
+        +'<div style="flex:1;font-size:13px;font-weight:600;color:#111">'+label+'</div>'
+        +ratingPill
         +'</div>';
-    }
-    var stars=c.rating>0?'<div class="ccard-star">★ '+c.rating+'</div>':'';
-    var bg='linear-gradient(135deg,hsl('+(Math.abs(c.title.charCodeAt(0)*7)%360)+',40%,35%),hsl('+(Math.abs(c.title.charCodeAt(0)*13)%360)+',50%,25%))';
-    return '<div class="ccard" onclick="tryAction(\'card\')">'
-      +'<div class="ccard-img" style="background:'+bg+'"></div>'
-      +stars
-      +'<div class="ccard-dot '+c.dot+'"></div>'
-      +'<div class="ccard-meta"><div class="ccard-title">'+c.title+'</div>'
-      +'<div class="ccard-tags"><span class="ctag" style="background:'+c.tagColor+'">'+c.tag+'</span></div></div>'
-      +'</div>';
-  }).join('');
+    }).join('');
+    if(state.dark)grid.querySelectorAll('div[style*="background:#fff"]').forEach(function(el){el.style.background='#1c1c1f';el.querySelectorAll('div[style*="color:#111"]').forEach(function(t){t.style.color='#f0f0f0';});});
+    return;
+  }
+  if(state.view==='masonry'){
+    grid.style.display='block';
+    grid.style.columns='2';
+    grid.style.columnGap='6px';
+    var html='';
+    itemsToRender.forEach(function(item){
+      var h=60+Math.floor(Math.random()*70);
+      var bg=item.type==='folder'?'linear-gradient(135deg,'+item.colors[0]+','+item.colors[2]+')':'linear-gradient(135deg,'+item.bg+')';
+      html+='<div style="break-inside:avoid;margin-bottom:6px;border-radius:14px;overflow:hidden;background:#ddd;cursor:pointer" onclick="tryAction(\'card\')">'
+        +'<div style="height:'+h+'px;background:'+bg+'"></div>'
+        +'<div style="padding:6px 8px 8px;background:#fff"><div style="font-size:10px;font-weight:600;color:#111">'+(item.type==='folder'?item.name:item.title)+'</div></div>'
+        +'</div>';
+    });
+    grid.innerHTML=html;
+    return;
+  }
+  if(state.view==='free'){
+    grid.style.display='block';
+    grid.style.columns='';
+    grid.style.position='relative';
+    grid.style.minHeight='400px';
+    var positions=[{t:0,l:0,w:140,h:120},{t:0,l:148,w:100,h:80},{t:0,l:256,w:120,h:100},{t:88,l:0,w:100,h:140},{t:128,l:108,w:130,h:100},{t:108,l:246,w:110,h:80}];
+    var html='<div style="position:relative;height:400px">';
+    itemsToRender.slice(0,6).forEach(function(item,i){
+      var p=positions[i]||{t:i*60,l:0,w:140,h:100};
+      var bg=item.type==='folder'?'linear-gradient(135deg,'+item.colors[0]+','+item.colors[2]+')':'linear-gradient(135deg,'+item.bg+')';
+      html+='<div style="position:absolute;top:'+p.t+'px;left:'+p.l+'px;width:'+p.w+'px;height:'+p.h+'px;border-radius:14px;background:'+bg+';cursor:pointer;overflow:hidden" onclick="tryAction(\'card\')">'
+        +'<div style="position:absolute;bottom:0;left:0;right:0;padding:4px 7px 6px;background:linear-gradient(to top,rgba(0,0,0,.7),transparent);font-size:9px;font-weight:700;color:#fff">'+(item.type==='folder'?item.name:item.title)+'</div>'
+        +'</div>';
+    });
+    html+='</div>';
+    grid.innerHTML=html;
+    return;
+  }
+  // COL view
+  grid.style.display = '';
+  grid.style.columns = '';
+  grid.style.gridTemplateColumns = 'repeat('+c+', 1fr)';
+  grid.innerHTML = itemsToRender.map(function(item){ return buildFeedItem(item, c); }).join('');
 }
 
 function renderFriendsStrip(){
@@ -1005,20 +1114,30 @@ function toggleSearch(){
     setTimeout(function(){if(input)input.focus();},50);
   }
 }
+function filterFeed(q){
+  feedSearchQuery=q.toLowerCase();
+  renderFeed();
+}
 function clearTopSearch(){
   var input=document.getElementById('top-search-input');
-  if(input && input.value){input.value='';input.focus();}
-  else{closeSearch();}
+  if(input){input.value='';input.focus();}
+  feedSearchQuery='';
+  renderFeed();
 }
 function closeSearch(){
   var expand=document.getElementById('search-expand');
   var container=document.getElementById('topbar-r');
+  var input=document.getElementById('top-search-input');
   if(expand)expand.classList.remove('open');
   if(container)container.classList.remove('search-active');
+  if(input)input.value='';
+  feedSearchQuery='';
+  renderFeed();
 }
 function doSearch(q){
   if(!q||!q.trim())return;
-  alert('Search: '+q.trim());
+  feedSearchQuery=q.trim().toLowerCase();
+  renderFeed();
 }
 document.addEventListener('click',function(e){
   var expand=document.getElementById('search-expand');
@@ -1058,6 +1177,25 @@ function setStripState(s){
   if(s==='hidden'){wrap.classList.remove('strip-visible');wrap.classList.add('strip-hidden');}
   else{wrap.classList.remove('strip-hidden');wrap.classList.add('strip-visible');}
   if(s==='expanded')openSheet('friends');
+  updateFriendsChevron();
+}
+function showFriendsStrip(){
+  // Toggle: if hidden show, if visible hide (except full view button handled separately)
+  if(state.stripState==='hidden')setStripState('strip');
+  else setStripState('hidden');
+}
+function toggleFriendsStrip(){
+  // Same as showFriendsStrip - toggle state
+  if(state.stripState==='hidden')setStripState('strip');
+  else setStripState('hidden');
+}
+function updateFriendsChevron(){
+  var chevron=document.getElementById('fh-chevron');
+  var chevronFolders=document.getElementById('fh-chevron-folders');
+  var isHidden=state.stripState==='hidden';
+  var points=isHidden?'6 15 12 9 18 15':'6 9 12 15 18 9';
+  if(chevron)chevron.innerHTML='<polyline points="'+points+'"/>';
+  if(chevronFolders)chevronFolders.innerHTML='<polyline points="'+points+'"/>';
 }
 function cycleStrip(){
   if(state.stripState==='hidden')setStripState('strip');
@@ -1118,10 +1256,15 @@ function setView(mode,el){
   state.view=mode;
   var map={col:0,masonry:1,list:2,free:3};
   document.querySelectorAll('#seg-view .tw-opt').forEach(function(o,i){o.classList.toggle('on',i===map[mode]);});
-  ['col','mas','list'].forEach(function(v){
+  ['col','mas','list','free'].forEach(function(v){
     var btn=document.getElementById('vbtn-'+v);
     if(btn)btn.classList.toggle('active',v===mode||(v==='mas'&&mode==='masonry'));
   });
+  var colDisplay=document.getElementById('col-display');
+  if(colDisplay){
+    if(mode==='col')colDisplay.classList.remove('hidden');
+    else colDisplay.classList.add('hidden');
+  }
   renderFeed();
 }
 function setCols(v){
@@ -1244,7 +1387,8 @@ function tryAction(action){
       break;
     case 'reset':
       state={dark:false,accent:'#7c5cbf',cols:2,view:'col',stripState:'strip',rating:5,activeSheet:null,dialOpen:false,tagsStripOpen:false,sortBy:'newest'};
-      activeTagIds=[];tagSearchQuery='';
+      activeTagIds=[];tagSearchQuery='';feedSearchQuery='';
+      var si=document.getElementById('top-search-input');if(si)si.value='';
       closeAll();closeDial();setTheme('light');setView('col',null);setCols(2);applyAccent('#7c5cbf');
       setStripState('strip');setTagsStrip(false);updateTagsBadge();
       var tr=document.getElementById('try-reset');if(tr){tr.classList.add('active-link');setTimeout(function(){tr.classList.remove('active-link');},1000);}
@@ -1257,4 +1401,5 @@ renderFeed();
 renderFriendsStrip();
 applyAccent(state.accent);
 setStripState('strip');
+updateFriendsChevron();
 </script>
