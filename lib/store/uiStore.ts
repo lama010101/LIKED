@@ -36,13 +36,6 @@ interface UIStore {
   openTagBar: () => void;
   closeTagBar: () => void;
 
-  // Selection mode
-  isSelectionMode: boolean;
-  setIsSelectionMode: (value: boolean) => void;
-  selectedNodeIds: string[];
-  toggleNodeSelection: (nodeId: string) => void;
-  clearSelection: () => void;
-
   // Drag state
   isDragging: boolean;
   draggedItemId: string | null;
@@ -86,20 +79,6 @@ export const useUIStore = create<UIStore>()(
       toggleTagBar: () => set({ isTagBarOpen: !get().isTagBarOpen }),
       openTagBar: () => set({ isTagBarOpen: true }),
       closeTagBar: () => set({ isTagBarOpen: false }),
-
-      // Selection
-      isSelectionMode: false,
-      setIsSelectionMode: (isSelectionMode) => set({ isSelectionMode }),
-      selectedNodeIds: [],
-      toggleNodeSelection: (nodeId) => {
-        const { selectedNodeIds } = get();
-        if (selectedNodeIds.includes(nodeId)) {
-          set({ selectedNodeIds: selectedNodeIds.filter((id) => id !== nodeId) });
-        } else {
-          set({ selectedNodeIds: [...selectedNodeIds, nodeId] });
-        }
-      },
-      clearSelection: () => set({ selectedNodeIds: [], isSelectionMode: false }),
 
       // Drag
       isDragging: false,

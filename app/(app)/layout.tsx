@@ -6,7 +6,26 @@ import BottomBar from '@/components/bars/BottomBar';
 import AddCardSheet from '@/components/sheets/AddCardSheet';
 import ProfileModal from '@/components/modals/ProfileModal';
 import DesktopSidebar from '@/components/sidebar/DesktopSidebar';
+import DndProvider from '@/lib/dnd/DndProvider';
+import SelectionOverlay from '@/components/selection/SelectionOverlay';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { useLocalStorage } from '@/lib/hooks/useLocalStorage';
+import { getTrashCount } from '@/app/lib/actions/trash';
+
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 1023px)');
+    setIsMobile(mediaQuery.matches);
+
+    const handleChange = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
+
+  return isMobile;
+}
 
 const tabs = [
   { id: 'all', label: 'All' },
@@ -16,7 +35,7 @@ const tabs = [
 
 type TabId = typeof tabs[number]['id'];
 type MineSubTab = 'all' | 'not-shared' | 'shared';
-type ViewMode = 'col' | 'mason' | 'list' | 'free';
+type ViewMode = 'col' | 'mason' | 'list' | 'horiz' | 'free';
 
 interface BottomBarItem {
   id: string;
@@ -99,6 +118,14 @@ const FreeIcon = () => (
   </svg>
 );
 
+const HorizIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect width="20" height="4" x="2" y="4" rx="1" />
+    <rect width="16" height="4" x="2" y="10" rx="1" />
+    <rect width="20" height="4" x="2" y="16" rx="1" />
+  </svg>
+);
+
 const PlusIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M5 12h14" />
@@ -107,8 +134,42 @@ const PlusIcon = () => (
 );
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const [tab, setTab] = useState<TabId>('all');
-  const [mineSubTab, setMineSubTab] = useState<MineSubTab>('all');
+  // P9-T01: Feed tabs synced with URL search params for SSR
+  const searchParams = useSearchParams();
+  const viewParam = searchParams.get('view') as TabId | null;
+  const mineParam = searchParams.get('mine') as MineSubTab | null;
+  const [tab, setTabState] = useState<TabId>(viewParam && tabs.some(t => t.id === viewParam) ? viewParam : 'all');
+  const [mineSubTab, setMineSubTabState] = useState<MineSubTab>(
+    mineParam && ['all', 'not-shared', 'shared'].includes(mineParam) ? mineParam : 'all'
+  );
+
+  // Sync URL when tabs change (P9-T01)
+  const setTab = (next: TabId) => {
+    setTabState(next);
+    const params = new URLSearchParams(searchParams.toString());
+    if (next === 'all') {
+      params.delete('view');
+    } else {
+      params.set('view', next);
+    }
+    // Reset mine sub-tab when leaving mine tab
+    if (next !== 'mine') {
+      params.delete('mine');
+      setMineSubTabState('all');
+    }
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  const setMineSubTab = (next: MineSubTab) => {
+    setMineSubTabState(next);
+    const params = new URLSearchParams(searchParams.toString());
+    if (next === 'all') {
+      params.delete('mine');
+    } else {
+      params.set('mine', next);
+    }
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  };
   const [view, setView] = useLocalStorage<ViewMode>('liked.view', 'col');
   const [zoom, setZoom] = useLocalStorage<number>('liked.zoom', 2);
   const [theme, setThemeState] = useLocalStorage<'dark' | 'light'>('liked.theme', 'dark');
@@ -119,6 +180,30 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [openProfile, setOpenProfile] = useState(false);
   const [profileDisplayName, setProfileDisplayName] = useState('JS');
   const [notificationCount] = useState(2);
+  const [toast, setToast] = useState<{ kind: 'ok' | 'err'; message: string } | null>(null);
+  const [trashCount, setTrashCount] = useState<number>(0);
+  const isMobile = useIsMobile();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  // Refresh the trash-icon badge count (PRD §20.1) whenever the route
+  // changes, so restoring or leaving /trash reflects in the top bar.
+  useEffect(() => {
+    let cancelled = false;
+    getTrashCount().then((n) => {
+      if (!cancelled) setTrashCount(n);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname, toast]);
+
+  // Auto-hide toast after 2.2s
+  useEffect(() => {
+    if (!toast) return;
+    const t = window.setTimeout(() => setToast(null), 2200);
+    return () => window.clearTimeout(t);
+  }, [toast]);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -142,6 +227,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   };
 
   return (
+    <DndProvider
+      onSuccess={(m) => setToast({ kind: 'ok', message: m })}
+      onError={(m) => setToast({ kind: 'err', message: m })}
+    >
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
       {/* DESKTOP SIDEBAR — hidden below lg */}
       <div className="hidden lg:flex" style={{ flexShrink: 0 }}>
@@ -170,6 +259,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           onFilterClick={() => setOpenFilter(true)}
           onNotificationClick={() => {}}
           onProfileClick={() => {}}
+          onTrashClick={() => router.push('/trash')}
+          trashCount={trashCount}
         />
         </div>
       )}
@@ -362,6 +453,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             { id: 'col', icon: GridIcon },
             { id: 'mason', icon: MasonIcon },
             { id: 'list', icon: ListIcon },
+            { id: 'horiz', icon: HorizIcon },
             { id: 'free', icon: FreeIcon },
           ] as { id: ViewMode; icon: React.FC }[]).map(({ id, icon: Icon }) => {
             const isActive = view === id;
@@ -407,7 +499,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <div style={{ position: 'relative', flexShrink: 0 }}>
         {/* FAB */}
         <button
-          onClick={() => setOpenAdd(true)}
+          onClick={() => {
+            if (isMobile) {
+              setOpenAdd(true);
+            }
+            // TODO: desktop create modal — future task
+          }}
           className="lg:fixed lg:bottom-6 lg:right-6"
           style={{
             position: 'absolute',
@@ -435,6 +532,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         {/* BottomBar */}
         <BottomBar
           items={stubItems}
+          isCollapsed={!openFriends}
           onExpandClick={() => setOpenFriends(true)}
           onAvatarClick={(id, type) => {
             if (type === 'me') setOpenProfile(true);
@@ -444,8 +542,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
       </div>
 
-      {/* Add Card Sheet */}
-      <AddCardSheet open={openAdd} onClose={() => setOpenAdd(false)} />
+      {/* Add Card Sheet — mobile only */}
+      {isMobile && (
+        <AddCardSheet open={openAdd} onClose={() => setOpenAdd(false)} />
+      )}
 
       {/* Profile Modal */}
       <ProfileModal
@@ -458,6 +558,38 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         onThemeChange={handleThemeChange}
         onDisplayNameChange={(name) => setProfileDisplayName(name)}
       />
+
+      {/* Multi-select context menu + undo toast (P7-T03) */}
+      <SelectionOverlay
+        isMobile={isMobile}
+        activeFolderId={folderPath.length > 0 ? folderPath[folderPath.length - 1] : null}
+        onToast={(msg, kind) => setToast({ kind: kind ?? 'ok', message: msg })}
+      />
+
+      {/* DnD result toast */}
+      {toast && (
+        <div
+          role="status"
+          style={{
+            position: 'fixed',
+            bottom: 88,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: toast.kind === 'ok' ? 'var(--surface-4)' : 'var(--red, #dc2626)',
+            color: toast.kind === 'ok' ? 'var(--text-1)' : '#fff',
+            padding: '8px 14px',
+            borderRadius: 10,
+            fontSize: 12,
+            fontWeight: 600,
+            boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
+            zIndex: 200,
+            pointerEvents: 'none',
+          }}
+        >
+          {toast.message}
+        </div>
+      )}
     </div>
+    </DndProvider>
   );
 }

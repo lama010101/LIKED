@@ -1,6 +1,6 @@
 # LIKED — Unified Product Requirements Document
 
-**Version: 27.0**  
+**Version: 27.2**  
 **Status: AUTHORITATIVE**  
 **This is the complete single merged document integrating PRD v25.0 and UIX Amendment v26.0. The UIX Amendment v26.0 fully supersedes §11, §12 (drag contract additions), §13, §14 (card detail), and §39 (checklist) of PRD v25.0 on all UI/UX matters. All other sections of PRD v25.0 remain unchanged and authoritative. No information has been lost or summarized.**  
 **Reference prototype updated: LIKED_Prototype (React, multi-file JSX). Supersedes liked-ux-redesign-v4.html as of this version.**  
@@ -48,6 +48,11 @@ This document replaces the following sections of PRD v25.0:
 | §11.5 | Folders Bar | **Replaced** |
 | §11.6 | "Me" Avatar | **Replaced** |
 | §11.8 | Top Hierarchy Navigation | **Replaced** |
+| §11.3 | FAB — Speed-Dial | **Replaced by v27.1** |
+| §11.4 | Friends & Groups Strip — 3-state model | **Replaced by v27.1** |
+| §11.1 | Top Bar — Search + Tags replace Sliders | **Replaced by v27.2** |
+| §11.3e | Filter Feed Bottom Sheet | **Removed by v27.2** |
+| §11.3f | Tags Strip (new) | **Added by v27.2** |
 | §12 | Drag-and-Drop Contract (additions) | **Extended** |
 | §13.1 | Card Anatomy | **Extended** |
 | §13.2 | Folder Card Anatomy | **Replaced** |
@@ -428,18 +433,21 @@ Symmetric exclusion; overrides all visibility; stored in `blocks`.
 
 ## 11. UI SYSTEM
 
-### 11.1 Top Bar (single row — revised)
+### 11.1 Top Bar (revised — v27.2)
 
-The top bar is **always visible** and consists of **exactly one permanent row**. The previous 2-row layout and collapsible tag chip row are removed.
+Always visible. Exactly 1 permanent row.
 
-| Element | Position | Detail |
+| Position | Element | Behavior |
 |---|---|---|
-| Logo `liked.` | Left | Tapping logo returns to root feed, clears all filters |
-| Sliders icon | Right of logo | Opens Filter Feed bottom sheet (§11.3a). **Icon: flat feather-style `sliders` — not a gear, not a funnel.** Badge count shows number of active filters; badge is amber when active. |
-| Notification bell | Right | Unread count badge (red). Opens notification sheet. |
-| Profile avatar | Far right | User initials or photo. Tapping opens Profile modal (§11.7). |
+| Left | Logo `liked.` | Tap: clear all filters, return to root All feed |
+| Right of logo | Tags icon-btn | Tap: toggle Tags Strip (§11.3f) visibility. Badge shows count of active tag filters when ≥1 tag active. Icon: `tag` (feather). |
+| Right | Search icon-btn | Tap: open Search sheet (§9 — P9). Icon: `search` (feather). |
+| Right | Bell icon-btn | Notification badge. |
+| Far right | Profile avatar | Tap: open Profile modal (§11.7). |
 
-**There is no Row 2.** Sort dropdown and view mode toggles are placed in the **sort/view row** directly above the feed content area, below the feed filter tabs.
+The Sliders icon is **removed**. The Filter Feed bottom sheet (§11.3e) is **removed**.
+
+All tap targets minimum 44×44 px.
 
 #### Sort / View Row
 
@@ -509,34 +517,37 @@ When the Mine tab is active, a secondary sub-filter row appears immediately belo
 
 Sub-filter stored in local UI state, not persisted. Resets to 'All Mine' on tab switch.
 
-### 11.3 Floating Action Button (FAB — revised)
+### 11.3 Floating Action Button (FAB — Speed-Dial)
 
-The FAB is a **floating circle**, not a pill, not a bar-docked button.
+The FAB is a floating amber circle. Visual and positional spec unchanged (44×44 px minimum, amber, drop shadow, bg2 ring, horizontally centered 20 px above the Friends & Groups Strip handle on mobile, fixed bottom-right on desktop).
 
-- **Shape:** Circle, 44×44 px minimum tap target (visual size ~42 px)
-- **Icon:** `+` only. No text label.
-- **Color:** `--color-accent` (amber). Drop shadow: `0 4px 16px rgba(245,166,35, 0.5)`. Ring: `3px solid --color-bg-2` (separation from content below).
-- **Position — mobile:** Horizontally centered. Floats 20 px above the Friends Strip. `position: absolute; top: -21px; left: 50%; transform: translateX(-50%)`. Lives inside the bottom area's relative container.
-- **Position — desktop:** Fixed, bottom-right, 18 px from edges.
-- **Tap:** Opens Add Card bottom sheet (§11.3b).
-- **No pill label. No text. No secondary buttons attached.**
+**First tap:** The `+` icon rotates 45° to `×` (200ms ease). Four action buttons fan out in a **radial arc** above the FAB, positioned at equal angular spacing across a 160° arc (left to right: Tag · Card · Folder · Template). Each button is placed at radius ~80 px from the FAB center using fixed offsets. A frosted dark background (rounded pill, `rgba(20,20,30,.72)` with `backdrop-filter: blur(14px)`) sits behind the arc to ensure legibility over any feed content. Each button is a smaller circle (36 px), labeled with short text below. A semi-transparent scrim covers the feed (not the bars). Tapping the scrim or the FAB `×` collapses the speed-dial.
 
-### 11.3a Filter Feed Bottom Sheet
+**Speed-dial actions (bottom to top order):**
 
-Triggered by tapping the Sliders icon in the top bar.
+| Position | Icon | Label | Action |
+|---|---|---|---|
+| 1 (closest to FAB) | `tag` | Tag | Enters Tag Mode (§11.3b) |
+| 2 | `credit-card` | Card | Opens Add Card bottom sheet (§11.3c) |
+| 3 | `folder-plus` | Folder | Opens New Folder sheet: name input + color swatch row (7 colors from system palette) + Save button |
+| 4 (farthest) | `layout-template` | Template | Opens Template Picker sheet (§11.3d) |
 
-Sections (in order):
+**Desktop:** buttons fan out in the same radial arc pattern upward-left from the bottom-right FAB position.
 
-1. **Friends** — horizontal scrollable avatar row. Tap to toggle-select (checkmark badge). Multi-select allowed.
-2. **Tags** — chip row. Tap to toggle-select (amber outline). Multi-select, AND logic.
-3. **Folder** — chip row. Tap to toggle-select.
-4. **Sort** — chip row: Newest · Oldest · Rating · Most Shared. Single-select.
+**Phase sequencing:** Folder action requires P4 completion. Tag Mode requires P6 completion. Template action requires P4 completion. Until a dependency phase is complete, tapping that action shows a "Coming soon" toast. Buttons are never hidden or visually disabled — they always render.
 
-Bottom of sheet: **Apply (N active)** button. Top-right: **Clear all** link (visible only when ≥1 filter active).
+### 11.3b Tag Mode
 
-Active filters are reflected in the **context strip** (§11.3c) and in the **Sliders icon badge count**.
+Entered via the Tag speed-dial button. Speed-dial collapses on entry.
 
-### 11.3b Add Card Bottom Sheet
+1. A **floating Tag Pill** appears anchored at FAB position: colored chip showing tag name + `×` dismiss button on right. Shows "Pick a tag" if no tag selected yet.
+2. A **half-height Tag Sheet** slides up simultaneously: header "Tag Mode — tap cards to apply", search input, scrollable list of all user tags as colored chips, "＋ New tag" input at bottom.
+3. User taps a tag chip in the sheet → sheet collapses, Tag Pill updates to selected tag name + color.
+4. Feed is fully interactive behind the pill. User taps any card or folder → tag assigned instantly via `addTagToNode()` / `addTagToFolder()`. Card/folder flashes a 150 ms accent ring as confirmation. Card tap does NOT open card detail while Tag Mode is active.
+5. Tapping `×` on the Tag Pill exits Tag Mode. Feed returns to normal tap behavior.
+6. Tag Mode is mutually exclusive with multi-select mode. If multi-select is active, Tag Mode cannot be entered.
+
+### 11.3c Add Card Bottom Sheet
 
 Triggered by tapping the FAB.
 
@@ -550,7 +561,64 @@ Below tags: **SHARE WITH (OPTIONAL) section** — 5-column grid of friend avatar
 
 Save button: full-width amber button at bottom.
 
-### 11.3c Context Strip
+### 11.3d Template Picker Sheet
+
+Header: "Choose a template". Scrollable list of preset templates — each row: icon + name + one-line description. Name input below list, placeholder "Name it… (optional)". "Add to workspace" button full-width amber at bottom.
+
+On confirm: if name input is non-empty, use that name; else use the template's own name. Creates the folder/card structure atomically.
+
+Preset templates (v1):
+- "Read Later" — single folder
+- "Watch List" — single folder
+- "Trip Planner" — folder with 3 sub-folders: Before / During / After
+- "Book Notes" — single folder
+
+### 11.3e Filter Feed Bottom Sheet — REMOVED (v27.2)
+
+This sheet is removed. Sort is accessible via the Sort button in the Sort/View row. Friends filtering is via the Friends & Groups strip (§11.4). Tag filtering is via the Tags Strip (§11.3f). Folder navigation is via breadcrumb and drag panel.
+
+### 11.3f Tags Strip
+
+A collapsible horizontal strip that appears **between the top bar and the feed filter tabs** when active. Hidden by default (zero height, no chrome).
+
+**Trigger:** Tap the Tags icon-btn in the top bar. Strip slides down (200ms ease). Tap again or tap `×` on any active tag pill in the context strip to collapse.
+
+**Content (top to bottom inside the strip):**
+
+1. **Search input row** — full-width, `placeholder="Search tags…"`, with a `×` clear button. Filters the tag chips in real time as user types. Auto-focused when strip opens.
+2. **Tag chips row** — horizontally scrollable. Each chip: colored rounded pill showing tag label. Tap to toggle-select (accent outline + checkmark). Multi-select allowed (AND logic). Selected chips are pinned to the left of the row so they remain visible during scroll.
+
+**Data scope (non-negotiable):**
+Tags shown are **only tags that exist on nodes currently visible to the current user** — i.e. nodes reachable via `edges WHERE user_id = current_user AND deleted_at IS NULL`. This requires a dedicated DB function `getVisibleTags(userId, languageCode)`:
+
+```sql
+SELECT DISTINCT t.id, t.color_hex, tt.label
+FROM tag_edges te
+JOIN tags t ON t.id = te.tag_id
+JOIN tag_translations tt ON tt.tag_id = t.id AND tt.language_code = $languageCode
+JOIN nodes n ON n.id = te.node_id
+JOIN edges e ON e.node_id = n.id AND e.user_id = $userId
+WHERE n.deleted_at IS NULL
+ORDER BY tt.label ASC
+```
+
+Global tag list (`getAllTags()`) is never used for this surface.
+
+**Interactions:**
+
+| Action | Result |
+|---|---|
+| Tap tag chip | Toggle-select. Feed filters immediately (no Apply button). Active tag chip moves to left of row. Context strip pill appears with `×`. |
+| Tap `×` on context strip pill | Removes that tag filter. If 0 tags active and strip was opened by Tags icon, strip collapses automatically. |
+| Search input | Filters visible chips in real time. Selected chips remain visible regardless of search. |
+| Clear search (`×` in input) | Resets chip list to full visible set. |
+| Tap Tags icon again | Collapses strip. Active tag filters remain applied. |
+
+**State:** Strip open/closed state stored in local UI state only. Not persisted. Resets to closed on page reload.
+
+**Desktop:** Tags strip appears below the top bar in the same position. Same behavior.
+
+### 11.3g Context Strip
 
 The context strip is a **conditional** horizontal strip of active-filter pills. It appears **only when ≥1 filter is active**. It is hidden by default (zero chrome when unfiltered).
 
@@ -559,45 +627,48 @@ The context strip is a **conditional** horizontal strip of active-filter pills. 
 - Tapping `×` on a pill removes that filter immediately; feed re-queries in real time.
 - A **"Clear all"** pill appears at the end when ≥2 filters active.
 
-### 11.4 Friends & Groups Strip (revised — bottom, permanent)
+### 11.4 Friends & Groups Strip (3-state model)
 
-The Friends & Groups Strip is **permanently docked at the bottom** of the screen. It does **not** appear at the top. It never moves.
+The strip has three states. State is persisted to `localStorage` key `liked.friendsStripState` with values `hidden` | `strip` | `expanded`. Default value: `strip`.
 
-#### Position
+#### State 1 — Hidden
 
-- Sits **below** the FAB float zone.
-- Bottom of screen, above the system home indicator (safe area inset applied).
-- Background: `--color-bar` (opaque, same tone as top bar).
-- Border-top: `1px solid --color-border`.
+Strip avatars are not visible. Only a minimal handle sits at the very bottom of the screen (above system home indicator safe area):
+- 36 px × 3 px pill bar (`--text-3`, 35% opacity)
+- Chevron-up icon (14 px, `--text-3`)
+- Label: `Friends (N) & Groups (N)` (9 px, uppercase, letter-spacing 0.12em, `--text-3`). N = live counts of friends and groups respectively.
+- Total handle height: 28 px.
+- FAB floats 20 px above this handle in hidden state.
 
-#### Content
+#### State 2 — Strip (default)
 
-- **"Me" avatar** pinned first (sticky left, never scrolls away). Circle. Initials or photo.
-- **Friends**: circles. Sorted by last-activity (most recent card shared to/from current user first).
-- **Groups**: rounded squares (border-radius ~10 px). Visually distinguished from friend circles at a glance. Group chip contains:
-  - Group initial letter (large, centered)
-  - Member micro-avatar stack: up to 3 tiny overlapping circles at bottom-right of the square (8 px each, 1 px border). Overflow: "+N" badge.
-- No label row. Friend/group name shown below avatar (max 6 chars, truncated, 9 px).
+Full avatar row visible. "Me" avatar pinned first (sticky left, never scrolls). Friends as circles. Groups as rounded squares (border-radius ~10 px). Group chip contains group initial letter + member micro-avatar stack (up to 3, 8 px, 1 px border, bottom-right). Overflow: "+N" badge. Friend/group name shown below avatar (max 6 chars, truncated, 9 px). No label row.
+
 - **New-activity ring**: amber 2 px outline + amber dot (bottom-right of avatar) when that friend shared something new since user last viewed.
 - **Active filter ring**: blue 2.5 px outline when that friend/group is an active feed filter.
 
-#### Interactions
+Handle sits above the strip showing `Friends (N) & Groups (N)` label + chevron-up. FAB floats 20 px above the handle.
+
+#### State 3 — Expanded Panel
+
+Full-height bottom sheet. All existing §11.4a behavior applies unchanged. See §11.4a.
+
+#### State Transitions
+
+| Gesture | From → To |
+|---|---|
+| Swipe down on strip or handle (velocity > 40 px) | Strip → Hidden |
+| Swipe up on handle (> 40 px) or tap handle | Hidden → Strip |
+| Swipe up on strip (> 40 px) or tap chevron handle | Strip → Expanded Panel |
+| Swipe down on panel or tap `×` | Expanded Panel → Strip |
+
+#### Interactions (Strip state)
 
 | Gesture | Result |
 |---|---|
 | Single tap friend/group | Apply as feed filter. Context strip pill appears. Blue ring on avatar. |
 | Tap again (or tap × in context strip) | Remove filter |
 | Long press | Options popover: View feed · Share card to · Remove friend · Block |
-| Tap expand handle (chevron above strip) | Open Friends Panel full-height (§11.4a) |
-
-#### Expand Handle
-
-The expand handle consists of (top to bottom):
-1. A 36px wide × 3px tall pill bar (--text-3, 35% opacity)
-2. A chevron-up icon (14px, --text-3)
-3. 'FRIENDS' label (9px, uppercase, letter-spacing 0.12em, --text-3)
-
-The handle supports both tap (opens Friends Panel) and drag-up gesture (dragging up > 40px triggers panel open, with visual feedback: handle shifts upward proportionally, color transitions to --accent when threshold reached).
 
 ### 11.4a Friends Panel (full-height, on demand)
 
@@ -624,6 +695,15 @@ Triggered by tapping the chevron expand handle above the strip, or by initiating
 
 **Search behavior:** Results filter instantly. Already-selected friends/groups are always pinned to top of results regardless of query — selections are never hidden by a search.
 
+#### Group Management via Drag-Drop (Expanded Panel)
+
+- Groups section displays group chips as large rounded-square tiles (48 px) in a 5-per-row grid.
+- Friend avatars are draggable within the panel. Dragging a friend avatar onto a group chip → calls `addMemberToGroup()`. Group chip highlights with accent ring on drag-hover.
+- Long-pressing a group chip enters inline group detail. Dragging a member avatar out of the group → calls `removeMemberFromGroup()`. Confirmation toast with 5 s Undo.
+- Group chips are reorderable via drag within the groups grid. Order persisted to `localStorage` key `liked.groupOrder`.
+- Long-pressing a group chip (outside inline detail mode) → popover with "Delete group" (destructive, red) + Cancel. Requires confirmation.
+- The `›` Group Editor (§11.4b) remains accessible and unchanged for non-drag management.
+
 ### 11.4b Group Editor
 
 Opened from the Friends Panel by tapping `›` on a group row, or from the group chip long-press menu.
@@ -641,19 +721,18 @@ Opened from the Friends Panel by tapping `›` on a group row, or from the group
 The dedicated Folders Bar (v25 §11.5) is **removed entirely**.
 
 Folders are accessed via:
-1. **Filter Feed sheet** (Sliders icon → Folder chips)
-2. **Folders tab in desktop sidebar**
-3. **Breadcrumb** when inside a folder
-4. **Drag panel** folder section during card drag
-5. **Long press card → Move to folder**
+1. ~~Filter Feed sheet~~ — removed v27.2
+2. **Breadcrumb** when inside a folder
+3. **Drag panel** folder section during card drag
+4. **Long press card → Move to folder**
 
 There is no persistent folder bar on mobile.
 
 ### 11.5a Folder View Header
 
-When a folder is open (user has navigated into a folder), the standard top bar (liked. + sliders + bell + avatar) is replaced by a folder-specific header:
+When a folder is open (user has navigated into a folder), the standard top bar (liked. + tags + search + bell + avatar) is replaced by a folder-specific header:
 - Left: folder color dot (12px, rounded 3px) + folder name in Fraunces serif (large, --text-1)
-- Right: grid-view icon-btn + list-view icon-btn + sliders icon-btn (opens filter sheet in folder context)
+- Right: grid-view icon-btn + list-view icon-btn + tags icon-btn (toggles Tags Strip in folder context)
 
 Below the folder header: breadcrumb row — back chevron icon-btn + path text (e.g. 'Feed › Favorites'). Tapping back chevron navigates up one level. Tapping any segment navigates directly to that level.
 
@@ -1364,10 +1443,12 @@ with:
 ### Bars & Navigation
 
 - [ ] Top bar renders in exactly 1 permanent row
-- [ ] Sliders icon (not gear, not funnel) triggers Filter Feed sheet
-- [ ] Sliders icon badge shows active filter count; amber when active
+- [ ] Tags icon-btn triggers Tags Strip; badge shows active tag count
+- [ ] Search icon-btn opens Search sheet
 - [ ] Profile avatar (top-right) opens Profile modal
 - [ ] Logo tap clears all filters and returns to root feed
+- [ ] No Sliders icon anywhere in the layout
+- [ ] No Filter Feed bottom sheet anywhere in the layout
 - [ ] No bottom tab bar anywhere on mobile
 - [ ] Feed Filter Tabs: 3 tabs only (All / Mine / Received)
 - [ ] Context strip hidden when no filters active
@@ -2009,11 +2090,13 @@ CREATE TABLE translations ( ... );  -- per §35
 
 ### Top Bar & Navigation
 
-- [ ] Top bar is exactly **1 row** (logo · sliders · bell · avatar)
-- [ ] Sliders icon (not gear, not funnel) triggers Filter Feed sheet
-- [ ] Sliders icon badge shows active filter count; amber when active
+- [ ] Top bar is exactly 1 row (logo · tags · search · bell · avatar)
+- [ ] Tags icon-btn triggers Tags Strip (§11.3f); badge shows active tag count
+- [ ] Search icon-btn opens Search sheet (P9)
 - [ ] Profile avatar (top-right) opens Profile modal
 - [ ] Logo tap clears all filters and returns to root feed
+- [ ] No Sliders icon anywhere in the layout
+- [ ] No Filter Feed bottom sheet anywhere in the layout
 - [ ] No bottom tab bar anywhere on mobile
 
 ### Feed Filter Tabs
@@ -2030,14 +2113,34 @@ CREATE TABLE translations ( ... );  -- per §35
 - [ ] Each pill has `×` to remove individual filter
 - [ ] "Clear all" pill visible when ≥2 filters active
 - [ ] Feed re-queries on each pill removal
+- [ ] Active tag filters appear as pills in context strip with × to remove
+- [ ] Removing last active tag filter auto-collapses Tags Strip
+
+### Tags Strip
+
+- [ ] Tags Strip hidden by default (zero height)
+- [ ] Tap Tags icon opens strip with slide-down animation (200ms)
+- [ ] Strip contains: search input (auto-focused) + horizontally scrollable chip row
+- [ ] Only tags present on visible nodes (own + received) are shown — never global tag list
+- [ ] Search filters chips in real time; selected chips always remain visible
+- [ ] Tap chip: selects tag, chip moves to left of row, feed filters immediately
+- [ ] Multi-select works (AND logic between selected tags)
+- [ ] Selected chips pinned left during scroll
+- [ ] `getVisibleTags(userId, languageCode)` DB function used — not `getAllTags()`
 
 ### FAB
 
 - [ ] FAB is a circle (not pill, not bar-docked)
-- [ ] FAB icon: `+` only, no text
-- [ ] FAB floats 20 px above Friends Strip on mobile
+- [ ] FAB icon: `+` only, no text; rotates to `×` on speed-dial open
+- [ ] Speed-dial has exactly 4 actions: Tag · Card · Folder · Template (bottom to top)
+- [ ] Speed-dial scrim dismisses on tap outside
+- [ ] Tag Mode: floating Tag Pill + half-height sheet; card tap assigns tag, not detail
+- [ ] Tag Mode exits on `×` tap; feed returns to normal
+- [ ] New Folder sheet: name input + 7-color swatch + Save
+- [ ] Template Picker: preset list + optional name input + "Add to workspace"
+- [ ] Unwired actions (pre-dependency phase) show "Coming soon" toast
+- [ ] FAB floats 20 px above Friends Strip handle on mobile
 - [ ] FAB is bottom-right fixed on desktop
-- [ ] FAB amber with amber drop shadow + bg2 ring
 
 ### Add Card Sheet
 
@@ -2053,17 +2156,24 @@ CREATE TABLE translations ( ... );  -- per §35
 
 ### Friends & Groups Strip
 
-- [ ] Strip is **permanently at the bottom** of every screen (Home, Folder, Search)
-- [ ] Strip never appears at the top
+- [ ] Strip has 3 states: Hidden / Strip / Expanded Panel
+- [ ] State persisted to localStorage key `liked.friendsStripState` 
+- [ ] Hidden state: only handle visible (28 px) with `Friends (N) & Groups (N)` label
+- [ ] Strip state: full avatar row + handle above
+- [ ] Swipe down on strip → Hidden; swipe up on handle → Strip; swipe up on strip → Expanded Panel
+- [ ] Handle label shows live counts: `Friends (N) & Groups (N)` 
 - [ ] "Me" avatar pinned left, never scrolls
-- [ ] Friends displayed as **circles**
-- [ ] Groups displayed as **rounded squares** (~10 px radius)
+- [ ] Friends displayed as circles
+- [ ] Groups displayed as rounded squares (~10 px radius)
 - [ ] Group chip shows member micro-avatar stack (up to 3, 8 px) bottom-right
-- [ ] New-activity ring: amber 2 px outline + amber dot when friend shared since last view
-- [ ] Active filter ring: blue 2.5 px outline when friend/group is active filter
-- [ ] Expand chevron above strip opens Friends Panel
+- [ ] New-activity ring: amber 2 px outline + amber dot
+- [ ] Active filter ring: blue 2.5 px outline
 - [ ] Single tap friend → apply filter → blue ring + context strip pill
 - [ ] Long press → options popover
+- [ ] Expanded Panel: friend drag onto group chip adds member
+- [ ] Expanded Panel: drag member out of group removes member with Undo toast
+- [ ] Expanded Panel: group chip long-press → delete popover
+- [ ] Expanded Panel: group chips reorderable; order persisted to localStorage
 
 ### Friends Panel
 
@@ -2120,7 +2230,7 @@ CREATE TABLE translations ( ... );  -- per §35
 - [ ] Breadcrumb visible when inside any folder (depth ≥ 1)
 - [ ] Folder name replaces logo in top bar when inside folder
 - [ ] Color dot + folder name in top bar
-- [ ] `⋯` button replaces sliders icon in top bar when inside folder
+- [ ] `⋯` button replaces tags/search icons in top bar when inside folder
 - [ ] Back `←` button returns to parent or root
 - [ ] Each path segment tappable
 - [ ] Middle segments truncated with `…` if path too long
@@ -2164,9 +2274,9 @@ CREATE TABLE translations ( ... );  -- per §35
 
 - [ ] No emoji used anywhere in the application UI
 - [ ] All icons are flat SVG stroke-based (feather-style)
-- [ ] Sliders icon for filter (not gear, not funnel)
+- [ ] Tags icon for tag filter; Search icon for search
 - [ ] Icons use `currentColor` (themeable)
-- [ ] Filter icon badge visible when filters active
+- [ ] Tag icon badge visible when tags active
 
 ---
 

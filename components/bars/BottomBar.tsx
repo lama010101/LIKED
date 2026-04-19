@@ -1,24 +1,31 @@
 'use client';
 
-interface BottomBarItem {
-  id: string;
-  type: 'me' | 'friend' | 'group';
-  displayName: string;
-  initial: string;
-  bg: string;
-  hasNew?: boolean;
-}
+import BottomBarAvatar, { BottomBarAvatarItem } from './BottomBarAvatar';
+import { useDragPauseExpand } from '@/lib/dnd/useDragPauseExpand';
+
+type BottomBarItem = BottomBarAvatarItem;
 
 interface BottomBarProps {
   items: BottomBarItem[];
   onAvatarClick: (id: string, type: 'me' | 'friend' | 'group') => void;
   onExpandClick: () => void;
+  /** When the strip is collapsed, a drag-hover >500ms auto-expands it (P7-T01). */
+  isCollapsed?: boolean;
 }
 
-export default function BottomBar({ items, onAvatarClick, onExpandClick }: BottomBarProps) {
+export default function BottomBar({ items, onAvatarClick, onExpandClick, isCollapsed = true }: BottomBarProps) {
+  // Wire the drag-pause auto-expand: if user hovers the bar while dragging
+  // and pauses >500ms, call onExpandClick. No-op when not collapsed.
+  const autoExpandRef = useDragPauseExpand<HTMLDivElement>({
+    isCollapsed,
+    onExpand: onExpandClick,
+    delayMs: 500,
+  });
+
   return (
     <div className="lg:hidden">
     <div
+      ref={autoExpandRef}
       style={{
         position: 'fixed',
         bottom: 0,
@@ -28,6 +35,7 @@ export default function BottomBar({ items, onAvatarClick, onExpandClick }: Botto
         flexShrink: 0,
         background: 'var(--surface-2)',
         borderTop: '1px solid var(--border-1)',
+        transition: 'height 200ms ease',
       }}
     >
       <style>{`.liked-friends-strip::-webkit-scrollbar { display: none; }`}</style>
@@ -80,66 +88,7 @@ export default function BottomBar({ items, onAvatarClick, onExpandClick }: Botto
         }}
       >
         {items.map((item) => (
-          <div
-            key={item.id}
-            onClick={() => onAvatarClick(item.id, item.type)}
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 3,
-              padding: '0 7px',
-              cursor: 'pointer',
-              flexShrink: 0,
-            }}
-          >
-            <div
-              style={{
-                width: 38,
-                height: 38,
-                borderRadius: item.type === 'group' ? 10 : '50%',
-                background: item.bg,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 12,
-                fontWeight: 700,
-                color: '#fff',
-                position: 'relative',
-                outline: item.hasNew ? '2px solid var(--accent)' : undefined,
-                outlineOffset: item.hasNew ? 2 : undefined,
-              }}
-            >
-              {item.initial}
-              {item.type === 'me' && (
-                <span
-                  style={{
-                    position: 'absolute',
-                    bottom: 0,
-                    right: 0,
-                    width: 9,
-                    height: 9,
-                    borderRadius: '50%',
-                    background: 'var(--accent)',
-                    border: '1.5px solid var(--surface-2)',
-                  }}
-                />
-              )}
-            </div>
-            <span
-              style={{
-                fontSize: 8,
-                color: 'var(--text-2)',
-                whiteSpace: 'nowrap',
-                maxWidth: 44,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                textAlign: 'center',
-              }}
-            >
-              {item.displayName}
-            </span>
-          </div>
+          <BottomBarAvatar key={item.id} item={item} onClick={onAvatarClick} />
         ))}
       </div>
     </div>

@@ -459,24 +459,27 @@
 > Project: LIKED · Task: P5-T01  
 > Reference: LIKED_Prototype (React multi-file). Folder view header replaces top bar when inside folder (Amendment F). Friends strip expand handle has drag-up gesture (Amendment H).  
 > Create the main app layout at `app/(app)/layout.tsx` per PRD §11.1, §11.3, §11.4. It must render:
-> (1) **Top Bar** (§11.1) — always visible, exactly 1 permanent row: Logo `liked.` (left) · Sliders icon (right of logo, opens Filter Feed sheet) · Notification bell (right, badge) · Profile avatar (far right, opens Profile modal). No Row 2. Sort button + view mode icons sit in a separate **Sort/View Row** between the feed filter tabs and the feed content.
+> (1) **Top Bar** (§11.1) — always visible, exactly 1 permanent row: Logo `liked.` (left) · Tags icon-btn (right of logo, `tag` feather icon, badge when tags active, tap toggles Tags Strip §11.3f) · Search icon-btn (`search` feather icon, tap opens search — wired at P9) · Notification bell (right, badge) · Profile avatar (far right, opens Profile modal). No Sliders icon. No Filter Feed sheet. No Row 2. Sort button + view mode icons sit in a separate **Sort/View Row** between the feed filter tabs and the feed content.
 > (2) **Feed Filter Tabs** (§11.2a) — 3 tabs immediately below top bar: All · Mine · Received. No Sent tab. Mine tab has sub-filter: All Mine / Not shared / Shared.
 > (3) **Sort/View Row** — between feed filter tabs and feed content. Sort button (dropdown: Newest/Oldest/Rating/Most Shared/Custom) + 5 view mode icons (Icon Grid · Masonry · List · Horizontal Rows · Free View). Active icon highlighted amber.
 > (4) **Context Strip** (§11.3c) — conditional strip between feed tabs and sort row; hidden when no filters active.
 > (5) **Main content area** — feed cards.
 > (6) **Friends & Groups Strip** (§11.4) — **permanently docked at the BOTTOM** of the screen, above the system home indicator. "Me" avatar pinned first (never scrolls). Friends as circles, Groups as rounded squares (~10 px radius). 5 avatars visible at mobile width. Sorted by last activity. Background: `--color-bar` (opaque). An **expand handle** (pill + chevron + 'FRIENDS' label) sits centered above the strip; tapping or drag-up >40px opens Friends Panel (§11.4a).
 > (7) **FAB** (§11.3) — floating amber circle, `+` icon only, no text. Mobile: horizontally centered, 20 px above Friends Strip. Desktop: fixed bottom-right, 18 px from edges.
-> (8) **Folder View Header** (§11.5a) — when inside a folder, replaces top bar: folder color dot + name left, view toggles + sliders right; breadcrumb row below.
-> **No Folders Bar.** Folders are accessed via the Filter Feed sheet (Sliders icon → Folder chips), breadcrumb, or drag panel (PRD §11.5). All tap targets minimum 44×44 px. Please include Task ID P5-T01 in your reply.
+> (8) **Folder View Header** (§11.5a) — when inside a folder, replaces top bar: folder color dot + name left, view toggles + tags icon right; breadcrumb row below.
+> **No Folders Bar.** Folders are accessed via breadcrumb or drag panel (PRD §11.5). No Filter Feed sheet. All tap targets minimum 44×44 px. Please include Task ID P5-T01 in your reply.
 
 **Acceptance criteria:**
-- [ ] Top bar is exactly 1 row with Logo · Sliders · Bell · Avatar
+- [ ] Top bar is exactly 1 row with Logo · Tags icon · Search icon · Bell · Avatar
+- [ ] Tags icon has badge showing active tag count when ≥1 tag selected
+- [ ] No Sliders icon in the layout
 - [ ] Feed filter tabs are All · Mine · Received (no Sent tab)
 - [ ] Sort/View Row appears between feed tabs and content
 - [ ] Friends & Groups Strip is at the BOTTOM, never at the top
 - [ ] "Me" avatar is always first and pinned left
 - [ ] FAB is a circle (not pill), centered 20 px above strip on mobile, bottom-right on desktop
 - [ ] No Folders Bar in the layout
+- [ ] No Filter Feed bottom sheet in the layout
 - [ ] No Bottom Navigation Bar anywhere in the layout
 - [ ] Expand chevron above strip opens Friends Panel
 
@@ -485,26 +488,38 @@
 ### P5-T02 — Floating Create Modal (FAB)
 
 **Cascade prompt:**
-> Project: LIKED · Task: P5-T02  
-> Add sheet uses two separate fields (URL + note), not single auto-detect input (Amendment G).  
-> Implement the FAB **Add Card Bottom Sheet** per PRD §11.3b. Opens on FAB tap. Layout:
-> (1) **Two separate input fields** (not auto-detect):
->    - URL input field: placeholder 'Paste or type URL…'. On blur or 600ms debounce, fetch OG metadata and show preview card (thumbnail + title + domain) below.
->    - Note/text textarea: placeholder 'Add a note (optional)'. Grows with content up to 40% of sheet height.
-> (2) **TAG section** below inputs: chip row, single-select, all available tags shown. Selected tag highlighted with accent outline.
-> (3) **SHARE WITH (OPTIONAL) section**: 5-column grid of friend avatars (circles) and group avatars (rounded squares). Tap to select (accent outline + checkmark badge).
-> (4) **Save** button: full-width amber button at bottom. On save: INSERT `node + cause (import) + edge` atomically (PRD §6.8). Card appears at top of feed immediately.
-> The sheet closes on Escape or outside tap. No separate "New Friend" section in this sheet — friend invites are handled via the Friends Panel (§11.4a) `+ Invite` chip. Please include Task ID P5-T02 in your reply.
+> Project: LIKED · Task: P5-T02 · Amendment: UIX v27.1
+> Implement the FAB Speed-Dial and Friends & Groups Strip 3-state model per PRD §11.3 and §11.4 (UIX Amendment v27.1).
+>
+> **Part A — FAB Speed-Dial:**
+> (1) On FAB tap: `+` icon rotates 45° to `×` (200ms ease). Four action buttons (36 px circles) fan out vertically above the FAB. Semi-transparent scrim over feed. Tapping scrim or `×` collapses.
+> (2) Speed-dial actions bottom to top: Tag (§11.3b) · Card (§11.3c) · Folder (New Folder sheet) · Template (§11.3d).
+> (3) New Folder sheet: name input + 7-color swatch row (from system palette) + Save. On save: calls `createFolder()` (P4 dependency — show "Coming soon" toast until P4 complete).
+> (4) Template Picker sheet: preset list rows (icon + name + description) + optional name input + "Add to workspace" amber button. Presets: Read Later, Watch List, Trip Planner (3 sub-folders), Book Notes. Wired at P4 completion — show "Coming soon" toast until then.
+> (5) Tag Mode (§11.3b): floating Tag Pill at FAB position + half-height Tag Sheet with tag list + new tag input. On tag select: sheet collapses, pill updates. Card/folder tap in feed assigns tag (150ms accent ring). `×` on pill exits Tag Mode. Wired at P6 completion — show "Coming soon" toast until then.
+> (6) Card action: opens existing Add Card bottom sheet (§11.3c — unchanged).
+>
+> **Part B — Friends & Groups Strip 3-state model:**
+> (1) Implement three states: `hidden` | `strip` | `expanded`. Persist to localStorage key `liked.friendsStripState`. Default: `strip`.
+> (2) Hidden state: render only the 28 px handle (pill + chevron-up + `Friends (N) & Groups (N)` label with live counts). FAB floats 20 px above handle.
+> (3) Strip state: full avatar row (existing spec) + handle above it. FAB floats 20 px above handle.
+> (4) State transitions via swipe gestures (threshold > 40 px velocity): swipe down on strip → hidden; swipe up on handle → strip; swipe up on strip → expanded panel; swipe down on panel or `×` → strip.
+> (5) Expanded Panel (§11.4a): add group management drag-drop per §11.4a Group Management section: friend drag onto group chip calls `addMemberToGroup()`; drag member out calls `removeMemberFromGroup()` + Undo toast; group chip long-press → delete popover; group chips reorderable (localStorage key `liked.groupOrder`).
+>
+> Please include Task ID P5-T02 in your reply.
 
 **Acceptance criteria:**
-- [ ] URL input shows OG preview (thumbnail + title + domain) while fetching
-- [ ] Text input shows char counter, disables save above 500 chars
-- [ ] Auto-tag chips shown; removable and addable
-- [ ] "Share with" avatar row is present and functional
-- [ ] Save creates node + import cause + edge atomically
-- [ ] New card appears at feed top without full page reload
-- [ ] Modal closes on Escape and outside click
-- [ ] FAB is the only node creation entry point
+- [ ] FAB speed-dial opens with 4 actions: Tag · Card · Folder · Template
+- [ ] `+` rotates to `×` on open; scrim dismisses on outside tap
+- [ ] New Folder sheet: name input + color swatches + Save
+- [ ] Template Picker: preset list + optional name + "Add to workspace"
+- [ ] Tag Mode: Tag Pill + Tag Sheet; card tap assigns tag with accent ring; `×` exits
+- [ ] Unwired actions (pre-P4, pre-P6) show "Coming soon" toast
+- [ ] Strip state persisted to localStorage `liked.friendsStripState` 
+- [ ] Hidden state renders only 28 px handle with live counts label
+- [ ] Swipe transitions between all 3 states work on mobile touch
+- [ ] Expanded Panel group drag-drop: add/remove members, reorder groups, delete group
+- [ ] FAB position correct in all 3 strip states (always 20 px above handle)
 
 ---
 
@@ -541,6 +556,30 @@
 
 ---
 
+### P5-T05 — Tags Strip
+
+**Cascade prompt:**
+> Project: LIKED · Task: P5-T05
+> Implement the Tags Strip per PRD §11.3f.
+> (1) Add `getVisibleTags(userId: string, languageCode: string): Promise<Tag[]>` to `lib/db/tags.ts`. This function returns DISTINCT tags present on nodes visible to the user — JOIN `tag_edges` → `tags` → `tag_translations` → `nodes` → `edges` WHERE `e.user_id = userId AND n.deleted_at IS NULL`. Do NOT call `getAllTags()`. Language fallback: if no translation for `languageCode`, fall back to `en`, then to tag_id prefix per PRD §33.4.
+> (2) Create `components/bars/TagsStrip.tsx` — Client Component. Props: `userId`, `languageCode`, `activeTags: string[]`, `onToggle(tagId: string): void`, `onClose(): void`. Layout: search input row (auto-focused on mount, `×` clear button) above horizontally scrollable chip row. Selected chips pinned to left of row. Chips filtered in real time by search input. Chip colors from `tags.color_hex`.
+> (3) In `app/(app)/layout.tsx`, wire the Tags icon-btn in the top bar to toggle a `tagsStripOpen` boolean in local state. Render `<TagsStrip>` between top bar and feed filter tabs when `tagsStripOpen = true`. Slide-down animation: `max-height` transition 200ms ease. Tags icon badge = count of `activeTags.length` when > 0.
+> (4) Active tags feed into the existing feed filter state (same mechanism as P9-T03 multi-filter). For now, pass active tags down to `FeedContainer` as `tagFilter: string[]`. Feed re-queries on change.
+> (5) When last active tag is removed via context strip `×`, set `tagsStripOpen = false`.
+> Please include Task ID P5-T05 in your reply.
+
+**Acceptance criteria:**
+- [ ] `getVisibleTags()` only returns tags on nodes visible to the user — verified by checking a tag assigned only to a non-visible node does not appear
+- [ ] Tags Strip hidden by default; slides down on Tags icon tap
+- [ ] Search input auto-focused on open; filters chips in real time
+- [ ] Selected chips pinned to left of chip row
+- [ ] Multi-select works; each selection triggers immediate feed re-query
+- [ ] Tags icon badge count matches active tag count
+- [ ] Removing last tag via context strip auto-collapses strip
+- [ ] `getAllTags()` is never called from this component
+
+---
+
 ### P5 Gate Conditions
 
 - [ ] App layout looks like a polished Pinterest-style product
@@ -549,6 +588,9 @@
 - [ ] Profile modal works with all rate limits
 - [ ] No Bottom Navigation Bar
 - [ ] Both bars have correct labels, chevrons, backgrounds, and scroll behavior
+- [ ] Tags Strip functional with visible-only tag scope
+- [ ] No Filter Feed bottom sheet exists anywhere in the codebase
+- [ ] Search icon present in top bar (may show "coming soon" toast until P9)
 
 ---
 

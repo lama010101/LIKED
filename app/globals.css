@@ -123,6 +123,20 @@ body {
   --shadow-sm: 0 2px 8px rgba(0,0,0,.06);
 }
 
+/* ── Multi-select wobble (P7-T03, PRD §17.1) ───────────── */
+@keyframes liked-wobble {
+  0%, 100% { transform: rotate(-2deg); }
+  50%      { transform: rotate(2deg); }
+}
+.liked-wobble {
+  animation: liked-wobble 0.3s ease-in-out infinite;
+  /* Slight lift so neighbours don't clip */
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  .liked-wobble { animation: none; }
+}
+
 .font-serif {
   font-family: 'Fraunces', Georgia, serif;
   font-feature-settings: 'ss01';

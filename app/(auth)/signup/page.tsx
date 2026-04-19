@@ -68,8 +68,12 @@ export default function SignupPage() {
     });
 
     if (profileError) {
-      // Log error but don't fail signup - profile can be created later
+      // Hard-block: profile creation is mandatory. Sign out and show error.
       console.error("Failed to create user profile:", profileError);
+      await supabase.auth.signOut();
+      setError("Account setup failed. Please try again.");
+      setLoading(false);
+      return;
     }
 
     router.push("/feed");

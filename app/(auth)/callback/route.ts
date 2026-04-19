@@ -45,28 +45,20 @@ export async function GET(request: Request) {
       const { data: { user } } = await supabase.auth.getUser();
 
       if (user) {
-        const { data: existingUser } = await supabase
-          .from("users")
-          .select("id")
-          .eq("id", user.id)
-          .single();
+        // Create user profile for OAuth signup (idempotent via upsert)
+        const displayName = user.user_metadata?.full_name ||
+                           user.user_metadata?.name ||
+                           getEmailPrefix(user.email || "user");
+        const normalizedName = normalizeDisplayName(displayName);
 
-        if (!existingUser) {
-          // Create user profile for OAuth signup
-          const displayName = user.user_metadata?.full_name ||
-                             user.user_metadata?.name ||
-                             getEmailPrefix(user.email || "user");
-          const normalizedName = normalizeDisplayName(displayName);
-
-          await supabase.from("users").insert({
-            id: user.id,
-            display_name: displayName,
-            normalized_display_name: normalizedName,
-            language_code: "en",
-            avatar_key: null,
-            avatar_change_count_today: 0,
-          });
-        }
+        await supabase.from("users").upsert({
+          id: user.id,
+          display_name: displayName,
+          normalized_display_name: normalizedName,
+          language_code: "en",
+          avatar_key: null,
+          avatar_change_count_today: 0,
+        }, { onConflict: "id" });
       }
 
       return NextResponse.redirect(`${origin}${next}`);

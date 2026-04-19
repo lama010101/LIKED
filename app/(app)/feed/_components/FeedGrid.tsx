@@ -1,17 +1,17 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import type { VisibleNode } from "@/lib/db/visibility";
+import type { VisibleNode, FeedView, MineSubFilter } from "@/lib/db/visibility";
 import type { FeedItem } from "@/lib/types/feed";
 import { useLocalStorage } from "@/lib/hooks/useLocalStorage";
-import NodeCard from "./NodeCard";
-import SlideOver from "./SlideOver";
+import CardDetailSheet from "@/components/modals/CardDetailSheet";
 import FreeGrid from "./FreeGrid";
 import FolderView from "./FolderView";
 import ColView from "./views/ColView";
 import MasonView from "./views/MasonView";
 import ListView from "./views/ListView";
 import HorizView from "./views/HorizView";
+import SortableNodeGrid from "./SortableNodeGrid";
 
 interface FolderContext {
   id: string;
@@ -24,6 +24,9 @@ type ViewMode = 'col' | 'mason' | 'list' | 'horiz' | 'free';
 
 interface FeedGridProps {
   nodes: VisibleNode[];
+  currentUserId: string;
+  feedView?: FeedView;
+  mineFilter?: MineSubFilter;
   view?: ViewMode;
   zoom?: number;
   scopeKey?: string;
@@ -47,6 +50,9 @@ const STUB_ITEMS: FeedItem[] = [
 
 export default function FeedGrid({
   nodes,
+  currentUserId,
+  feedView,
+  mineFilter,
   view: viewProp,
   zoom: zoomProp,
   scopeKey = "default",
@@ -54,6 +60,9 @@ export default function FeedGrid({
   onExitFolder,
   onFolderFilterClick,
 }: FeedGridProps) {
+  // P9-T01: feedView and mineFilter are passed for future client-side filtering
+  // Currently the server has already filtered the nodes, but we accept these
+  // for symmetry and potential optimistic UI updates.
   const [storedView] = useLocalStorage<ViewMode>('liked.view', 'col');
   const [storedZoom] = useLocalStorage<number>('liked.zoom', 2);
   const view = viewProp ?? storedView;
@@ -92,7 +101,7 @@ export default function FeedGrid({
           onFilterClick={onFolderFilterClick ?? (() => {})}
           onCardClick={handleOpen}
         />
-        <SlideOver node={activeNode} onClose={handleClose} />
+        <CardDetailSheet node={activeNode} currentUserId={currentUserId} onClose={handleClose} />
       </>
     );
   }
@@ -104,7 +113,7 @@ export default function FeedGrid({
         {nodes.length === 0 ? emptyState : (
           <FreeGrid nodes={nodes} scopeKey={scopeKey} onCardClick={handleOpen} />
         )}
-        <SlideOver node={activeNode} onClose={handleClose} />
+        <CardDetailSheet node={activeNode} currentUserId={currentUserId} onClose={handleClose} />
       </>
     );
   }
@@ -126,22 +135,28 @@ export default function FeedGrid({
 
   /* ── Horiz view ── */
   if (view === "horiz") {
-    return <HorizView items={STUB_ITEMS} scopeKey={scopeKey} onItemClick={handleItemClick} />;
+    return (
+      <HorizView
+        items={STUB_ITEMS}
+        scopeKey={scopeKey}
+        onItemClick={handleItemClick}
+        folderContext={folderContext}
+      />
+    );
   }
 
   /* ── Fallback masonry (legacy viewMode prop not passed) ── */
   return (
     <>
       {nodes.length === 0 ? emptyState : (
-        <div className="columns-1 md:columns-2 lg:columns-3 gap-4">
-          {nodes.map((node) => (
-            <div key={node.id} className="break-inside-avoid mb-4">
-              <NodeCard node={node} onClick={handleOpen} />
-            </div>
-          ))}
-        </div>
+        <SortableNodeGrid
+          nodes={nodes}
+          scopeKey={scopeKey}
+          onCardClick={handleOpen}
+          currentUserId={currentUserId}
+        />
       )}
-      <SlideOver node={activeNode} onClose={handleClose} />
+      <CardDetailSheet node={activeNode} currentUserId={currentUserId} onClose={handleClose} />
     </>
   );
 }

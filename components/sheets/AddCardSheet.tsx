@@ -1,6 +1,8 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
+import { createNodeAction } from '@/app/lib/actions/createNode';
 
 interface AddCardSheetProps {
   open: boolean;
@@ -44,18 +46,28 @@ export default function AddCardSheet({ open, onClose }: AddCardSheetProps) {
   const [preview, setPreview] = useState<{ title: string; domain: string } | null>(null);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [selectedFriends, setSelectedFriends] = useState<Set<string>>(new Set());
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [isSaving, startSaving] = useTransition();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const router = useRouter();
 
-  // Reset state when opened
+  // Reset state when opened. Deferred via microtask to satisfy
+  // react-hooks/set-state-in-effect.
+  const prevOpenRef = useRef(false);
   useEffect(() => {
-    if (open) {
-      setUrl('');
-      setNote('');
-      setPreview(null);
-      setPreviewLoading(false);
-      setSelectedTag(null);
-      setSelectedFriends(new Set());
+    const prev = prevOpenRef.current;
+    prevOpenRef.current = open;
+    if (open && !prev) {
+      queueMicrotask(() => {
+        setUrl('');
+        setNote('');
+        setPreview(null);
+        setPreviewLoading(false);
+        setSelectedTag(null);
+        setSelectedFriends(new Set());
+        setSaveError(null);
+      });
     }
   }, [open]);
 
@@ -117,19 +129,33 @@ export default function AddCardSheet({ open, onClose }: AddCardSheetProps) {
   };
 
   const handleSave = () => {
-    console.log('Save stub:', {
-      url,
-      note,
-      selectedTag,
-      selectedFriends: Array.from(selectedFriends)
+    const trimmedUrl = url.trim();
+    const trimmedNote = note.trim();
+    if (!trimmedUrl && !trimmedNote) return;
+
+    setSaveError(null);
+    startSaving(async () => {
+      const result = await createNodeAction({
+        url: trimmedUrl || null,
+        textContent: trimmedUrl ? null : trimmedNote,
+      });
+      if (result.ok) {
+        // TODO P8-future: apply selectedTag + selectedFriends share ops here
+        onClose();
+        router.refresh();
+      } else {
+        setSaveError(result.error);
+      }
     });
-    onClose();
   };
 
-  const canSave = url.trim() !== '' || note.trim() !== '';
-  const saveLabel = selectedFriends.size === 0
-    ? 'Save to LIKED'
-    : `Save and share with ${selectedFriends.size}`;
+  const canSave =
+    (url.trim() !== '' || note.trim() !== '') && !isSaving;
+  const saveLabel = isSaving
+    ? 'Saving…'
+    : selectedFriends.size === 0
+      ? 'Save to LIKED'
+      : `Save and share with ${selectedFriends.size}`;
 
   return (
     <>
@@ -458,6 +484,25 @@ export default function AddCardSheet({ open, onClose }: AddCardSheetProps) {
               })}
             </div>
           </div>
+
+          {/* Save error */}
+          {saveError && (
+            <div
+              role="alert"
+              style={{
+                marginTop: 4,
+                marginBottom: 8,
+                padding: '8px 10px',
+                borderRadius: 10,
+                background: 'rgba(220, 38, 38, 0.12)',
+                color: 'var(--red, #dc2626)',
+                fontSize: 12,
+                fontWeight: 500,
+              }}
+            >
+              {saveError}
+            </div>
+          )}
 
           {/* Save Button */}
           <button

@@ -9,11 +9,11 @@
 
 | Field | Value |
 |-------|-------|
-| **Last completed task** | P5-T01-D (BottomBar component) |
-| **Next task to execute** | Add Horizontal Rows view mode to complete P5-T03 |
-| **Current phase** | P5 — UI Shell |
-| **Phase gate passed** | ❌ No (missing 1 view mode) |
-| **Last updated** | 2026-04-18 (Cascade review) |
+| **Last completed task** | P9-T01 (Feed 3-state toggle) |
+| **Next task to execute** | P9-T02 (Search) |
+| **Current phase** | P8 — Media & Cards |
+| **Phase gate passed** | ✅ P6 fully complete |
+| **Last updated** | 2026-04-18 (Cascade) |
 
 ---
 
@@ -69,24 +69,42 @@
 | P5-T01-D | App layout integration | ✅ | app/(app)/layout.tsx with all bars integrated |
 | P5-T01 | Bars layout (complete) | ✅ | All subtasks A-D done |
 | P5-T02 | FAB + Create modal | ✅ | FAB in layout, AddCardSheet.tsx 499 lines complete |
-| P5-T03 | Five view modes | ⚠️ | 4/5 done (col, mason, list, free). Missing: Horizontal Rows |
+| P5-T03 | Five view modes | ✅ | All 5 complete: col, mason, list, horiz, free. HorizView.tsx implements PRD §11.2 D grouping |
 | P5-T04 | Profile modal | ✅ | ProfileModal.tsx 483 lines complete, integrated |
-| **P5 Gate** | | ❌ | Blocked on P5-T03 (Horizontal Rows view mode) |
+| **P5 Gate** | | ✅ | All P5 tasks complete — UI Shell done |
 
 ### PHASE 6 — Tags & Ratings
 | Task ID | Title | Status | Notes |
 |---------|-------|--------|-------|
-| P6-T01 | Tag creation and assignment | ✅ | lib/db/tags.ts exists |
-| P6-T02 | Rating system | ✅ | lib/db/ratings.ts exists |
-| P6-T03 | Sort system | ⏳ | Not yet verified |
-| **P6 Gate** | | ❌ | Blocked on P5 |
+| P6-T01 | Tag creation and assignment | ✅ | lib/db/tags.ts full impl: createOrGetTag (NFKC normalize + 20-color palette cycle), addTagToNode, removeTagFromNode, getTagsForNode, getAllTags, §33.4 fallback chain |
+| P6-T02 | Rating system | ✅ | migration 015 + lib/db/ratings.ts with upsertRating RPC, getRatingsForNode |
+| P6-T03 | Sort system | ✅ | migration 016 (get_visible_nodes, get_nodes_in_folder with p_sort), feedStore localStorage persistence, useFeed.ts wired |
+| CLEANUP-D | Regenerate Supabase types | ✅ | lib/types/database.ts updated with ratings, nodes_sort_cache, new RPCs |
+| **P6 Gate** | | ✅ | All tasks complete |
 
-### PHASES 7–13
+### PHASE 7 — Advanced Interactions
+| Task ID | Title | Status | Notes |
+|---------|-------|--------|-------|
+| P7-T01 | Drag-and-drop core targets | ✅ | @dnd-kit/core wired. Infra: `lib/dnd/` (types, DndProvider, useDragPauseExpand), `app/lib/actions/dnd.ts` (6 server actions). NodeCard = draggable. BottomBarAvatar = droppable (friend/group). TopBar TrashDropButton = droppable. softDeleteNode impl in nodes.ts. Known limitation: folder-chip + tag-chip drop targets pending UI surfaces (not yet in layout) |
+| P7-T02 | DnD auto-create + custom sort | ✅ | Migration 017 (user_node_preferences + RLS) applied to DB, `lib/db/nodePreferences.ts`, 4 new server actions (autoCreateFolder/Group, shareFolderToFriend, reorderFeed), NameInlinePrompt component with Escape/outside-tap cancel, DndProvider pending-prompt flow, card→card + friend→friend + friend↔folder routes, feedStore customOrders + setCustomOrder (localStorage + auto-flip sort to 'custom'), SortableNodeGrid on fallback masonry via @dnd-kit/sortable. Known limitation: sortable reorder only wired on fallback masonry path; STUB-based views (col/mason/list/horiz/free) will need individual sortable wiring in later tasks. Types casting via `AnySupabase` in nodePreferences.ts pending CLEANUP-E type regen. |
+| P7-T03 | Long-press multi-select | ✅ | `lib/store/selectionStore.ts` (multi-kind selection + pendingRestore), `lib/hooks/useLongPress.ts` (500ms press, 6px move tolerance, coexists with @dnd-kit via native listeners + click-capture swallow), `liked-wobble` keyframe (±2°, 0.3s, respects prefers-reduced-motion) in globals.css, `restoreNode` in `lib/db/nodes.ts`, `app/lib/actions/selection.ts` (trashNode / restoreTrashedNode / trashNodes batch), `components/selection/` (MultiSelectContextMenu bottom-sheet/side-drawer per §17.2, UndoToast with 5s progress bar per §17.3, SelectionOverlay Escape handler + backdrop-tap exit, SelectionCloseButton). NodeCard + BottomBarAvatar wired: long-press activates, wobble + (×) overlay, dnd disabled during selection, tap toggles. `uiStore` legacy selection slice removed (no callers). Known limitations: folder chips + group chips in TopBar still absent from layout (P7-T01 note still applies); only `moveToTrash` action is wired to server — Edit/Move to folder/Add to group/Share with/Remove tag/Give admin/Remove from folder show a "coming soon" toast pending picker UIs in later phases; friend/group trash not implemented (close button on friend/group avatars only deselects). |
+| P7-T04 | Trash view | ✅ | `getTrashedNodes` + `getTrashedCount` + `hardDeleteNode` in `lib/db/nodes.ts` (hard-delete requires the node to already be soft-deleted; cascades via FKs). `app/lib/actions/trash.ts` with `getTrashCount`, `listTrashedNodes`, `restoreFromTrash`, `permanentlyDeleteFromTrash`. `app/(app)/trash/page.tsx` now renders `TrashView` client component: list with thumbnail/title/trashed-date per §20.1, per-row Restore button, Delete-permanently gated behind inline confirmation per §20.2, optimistic row removal + toast. TopBar gains `trashCount` prop → accent badge on trash icon (§20.1). Layout re-fetches count on pathname + toast change so badge updates after restore/trash. Drag-to-trash icon was already wired in P7-T01. Verified: full type-check clean on all new/modified P7-T04 files, full ESLint clean. |
+
+### PHASE 8 — Media & Cards
+| Task ID | Title | Status | Notes |
+|---------|-------|--------|-------|
+| P8-T01 | Metadata extraction Edge Function | ✅ | `supabase/functions/extract-node-metadata/index.ts` implements PRD §15.1: OG/Twitter/`<title>`/`<meta>` regex extraction, og:image → `thumbnails/{user_id}/{uuid}.ext` upload, URL+title+description tag candidates with multilingual stop-word filter (max 8), text-only branch (first 120 chars title + token tags), rate-limited to 30 calls/user/min via `activity_log`, logs every invocation with `action='metadata_extraction'`, never throws (returns `buildDefaults` on any failure). Migration 018 creates `thumbnails` public bucket with RLS (public read, user-prefix insert/delete). `tsconfig.json` excludes `supabase/functions/**` from host tsc. Deploy: `supabase functions deploy extract-node-metadata --no-verify-jwt`. Not yet deployed by user — local code complete. |
+| P8-T02 | Node creation with metadata | ✅ | Migration 019 adds RPC `create_node_with_metadata(p_owner_id, p_url, p_text, p_title, p_thumb, p_lang, p_tag_labels[])` — atomic: nodes INSERT + nodes_sort_cache INSERT + per-label tag_translations lookup-or-insert (§19.3 deterministic, palette via SQL helper `liked_tag_palette` mirroring TS `TAG_COLOR_PALETTE`) + tag_edges INSERT with `ON CONFLICT DO NOTHING`. `lib/db/nodes.ts::createNode` now accepts optional `NodeMetadata` and routes through the new RPC; fallback title = URL or first 120 chars of text when metadata is omitted. New server action `app/lib/actions/createNode.ts::createNodeAction` invokes `extract-node-metadata` via the user's JWT-scoped server client (10s abort timeout) and passes results to `createNode`; on Edge Function failure (timeout/5xx/invalid body), metadata is undefined → defaults applied per PRD §15.1 #3. `AddCardSheet` save handler wired to the action (useTransition for pending, inline error surface, router.refresh on success). Temp `AddNodeBar` + `app/(app)/feed/actions.ts` deleted — FAB is the sole creation path per task spec. Migration applied to DB (both `create_node_with_metadata` + `liked_tag_palette` present). Tags/friends pickers in sheet remain stubs (not in scope for P8-T02). |
+| P8-T03 | Card detail modal | ✅ | New `components/modals/CardDetailSheet.tsx` per PRD §14. Bottom sheet on mobile / right-side panel on desktop (auto-detected via `matchMedia('(min-width:1024px)')`, SSR-safe with `queueMicrotask`). Embed dispatcher: YouTube (`/embed/{id}` from `v=`, `/embed/`, `/shorts/`, `youtu.be`), Spotify (`/embed/{track\|playlist\|album\|episode\|show}/{id}`), Suno (`/embed/{song_id}`), generic iframe fallback (sandboxed), or `◇` glyph for text cards. Fullscreen button (28×28, `rgba(0,0,0,0.5)`) on media calls `requestFullscreen()` on the media container. "Open in {platform}" primary CTA. Meta pills: avg rating / views / shares / direction (↑ mine \| ↓ received). Native range slider 0–10 step 0.5, height 44px, auto-saves on mouseup/touchend/keyup → `rateCardAction` → `upsertRating` RPC. Inline title edit (owner-only, click-to-edit, Enter saves / Escape cancels) → `updateNodeTitleAction`. Tag chips (colored). Shared-with avatar row (26px circles, overlap, +N overflow). Action grid: Share (calls `onShareClick` prop) + Trash (owner-only, `softDeleteNode`). New `lib/db/cardDetail.ts` with `getCardDetail(userId, nodeId, lang)` (parallel Promise.all of tags/ratings/sortCache/sharedWith), `updateNodeTitle(owner-only)`, `incrementViewCount` (fire-and-forget from `fetchCardDetail`); `lib/db/cardDetail.ts::getSharedWith` queries `edges` joined with users, dedup by user_id. New server actions: `fetchCardDetail`, `rateCardAction`, `updateNodeTitleAction`, `trashCardAction` in `app/lib/actions/cardDetail.ts`. `FeedGrid` accepts `currentUserId` prop and mounts `CardDetailSheet` in all 3 mount points (folder/free/fallback). `feed/page.tsx` passes `user.id`. Deleted: old stubs `components/modals/CardDetailModal.tsx` (149 lines) and `app/(app)/feed/_components/SlideOver.tsx` (89 lines); `components/modals/index.ts` updated. Verified: tsc clean, eslint clean on all P8-T03 files. Scope deferred (future phases per PRD): swipe-to-dismiss/expand gestures, individual-friend rating breakdown UI, fullscreen for cross-origin iframes (browser-limited), `onShareClick` handler wiring (needs SharePickerModal integration). |
+
+### PHASE 9 — Search & Filters
+| Task ID | Title | Status | Notes |
+|---------|-------|--------|-------|
+| P9-T01 | Feed 3-state toggle | ✅ | Migration 020 extends `get_visible_nodes(p_user_id, p_sort, p_view, p_mine_filter)` with view filter ('all'|'mine'|'received') and mine sub-filter ('all'|'not_shared'|'shared'). `lib/db/visibility.ts` exports `FeedView` and `MineSubFilter` types; `getVisibleNodes()` accepts view/mineFilter params. `feed/page.tsx` reads `?view=` and `?mine=` search params, passes to `getVisibleNodes()` for SSR. Layout tabs wired to URL via `router.replace()` — tab changes update URL, URL changes update server render. `filterStore` updated with `mineSubTab` state. `NodeCard` shows direction badge (10px circle, bottom-right): amber `var(--accent)` for mine, blue `var(--color-received, #60c5f1)` for received. `currentUserId` passed through `FeedGrid` → `SortableNodeGrid` → `NodeCard`. Colors use exact same CSS tokens as tab styling per PRD §11.2a.s, individual-friend rating breakdown UI, fullscreen for cross-origin iframes (browser-limited), `onShareClick` handler wiring (needs SharePickerModal integration). |
+
+### PHASES 10–13
 | Phase | Status |
 |-------|--------|
-| P7 Advanced Interactions | ⏳ Not started |
-| P8 Media & Cards | ⚠️ CardDetailModal.tsx exists (149 lines, stubbed) |
-| P9 Search & Filters | ⏳ Not started |
 | P10 Realtime & Notifications | ⏳ Not started |
 | P11 Advanced Views | ⏳ Not started |
 | P12 Admin & Permissions | ⏳ Not started |
@@ -103,6 +121,7 @@
 | migration 011 | friend_invites table instead of edge-derived friends | Accepted — revisit at P5-T01 |
 | components location | Feed components in app/(app)/feed/_components/ | Accepted — enforce correct location going forward |
 | permissions.ts | File exists but unused | Leave in place, never import |
+| `AnySupabase` cast in `lib/db/nodePreferences.ts` | `user_node_preferences` table not yet in generated database.ts types | Will be fixed by CLEANUP-E (regenerate Supabase types after migration 017) |
 
 ---
 
@@ -119,7 +138,12 @@
 
 ## BLOCKERS / NOTES
 
-- **Current blocker:** P5-T03 missing Horizontal Rows view mode (4/5 complete: col, mason, list, free)
+- BUG-01 fixed: public.users row creation now hard-blocks signup (error + signOut if profile insert fails); OAuth callback uses upsert with onConflict; trigger 013 as safety net on auth.users AFTER INSERT; migration 014 backfills public.users rows for any existing auth users missing a profile row
+- BUG-02 fixed: AddCardSheet now mobile-only (< 1024px); desktop FAB is a no-op pending future desktop create modal task
+- CLEANUP-D complete: lib/types/database.ts regenerated with new tables (ratings, nodes_sort_cache) and RPCs (upsert_rating, get_nodes_in_folder, get_visible_nodes with p_sort)
+- P6-T02 complete: Rating upsert RPC (migration 015) + client-side ratings.ts with type casting for getRatingsForNode
+- P6-T03 complete: Sort-aware feed RPCs (migration 016) + localStorage persistence in feedStore + useFeed.ts wiring
+- TypeScript errors remain in unmodified files (friends.ts, sharing.ts, users.ts) — pre-existing, out of scope for recent tasks
 - permissions.ts left in place unused — do not import it anywhere in new code
 - friend_invites model (migration 011) deviates from PRD §9 — accepted deviation
 - migration 010 dropped folder_admins and group_admins — restored via migration 012

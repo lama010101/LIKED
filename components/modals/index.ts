@@ -1,3 +1,3 @@
 export { SharePickerModal } from "./SharePickerModal";
-export { CardDetailModal } from "./CardDetailModal";
+export { default as CardDetailSheet } from "./CardDetailSheet";
 export { default as ProfileModal } from "./ProfileModal";

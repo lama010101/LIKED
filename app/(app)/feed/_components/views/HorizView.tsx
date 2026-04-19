@@ -2,6 +2,17 @@
 
 import type { ViewProps, FeedItem } from "@/lib/types/feed";
 
+interface FolderContext {
+  id: string;
+  name: string;
+  color: string;
+}
+
+interface HorizViewProps extends ViewProps {
+  folderContext?: FolderContext | null;
+  activeTag?: string | null;
+}
+
 function FolderCollage({ item }: { item: FeedItem }) {
   const base = item.folderColor ?? "#888";
   const quadrants = [
@@ -125,57 +136,98 @@ function HorizTile({ item, onClick }: { item: FeedItem; onClick: (item: FeedItem
   );
 }
 
-function groupItems(items: FeedItem[]): { label: string; items: FeedItem[] }[] {
-  const hasFolderColor = items.some((i) => i.folderColor);
-  const hasTag = items.some((i) => i.tag);
-
-  if (hasFolderColor) {
+/**
+ * Group items per PRD §11.2 D:
+ * 1. If in folder context → group by sub-folder name (stub: use folderColor as proxy)
+ * 2. Else if tag filter active → group by tag
+ * 3. Else → group by sender (dir: mine/received)
+ * 4. Fallback → recency buckets: "Today", "This week", "This month", "Older"
+ */
+function groupItems(
+  items: FeedItem[],
+  folderContext?: FolderContext | null,
+  activeTag?: string | null
+): { label: string; items: FeedItem[] }[] {
+  // 1. In folder context → group by sub-folder (stub: group by folderColor as proxy)
+  if (folderContext) {
     const groups: Record<string, FeedItem[]> = {};
     for (const item of items) {
-      const key = item.folderColor ?? "Other";
+      // Use folderColor or title first word as sub-folder proxy
+      const key = item.folderColor ?? "Uncategorized";
       if (!groups[key]) groups[key] = [];
       groups[key].push(item);
     }
-    return Object.entries(groups).map(([color, g]) => ({
-      label: g[0].title.slice(0, 16),
-      items: g,
-    }));
+    return Object.entries(groups)
+      .map(([key, g]) => ({
+        label: g[0].title?.split(" ")[0]?.slice(0, 16) || "Folder",
+        items: g,
+      }))
+      .filter((g) => g.items.length > 0); // Hide empty rows
   }
 
-  if (hasTag) {
-    const groups: Record<string, FeedItem[]> = {};
-    const noTag: FeedItem[] = [];
-    for (const item of items) {
-      if (item.tag) {
-        if (!groups[item.tag]) groups[item.tag] = [];
-        groups[item.tag].push(item);
-      } else {
-        noTag.push(item);
-      }
-    }
-    const result = Object.entries(groups).map(([tag, g]) => ({ label: tag, items: g }));
-    if (noTag.length > 0) result.push({ label: "Other", items: noTag });
+  // 2. Tag filter active → group by tag
+  if (activeTag) {
+    const withTag = items.filter((i) => i.tag === activeTag);
+    const withoutTag = items.filter((i) => i.tag !== activeTag);
+    const result: { label: string; items: FeedItem[] }[] = [];
+    if (withTag.length > 0) result.push({ label: activeTag, items: withTag });
+    if (withoutTag.length > 0) result.push({ label: "Other", items: withoutTag });
     return result;
   }
 
-  const mine = items.filter((i) => i.dir === "mine");
-  const received = items.filter((i) => i.dir === "received");
-  const unset = items.filter((i) => !i.dir);
+  // 3. Else → group by sender (mine/received as proxy for sender)
+  const hasSenderInfo = items.some((i) => i.dir);
+  if (hasSenderInfo) {
+    const mine = items.filter((i) => i.dir === "mine");
+    const received = items.filter((i) => i.dir === "received");
+    const unset = items.filter((i) => !i.dir);
 
-  const result: { label: string; items: FeedItem[] }[] = [];
-  if (mine.length > 0) result.push({ label: "Mine", items: mine });
-  if (received.length > 0) result.push({ label: "Received", items: received });
-  if (unset.length > 0) result.push({ label: "All", items: unset });
-  return result;
+    const result: { label: string; items: FeedItem[] }[] = [];
+    if (mine.length > 0) result.push({ label: "Mine", items: mine });
+    if (received.length > 0) result.push({ label: "Received", items: received });
+    if (unset.length > 0) result.push({ label: "All", items: unset });
+    return result;
+  }
+
+  // 4. Fallback → recency buckets
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+  const buckets: Record<string, FeedItem[]> = {
+    Today: [],
+    "This week": [],
+    "This month": [],
+    Older: [],
+  };
+
+  for (const item of items) {
+    const daysAgo = item.daysAgo ?? 999;
+    if (daysAgo === 0) {
+      buckets["Today"].push(item);
+    } else if (daysAgo <= 7) {
+      buckets["This week"].push(item);
+    } else if (daysAgo <= 30) {
+      buckets["This month"].push(item);
+    } else {
+      buckets["Older"].push(item);
+    }
+  }
+
+  return Object.entries(buckets)
+    .filter(([, g]) => g.length > 0) // Hide empty rows
+    .map(([label, g]) => ({ label, items: g }));
 }
 
-export default function HorizView({ items, onItemClick }: ViewProps) {
-  const groups = groupItems(items);
+export default function HorizView({ items, onItemClick, folderContext, activeTag }: HorizViewProps) {
+  const groups = groupItems(items, folderContext, activeTag);
 
   return (
     <div style={{ paddingBottom: 8 }}>
       {groups.map((group) => (
         <div key={group.label} style={{ marginBottom: 18 }}>
+          {/* Row label - fixed, not scrolling */}
           <div
             style={{
               padding: "4px 14px 6px",
@@ -188,6 +240,7 @@ export default function HorizView({ items, onItemClick }: ViewProps) {
           >
             {group.label}
           </div>
+          {/* Horizontally scrolling card strip */}
           <div
             style={{
               display: "flex",

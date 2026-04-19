@@ -5,11 +5,16 @@
 import { create } from "zustand";
 
 type FeedViewTab = 'all' | 'mine' | 'received';
+type MineSubTab = 'all' | 'not_shared' | 'shared';
 
 interface FilterStore {
   // Feed view tab (PRD §11.2a)
   feedView: FeedViewTab;
   setFeedView: (view: FeedViewTab) => void;
+
+  // Mine sub-tab (P9-T01): All Mine / Not shared / Shared
+  mineSubTab: MineSubTab;
+  setMineSubTab: (tab: MineSubTab) => void;
 
   // Selected tag IDs
   selectedTags: string[];
@@ -38,6 +43,9 @@ interface FilterStore {
 export const useFilterStore = create<FilterStore>((set, get) => ({
   feedView: 'all',
   setFeedView: (feedView) => set({ feedView }),
+
+  mineSubTab: 'all',
+  setMineSubTab: (mineSubTab) => set({ mineSubTab }),
 
   selectedTags: [],
   toggleTag: (tagId) => {
@@ -89,6 +97,7 @@ export const useFilterStore = create<FilterStore>((set, get) => ({
   clearAll: () =>
     set({
       feedView: 'all',
+      mineSubTab: 'all',
       selectedTags: [],
       searchQuery: "",
       activeFriendIds: [],

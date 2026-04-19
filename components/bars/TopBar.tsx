@@ -1,6 +1,9 @@
 'use client';
 
 import { CSSProperties, useState } from 'react';
+import { useDroppable } from '@dnd-kit/core';
+import { targetId } from '@/lib/dnd/types';
+import { useDndState } from '@/lib/dnd/DndProvider';
 
 interface TopBarProps {
   notificationCount: number;
@@ -10,6 +13,10 @@ interface TopBarProps {
   onFilterClick: () => void;
   onNotificationClick: () => void;
   onProfileClick: () => void;
+  /** Optional: clicking the trash icon navigates to the trash view (P7-T04). */
+  onTrashClick?: () => void;
+  /** Soft-deleted node count → badge on trash icon (P7-T04, PRD §20.1). */
+  trashCount?: number;
 }
 
 const iconBtnBase: CSSProperties = {
@@ -64,12 +71,72 @@ function IconBtn({
   );
 }
 
+/** Trash icon with droppable zone for Node → Trash (P7-T01) + count badge (P7-T04). */
+function TrashDropButton({ onClick, count = 0 }: { onClick?: () => void; count?: number }) {
+  const { activeSource } = useDndState();
+  const isDraggingNode = activeSource?.kind === 'node';
+  const { setNodeRef, isOver } = useDroppable({
+    id: targetId({ kind: 'trash' }),
+    data: { dropTarget: { kind: 'trash' } },
+  });
+  return (
+    <button
+      ref={setNodeRef}
+      type="button"
+      onClick={onClick ?? (() => {})}
+      aria-label={count > 0 ? `Trash (${count} items)` : 'Trash'}
+      style={{
+        ...iconBtnBase,
+        position: 'relative',
+        background: isOver ? 'var(--red, #dc2626)' : isDraggingNode ? 'var(--surface-4)' : 'var(--surface-3)',
+        color: isOver ? '#fff' : 'var(--text-2)',
+        transform: isOver ? 'scale(1.08)' : undefined,
+        transition: 'background 0.12s, transform 0.12s',
+        outline: isDraggingNode && !isOver ? '2px dashed var(--border-1)' : 'none',
+      }}
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <polyline points="3 6 5 6 21 6" />
+        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+        <path d="M10 11v6" />
+        <path d="M14 11v6" />
+        <path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
+      </svg>
+      {count > 0 && (
+        <span
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            top: -4,
+            right: -4,
+            minWidth: 16,
+            height: 16,
+            padding: '0 4px',
+            borderRadius: 8,
+            background: 'var(--accent)',
+            color: 'var(--accent-ink)',
+            fontSize: 10,
+            fontWeight: 700,
+            lineHeight: '16px',
+            textAlign: 'center',
+            border: '1.5px solid var(--surface-2)',
+          }}
+        >
+          {count > 99 ? '99+' : count}
+        </span>
+      )}
+    </button>
+  );
+}
+
 export default function TopBar({
   notificationCount,
   displayName,
   onFilterClick,
   onNotificationClick,
   onProfileClick,
+  onTrashClick,
+  trashCount = 0,
 }: TopBarProps) {
   const initials = displayName.slice(0, 2).toUpperCase();
 
@@ -161,6 +228,9 @@ export default function TopBar({
             </span>
           )}
         </IconBtn>
+
+        {/* Trash drop zone + shortcut to trash view */}
+        <TrashDropButton onClick={onTrashClick} count={trashCount} />
 
         {/* Avatar */}
         <button

@@ -1,0 +1,1000 @@
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:#e8e8ec;display:flex;gap:20px;padding:20px;min-height:100vh;align-items:flex-start;justify-content:center;flex-wrap:wrap}
+
+/* TWEAKS */
+.tweaks{width:230px;background:#fff;border-radius:16px;padding:18px;box-shadow:0 4px 20px rgba(0,0,0,.08);align-self:flex-start;position:sticky;top:20px}
+.tw-title{font-size:19px;font-weight:800;color:#111;margin-bottom:3px}
+.tw-sub{font-size:10px;color:#888;margin-bottom:16px;line-height:1.5}
+.tw-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#aaa;margin-bottom:7px}
+.tw-seg{display:flex;border-radius:9px;overflow:hidden;border:1px solid #e8e8e8;margin-bottom:13px}
+.tw-opt{flex:1;padding:7px 4px;text-align:center;font-size:11px;font-weight:600;color:#888;cursor:pointer;background:#fff;transition:all .15s;user-select:none}
+.tw-opt.on{background:#111;color:#fff}
+.tw-seg4{display:flex;border-radius:9px;overflow:hidden;border:1px solid #e8e8e8;margin-bottom:6px}
+.tw-seg4 .tw-opt{font-size:10px;padding:6px 2px}
+.tw-slider-row{display:flex;align-items:center;gap:6px;margin-bottom:13px}
+.tw-slider-row svg{width:13px;height:13px;flex-shrink:0;fill:none;stroke:#aaa;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tw-slider{flex:1;-webkit-appearance:none;height:4px;border-radius:2px;outline:none;cursor:pointer}
+.tw-slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;cursor:pointer}
+.tw-num{font-size:12px;font-weight:700;color:#111;min-width:14px;text-align:right}
+.tw-section{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#aaa;margin-bottom:8px;margin-top:2px}
+.tw-try-item{display:flex;align-items:center;padding:8px 10px;border-radius:9px;background:#fafafa;margin-bottom:5px;cursor:pointer;transition:background .15s;border:1.5px solid transparent}
+.tw-try-item:hover{background:#f0f0f3}
+.tw-try-item.active-link{border-color:#7c5cbf;background:rgba(124,92,191,.06)}
+.tw-try-icon{margin-right:8px;width:14px;height:14px;fill:none;stroke:#555;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.tw-try-label{flex:1;font-size:12px;color:#333;font-weight:500}
+.tw-try-hint{font-size:9px;color:#bbb;font-weight:600;background:#f0f0f0;padding:2px 6px;border-radius:4px}
+.tw-tip{background:#fafafa;border-radius:9px;padding:9px 10px;margin-top:6px}
+.tw-tip-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#aaa;margin-bottom:4px}
+.tw-tip-text{font-size:10px;color:#666;line-height:1.5}
+.tw-tip-text b{color:#7c5cbf}
+
+/* PHONE */
+.phone-wrap{display:flex;flex-direction:column;align-items:center;gap:8px}
+.phone{width:320px;background:#f2f2f6;border-radius:48px;border:2px solid #c8c8cc;box-shadow:0 20px 60px rgba(0,0,0,.18),0 0 0 6px #dddde0;overflow:hidden;display:flex;flex-direction:column;position:relative;height:680px;transition:background .3s}
+.phone.dark{background:#111;border-color:#333}
+
+/* STATUS */
+.status{display:flex;justify-content:space-between;align-items:center;padding:14px 22px 0;font-size:12px;font-weight:600;flex-shrink:0}
+.phone.dark .status{color:#fff}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:8px 16px 6px;flex-shrink:0}
+.logo{font-size:22px;font-weight:800;color:#111;letter-spacing:-1px}
+.logo-dot{color:#7c5cbf}
+.phone.dark .logo{color:#fff}
+.topbar-r{display:flex;align-items:center;gap:8px}
+.icon-btn{width:36px;height:36px;border-radius:12px;background:#f0f0f3;display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;flex-shrink:0}
+.phone.dark .icon-btn{background:#2a2a2e}
+.icon-btn svg{width:18px;height:18px;fill:none;stroke:#555;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.phone.dark .icon-btn svg{stroke:#ccc}
+.notif-dot{position:absolute;top:-2px;right:-2px;width:16px;height:16px;background:#e84040;border-radius:50%;font-size:8px;font-weight:800;color:#fff;display:flex;align-items:center;justify-content:center;border:2px solid #f2f2f6}
+.phone.dark .notif-dot{border-color:#111}
+.avatar-btn{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;cursor:pointer}
+
+/* FEED TABS */
+.feed-tabs{display:flex;padding:4px 14px 6px;gap:2px;flex-shrink:0}
+.feed-tab{flex:1;text-align:center;padding:7px 4px;border-radius:10px;font-size:13px;font-weight:500;color:#888;cursor:pointer;transition:all .15s}
+.feed-tab.active{background:#fff;color:#111;font-weight:700;box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.phone.dark .feed-tab{color:#555}
+.phone.dark .feed-tab.active{background:#2a2a2e;color:#fff}
+
+/* SORT ROW */
+.sort-row{display:flex;align-items:center;justify-content:space-between;padding:4px 14px;margin-bottom:2px;flex-shrink:0}
+.sort-btn{display:flex;align-items:center;gap:4px;padding:5px 10px;background:#fff;border-radius:9px;font-size:12px;font-weight:500;color:#555;border:1px solid #e8e8e8;cursor:pointer}
+.phone.dark .sort-btn{background:#2a2a2e;color:#aaa;border-color:#333}
+.sort-btn svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.col-ctrl{display:flex;align-items:center;gap:4px;padding:5px 9px;background:#fff;border-radius:9px;font-size:12px;font-weight:600;color:#555;border:1px solid #e8e8e8}
+.phone.dark .col-ctrl{background:#2a2a2e;color:#aaa;border-color:#333}
+.col-ctrl svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.view-btns{display:flex;gap:2px}
+.vbtn{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.vbtn svg{width:15px;height:15px;fill:none;stroke:#bbb;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.vbtn.active svg{stroke:#7c5cbf}
+.vbtn.active{background:rgba(124,92,191,.1)}
+.plus-vbtn{width:28px;height:28px;border-radius:7px;background:#f0f0f3;display:flex;align-items:center;justify-content:center}
+.phone.dark .plus-vbtn{background:#2a2a2e}
+.plus-vbtn svg{width:15px;height:15px;fill:none;stroke:#999;stroke-width:2}
+
+/* FEED */
+.feed{flex:1;overflow-y:auto;padding:6px 10px;scrollbar-width:none;background:#f2f2f6;min-height:0}
+.feed::-webkit-scrollbar{display:none}
+.phone.dark .feed{background:#111}
+.feed-grid{display:grid;gap:6px}
+
+/* CARDS */
+.fcard{border-radius:16px;overflow:hidden;position:relative;cursor:pointer;background:#ddd}
+.fcard-collage{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;height:110px;gap:2px}
+.fcard-collage div{min-height:0}
+.fcard-overlay{position:absolute;bottom:0;left:0;right:0;padding:8px 10px 10px;background:linear-gradient(to top,rgba(0,0,0,.7),transparent)}
+.fcard-name{font-size:13px;font-weight:700;color:#fff}
+.fcard-count{font-size:10px;color:rgba(255,255,255,.7);margin-top:1px}
+.fcard-dot{position:absolute;top:8px;left:8px;width:10px;height:10px;border-radius:3px}
+.ccard{border-radius:16px;overflow:hidden;position:relative;cursor:pointer;background:#ddd}
+.ccard-img{width:100%;height:110px;display:block}
+.ccard-dot{position:absolute;bottom:6px;right:6px;width:10px;height:10px;border-radius:50%;border:1.5px solid rgba(255,255,255,.5)}
+.ccard-dot.mine{background:#f5a623}.ccard-dot.recv{background:#60c5f1}
+.ccard-star{position:absolute;top:7px;left:7px;background:rgba(80,50,160,.85);color:#fff;font-size:9px;font-weight:700;padding:2px 5px;border-radius:5px}
+.ccard-meta{padding:7px 9px 9px;background:#fff}
+.phone.dark .ccard-meta{background:#1c1c1f}
+.ccard-title{font-size:11px;font-weight:600;color:#111;line-height:1.3;margin-bottom:3px}
+.phone.dark .ccard-title{color:#f0f0f0}
+.ccard-tags{display:flex;gap:3px;flex-wrap:wrap}
+.ctag{font-size:9px;padding:1px 6px;border-radius:4px;color:#fff;font-weight:600}
+
+/* BOTTOM */
+.bottom-area{flex-shrink:0;background:#f2f2f6;position:relative;padding-top:24px;transition:background .3s}
+.phone.dark .bottom-area{background:#111}
+.fab{position:absolute;top:-22px;left:50%;transform:translateX(-50%);width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 4px 20px rgba(124,92,191,.5),0 0 0 4px #f2f2f6;cursor:pointer;z-index:10;transition:background .3s,box-shadow .3s}
+.fab.docked{border-radius:100px;width:auto;padding:0 20px;top:-18px;height:36px;font-size:13px;font-weight:700;gap:6px}
+.phone.dark .fab{box-shadow:0 4px 20px rgba(0,0,0,.4),0 0 0 4px #111}
+.fab svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.friends-handle{display:flex;flex-direction:column;align-items:center;padding:2px 0;cursor:pointer;color:#bbb;font-size:9px;font-weight:700;letter-spacing:.1em;gap:1px}
+.friends-handle svg{width:12px;height:12px;fill:none;stroke:#bbb;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.bottom-nav{display:flex;justify-content:space-around;padding:10px 0 14px}
+.bnav-item{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;opacity:.4}
+.bnav-item.active{opacity:1}
+.bnav-item svg{width:22px;height:22px;fill:none;stroke:#555;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.phone.dark .bnav-item svg{stroke:#aaa}
+.bnav-label{font-size:9px;font-weight:600;color:#555}
+.phone.dark .bnav-label{color:#aaa}
+.friends-strip{display:flex;overflow-x:auto;scrollbar-width:none;padding:4px 10px 12px}
+.friends-strip::-webkit-scrollbar{display:none}
+.friend-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:0 7px;flex-shrink:0;cursor:pointer}
+.friend-av{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;position:relative}
+.friend-av.group{border-radius:13px}
+.friend-av.has-new::after{content:'';position:absolute;bottom:1px;right:1px;width:10px;height:10px;border-radius:50%;border:2px solid #f2f2f6}
+.phone.dark .friend-av.has-new::after{border-color:#111}
+.friend-name{font-size:9px;color:#888;white-space:nowrap;text-align:center}
+
+/* OVERLAY SCREENS */
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;z-index:30;pointer-events:none;opacity:0;transition:opacity .2s}
+.screen.visible{opacity:1;pointer-events:all}
+
+/* DIM BG */
+.dim-bg{position:absolute;inset:0;background:rgba(0,0,0,.4);z-index:25;opacity:0;pointer-events:none;transition:opacity .2s}
+.dim-bg.visible{opacity:1;pointer-events:all}
+
+/* SHEET */
+.sheet{background:#fff;border-radius:24px 24px 0 0;padding:0 0 20px;overflow-y:auto;max-height:88%;scrollbar-width:none;position:absolute;bottom:0;left:0;right:0;z-index:30;transform:translateY(100%);transition:transform .25s cubic-bezier(.4,0,.2,1)}
+.sheet::-webkit-scrollbar{display:none}
+.sheet.open{transform:translateY(0)}
+.phone.dark .sheet{background:#1c1c1f}
+.sheet-handle{width:36px;height:4px;background:#ddd;border-radius:2px;margin:10px auto 14px;flex-shrink:0}
+.phone.dark .sheet-handle{background:#444}
+.sheet-hdr{display:flex;align-items:flex-start;justify-content:space-between;padding:0 18px 12px}
+.sheet-title{font-size:20px;font-weight:800;color:#111}
+.phone.dark .sheet-title{color:#fff}
+.sheet-sub{font-size:12px;color:#999;margin-top:2px}
+.sheet-x{width:30px;height:30px;border-radius:50%;background:#f0f0f3;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.phone.dark .sheet-x{background:#2a2a2e}
+.sheet-x svg{width:14px;height:14px;fill:none;stroke:#666;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.sheet-sec{padding:0 18px 10px}
+.sheet-sec-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#aaa;margin-bottom:8px}
+.chip-row{display:flex;gap:6px;flex-wrap:wrap}
+.chip{padding:6px 14px;border-radius:100px;font-size:13px;font-weight:500;border:1.5px solid #e0e0e0;color:#555;background:#fff;cursor:pointer;user-select:none;transition:all .15s}
+.phone.dark .chip{border-color:#333;color:#aaa;background:#2a2a2e}
+.chip.on{border-color:#7c5cbf;color:#7c5cbf;background:rgba(124,92,191,.06);font-weight:700}
+.friend-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;padding:0 18px;margin-bottom:10px}
+.fg-item{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
+.fg-av{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff}
+.fg-av.sq{border-radius:13px}
+.fg-name{font-size:9px;color:#888;text-align:center;white-space:nowrap}
+.folder-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 18px;margin-bottom:12px}
+.fgrid-item{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer}
+.fgrid-collage{width:80px;height:70px;border-radius:12px;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:1px}
+.fgrid-collage div{min-height:0}
+.fgrid-name{font-size:10px;color:#555;font-weight:500;text-align:center}
+.sheet-input{margin:0 18px 10px;background:#f5f5f7;border-radius:12px;padding:12px 14px;font-size:14px;color:#111;border:none;outline:none;width:calc(100% - 36px);font-family:inherit}
+.sheet-textarea{margin:0 18px 10px;background:#f5f5f7;border-radius:12px;padding:12px 14px;font-size:14px;color:#111;height:70px;width:calc(100% - 36px);resize:none;border:none;outline:none;font-family:inherit}
+.phone.dark .sheet-input,.phone.dark .sheet-textarea{background:#2a2a2e;color:#fff}
+.sheet-btn{margin:6px 18px 0;padding:14px;border-radius:14px;font-size:15px;font-weight:700;color:#fff;text-align:center;cursor:pointer}
+.sheet-search{display:flex;align-items:center;gap:8px;margin:0 18px 12px;padding:10px 12px;background:#f5f5f7;border-radius:12px}
+.phone.dark .sheet-search{background:#2a2a2e}
+.sheet-search svg{width:16px;height:16px;fill:none;stroke:#aaa;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.sheet-search-input{border:none;outline:none;background:transparent;font-size:14px;color:#111;flex:1;font-family:inherit}
+.phone.dark .sheet-search-input{color:#fff}
+/* SETTINGS */
+.theme-row{display:flex;gap:10px;padding:0 18px 14px}
+.theme-opt{flex:1;border-radius:14px;overflow:hidden;border:2px solid transparent;cursor:pointer;padding-bottom:8px}
+.theme-opt.on{border-color:#7c5cbf}
+.theme-preview{height:65px;display:flex;align-items:flex-end;padding:6px;gap:4px}
+.theme-preview.dark-bg{background:#1c1c1f}
+.theme-preview.light-bg{background:#f5f5f7}
+.theme-swatch{width:24px;height:24px;border-radius:6px}
+.theme-label{font-size:11px;font-weight:600;color:#555;padding:4px 8px 0;display:flex;align-items:center;gap:4px}
+.accent-row{display:flex;gap:8px;padding:0 18px 14px;justify-content:space-between}
+.acc-opt{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer}
+.acc-circle{width:40px;height:40px;border-radius:50%}
+.acc-circle.on{outline:3px solid #7c5cbf;outline-offset:2px}
+.acc-label{font-size:9px;color:#888;font-weight:500}
+.account-rows{margin:0 18px 14px;border-radius:12px;overflow:hidden;border:1px solid #eee}
+.phone.dark .account-rows{border-color:#333}
+.acc-row{display:flex;justify-content:space-between;padding:12px 14px;font-size:13px;border-bottom:1px solid #f0f0f0}
+.phone.dark .acc-row{border-color:#2a2a2a}
+.acc-row:last-child{border-bottom:none}
+.acc-row-label{color:#555}.phone.dark .acc-row-label{color:#aaa}
+.acc-row-val{font-weight:600;color:#111}.phone.dark .acc-row-val{color:#f0f0f0}
+/* CARD DETAIL */
+.detail-media{position:relative;background:#5533a0;display:flex;align-items:center;justify-content:center;flex-shrink:0;height:190px}
+.detail-x{position:absolute;top:12px;right:12px;width:32px;height:32px;background:rgba(80,50,160,.7);border-radius:9px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.detail-x svg{width:14px;height:14px;fill:none;stroke:#fff;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.play-btn{width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center;position:relative;z-index:1}
+.yt-progress{position:absolute;bottom:28px;left:12px;right:12px;height:3px;background:rgba(255,255,255,.3);border-radius:2px}
+.yt-fill{height:100%;width:38%;background:#e00;border-radius:2px}
+.yt-time-row{position:absolute;bottom:9px;left:12px;right:12px;display:flex;justify-content:space-between;font-size:10px;color:rgba(255,255,255,.8);font-weight:600}
+.detail-body{padding:12px 16px;overflow-y:auto}
+.detail-title{font-size:18px;font-weight:800;color:#111;margin-bottom:8px}
+.phone.dark .detail-title{color:#fff}
+.detail-meta-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.dmeta{padding:4px 10px;background:#f0f0f3;border-radius:8px;font-size:11px;color:#666;font-weight:500}
+.phone.dark .dmeta{background:#2a2a2e;color:#aaa}
+.detail-rating{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.rating-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#aaa}
+.stars{display:flex;gap:3px}
+.star svg{width:20px;height:20px;fill:#f5a623}
+.star-clear{font-size:12px;font-weight:600;margin-left:4px;cursor:pointer}
+.detail-open-btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;border-radius:14px;font-size:15px;font-weight:700;color:#fff;margin-bottom:10px;cursor:pointer}
+.detail-open-btn svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.detail-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.dact{display:flex;align-items:center;justify-content:center;gap:6px;padding:12px;background:#f5f5f7;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer}
+.phone.dark .dact{background:#2a2a2e;color:#f0f0f0}
+.dact svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+/* FOLDERS PAGE */
+.folders-page{display:flex;flex-direction:column;height:100%}
+.folders-hdr{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 8px;flex-shrink:0}
+.fhdr-left{display:flex;align-items:center;gap:8px}
+.fhdr-dot{width:12px;height:12px;border-radius:3px}
+.fhdr-title{font-size:22px;font-weight:800;color:#111}
+.phone.dark .fhdr-title{color:#fff}
+.fhdr-btns{display:flex;gap:6px}
+.fhdr-btn{width:34px;height:34px;border-radius:10px;background:#f0f0f3;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.phone.dark .fhdr-btn{background:#2a2a2e}
+.fhdr-btn svg{width:16px;height:16px;fill:none;stroke:#555;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.phone.dark .fhdr-btn svg{stroke:#aaa}
+.breadcrumb{display:flex;align-items:center;gap:5px;padding:2px 16px 10px;font-size:12px;color:#888;flex-shrink:0}
+.bc-back{width:24px;height:24px;border-radius:7px;background:#f0f0f3;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.phone.dark .bc-back{background:#2a2a2e}
+.bc-back svg{width:12px;height:12px;fill:none;stroke:#555;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+</style>
+
+<div id="root" style="display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;min-height:100vh;background:#e8e8ec;padding:20px">
+
+<!-- TWEAKS -->
+<div class="tweaks">
+  <div class="tw-title">Tweaks</div>
+  <div class="tw-sub">Live prototype controls. Theme & accent live inside the app — tap the avatar to change them.</div>
+
+  <div class="tw-label">FAB STYLE</div>
+  <div class="tw-seg" id="seg-fab">
+    <div class="tw-opt on" onclick="setFab('circle',this)">Floating circle</div>
+    <div class="tw-opt" onclick="setFab('pill',this)">Docked pill</div>
+  </div>
+
+  <div class="tw-label">BOTTOM AREA</div>
+  <div class="tw-seg" id="seg-bottom">
+    <div class="tw-opt on" onclick="setBottom('friends',this)">Friends strip</div>
+    <div class="tw-opt" onclick="setBottom('nav',this)">Bottom nav</div>
+  </div>
+
+  <div class="tw-label">FEED VIEW</div>
+  <div class="tw-seg4" id="seg-view">
+    <div class="tw-opt on" onclick="setView('col',this)">Col</div>
+    <div class="tw-opt" onclick="setView('masonry',this)">Masonry</div>
+    <div class="tw-opt" onclick="setView('list',this)">List</div>
+    <div class="tw-opt" onclick="setView('free',this)">Free</div>
+  </div>
+  <div class="tw-slider-row">
+    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="range" class="tw-slider" id="col-slider" min="1" max="8" value="2" step="1" oninput="setCols(this.value)">
+    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <div class="tw-num" id="col-num">2</div>
+  </div>
+
+  <div class="tw-section">TRY IT OUT</div>
+  <div class="tw-try-item" id="try-fab" onclick="tryAction('fab')">
+    <svg class="tw-try-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    <span class="tw-try-label">Save a link</span><span class="tw-try-hint">FAB</span>
+  </div>
+  <div class="tw-try-item" id="try-settings" onclick="tryAction('settings')">
+    <svg class="tw-try-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    <span class="tw-try-label">Open Settings</span><span class="tw-try-hint">avatar</span>
+  </div>
+  <div class="tw-try-item" id="try-filter" onclick="tryAction('filter')">
+    <svg class="tw-try-icon" viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+    <span class="tw-try-label">Filter feed</span><span class="tw-try-hint">sliders</span>
+  </div>
+  <div class="tw-try-item" id="try-friends" onclick="tryAction('friends')">
+    <svg class="tw-try-icon" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
+    <span class="tw-try-label">Expand friends</span><span class="tw-try-hint">drag up</span>
+  </div>
+  <div class="tw-try-item" id="try-folders" onclick="tryAction('folders')">
+    <svg class="tw-try-icon" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+    <span class="tw-try-label">Browse folders</span><span class="tw-try-hint">nav</span>
+  </div>
+  <div class="tw-try-item" id="try-card" onclick="tryAction('card')">
+    <svg class="tw-try-icon" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+    <span class="tw-try-label">Open card + rate</span><span class="tw-try-hint">tap</span>
+  </div>
+  <div class="tw-try-item" id="try-free" onclick="tryAction('free')">
+    <svg class="tw-try-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="4" height="4" rx="1"/><rect x="10" y="3" width="8" height="4" rx="1"/><rect x="3" y="10" width="8" height="8" rx="1"/><rect x="14" y="10" width="7" height="4" rx="1"/></svg>
+    <span class="tw-try-label">Switch to Free view</span><span class="tw-try-hint">view</span>
+  </div>
+  <div class="tw-try-item" id="try-reset" onclick="tryAction('reset')">
+    <svg class="tw-try-icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+    <span class="tw-try-label">Reset layout</span><span class="tw-try-hint">undo</span>
+  </div>
+  <div class="tw-tip">
+    <div class="tw-tip-label">TIP</div>
+    <div class="tw-tip-text"><b>Long-drag</b> a tile onto another to reorder, or onto a friend avatar to share. Grab the <b>corner</b> to resize. Your layout is kept per view.</div>
+  </div>
+</div>
+
+<!-- PHONE -->
+<div class="phone-wrap">
+  <div class="phone" id="phone">
+    <!-- STATUS -->
+    <div class="status"><span style="font-size:15px;font-weight:700">9:41</span><span>●●●●● 100%</span></div>
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div class="logo" id="logo">liked<span class="logo-dot">.</span></div>
+      <div class="topbar-r">
+        <div class="icon-btn" id="sliders-btn" onclick="tryAction('filter')">
+          <svg viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+        </div>
+        <div class="icon-btn" onclick="tryAction('filter')">
+          <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <div class="notif-dot">2</div>
+        </div>
+        <div class="avatar-btn" id="avatar-btn" onclick="tryAction('settings')" style="background:linear-gradient(135deg,#f5a623,#e06020)">JS</div>
+      </div>
+    </div>
+
+    <!-- FEED TABS -->
+    <div class="feed-tabs" id="feed-tabs">
+      <div class="feed-tab active" onclick="setTab(this,'all')">All</div>
+      <div class="feed-tab" onclick="setTab(this,'mine')">Mine</div>
+      <div class="feed-tab" onclick="setTab(this,'received')">Received</div>
+    </div>
+
+    <!-- SORT ROW -->
+    <div class="sort-row">
+      <div class="sort-btn">
+        <svg viewBox="0 0 24 24"><polyline points="7 16 12 21 17 16"/><polyline points="7 8 12 3 17 8"/></svg> Newest
+      </div>
+      <div style="display:flex;align-items:center;gap:4px">
+        <div class="col-ctrl" id="col-display">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <span id="col-label">2 col</span>
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </div>
+        <div class="view-btns">
+          <div class="vbtn active" id="vbtn-col" onclick="setView('col',null)"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg></div>
+          <div class="vbtn" id="vbtn-mas" onclick="setView('masonry',null)"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="18" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/></svg></div>
+          <div class="vbtn" id="vbtn-list" onclick="setView('list',null)"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></div>
+          <div class="plus-vbtn" onclick="setView('free',null)"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FEED -->
+    <div class="feed" id="feed">
+      <div class="feed-grid" id="feed-grid"></div>
+    </div>
+
+    <!-- BOTTOM AREA -->
+    <div class="bottom-area" id="bottom-area">
+      <div class="fab" id="fab-btn" onclick="tryAction('fab')">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span id="fab-text" style="display:none;font-size:13px;font-weight:700;color:#fff">+ Save</span>
+      </div>
+      <!-- FRIENDS STRIP -->
+      <div id="friends-area">
+        <div class="friends-handle" onclick="tryAction('friends')">
+          <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
+          FRIENDS
+        </div>
+        <div class="friends-strip" id="friends-strip"></div>
+      </div>
+      <!-- BOTTOM NAV (hidden by default) -->
+      <div id="bnav-area" style="display:none">
+        <div class="bottom-nav">
+          <div class="bnav-item active"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg><div class="bnav-label">Feed</div></div>
+          <div class="bnav-item" onclick="tryAction('folders')"><svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><div class="bnav-label">Folders</div></div>
+          <div class="bnav-item" style="opacity:1;margin-top:-8px">
+            <div class="fab" style="position:relative;top:0;transform:none;width:46px;height:46px;left:0" onclick="tryAction('fab')"><svg viewBox="0 0 24 24" style="width:20px;height:20px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+          </div>
+          <div class="bnav-item" onclick="tryAction('friends')"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><div class="bnav-label">Friends</div></div>
+          <div class="bnav-item" onclick="tryAction('settings')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><div class="bnav-label">Settings</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DIM OVERLAY -->
+    <div class="dim-bg" id="dim-bg" onclick="closeAll()"></div>
+
+    <!-- FOLDERS OVERLAY -->
+    <div class="screen" id="screen-folders">
+      <div style="background:#f2f2f6;flex:1;display:flex;flex-direction:column;overflow:hidden" id="folders-bg">
+        <div class="status"><span style="font-size:15px;font-weight:700">9:41</span><span>●●●●● 100%</span></div>
+        <div class="folders-hdr">
+          <div class="fhdr-left">
+            <div class="fhdr-dot" style="background:#e84040"></div>
+            <div class="fhdr-title">Favorites</div>
+          </div>
+          <div class="fhdr-btns">
+            <div class="fhdr-btn"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg></div>
+            <div class="fhdr-btn"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/></svg></div>
+            <div class="fhdr-btn"><svg viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg></div>
+          </div>
+        </div>
+        <div class="breadcrumb">
+          <div class="bc-back" onclick="closeScreen('folders')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></div>
+          <span>Feed</span><span style="color:#ccc">›</span><span style="font-weight:700;color:#111">Favorites</span>
+        </div>
+        <div class="feed" style="padding:6px 10px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+            <div class="fcard">
+              <div class="fcard-collage">
+                <div style="background:linear-gradient(135deg,#1a8888,#0d6666)"></div>
+                <div style="background:linear-gradient(135deg,#aa8833,#886620)"></div>
+                <div style="background:linear-gradient(135deg,#2a88cc,#1a6699)"></div>
+                <div style="background:linear-gradient(135deg,#22bb77,#1a8855)"></div>
+              </div>
+              <div class="fcard-dot" style="background:#60c5f1"></div>
+              <div class="fcard-overlay"><div class="fcard-name">Summer 2025</div><div class="fcard-count">14 items</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="bottom-area" style="background:#f2f2f6">
+          <div class="fab" onclick="tryAction('fab')"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+          <div class="friends-handle"><svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>FRIENDS</div>
+          <div class="friends-strip">
+            <div class="friend-item"><div class="friend-av" style="background:linear-gradient(135deg,#f5a623,#e06020)">JS</div><div class="friend-name">Me</div></div>
+            <div class="friend-item"><div class="friend-av has-new" style="background:linear-gradient(135deg,#4a9fd5,#1c6fa0);--after-bg:#7c5cbf">A</div><div class="friend-name">Alice</div></div>
+            <div class="friend-item"><div class="friend-av" style="background:linear-gradient(135deg,#cc3399,#aa1a77)">B</div><div class="friend-name">Bob</div></div>
+            <div class="friend-item"><div class="friend-av" style="background:linear-gradient(135deg,#22bb77,#1a8855)">C</div><div class="friend-name">Chiara</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SHEET: SAVE A LINK -->
+    <div class="sheet" id="sheet-fab">
+      <div class="sheet-handle"></div>
+      <div class="sheet-hdr">
+        <div><div class="sheet-title">Save a link</div><div class="sheet-sub">Drop a URL · add a note · share optionally</div></div>
+        <div class="sheet-x" onclick="closeSheet('fab')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+      </div>
+      <input class="sheet-input" placeholder="Paste or type URL...">
+      <textarea class="sheet-textarea" placeholder="Add a note (optional)"></textarea>
+      <div class="sheet-sec">
+        <div class="sheet-sec-label">TAG</div>
+        <div class="chip-row"><div class="chip on">Music</div><div class="chip">Film</div><div class="chip">Food</div><div class="chip">Travel</div><div class="chip">Tech</div><div class="chip">Finance</div><div class="chip">Health</div><div class="chip">Design</div><div class="chip">Books</div><div class="chip">Games</div><div class="chip">Art</div></div>
+      </div>
+      <div class="sheet-sec">
+        <div class="sheet-sec-label">SHARE WITH (OPTIONAL)</div>
+        <div class="friend-grid">
+          <div class="fg-item"><div class="fg-av" style="background:linear-gradient(135deg,#4a9fd5,#1c6fa0)">A</div><div class="fg-name">Alice</div></div>
+          <div class="fg-item"><div class="fg-av" style="background:linear-gradient(135deg,#cc3399,#aa1a77)">B</div><div class="fg-name">Bob</div></div>
+          <div class="fg-item"><div class="fg-av" style="background:linear-gradient(135deg,#22bb77,#1a8855)">C</div><div class="fg-name">Chiara</div></div>
+          <div class="fg-item"><div class="fg-av" style="background:linear-gradient(135deg,#cc9922,#aa7710)">D</div><div class="fg-name">Diego</div></div>
+          <div class="fg-item"><div class="fg-av" style="background:linear-gradient(135deg,#8844cc,#6622aa)">E</div><div class="fg-name">Elena</div></div>
+          <div class="fg-item"><div class="fg-av" style="background:linear-gradient(135deg,#e84040,#c02020)">F</div><div class="fg-name">Fabio</div></div>
+          <div class="fg-item"><div class="fg-av" style="background:linear-gradient(135deg,#22aaaa,#1a8888)">G</div><div class="fg-name">Giulia</div></div>
+          <div class="fg-item"><div class="fg-av" style="background:linear-gradient(135deg,#22aa44,#1a8833)">H</div><div class="fg-name">Hugo</div></div>
+          <div class="fg-item"><div class="fg-av" style="background:linear-gradient(135deg,#dd8822,#bb6610)">I</div><div class="fg-name">Iris</div></div>
+          <div class="fg-item"><div class="fg-av" style="background:linear-gradient(135deg,#4455dd,#2233bb)">J</div><div class="fg-name">Jean</div></div>
+        </div>
+      </div>
+      <div class="sheet-btn" id="save-btn" style="background:#ccc;color:#999" onclick="closeSheet('fab')">Save</div>
+    </div>
+
+    <!-- SHEET: SETTINGS -->
+    <div class="sheet" id="sheet-settings">
+      <div class="sheet-handle"></div>
+      <div class="sheet-hdr">
+        <div><div class="sheet-title">Settings</div><div class="sheet-sub">Theme, accent, and your account</div></div>
+        <div class="sheet-x" onclick="closeSheet('settings')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+      </div>
+      <div class="sheet-sec"><div class="sheet-sec-label">APPEARANCE</div></div>
+      <div class="theme-row">
+        <div class="theme-opt" id="theme-dark" onclick="setTheme('dark')">
+          <div class="theme-preview dark-bg"><div class="theme-swatch" style="background:#7c5cbf"></div><div class="theme-swatch" style="background:#f5a623"></div><div class="theme-swatch" style="background:#22aaaa"></div><div class="theme-swatch" style="background:#60c5f1"></div></div>
+          <div class="theme-label">🌙 Dark</div>
+        </div>
+        <div class="theme-opt on" id="theme-light" onclick="setTheme('light')">
+          <div class="theme-preview light-bg"><div class="theme-swatch" style="background:#7c5cbf"></div><div class="theme-swatch" style="background:#f5a623"></div><div class="theme-swatch" style="background:#22aaaa"></div><div class="theme-swatch" style="background:#60c5f1"></div></div>
+          <div class="theme-label">☀️ Light</div>
+        </div>
+      </div>
+      <div class="sheet-sec"><div class="sheet-sec-label">ACCENT COLOR</div></div>
+      <div class="accent-row">
+        <div class="acc-opt" onclick="setAccent('#f5a623','Amber',this)"><div class="acc-circle" style="background:#f5a623"></div><div class="acc-label">Amber</div></div>
+        <div class="acc-opt" onclick="setAccent('#e84040','Coral',this)"><div class="acc-circle" style="background:#e84040"></div><div class="acc-label">Coral</div></div>
+        <div class="acc-opt" onclick="setAccent('#66cc33','Lime',this)"><div class="acc-circle" style="background:#66cc33"></div><div class="acc-label">Lime</div></div>
+        <div class="acc-opt" onclick="setAccent('#44aaee','Sky',this)"><div class="acc-circle" style="background:#44aaee"></div><div class="acc-label">Sky</div></div>
+        <div class="acc-opt" onclick="setAccent('#7c5cbf','Violet',this)"><div class="acc-circle on" id="active-accent" style="background:#7c5cbf"></div><div class="acc-label">Violet</div></div>
+        <div class="acc-opt" onclick="setAccent('#1a7733','Forest',this)"><div class="acc-circle" style="background:#1a7733"></div><div class="acc-label">Forest</div></div>
+      </div>
+      <div class="sheet-sec"><div class="sheet-sec-label">ACCOUNT</div></div>
+      <div class="account-rows">
+        <div class="acc-row"><span class="acc-row-label">Signed in as</span><span class="acc-row-val">you@liked.app</span></div>
+        <div class="acc-row"><span class="acc-row-label">Notifications</span><span class="acc-row-val">On</span></div>
+        <div class="acc-row"><span class="acc-row-label">Default tag</span><span class="acc-row-val">Music</span></div>
+        <div class="acc-row"><span style="color:#e84040;font-weight:500">Sign out</span></div>
+      </div>
+      <div class="sheet-btn" id="settings-done-btn" onclick="closeSheet('settings')">Done</div>
+    </div>
+
+    <!-- SHEET: FILTER -->
+    <div class="sheet" id="sheet-filter">
+      <div class="sheet-handle"></div>
+      <div class="sheet-hdr">
+        <div><div class="sheet-title">Filter feed</div><div class="sheet-sub">Narrow down what you see</div></div>
+        <div class="sheet-x" onclick="closeSheet('filter')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+      </div>
+      <div class="sheet-sec">
+        <div class="sheet-sec-label">SORT BY</div>
+        <div class="chip-row"><div class="chip on" onclick="toggleChip(this)">Newest</div><div class="chip" onclick="toggleChip(this)">Oldest</div><div class="chip" onclick="toggleChip(this)">Popular</div><div class="chip" onclick="toggleChip(this)">Random</div></div>
+      </div>
+      <div class="sheet-sec">
+        <div class="sheet-sec-label">TAGS</div>
+        <div class="chip-row"><div class="chip" onclick="toggleChip(this)">Music</div><div class="chip" onclick="toggleChip(this)">Film</div><div class="chip" onclick="toggleChip(this)">Food</div><div class="chip" onclick="toggleChip(this)">Travel</div><div class="chip" onclick="toggleChip(this)">Tech</div><div class="chip" onclick="toggleChip(this)">Finance</div><div class="chip" onclick="toggleChip(this)">Health</div><div class="chip" onclick="toggleChip(this)">Design</div><div class="chip" onclick="toggleChip(this)">Books</div><div class="chip" onclick="toggleChip(this)">Games</div><div class="chip" onclick="toggleChip(this)">Art</div></div>
+      </div>
+      <div class="sheet-sec">
+        <div class="sheet-sec-label">FRIENDS & GROUPS</div>
+        <div class="friend-grid">
+          <div class="fg-item"><div class="fg-av" style="background:linear-gradient(135deg,#4a9fd5,#1c6fa0)">A</div><div class="fg-name">Alice</div></div>
+          <div class="fg-item"><div class="fg-av" style="background:linear-gradient(135deg,#cc3399,#aa1a77)">B</div><div class="fg-name">Bob</div></div>
+          <div class="fg-item"><div class="fg-av" style="background:linear-gradient(135deg,#22bb77,#1a8855)">C</div><div class="fg-name">Chiara</div></div>
+          <div class="fg-item"><div class="fg-av" style="background:linear-gradient(135deg,#cc9922,#aa7710)">D</div><div class="fg-name">Diego</div></div>
+          <div class="fg-item"><div class="fg-av" style="background:linear-gradient(135deg,#8844cc,#6622aa)">E</div><div class="fg-name">Elena</div></div>
+          <div class="fg-item"><div class="fg-av" style="background:linear-gradient(135deg,#e84040,#c02020)">F</div><div class="fg-name">Fabio</div></div>
+          <div class="fg-item"><div class="fg-av" style="background:linear-gradient(135deg,#22aaaa,#1a8888)">G</div><div class="fg-name">Giulia</div></div>
+          <div class="fg-item"><div class="fg-av" style="background:linear-gradient(135deg,#22aa44,#1a8833)">H</div><div class="fg-name">Hugo</div></div>
+          <div class="fg-item"><div class="fg-av" style="background:linear-gradient(135deg,#dd8822,#bb6610)">I</div><div class="fg-name">Iris</div></div>
+          <div class="fg-item"><div class="fg-av" style="background:linear-gradient(135deg,#4455dd,#2233bb)">J</div><div class="fg-name">Jean</div></div>
+          <div class="fg-item"><div class="fg-av sq" style="background:linear-gradient(135deg,#4455dd,#2233bb)">M</div><div class="fg-name">Music</div></div>
+          <div class="fg-item"><div class="fg-av sq" style="background:linear-gradient(135deg,#cc3355,#aa1133)">T</div><div class="fg-name">Tech</div></div>
+          <div class="fg-item"><div class="fg-av sq" style="background:linear-gradient(135deg,#22aa55,#1a8833)">H</div><div class="fg-name">Health</div></div>
+          <div class="fg-item"><div class="fg-av sq" style="background:linear-gradient(135deg,#cc5533,#aa3311)">F</div><div class="fg-name">Film</div></div>
+        </div>
+      </div>
+      <div class="sheet-sec">
+        <div class="sheet-sec-label">FOLDERS</div>
+        <div class="folder-grid">
+          <div class="fgrid-item"><div class="fgrid-collage"><div style="background:linear-gradient(135deg,#5533a0,#3a1a80)"></div><div style="background:linear-gradient(135deg,#1a7a7a,#0d5555)"></div><div style="background:linear-gradient(135deg,#c04060,#801040)"></div><div style="background:linear-gradient(135deg,#2a6a20,#1a4a10)"></div></div><div class="fgrid-name">Favorites</div></div>
+          <div class="fgrid-item"><div class="fgrid-collage"><div style="background:linear-gradient(135deg,#1a7aaa,#0d4a80)"></div><div style="background:linear-gradient(135deg,#2a5aaa,#1a3a80)"></div><div style="background:linear-gradient(135deg,#1a3a80,#0d2060)"></div><div style="background:linear-gradient(135deg,#2a6aaa,#1a4a88)"></div></div><div class="fgrid-name">Travel</div></div>
+          <div class="fgrid-item"><div class="fgrid-collage"><div style="background:linear-gradient(135deg,#6633aa,#4a1a88)"></div><div style="background:linear-gradient(135deg,#8833aa,#5a1a88)"></div><div style="background:linear-gradient(135deg,#aa8833,#886020)"></div><div style="background:linear-gradient(135deg,#2a88aa,#1a6088)"></div></div><div class="fgrid-name">Read Later</div></div>
+        </div>
+      </div>
+      <div class="sheet-btn" id="filter-apply-btn" onclick="closeSheet('filter')">Apply</div>
+    </div>
+
+    <!-- SHEET: FRIENDS PANEL -->
+    <div class="sheet" id="sheet-friends">
+      <div class="sheet-handle"></div>
+      <div class="sheet-hdr">
+        <div><div class="sheet-title">Friends & groups</div><div class="sheet-sub">Tap to filter · long press to manage</div></div>
+        <div class="sheet-x" onclick="closeSheet('friends')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+      </div>
+      <div class="sheet-search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input class="sheet-search-input" placeholder="Search..."></div>
+      <div class="sheet-sec"><div class="sheet-sec-label">FRIENDS · 11</div></div>
+      <div class="friend-grid">
+        <div class="fg-item" onclick="toggleFgAv(this)"><div class="fg-av" style="background:linear-gradient(135deg,#4a9fd5,#1c6fa0)">A</div><div class="fg-name">Alice</div></div>
+        <div class="fg-item" onclick="toggleFgAv(this)"><div class="fg-av" style="background:linear-gradient(135deg,#cc3399,#aa1a77)">B</div><div class="fg-name">Bob</div></div>
+        <div class="fg-item" onclick="toggleFgAv(this)"><div class="fg-av" style="background:linear-gradient(135deg,#22bb77,#1a8855)">C</div><div class="fg-name">Chiara</div></div>
+        <div class="fg-item" onclick="toggleFgAv(this)"><div class="fg-av" style="background:linear-gradient(135deg,#cc9922,#aa7710)">D</div><div class="fg-name">Diego</div></div>
+        <div class="fg-item" onclick="toggleFgAv(this)"><div class="fg-av" style="background:linear-gradient(135deg,#8844cc,#6622aa)">E</div><div class="fg-name">Elena</div></div>
+        <div class="fg-item" onclick="toggleFgAv(this)"><div class="fg-av" style="background:linear-gradient(135deg,#e84040,#c02020)">F</div><div class="fg-name">Fabio</div></div>
+        <div class="fg-item" onclick="toggleFgAv(this)"><div class="fg-av" style="background:linear-gradient(135deg,#22aaaa,#1a8888)">G</div><div class="fg-name">Giulia</div></div>
+        <div class="fg-item" onclick="toggleFgAv(this)"><div class="fg-av" style="background:linear-gradient(135deg,#22aa44,#1a8833)">H</div><div class="fg-name">Hugo</div></div>
+        <div class="fg-item" onclick="toggleFgAv(this)"><div class="fg-av" style="background:linear-gradient(135deg,#dd8822,#bb6610)">I</div><div class="fg-name">Iris</div></div>
+        <div class="fg-item" onclick="toggleFgAv(this)"><div class="fg-av" style="background:linear-gradient(135deg,#4455dd,#2233bb)">J</div><div class="fg-name">Jean</div></div>
+        <div class="fg-item" onclick="toggleFgAv(this)"><div class="fg-av" style="background:linear-gradient(135deg,#cc4499,#aa2277)">K</div><div class="fg-name">Kai</div></div>
+      </div>
+      <div class="sheet-sec" style="margin-top:6px"><div class="sheet-sec-label">GROUPS · 4</div></div>
+      <div class="friend-grid">
+        <div class="fg-item" onclick="toggleFgAv(this)"><div class="fg-av sq" style="background:linear-gradient(135deg,#4455dd,#2233bb)">M</div><div class="fg-name">Music</div></div>
+        <div class="fg-item" onclick="toggleFgAv(this)"><div class="fg-av sq" style="background:linear-gradient(135deg,#cc3355,#aa1133)">T</div><div class="fg-name">Tech</div></div>
+        <div class="fg-item" onclick="toggleFgAv(this)"><div class="fg-av sq" style="background:linear-gradient(135deg,#22aa55,#1a8833)">H</div><div class="fg-name">Health</div></div>
+        <div class="fg-item" onclick="toggleFgAv(this)"><div class="fg-av sq" style="background:linear-gradient(135deg,#cc5533,#aa3311)">F</div><div class="fg-name">Film</div></div>
+      </div>
+      <div class="sheet-btn" id="friends-done-btn" onclick="closeSheet('friends')">Done</div>
+    </div>
+
+    <!-- SHEET: CARD DETAIL -->
+    <div class="sheet" id="sheet-card">
+      <div class="sheet-handle"></div>
+      <div class="detail-media">
+        <div style="position:absolute;inset:0;background:linear-gradient(135deg,#5533a0,#4422aa)"></div>
+        <div class="detail-x" onclick="closeSheet('card')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+        <div class="play-btn"><svg viewBox="0 0 24 24" style="width:22px;height:22px;fill:#5533a0;margin-left:3px"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+        <div class="yt-progress"><div class="yt-fill"></div></div>
+        <div class="yt-time-row"><span>▶ HD</span><span>2:47 / 7:12 ⛶</span></div>
+      </div>
+      <div class="detail-body">
+        <div class="detail-title">Morning routine triggers</div>
+        <div class="detail-meta-row">
+          <div class="dmeta" style="color:#2a8a4a;background:rgba(42,138,74,.1)">Health</div>
+          <div class="dmeta">youtube.com</div>
+          <div class="dmeta">From Alice</div>
+          <div class="dmeta">0d ago</div>
+        </div>
+        <div class="detail-rating">
+          <div class="rating-label">RATING</div>
+          <div class="stars" id="star-row">
+            <div class="star" onclick="setRating(1)"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+            <div class="star" onclick="setRating(2)"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+            <div class="star" onclick="setRating(3)"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+            <div class="star" onclick="setRating(4)"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+            <div class="star" onclick="setRating(5)"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+          </div>
+          <span class="star-clear" id="star-clear-btn" onclick="setRating(0)">Clear</span>
+        </div>
+        <div class="detail-open-btn" id="open-yt-btn">
+          <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          Open in youtube.com
+        </div>
+        <div class="detail-actions">
+          <div class="dact"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg> Share</div>
+          <div class="dact" style="color:#e84040"><svg viewBox="0 0 24 24" style="stroke:#e84040"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg> Delete</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+// ── STATE ──
+var state = {
+  dark: false,
+  accent: '#7c5cbf',
+  cols: 2,
+  view: 'col',
+  bottom: 'friends',
+  fab: 'circle',
+  rating: 5,
+  activeSheet: null
+};
+
+// ── FEED DATA ──
+var feedItems = [
+  {type:'folder',name:'Favorites',count:'42 items',dot:'#e84040',colors:['#5533a0','#1a7a7a','#c04060','#2a6a20']},
+  {type:'folder',name:'Travel',count:'28 items',dot:'#60c5f1',colors:['#1a7aaa','#2a5aaa','#1a3a80','#2a6aaa']},
+  {type:'folder',name:'Read Later',count:'64 items',dot:'#8855cc',colors:['#6633aa','#8833aa','#aa8833','#2a88aa']},
+  {type:'folder',name:'Watch',count:'19 items',dot:'#e84040',colors:['#cc3355','#cc4433','#aa6633','#aabb33']},
+  {type:'folder',name:'Recipes',count:'33 items',dot:'#4ad58a',colors:['#ee6633','#33aa55','#cc3355','#33aa88']},
+  {type:'card',title:'Morning routine triggers',tag:'Health',tagColor:'#2a8a4a',star:5,dot:'recv',bg:'#6644cc,#4422aa'},
+  {type:'card',title:'In Rainbows — 20 years',tag:'Music',tagColor:'#3a7bd5',star:0,dot:'mine',bg:'#3355aa,#1a3388'},
+  {type:'card',title:'BTFD — a retrospective',tag:'Finance',tagColor:'#e05c3a',star:4,dot:'recv',bg:'#1a6688,#0d4466'},
+  {type:'card',title:'Past Lives',tag:'Film',tagColor:'#c43a5a',star:5,dot:'recv',bg:'#2244aa,#1a3388'},
+  {type:'card',title:'Japanese jazz history',tag:'Music',tagColor:'#3a7bd5',star:4,dot:'recv',bg:'#4422aa,#2a1188'},
+  {type:'card',title:'Obsidian plugin...',tag:'Tech',tagColor:'#7b3ad5',star:0,dot:'mine',bg:'#aa8833,#886620'},
+  {type:'card',title:'Fermented foods 101',tag:'Health',tagColor:'#2a8a4a',star:5,dot:'recv',bg:'#2288aa,#1a6688'},
+];
+
+function buildFeedItem(item, cols) {
+  var size = cols >= 5 ? 48 : (cols >= 4 ? 70 : (cols >= 3 ? 88 : 110));
+  if (item.type === 'folder') {
+    var c = item.colors;
+    return '<div class="fcard" onclick="tryAction(\'card\')">'
+      +'<div class="fcard-collage" style="height:'+size+'px">'
+      +'<div style="background:linear-gradient(135deg,'+c[0]+','+c[0]+'99)"></div>'
+      +'<div style="background:linear-gradient(135deg,'+c[1]+','+c[1]+'99)"></div>'
+      +'<div style="background:linear-gradient(135deg,'+c[2]+','+c[2]+'99)"></div>'
+      +'<div style="background:linear-gradient(135deg,'+c[3]+','+c[3]+'99)"></div>'
+      +'</div>'
+      +'<div class="fcard-dot" style="background:'+item.dot+'"></div>'
+      +'<div class="fcard-overlay"><div class="fcard-name">'+item.name+'</div>'
+      +(cols <= 3 ? '<div class="fcard-count">'+item.count+'</div>' : '')
+      +'</div></div>';
+  } else {
+    var starBadge = item.star ? '<div class="ccard-star">★ '+item.star+'</div>' : '';
+    var meta = cols <= 3 ? '<div class="ccard-meta"><div class="ccard-title">'+item.title+'</div><div class="ccard-tags"><span class="ctag" style="background:'+item.tagColor+'">'+item.tag+'</span></div></div>' : '';
+    return '<div class="ccard" onclick="tryAction(\'card\')">'
+      +'<div class="ccard-img" style="height:'+size+'px;background:linear-gradient(135deg,'+item.bg+')"></div>'
+      +starBadge
+      +'<div class="ccard-dot '+item.dot+'"></div>'
+      +meta+'</div>';
+  }
+}
+
+function renderFeed() {
+  var c = state.cols;
+  var grid = document.getElementById('feed-grid');
+  if (!grid) return;
+  // col label
+  document.getElementById('col-label').textContent = c + ' col';
+  document.getElementById('col-num').textContent = c;
+  document.getElementById('col-slider').value = c;
+  // col display visibility
+  var colDisplay = document.getElementById('col-display');
+  colDisplay.style.display = (state.view === 'col') ? 'flex' : 'none';
+
+  if (state.view === 'list') {
+    grid.style.gridTemplateColumns = '1fr';
+    grid.innerHTML = feedItems.map(function(item) {
+      var bg = item.type === 'folder' ? 'linear-gradient(135deg,'+item.colors[0]+','+item.colors[2]+')' : 'linear-gradient(135deg,'+item.bg+')';
+      var label = item.type === 'folder' ? item.name + ' — ' + item.count : item.title;
+      return '<div style="display:flex;align-items:center;gap:10px;padding:8px;background:#fff;border-radius:12px;cursor:pointer" onclick="tryAction(\'card\')">'
+        +'<div style="width:48px;height:48px;border-radius:10px;background:'+bg+';flex-shrink:0"></div>'
+        +'<div style="font-size:13px;font-weight:600;color:#111">'+label+'</div>'
+        +'</div>';
+    }).join('');
+    if (state.dark) grid.querySelectorAll('div[style*="background:#fff"]').forEach(function(el){el.style.background='#1c1c1f';el.querySelectorAll('div[style*="color:#111"]').forEach(function(t){t.style.color='#f0f0f0';});});
+    return;
+  }
+  if (state.view === 'masonry') {
+    grid.style.display = 'block';
+    grid.style.columns = '2';
+    grid.style.columnGap = '6px';
+    var html = '';
+    feedItems.forEach(function(item) {
+      var h = 60 + Math.floor(Math.random()*70);
+      var bg = item.type === 'folder' ? 'linear-gradient(135deg,'+item.colors[0]+','+item.colors[2]+')' : 'linear-gradient(135deg,'+item.bg+')';
+      html += '<div style="break-inside:avoid;margin-bottom:6px;border-radius:14px;overflow:hidden;background:#ddd;cursor:pointer" onclick="tryAction(\'card\')">'
+        +'<div style="height:'+h+'px;background:'+bg+'"></div>'
+        +'<div style="padding:6px 8px 8px;background:#fff"><div style="font-size:10px;font-weight:600;color:#111">'+(item.type==='folder'?item.name:item.title)+'</div></div>'
+        +'</div>';
+    });
+    grid.innerHTML = html;
+    return;
+  }
+  if (state.view === 'free') {
+    grid.style.display = 'block';
+    grid.style.columns = '';
+    grid.style.position = 'relative';
+    grid.style.minHeight = '400px';
+    var positions = [{t:0,l:0,w:140,h:120},{t:0,l:148,w:100,h:80},{t:0,l:256,w:120,h:100},{t:88,l:0,w:100,h:140},{t:128,l:108,w:130,h:100},{t:108,l:246,w:110,h:80}];
+    var html = '<div style="position:relative;height:400px">';
+    feedItems.slice(0,6).forEach(function(item, i) {
+      var p = positions[i] || {t:i*60,l:0,w:140,h:100};
+      var bg = item.type==='folder' ? 'linear-gradient(135deg,'+item.colors[0]+','+item.colors[2]+')' : 'linear-gradient(135deg,'+item.bg+')';
+      html += '<div style="position:absolute;top:'+p.t+'px;left:'+p.l+'px;width:'+p.w+'px;height:'+p.h+'px;border-radius:14px;background:'+bg+';cursor:pointer;overflow:hidden" onclick="tryAction(\'card\')">'
+        +'<div style="position:absolute;bottom:0;left:0;right:0;padding:4px 7px 6px;background:linear-gradient(to top,rgba(0,0,0,.7),transparent);font-size:9px;font-weight:700;color:#fff">'+(item.type==='folder'?item.name:item.title)+'</div>'
+        +'</div>';
+    });
+    html += '</div>';
+    grid.innerHTML = html;
+    return;
+  }
+  // COL view
+  grid.style.display = '';
+  grid.style.columns = '';
+  grid.style.gridTemplateColumns = 'repeat('+c+', 1fr)';
+  grid.innerHTML = feedItems.map(function(item){ return buildFeedItem(item, c); }).join('');
+}
+
+// ── FRIENDS STRIP ──
+var friendsData = [
+  {init:'JS',bg:'linear-gradient(135deg,#f5a623,#e06020)',new:false},
+  {init:'A',bg:'linear-gradient(135deg,#4a9fd5,#1c6fa0)',new:true},
+  {init:'B',bg:'linear-gradient(135deg,#cc3399,#aa1a77)',new:true,new2:true},
+  {init:'C',bg:'linear-gradient(135deg,#22bb77,#1a8855)',new:false},
+  {init:'D',bg:'linear-gradient(135deg,#cc9922,#aa7710)',new:false},
+  {init:'M',bg:'linear-gradient(135deg,#4455dd,#2233bb)',new:false,group:true},
+];
+function renderFriendsStrip() {
+  var strip = document.getElementById('friends-strip');
+  if (!strip) return;
+  var border = state.accent;
+  strip.innerHTML = friendsData.map(function(f) {
+    var classes = 'friend-av'+(f.group?' group':'')+(f.new?' has-new':'');
+    var after = f.new ? 'style="--new-color:'+border+'"' : '';
+    return '<div class="friend-item" onclick="tryAction(\'friends\')">'
+      +'<div class="'+classes+'" style="background:'+f.bg+(f.new?';outline:2px solid '+border+';outline-offset:2px':'')+'">'+f.init+'</div>'
+      +'<div class="friend-name">'+f.init+'</div>'
+      +'</div>';
+  }).join('');
+}
+
+// ── ACCENT ──
+function applyAccent(color) {
+  state.accent = color;
+  // FAB
+  var fab = document.getElementById('fab-btn');
+  if (fab) { fab.style.background = color; fab.style.boxShadow = '0 4px 20px '+color+'66,0 0 0 4px '+(state.dark?'#111':'#f2f2f6'); }
+  // Done/Apply/Save buttons
+  ['settings-done-btn','filter-apply-btn','friends-done-btn'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.style.background = color;
+  });
+  // card open button
+  var ob = document.getElementById('open-yt-btn');
+  if (ob) ob.style.background = color;
+  // star clear
+  var sc = document.getElementById('star-clear-btn');
+  if (sc) sc.style.color = color;
+  // active chips
+  document.querySelectorAll('.chip.on').forEach(function(c){ c.style.borderColor=color; c.style.color=color; });
+  // logo dot
+  var ld = document.querySelector('.logo-dot');
+  if (ld) ld.style.color = color;
+  // slider
+  var sl = document.getElementById('col-slider');
+  if (sl) { sl.style.background = 'linear-gradient(to right,'+color+' '+(((state.cols-1)/7)*100)+'%,#ddd '+(((state.cols-1)/7)*100)+'%)'; sl.style.setProperty('--thumb',color); }
+  updateSliderStyle();
+  renderFriendsStrip();
+}
+
+function updateSliderStyle() {
+  var sl = document.getElementById('col-slider');
+  if (!sl) return;
+  var pct = ((state.cols-1)/7)*100;
+  sl.style.background = 'linear-gradient(to right,'+state.accent+' '+pct+'%,#ddd '+pct+'%)';
+}
+
+// ── CONTROLS ──
+function setFab(mode, el) {
+  state.fab = mode;
+  document.querySelectorAll('#seg-fab .tw-opt').forEach(function(o){o.classList.remove('on')});
+  if(el) el.classList.add('on');
+  var fab = document.getElementById('fab-btn');
+  var fabText = document.getElementById('fab-text');
+  if (mode === 'pill') {
+    fab.classList.add('docked');
+    fabText.style.display = 'inline';
+  } else {
+    fab.classList.remove('docked');
+    fabText.style.display = 'none';
+  }
+}
+
+function setBottom(mode, el) {
+  state.bottom = mode;
+  document.querySelectorAll('#seg-bottom .tw-opt').forEach(function(o){o.classList.remove('on')});
+  if(el) el.classList.add('on');
+  document.getElementById('friends-area').style.display = mode === 'friends' ? '' : 'none';
+  document.getElementById('bnav-area').style.display = mode === 'nav' ? '' : 'none';
+}
+
+function setView(mode, el) {
+  state.view = mode;
+  if (el) {
+    document.querySelectorAll('#seg-view .tw-opt').forEach(function(o){o.classList.remove('on')});
+    el.classList.add('on');
+  }
+  // sync seg4
+  var map = {col:0,masonry:1,list:2,free:3};
+  document.querySelectorAll('#seg-view .tw-opt').forEach(function(o,i){
+    o.classList.toggle('on', i===map[mode]);
+  });
+  // sync vbtns
+  ['col','mas','list'].forEach(function(v){
+    var btn = document.getElementById('vbtn-'+v);
+    if(btn) btn.classList.toggle('active', v===mode || (v==='mas'&&mode==='masonry'));
+  });
+  renderFeed();
+}
+
+function setCols(v) {
+  state.cols = parseInt(v);
+  document.getElementById('col-num').textContent = v;
+  document.getElementById('col-label').textContent = v + ' col';
+  updateSliderStyle();
+  renderFeed();
+}
+
+function setTab(el, tab) {
+  document.querySelectorAll('.feed-tab').forEach(function(t){t.classList.remove('active')});
+  el.classList.add('active');
+}
+
+function setTheme(mode) {
+  state.dark = mode === 'dark';
+  var phone = document.getElementById('phone');
+  phone.classList.toggle('dark', state.dark);
+  document.getElementById('theme-dark').classList.toggle('on', state.dark);
+  document.getElementById('theme-light').classList.toggle('on', !state.dark);
+  applyAccent(state.accent);
+  renderFeed();
+}
+
+function setAccent(color, name, el) {
+  state.accent = color;
+  document.querySelectorAll('.acc-circle').forEach(function(c){c.classList.remove('on'); c.style.outline='';});
+  var circle = el.querySelector('.acc-circle');
+  if (circle) { circle.classList.add('on'); circle.style.outline = '3px solid '+color; circle.style.outlineOffset = '2px'; }
+  applyAccent(color);
+}
+
+function setRating(n) {
+  state.rating = n;
+  document.querySelectorAll('#star-row .star svg').forEach(function(svg, i){
+    svg.style.fill = i < n ? '#f5a623' : '#ddd';
+  });
+}
+
+function toggleChip(el) {
+  el.classList.toggle('on');
+}
+
+function toggleFgAv(item) {
+  var av = item.querySelector('.fg-av');
+  if (!av) return;
+  var isOn = av.style.outline !== '';
+  av.style.outline = isOn ? '' : '3px solid '+state.accent;
+  av.style.outlineOffset = isOn ? '' : '2px';
+}
+
+// ── SHEETS ──
+function openSheet(name) {
+  closeAll();
+  state.activeSheet = name;
+  document.getElementById('dim-bg').classList.add('visible');
+  var sheet = document.getElementById('sheet-'+name);
+  if (sheet) sheet.classList.add('open');
+  // mark active try item
+  var tryMap = {fab:'try-fab',settings:'try-settings',filter:'try-filter',friends:'try-friends',card:'try-card'};
+  document.querySelectorAll('.tw-try-item').forEach(function(i){i.classList.remove('active-link')});
+  if(tryMap[name]) { var ti = document.getElementById(tryMap[name]); if(ti) ti.classList.add('active-link'); }
+}
+
+function closeSheet(name) {
+  var sheet = document.getElementById('sheet-'+name);
+  if (sheet) sheet.classList.remove('open');
+  document.getElementById('dim-bg').classList.remove('visible');
+  state.activeSheet = null;
+  document.querySelectorAll('.tw-try-item').forEach(function(i){i.classList.remove('active-link')});
+}
+
+function closeScreen(name) {
+  var screen = document.getElementById('screen-'+name);
+  if (screen) screen.classList.remove('visible');
+  document.querySelectorAll('.tw-try-item').forEach(function(i){i.classList.remove('active-link')});
+}
+
+function closeAll() {
+  ['fab','settings','filter','friends','card'].forEach(function(n){
+    var s = document.getElementById('sheet-'+n);
+    if(s) s.classList.remove('open');
+  });
+  ['folders'].forEach(function(n){
+    var s = document.getElementById('screen-'+n);
+    if(s) s.classList.remove('visible');
+  });
+  document.getElementById('dim-bg').classList.remove('visible');
+  state.activeSheet = null;
+  document.querySelectorAll('.tw-try-item').forEach(function(i){i.classList.remove('active-link')});
+}
+
+// ── TRY IT OUT ──
+function tryAction(action) {
+  switch(action) {
+    case 'fab': openSheet('fab'); break;
+    case 'settings': openSheet('settings'); break;
+    case 'filter': openSheet('filter'); break;
+    case 'friends': openSheet('friends'); break;
+    case 'card': openSheet('card'); break;
+    case 'folders':
+      closeAll();
+      var screen = document.getElementById('screen-folders');
+      screen.classList.add('visible');
+      var ti = document.getElementById('try-folders');
+      if(ti) ti.classList.add('active-link');
+      break;
+    case 'free':
+      setView('free', null);
+      document.querySelectorAll('.tw-try-item').forEach(function(i){i.classList.remove('active-link')});
+      var tf = document.getElementById('try-free');
+      if(tf) tf.classList.add('active-link');
+      setTimeout(function(){if(tf)tf.classList.remove('active-link');},1500);
+      break;
+    case 'reset':
+      state = {dark:false,accent:'#7c5cbf',cols:2,view:'col',bottom:'friends',fab:'circle',rating:5,activeSheet:null};
+      closeAll();
+      setTheme('light');
+      setFab('circle',null);
+      setBottom('friends',null);
+      setView('col',null);
+      setCols(2);
+      applyAccent('#7c5cbf');
+      document.querySelectorAll('#seg-fab .tw-opt').forEach(function(o,i){o.classList.toggle('on',i===0)});
+      document.querySelectorAll('#seg-bottom .tw-opt').forEach(function(o,i){o.classList.toggle('on',i===0)});
+      var ti = document.getElementById('try-reset');
+      if(ti){ti.classList.add('active-link');setTimeout(function(){ti.classList.remove('active-link');},1000);}
+      break;
+  }
+}
+
+// ── INIT ──
+renderFeed();
+renderFriendsStrip();
+applyAccent(state.accent);
+// make .chip.on use accent
+var style = document.createElement('style');
+document.head.appendChild(style);
+function updateChipStyle() {
+  style.textContent = '.chip.on{border-color:'+state.accent+' !important;color:'+state.accent+' !important;background:'+state.accent+'11 !important}';
+}
+updateChipStyle();
+var origApply = applyAccent;
+applyAccent = function(c) { origApply(c); updateChipStyle(); };
+applyAccent(state.accent);
+</script>
