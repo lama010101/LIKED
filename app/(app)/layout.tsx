@@ -256,9 +256,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           userId="stub-user-id"
           avatarKey={null}
           displayName="JS"
-          onFilterClick={() => setOpenFilter(true)}
           onNotificationClick={() => {}}
-          onProfileClick={() => {}}
+          onProfileClick={() => setOpenProfile(true)}
           onTrashClick={() => router.push('/trash')}
           trashCount={trashCount}
         />
@@ -535,7 +534,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           isCollapsed={!openFriends}
           onExpandClick={() => setOpenFriends(true)}
           onAvatarClick={(id, type) => {
-            if (type === 'me') setOpenProfile(true);
+            // Clicking Me navigates to home feed with "Mine" view
+            if (type === 'me') {
+              setFolderPath([]);
+              router.push('/feed?view=mine');
+              return;
+            }
+            // Friends/groups: future implementation (friend feed view)
           }}
         />
       </div>

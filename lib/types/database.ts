@@ -677,6 +677,17 @@ export interface Database {
         }
         Returns: unknown
       }
+      search_nodes: {
+        Args: {
+          p_user_id: string
+          p_query: string
+          p_language_code: string
+          p_sort: string
+          p_view: string
+          p_mine_filter: string
+        }
+        Returns: unknown
+      }
       upsert_rating: {
         Args: {
           p_user_id: string

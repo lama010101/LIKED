@@ -9,11 +9,11 @@
 
 | Field | Value |
 |-------|-------|
-| **Last completed task** | P9-T01 (Feed 3-state toggle) |
-| **Next task to execute** | P9-T02 (Search) |
-| **Current phase** | P8 — Media & Cards |
-| **Phase gate passed** | ✅ P6 fully complete |
-| **Last updated** | 2026-04-18 (Cascade) |
+| **Last completed task** | P9-T02 (Search) |
+| **Next task to execute** | P9-T03 (Multi-filter system) |
+| **Current phase** | P9 — Search & Filters |
+| **Phase gate passed** | ⏳ P9-T03 |
+| **Last updated** | 2026-04-19 (Cascade) |
 
 ---
 
@@ -101,6 +101,7 @@
 | Task ID | Title | Status | Notes |
 |---------|-------|--------|-------|
 | P9-T01 | Feed 3-state toggle | ✅ | Migration 020 extends `get_visible_nodes(p_user_id, p_sort, p_view, p_mine_filter)` with view filter ('all'|'mine'|'received') and mine sub-filter ('all'|'not_shared'|'shared'). `lib/db/visibility.ts` exports `FeedView` and `MineSubFilter` types; `getVisibleNodes()` accepts view/mineFilter params. `feed/page.tsx` reads `?view=` and `?mine=` search params, passes to `getVisibleNodes()` for SSR. Layout tabs wired to URL via `router.replace()` — tab changes update URL, URL changes update server render. `filterStore` updated with `mineSubTab` state. `NodeCard` shows direction badge (10px circle, bottom-right): amber `var(--accent)` for mine, blue `var(--color-received, #60c5f1)` for received. `currentUserId` passed through `FeedGrid` → `SortableNodeGrid` → `NodeCard`. Colors use exact same CSS tokens as tab styling per PRD §11.2a.s, individual-friend rating breakdown UI, fullscreen for cross-origin iframes (browser-limited), `onShareClick` handler wiring (needs SharePickerModal integration). |
+| P9-T02 | Search | ✅ | Migration 021: adds `pg_trgm` extension, GIN indexes on `translations.title/description`, `tag_translations.label`, `nodes.title`. Creates `search_nodes(p_user_id, p_query, p_language_code, p_sort, p_view, p_mine_filter)` RPC - queries translations in user's language, tag labels, with nodes.title fallback. Applies full visibility model. `lib/db/search.ts` exports `searchNodes()`. `TopBar.tsx`: replaces sliders icon with search icon per PRD v27.2, adds `SearchInput` component with icon-only → expandable input (tap to expand), 300ms debounce via `useCallback/useRef`, Escape to clear/close, blur to collapse if empty. `FeedGrid.tsx`: uses `filterStore.searchQuery`, fetches via `supabaseBrowser.rpc('search_nodes')` with debounce, shows loading state + search-specific empty state, passes `displayNodes` to all view modes. Pending: `search_nodes` not yet in generated types (requires migration apply + CLEANUP-E type regen). |
 
 ### PHASES 10–13
 | Phase | Status |
@@ -148,3 +149,7 @@
 - friend_invites model (migration 011) deviates from PRD §9 — accepted deviation
 - migration 010 dropped folder_admins and group_admins — restored via migration 012
 - CardDetailModal exists but stubbed — needs full implementation per P8
+- P9-T02 follow-up: TrashView.tsx now has Close button (X) in header — navigates back to /feed
+- P9-T02 follow-up: ProfileModal trigger moved from BottomBar Me avatar to TopBar avatar button per PRD §11.1 navigation pattern
+- BUG-03 fixed: TrashView.tsx Close button now uses `router.back()` instead of hardcoded `/feed` — returns to previous page correctly
+- Feature: Clicking Me in friends strip navigates to home feed with 'mine' view (`/feed?view=mine`)

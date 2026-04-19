@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import type { VisibleNode, FeedView, MineSubFilter } from "@/lib/db/visibility";
 import type { FeedItem } from "@/lib/types/feed";
 import { useLocalStorage } from "@/lib/hooks/useLocalStorage";
+import { useFilterStore } from "@/lib/store/filterStore";
+import { supabaseBrowser } from "@/lib/supabase/client";
 import CardDetailSheet from "@/components/modals/CardDetailSheet";
 import FreeGrid from "./FreeGrid";
 import FolderView from "./FolderView";
@@ -33,6 +35,8 @@ interface FeedGridProps {
   folderContext?: FolderContext | null;
   onExitFolder?: () => void;
   onFolderFilterClick?: () => void;
+  /** User's language code for search (e.g., 'en', 'fr', 'th') */
+  languageCode?: string;
 }
 
 const STUB_ITEMS: FeedItem[] = [
@@ -48,6 +52,45 @@ const STUB_ITEMS: FeedItem[] = [
   { id:'c-7', kind:'card', title:'Fermented foods 101', art:'linear-gradient(135deg,#4ad58a,#1c6a40)', tag:'Food', tagColor:'#e05c3a', rating:5.5, dir:'mine', source:'substack.com', daysAgo:7 },
 ];
 
+/** Convert VisibleNode[] (from DB) to FeedItem[] for view components */
+function toFeedItems(nodes: VisibleNode[]): FeedItem[] {
+  return nodes.map((n) => {
+    const hue = Math.abs(
+      n.id.split('').reduce((h, c) => ((h << 5) - h + c.charCodeAt(0)) | 0, 0)
+    ) % 360;
+    let source: string | undefined;
+    if (n.url) {
+      try { source = new URL(n.url).hostname; } catch { /* ignore */ }
+    }
+    return {
+      id: n.id,
+      kind: 'card' as const,
+      title: n.title ?? n.url ?? 'Untitled',
+      art: `linear-gradient(135deg, hsl(${hue}, 40%, 35%), hsl(${(hue + 60) % 360}, 50%, 25%))`,
+      dir: (n.origin_user_id === n.owner_id ? 'mine' : 'received') as 'mine' | 'received',
+      source,
+    };
+  });
+}
+
+/**
+ * Map UI sort to RPC sort parameter
+ */
+function toSortKey(sort: string): string {
+  switch (sort) {
+    case 'oldest':
+      return 'oldest';
+    case 'highestRated':
+      return 'rating';
+    case 'mostShared':
+      return 'most_shared';
+    case 'custom':
+      return 'custom';
+    default:
+      return 'newest';
+  }
+}
+
 export default function FeedGrid({
   nodes,
   currentUserId,
@@ -59,14 +102,63 @@ export default function FeedGrid({
   folderContext = null,
   onExitFolder,
   onFolderFilterClick,
+  languageCode = 'en',
 }: FeedGridProps) {
   // P9-T01: feedView and mineFilter are passed for future client-side filtering
-  // Currently the server has already filtered the nodes, but we accept these
-  // for symmetry and potential optimistic UI updates.
   const [storedView] = useLocalStorage<ViewMode>('liked.view', 'col');
   const [storedZoom] = useLocalStorage<number>('liked.zoom', 2);
   const view = viewProp ?? storedView;
   const zoom = zoomProp ?? storedZoom;
+
+  // P9-T02: Search integration
+  const { searchQuery } = useFilterStore();
+  const [searchResults, setSearchResults] = useState<VisibleNode[] | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState<Error | null>(null);
+
+  // Debounced search effect (300ms)
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults(null);
+      setIsSearching(false);
+      setSearchError(null);
+      return;
+    }
+
+    setIsSearching(true);
+    setSearchError(null);
+
+    const timeoutId = setTimeout(async () => {
+      try {
+        const { data, error } = await supabaseBrowser.rpc('search_nodes', {
+          p_user_id: currentUserId,
+          p_query: searchQuery.trim(),
+          p_language_code: languageCode,
+          p_sort: 'newest', // TODO: wire from feedStore
+          p_view: feedView ?? 'all',
+          p_mine_filter: mineFilter ?? 'all',
+        });
+
+        if (error) throw error;
+        setSearchResults((data ?? []) as VisibleNode[]);
+      } catch (e) {
+        setSearchError(e instanceof Error ? e : new Error(String(e)));
+        setSearchResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery, currentUserId, languageCode, feedView, mineFilter]);
+
+  // Use search results when available, otherwise use server-rendered nodes
+  const displayNodes = useMemo(() => {
+    if (searchQuery.trim()) {
+      return searchResults ?? [];
+    }
+    return nodes;
+  }, [searchQuery, searchResults, nodes]);
 
   const [activeNode, setActiveNode] = useState<VisibleNode | null>(null);
 
@@ -82,11 +174,28 @@ export default function FeedGrid({
     /* stub: no-op until real data wired in P2/P9 */
   }, []);
 
+  // P9-T02: Search-specific empty state
   const emptyState = (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "128px 0", textAlign: "center" }}>
-      <p style={{ color: "var(--text-3)", fontSize: 14 }}>Nothing here yet</p>
+      {searchQuery.trim() ? (
+        <>
+          <p style={{ color: "var(--text-3)", fontSize: 14 }}>No results for &ldquo;{searchQuery}&rdquo;</p>
+          <p style={{ color: "var(--text-3)", fontSize: 12, marginTop: 8 }}>Try different keywords</p>
+        </>
+      ) : (
+        <p style={{ color: "var(--text-3)", fontSize: 14 }}>Nothing here yet</p>
+      )}
     </div>
   );
+
+  // Show loading state during search
+  if (isSearching) {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "128px 0" }}>
+        <p style={{ color: "var(--text-3)", fontSize: 14 }}>Searching...</p>
+      </div>
+    );
+  }
 
   /* ── Folder view: hides top bar, shows folder header + breadcrumb ── */
   if (folderContext) {
@@ -96,7 +205,7 @@ export default function FeedGrid({
           folderName={folderContext.name}
           folderColor={folderContext.color}
           breadcrumb={folderContext.breadcrumb}
-          nodes={nodes}
+          nodes={displayNodes}
           onBack={onExitFolder ?? (() => {})}
           onFilterClick={onFolderFilterClick ?? (() => {})}
           onCardClick={handleOpen}
@@ -110,34 +219,42 @@ export default function FeedGrid({
   if (view === "free") {
     return (
       <>
-        {nodes.length === 0 ? emptyState : (
-          <FreeGrid nodes={nodes} scopeKey={scopeKey} onCardClick={handleOpen} />
+        {displayNodes.length === 0 ? emptyState : (
+          <FreeGrid nodes={displayNodes} scopeKey={scopeKey} onCardClick={handleOpen} />
         )}
         <CardDetailSheet node={activeNode} currentUserId={currentUserId} onClose={handleClose} />
       </>
     );
   }
 
+  // When searching or real data is available, convert VisibleNode[] → FeedItem[]
+  const feedItems = useMemo(() => {
+    if (searchQuery.trim() || displayNodes.length > 0) {
+      return toFeedItems(displayNodes);
+    }
+    return STUB_ITEMS;
+  }, [searchQuery, displayNodes]);
+
   /* ── Col view ── */
   if (view === "col") {
-    return <ColView items={STUB_ITEMS} zoom={zoom} scopeKey={scopeKey} onItemClick={handleItemClick} />;
+    return <ColView items={feedItems} zoom={zoom} scopeKey={scopeKey} onItemClick={handleItemClick} />;
   }
 
   /* ── Mason view ── */
   if (view === "mason") {
-    return <MasonView items={STUB_ITEMS} scopeKey={scopeKey} onItemClick={handleItemClick} />;
+    return <MasonView items={feedItems} scopeKey={scopeKey} onItemClick={handleItemClick} />;
   }
 
   /* ── List view ── */
   if (view === "list") {
-    return <ListView items={STUB_ITEMS} scopeKey={scopeKey} onItemClick={handleItemClick} />;
+    return <ListView items={feedItems} scopeKey={scopeKey} onItemClick={handleItemClick} />;
   }
 
   /* ── Horiz view ── */
   if (view === "horiz") {
     return (
       <HorizView
-        items={STUB_ITEMS}
+        items={feedItems}
         scopeKey={scopeKey}
         onItemClick={handleItemClick}
         folderContext={folderContext}
@@ -148,9 +265,9 @@ export default function FeedGrid({
   /* ── Fallback masonry (legacy viewMode prop not passed) ── */
   return (
     <>
-      {nodes.length === 0 ? emptyState : (
+      {displayNodes.length === 0 ? emptyState : (
         <SortableNodeGrid
-          nodes={nodes}
+          nodes={displayNodes}
           scopeKey={scopeKey}
           onCardClick={handleOpen}
           currentUserId={currentUserId}

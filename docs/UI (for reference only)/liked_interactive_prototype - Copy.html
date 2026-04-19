@@ -117,6 +117,11 @@ body{font-family:'Inter',sans-serif;background:#e8e8ec;display:flex;gap:20px;pad
 .feed::-webkit-scrollbar{display:none}
 .phone.dark .feed{background:#111}
 .feed-grid{display:grid;gap:6px}
+.feed-grid.masonry{grid-template-rows:masonry;grid-template-columns:repeat(2,1fr)}
+.feed-grid.list{grid-template-columns:1fr !important}
+.feed-grid.list .ccard,.feed-grid.list .fcard{aspect-ratio:auto;height:auto;min-height:80px}
+.feed-grid.free{display:flex;flex-wrap:wrap;gap:6px}
+.feed-grid.free .ccard,.feed-grid.free .fcard{width:calc(50% - 3px);height:auto}
 
 /* CARDS */
 .fcard{border-radius:16px;overflow:hidden;position:relative;cursor:pointer;background:#ddd}
@@ -906,108 +911,53 @@ var FRIENDS=[
   {init:'F',name:'Film',color:'linear-gradient(135deg,#dd8822,#bb6610)',group:true}
 ];
 
-var feedItems=[
-  {type:'folder',name:'Favorites',count:'42 items',dot:'#e84040',colors:['#5533a0','#1a7a7a','#c04060','#2a6a20']},
-  {type:'folder',name:'Travel',count:'28 items',dot:'#60c5f1',colors:['#1a7aaa','#2a5aaa','#1a3a80','#2a6aaa']},
-  {type:'folder',name:'Read Later',count:'64 items',dot:'#8855cc',colors:['#6633aa','#8833aa','#aa8833','#2a88aa']},
-  {type:'folder',name:'Watch',count:'19 items',dot:'#e84040',colors:['#cc3355','#cc4433','#aa6633','#aabb33']},
-  {type:'folder',name:'Recipes',count:'33 items',dot:'#4ad58a',colors:['#ee6633','#33aa55','#cc3355','#33aa88']},
-  {type:'card',title:'Morning routine triggers',tag:'Health',tagColor:'#2a8a4a',star:5,dot:'recv',bg:'#6644cc,#4422aa'},
-  {type:'card',title:'In Rainbows — 20 years',tag:'Music',tagColor:'#3a7bd5',star:0,dot:'mine',bg:'#3355aa,#1a3388'},
-  {type:'card',title:'BTFD — a retrospective',tag:'Finance',tagColor:'#e05c3a',star:4,dot:'recv',bg:'#1a6688,#0d4466'},
-  {type:'card',title:'Past Lives',tag:'Film',tagColor:'#c43a5a',star:5,dot:'recv',bg:'#2244aa,#1a3388'},
-  {type:'card',title:'Japanese jazz history',tag:'Music',tagColor:'#3a7bd5',star:4,dot:'recv',bg:'#4422aa,#2a1188'},
-  {type:'card',title:'Obsidian plugin...',tag:'Tech',tagColor:'#7b3ad5',star:0,dot:'mine',bg:'#aa8833,#886620'},
-  {type:'card',title:'Fermented foods 101',tag:'Health',tagColor:'#2a8a4a',star:5,dot:'recv',bg:'#2288aa,#1a6688'},
+var CARDS=[
+  {type:'folder',name:'Favorites',count:'42 items',color:'#e84040',colors:['linear-gradient(135deg,#7c3aed,#4c1d95)','linear-gradient(135deg,#1a8888,#0d5f5f)','linear-gradient(135deg,#e84040,#c02020)','linear-gradient(135deg,#f5a623,#c07820)']},
+  {type:'folder',name:'Travel',count:'28 items',color:'#60c5f1',colors:['linear-gradient(135deg,#2a88cc,#1a5599)','linear-gradient(135deg,#1a4488,#0d2255)','linear-gradient(135deg,#3399dd,#1a66aa)','linear-gradient(135deg,#4a9fd5,#1c6fa0)']},
+  {type:'folder',name:'Read Later',color:'#9b59b6',count:'64 items',colors:['linear-gradient(135deg,#7c3aed,#5b21b6)','linear-gradient(135deg,#4c1d95,#2d0f5c)','linear-gradient(135deg,#6d28d9,#4c1d95)','linear-gradient(135deg,#8b5cf6,#6d28d9)']},
+  {type:'folder',name:'Watch',color:'#e84040',count:'19 items',colors:['linear-gradient(135deg,#e84040,#c02020)','linear-gradient(135deg,#cc3366,#aa1144)','linear-gradient(135deg,#dd5577,#bb2244)','linear-gradient(135deg,#8bc34a,#558b2f)']},
+  {type:'card',title:'Recipes',tag:'Food',tagColor:'#e67e22',rating:0,dot:'mine'},
+  {type:'card',title:'Morning routine triggers',tag:'Health',tagColor:'#d35400',rating:5,dot:'recv'},
+  {type:'card',title:'Market Analysis Q3',tag:'Finance',tagColor:'#16a085',rating:4,dot:'recv'},
+  {type:'card',title:'Design Systems 2025',tag:'Design',tagColor:'#7c5cbf',rating:0,dot:'mine'},
+  {type:'card',title:'Your Job Is Your Bullshit',tag:'Books',tagColor:'#2c3e50',rating:3,dot:'recv'},
+  {type:'card',title:'Atomic Habits summary',tag:'Books',tagColor:'#2c3e50',rating:5,dot:'mine'}
 ];
 
-function buildFeedItem(item,cols){
-  var size=cols>=5?48:(cols>=4?70:(cols>=3?88:110));
-  if(item.type==='folder'){
-    var c=item.colors;
-    return '<div class="fcard" onclick="tryAction(\'card\')">'
-      +'<div class="fcard-collage" style="height:'+size+'px">'
-      +'<div style="background:linear-gradient(135deg,'+c[0]+','+c[0]+'99)"></div>'
-      +'<div style="background:linear-gradient(135deg,'+c[1]+','+c[1]+'99)"></div>'
-      +'<div style="background:linear-gradient(135deg,'+c[2]+','+c[2]+'99)"></div>'
-      +'<div style="background:linear-gradient(135deg,'+c[3]+','+c[3]+'99)"></div>'
-      +'</div>'
-      +'<div class="fcard-dot" style="background:'+item.dot+'"></div>'
-      +'<div class="fcard-overlay"><div class="fcard-name">'+item.name+'</div>'
-      +(cols<=3?'<div class="fcard-count">'+item.count+'</div>':'')
-      +'</div></div>';
-  }else{
-    var starBadge=item.star?'<div class="ccard-star">★ '+item.star+'</div>':'';
-    var meta=cols<=3?'<div class="ccard-meta"><div class="ccard-title">'+item.title+'</div><div class="ccard-tags"><span class="ctag" style="background:'+item.tagColor+'">'+item.tag+'</span></div></div>':'';
-    return '<div class="ccard" onclick="tryAction(\'card\')">'
-      +'<div class="ccard-img" style="height:'+size+'px;background:linear-gradient(135deg,'+item.bg+')"></div>'
-      +starBadge
-      +'<div class="ccard-dot '+item.dot+'"></div>'
-      +meta+'</div>';
-  }
-}
-
 function renderFeed(){
-  var c=state.cols;
   var grid=document.getElementById('feed-grid');
   if(!grid)return;
-  document.getElementById('col-label').textContent=c+' col';
-  var colDisplay=document.getElementById('col-display');
-  colDisplay.style.display=(state.view==='col')?'flex':'none';
-
+  grid.classList.remove('masonry','list','free');
+  var cols=state.cols;
   if(state.view==='list'){
-    grid.style.gridTemplateColumns='1fr';
-    grid.style.display='';grid.style.columns='';
-    grid.innerHTML=feedItems.map(function(item){
-      var bg=item.type==='folder'?'linear-gradient(135deg,'+item.colors[0]+','+item.colors[2]+')':'linear-gradient(135deg,'+item.bg+')';
-      var label=item.type==='folder'?item.name+' — '+item.count:item.title;
-      return '<div style="display:flex;align-items:center;gap:10px;padding:8px;background:#fff;border-radius:12px;cursor:pointer" onclick="tryAction(\'card\')">'
-        +'<div style="width:48px;height:48px;border-radius:10px;background:'+bg+';flex-shrink:0"></div>'
-        +'<div style="font-size:13px;font-weight:600;color:#111">'+label+'</div>'
-        +'</div>';
-    }).join('');
-    if(state.dark)grid.querySelectorAll('div[style*="background:#fff"]').forEach(function(el){el.style.background='#1c1c1f';el.querySelectorAll('div[style*="color:#111"]').forEach(function(t){t.style.color='#f0f0f0';});});
-    return;
+    grid.classList.add('list');
+    cols=1;
+  }else if(state.view==='masonry'){
+    grid.classList.add('masonry');
+    cols=2;
+  }else if(state.view==='free'){
+    grid.classList.add('free');
+  }else{
+    grid.style.gridTemplateColumns='repeat('+cols+',1fr)';
   }
-  if(state.view==='masonry'){
-    grid.style.display='block';
-    grid.style.columns='2';
-    grid.style.columnGap='6px';
-    var html='';
-    feedItems.forEach(function(item){
-      var h=60+Math.floor(Math.random()*70);
-      var bg=item.type==='folder'?'linear-gradient(135deg,'+item.colors[0]+','+item.colors[2]+')':'linear-gradient(135deg,'+item.bg+')';
-      html+='<div style="break-inside:avoid;margin-bottom:6px;border-radius:14px;overflow:hidden;background:#ddd;cursor:pointer" onclick="tryAction(\'card\')">'
-        +'<div style="height:'+h+'px;background:'+bg+'"></div>'
-        +'<div style="padding:6px 8px 8px;background:#fff"><div style="font-size:10px;font-weight:600;color:#111">'+(item.type==='folder'?item.name:item.title)+'</div></div>'
+  grid.innerHTML=CARDS.map(function(c){
+    if(c.type==='folder'){
+      return '<div class="fcard" onclick="tryAction(\'folders\')">'
+        +'<div class="fcard-collage">'+c.colors.map(function(g){return '<div style="background:'+g+'"></div>';}).join('')+'</div>'
+        +'<div class="fcard-dot" style="background:'+c.color+'"></div>'
+        +'<div class="fcard-overlay"><div class="fcard-name">'+c.name+'</div><div class="fcard-count">'+c.count+'</div></div>'
         +'</div>';
-    });
-    grid.innerHTML=html;
-    return;
-  }
-  if(state.view==='free'){
-    grid.style.display='block';
-    grid.style.columns='';
-    grid.style.position='relative';
-    grid.style.minHeight='400px';
-    var positions=[{t:0,l:0,w:140,h:120},{t:0,l:148,w:100,h:80},{t:0,l:256,w:120,h:100},{t:88,l:0,w:100,h:140},{t:128,l:108,w:130,h:100},{t:108,l:246,w:110,h:80}];
-    var html='<div style="position:relative;height:400px">';
-    feedItems.slice(0,6).forEach(function(item,i){
-      var p=positions[i]||{t:i*60,l:0,w:140,h:100};
-      var bg=item.type==='folder'?'linear-gradient(135deg,'+item.colors[0]+','+item.colors[2]+')':'linear-gradient(135deg,'+item.bg+')';
-      html+='<div style="position:absolute;top:'+p.t+'px;left:'+p.l+'px;width:'+p.w+'px;height:'+p.h+'px;border-radius:14px;background:'+bg+';cursor:pointer;overflow:hidden" onclick="tryAction(\'card\')">'
-        +'<div style="position:absolute;bottom:0;left:0;right:0;padding:4px 7px 6px;background:linear-gradient(to top,rgba(0,0,0,.7),transparent);font-size:9px;font-weight:700;color:#fff">'+(item.type==='folder'?item.name:item.title)+'</div>'
-        +'</div>';
-    });
-    html+='</div>';
-    grid.innerHTML=html;
-    return;
-  }
-  // COL view
-  grid.style.display='';
-  grid.style.columns='';
-  grid.style.gridTemplateColumns='repeat('+c+',1fr)';
-  grid.innerHTML=feedItems.map(function(item){return buildFeedItem(item,c);}).join('');
+    }
+    var stars=c.rating>0?'<div class="ccard-star">★ '+c.rating+'</div>':'';
+    var bg='linear-gradient(135deg,hsl('+(Math.abs(c.title.charCodeAt(0)*7)%360)+',40%,35%),hsl('+(Math.abs(c.title.charCodeAt(0)*13)%360)+',50%,25%))';
+    return '<div class="ccard" onclick="tryAction(\'card\')">'
+      +'<div class="ccard-img" style="background:'+bg+'"></div>'
+      +stars
+      +'<div class="ccard-dot '+c.dot+'"></div>'
+      +'<div class="ccard-meta"><div class="ccard-title">'+c.title+'</div>'
+      +'<div class="ccard-tags"><span class="ctag" style="background:'+c.tagColor+'">'+c.tag+'</span></div></div>'
+      +'</div>';
+  }).join('');
 }
 
 function renderFriendsStrip(){
@@ -1172,8 +1122,6 @@ function setView(mode,el){
     var btn=document.getElementById('vbtn-'+v);
     if(btn)btn.classList.toggle('active',v===mode||(v==='mas'&&mode==='masonry'));
   });
-  var colDisplay=document.getElementById('col-display');
-  if(colDisplay)colDisplay.style.display=(mode==='col')?'flex':'none';
   renderFeed();
 }
 function setCols(v){

@@ -12,6 +12,7 @@
  */
 
 import { useCallback, useEffect, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import type { TrashedNode } from "@/lib/db/nodes";
 import {
   listTrashedNodes,
@@ -38,6 +39,7 @@ function itemTitle(n: TrashedNode): string {
 }
 
 export default function TrashView() {
+  const router = useRouter();
   const [items, setItems] = useState<TrashedNode[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -120,22 +122,58 @@ export default function TrashView() {
       <div
         style={{
           display: "flex",
-          alignItems: "baseline",
+          alignItems: "center",
           justifyContent: "space-between",
           marginBottom: 14,
         }}
       >
-        <h1
-          className="font-serif"
-          style={{
-            fontSize: 22,
-            fontWeight: 700,
-            letterSpacing: "-0.02em",
-            color: "var(--text-1)",
-          }}
-        >
-          Trash
-        </h1>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          {/* Close button — returns to previous page */}
+          <button
+            type="button"
+            onClick={() => router.back()}
+            aria-label="Close trash and return to previous page"
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 10,
+              background: "var(--surface-3)",
+              border: "1px solid var(--border-1)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              color: "var(--text-2)",
+              padding: 0,
+            }}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M18 6 6 18" />
+              <path d="m6 6 12 12" />
+            </svg>
+          </button>
+          <h1
+            className="font-serif"
+            style={{
+              fontSize: 22,
+              fontWeight: 700,
+              letterSpacing: "-0.02em",
+              color: "var(--text-1)",
+            }}
+          >
+            Trash
+          </h1>
+        </div>
         <div style={{ fontSize: 12, color: "var(--text-3)" }}>
           {items!.length} item{items!.length === 1 ? "" : "s"}
         </div>

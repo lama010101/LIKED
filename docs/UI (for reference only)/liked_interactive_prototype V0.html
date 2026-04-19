@@ -16,7 +16,7 @@ body{font-family:'Inter',sans-serif;background:#e8e8ec;display:flex;gap:20px;pad
 .tw-seg4 .tw-opt{font-size:10px;padding:6px 2px}
 .tw-slider-row{display:flex;align-items:center;gap:6px;margin-bottom:13px}
 .tw-slider-row svg{width:13px;height:13px;flex-shrink:0;fill:none;stroke:#aaa;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.tw-slider{flex:1;-webkit-appearance:none;appearance:none;height:4px;border-radius:2px;outline:none;cursor:pointer}
+.tw-slider{flex:1;-webkit-appearance:none;height:4px;border-radius:2px;outline:none;cursor:pointer}
 .tw-slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;cursor:pointer}
 .tw-num{font-size:12px;font-weight:700;color:#111;min-width:14px;text-align:right}
 .tw-section{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#aaa;margin-bottom:8px;margin-top:2px}
@@ -45,17 +45,7 @@ body{font-family:'Inter',sans-serif;background:#e8e8ec;display:flex;gap:20px;pad
 .logo{font-size:22px;font-weight:800;color:#111;letter-spacing:-1px}
 .logo-dot{color:#7c5cbf}
 .phone.dark .logo{color:#fff}
-.topbar-r{display:flex;align-items:center;gap:8px;position:relative;flex:1;justify-content:flex-end}
-.search-expand{display:none;position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);width:100%;opacity:0;transition:opacity .2s ease}
-.search-expand.open{display:flex;opacity:1;z-index:10}
-.search-field{display:flex;align-items:center;gap:8px;background:#f0f0f3;border-radius:10px;padding:7px 10px;height:36px;box-sizing:border-box;width:100%}
-.phone.dark .search-field{background:#2a2a2e}
-.search-field svg{width:14px;height:14px;fill:none;stroke:#aaa;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
-.search-field input{border:none;outline:none;background:transparent;font-size:13px;color:#111;flex:1;font-family:inherit;width:100%}
-.phone.dark .search-field input{color:#fff}
-.search-clear{width:18px;height:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
-.search-clear svg{width:12px;height:12px;fill:none;stroke:#888;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.topbar-r.search-active .icon-btn:not(#search-icon-btn),.topbar-r.search-active .avatar-btn{visibility:hidden;opacity:0;transition:opacity .15s ease,visibility 0s .15s}
+.topbar-r{display:flex;align-items:center;gap:8px}
 .icon-btn{width:36px;height:36px;border-radius:12px;background:#f0f0f3;display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;flex-shrink:0}
 .phone.dark .icon-btn{background:#2a2a2e}
 .icon-btn svg{width:18px;height:18px;fill:none;stroke:#555;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
@@ -67,50 +57,26 @@ body{font-family:'Inter',sans-serif;background:#e8e8ec;display:flex;gap:20px;pad
 /* FEED TABS */
 .feed-tabs{display:flex;padding:4px 14px 6px;gap:2px;flex-shrink:0}
 .feed-tab{flex:1;text-align:center;padding:7px 4px;border-radius:10px;font-size:13px;font-weight:500;color:#888;cursor:pointer;transition:all .15s}
-.feed-tab.active{background:#7c5cbf;color:#fff;font-weight:700;box-shadow:0 2px 8px rgba(124,92,191,.35)}
-.feed-tab[data-tab="mine"].active{background:#2a9d8f;box-shadow:0 2px 8px rgba(42,157,143,.35)}
-.feed-tab[data-tab="received"].active{background:#457b9d;box-shadow:0 2px 8px rgba(69,123,157,.35)}
+.feed-tab.active{background:#fff;color:#111;font-weight:700;box-shadow:0 1px 4px rgba(0,0,0,.1)}
 .phone.dark .feed-tab{color:#555}
-.phone.dark .feed-tab.active{background:#7c5cbf;color:#fff;box-shadow:0 2px 8px rgba(124,92,191,.35)}
-.phone.dark .feed-tab[data-tab="mine"].active{background:#2a9d8f;box-shadow:0 2px 8px rgba(42,157,143,.35)}
-.phone.dark .feed-tab[data-tab="received"].active{background:#457b9d;box-shadow:0 2px 8px rgba(69,123,157,.35)}
+.phone.dark .feed-tab.active{background:#2a2a2e;color:#fff}
 
 /* SORT ROW */
 .sort-row{display:flex;align-items:center;justify-content:space-between;padding:4px 14px;margin-bottom:2px;flex-shrink:0}
-.sort-btn{display:flex;align-items:center;gap:4px;padding:5px 10px;background:#fff;border-radius:9px;font-size:12px;font-weight:500;color:#555;border:1px solid #e8e8e8;cursor:pointer;position:relative}
+.sort-btn{display:flex;align-items:center;gap:4px;padding:5px 10px;background:#fff;border-radius:9px;font-size:12px;font-weight:500;color:#555;border:1px solid #e8e8e8;cursor:pointer}
 .phone.dark .sort-btn{background:#2a2a2e;color:#aaa;border-color:#333}
 .sort-btn svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.sort-dropdown{display:none;position:absolute;top:calc(100% + 6px);left:0;background:#fff;border-radius:10px;border:1px solid #e8e8e8;box-shadow:0 4px 16px rgba(0,0,0,.15);padding:6px;min-width:140px;z-index:20}
-.phone.dark .sort-dropdown{background:#2a2a2e;border-color:#333;box-shadow:0 4px 16px rgba(0,0,0,.4)}
-.sort-dropdown.open{display:block}
-.sort-opt{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:6px;font-size:12px;color:#555;cursor:pointer;gap:8px}
-.phone.dark .sort-opt{color:#aaa}
-.sort-opt:hover{background:#f5f5f7}
-.phone.dark .sort-opt:hover{background:#3a3a3e}
-.sort-opt.active{background:rgba(124,92,191,.1);color:#7c5cbf;font-weight:600}
-.phone.dark .sort-opt.active{background:rgba(124,92,191,.15);color:#a080d0}
-.sort-arrows{display:flex;gap:2px}
-.sort-arrows svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.sort-opt .sort-arrows{opacity:.4}
-.sort-opt.active .sort-arrows{opacity:1}
-.col-ctrl{display:flex;align-items:center;gap:2px;padding:3px;background:#fff;border-radius:9px;border:1px solid #e8e8e8}
-.phone.dark .col-ctrl{background:#2a2a2e;border-color:#333}
-.col-btn{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s}
-.col-btn:hover{background:#f0f0f3}
-.phone.dark .col-btn:hover{background:#3a3a3e}
-.col-btn svg{width:12px;height:12px;fill:none;stroke:#555;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.phone.dark .col-btn svg{stroke:#aaa}
-.col-label{font-size:12px;font-weight:600;color:#555;min-width:36px;text-align:center}
-.phone.dark .col-label{color:#aaa}
-.view-btns{display:flex;gap:2px;padding:3px;background:#fff;border-radius:9px;border:1px solid #e8e8e8}
-.phone.dark .view-btns{background:#2a2a2e;border-color:#333}
-.vbtn{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer}
-.vbtn svg{width:14px;height:14px;fill:none;stroke:#bbb;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.col-ctrl{display:flex;align-items:center;gap:4px;padding:5px 9px;background:#fff;border-radius:9px;font-size:12px;font-weight:600;color:#555;border:1px solid #e8e8e8}
+.phone.dark .col-ctrl{background:#2a2a2e;color:#aaa;border-color:#333}
+.col-ctrl svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.view-btns{display:flex;gap:2px}
+.vbtn{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.vbtn svg{width:15px;height:15px;fill:none;stroke:#bbb;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .vbtn.active svg{stroke:#7c5cbf}
-.vbtn.active{background:rgba(124,92,191,.12)}
-.plus-vbtn{width:26px;height:26px;border-radius:6px;background:#f0f0f3;display:flex;align-items:center;justify-content:center}
-.phone.dark .plus-vbtn{background:#3a3a3e}
-.plus-vbtn svg{width:14px;height:14px;fill:none;stroke:#999;stroke-width:2}
+.vbtn.active{background:rgba(124,92,191,.1)}
+.plus-vbtn{width:28px;height:28px;border-radius:7px;background:#f0f0f3;display:flex;align-items:center;justify-content:center}
+.phone.dark .plus-vbtn{background:#2a2a2e}
+.plus-vbtn svg{width:15px;height:15px;fill:none;stroke:#999;stroke-width:2}
 
 /* FEED */
 .feed{flex:1;overflow-y:auto;padding:6px 10px;scrollbar-width:none;background:#f2f2f6;min-height:0}
@@ -139,45 +105,14 @@ body{font-family:'Inter',sans-serif;background:#e8e8ec;display:flex;gap:20px;pad
 .ctag{font-size:9px;padding:1px 6px;border-radius:4px;color:#fff;font-weight:600}
 
 /* BOTTOM */
-.bottom-area{flex-shrink:0;background:#f2f2f6;position:relative;padding-top:0;transition:background .3s}
+.bottom-area{flex-shrink:0;background:#f2f2f6;position:relative;padding-top:24px;transition:background .3s}
 .phone.dark .bottom-area{background:#111}
-.phone.dark .sd-bg{background:rgba(30,30,36,.96);border-color:rgba(255,255,255,.08);box-shadow:0 -6px 24px rgba(0,0,0,.5)}
-.phone.dark .sd-label{color:#eee;text-shadow:0 1px 2px rgba(0,0,0,.4)}
-.fab{position:absolute;top:-23px;left:50%;transform:translateX(-50%);width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 4px 24px rgba(124,92,191,.6),0 0 0 3px rgba(255,255,255,.25);cursor:pointer;z-index:12;transition:background .3s,transform .2s,box-shadow .3s}
-.phone.dark .fab{box-shadow:0 4px 24px rgba(0,0,0,.5),0 0 0 3px rgba(255,255,255,.12)}
+.fab{position:absolute;top:-22px;left:50%;transform:translateX(-50%);width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 4px 20px rgba(124,92,191,.5),0 0 0 4px #f2f2f6;cursor:pointer;z-index:10;transition:background .3s,box-shadow .3s}
+.fab.docked{border-radius:100px;width:auto;padding:0 20px;top:-18px;height:36px;font-size:13px;font-weight:700;gap:6px}
+.phone.dark .fab{box-shadow:0 4px 20px rgba(0,0,0,.4),0 0 0 4px #111}
 .fab svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
-.friends-handle{display:flex;flex-direction:row;align-items:center;justify-content:space-between;padding:6px 14px 4px;cursor:pointer;gap:10px}
-.fh-section{display:flex;align-items:center;gap:6px;font-size:9px;font-weight:700;letter-spacing:.08em;color:#aaa;text-transform:uppercase;flex:1}
-.fh-section.left{justify-content:flex-start}
-.fh-section.right{justify-content:flex-end}
-.fh-section svg{width:10px;height:10px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.fh-pill{width:36px;height:3px;border-radius:2px;background:rgba(0,0,0,.15);flex-shrink:0}
-.phone.dark .fh-pill{background:rgba(255,255,255,.18)}
-.fh-label{font-size:9px;font-weight:700;letter-spacing:.1em;color:#aaa;text-transform:uppercase}
-/* SPEED-DIAL */
-.fab-scrim{position:absolute;inset:0;background:rgba(0,0,0,.4);z-index:8;opacity:0;pointer-events:none;transition:opacity .2s}
-.fab-scrim.open{opacity:1;pointer-events:all}
-.speed-dial{position:absolute;bottom:calc(100% - 26px);left:50%;transform:translateX(-50%);width:260px;height:130px;z-index:11;pointer-events:none}
-.speed-dial.open{pointer-events:all}
-.sd-bg{display:none}
-.sd-item{position:absolute;left:50%;bottom:0;display:flex;flex-direction:column;align-items:center;gap:6px;transform-origin:center bottom;pointer-events:none}
-.speed-dial.open .sd-item{pointer-events:all}
-.speed-dial.open .sd-item:nth-child(2) .sd-wrap,.speed-dial.open .sd-item:nth-child(2) .sd-label{transition-delay:.04s}
-.speed-dial.open .sd-item:nth-child(3) .sd-wrap,.speed-dial.open .sd-item:nth-child(3) .sd-label{transition-delay:.08s}
-.speed-dial.open .sd-item:nth-child(4) .sd-wrap,.speed-dial.open .sd-item:nth-child(4) .sd-label{transition-delay:.12s}
-.speed-dial.open .sd-item:nth-child(5) .sd-wrap,.speed-dial.open .sd-item:nth-child(5) .sd-label{transition-delay:.16s}
-.sd-wrap{transform:scale(.6);opacity:0;transition:opacity .2s,transform .25s cubic-bezier(.34,1.56,.64,1)}
-.speed-dial.open .sd-item .sd-wrap{transform:scale(1);opacity:1}
-.sd-btn{width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 18px rgba(0,0,0,.25),0 0 0 2px rgba(255,255,255,.4);flex-shrink:0;cursor:pointer;transition:transform .15s,box-shadow .15s}
-.sd-btn:hover{transform:scale(1.05);box-shadow:0 6px 24px rgba(0,0,0,.35),0 0 0 3px rgba(255,255,255,.5)}
-.sd-btn:active{transform:scale(.95)}
-.sd-btn svg{width:24px;height:24px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.sd-label{font-size:10px;font-weight:700;color:#fff;white-space:nowrap;letter-spacing:.02em;text-align:center;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:4px 10px;border-radius:12px;border:1px solid rgba(255,255,255,.15);box-shadow:0 2px 8px rgba(0,0,0,.3);transform:scale(.6);opacity:0;transition:opacity .2s,transform .25s cubic-bezier(.34,1.56,.64,1)}
-.speed-dial.open .sd-item .sd-label{transform:scale(1);opacity:1}
-/* FRIENDS 3-STATE STRIP */
-.friends-strip-wrap{overflow:hidden;transition:max-height .25s ease}
-.friends-strip-wrap.strip-visible{max-height:80px}
-.friends-strip-wrap.strip-hidden{max-height:0}
+.friends-handle{display:flex;flex-direction:column;align-items:center;padding:2px 0;cursor:pointer;color:#bbb;font-size:9px;font-weight:700;letter-spacing:.1em;gap:1px}
+.friends-handle svg{width:12px;height:12px;fill:none;stroke:#bbb;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .bottom-nav{display:flex;justify-content:space-around;padding:10px 0 14px}
 .bnav-item{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;opacity:.4}
 .bnav-item.active{opacity:1}
@@ -185,24 +120,14 @@ body{font-family:'Inter',sans-serif;background:#e8e8ec;display:flex;gap:20px;pad
 .phone.dark .bnav-item svg{stroke:#aaa}
 .bnav-label{font-size:9px;font-weight:600;color:#555}
 .phone.dark .bnav-label{color:#aaa}
-.friends-strip-container{display:flex;align-items:flex-start;padding:2px 10px 10px}
-.friends-me{flex-shrink:0;padding:0 7px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
-.friends-scroll{flex:1;overflow-x:auto;scrollbar-width:none;display:flex}
-.friends-scroll::-webkit-scrollbar{display:none}
+.friends-strip{display:flex;overflow-x:auto;scrollbar-width:none;padding:4px 10px 12px}
+.friends-strip::-webkit-scrollbar{display:none}
 .friend-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:0 7px;flex-shrink:0;cursor:pointer}
 .friend-av{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;position:relative}
 .friend-av.group{border-radius:13px}
 .friend-av.has-new::after{content:'';position:absolute;bottom:1px;right:1px;width:10px;height:10px;border-radius:50%;border:2px solid #f2f2f6}
 .phone.dark .friend-av.has-new::after{border-color:#111}
 .friend-name{font-size:9px;color:#888;white-space:nowrap;text-align:center}
-/* TAGS STRIP */
-#tags-strip{flex-shrink:0}
-#tags-chip-row::-webkit-scrollbar{display:none}
-.phone.dark #tags-search{color:#fff}
-.phone.dark #tags-strip > div > div:first-child{background:#2a2a2e}
-.tag-chip{padding:5px 13px;border-radius:100px;font-size:12px;font-weight:600;color:#fff;cursor:pointer;white-space:nowrap;opacity:.75;border:2px solid transparent;transition:opacity .12s,border-color .12s;flex-shrink:0}
-.tag-chip.active{opacity:1;border-color:#fff;box-shadow:0 0 0 1px rgba(255,255,255,.4)}
-.phone.dark #tags-icon-btn svg{stroke:#ccc}
 
 /* OVERLAY SCREENS */
 .screen{position:absolute;inset:0;display:flex;flex-direction:column;z-index:30;pointer-events:none;opacity:0;transition:opacity .2s}
@@ -322,6 +247,18 @@ body{font-family:'Inter',sans-serif;background:#e8e8ec;display:flex;gap:20px;pad
   <div class="tw-title">Tweaks</div>
   <div class="tw-sub">Live prototype controls. Theme & accent live inside the app — tap the avatar to change them.</div>
 
+  <div class="tw-label">FAB STYLE</div>
+  <div class="tw-seg" id="seg-fab">
+    <div class="tw-opt on" onclick="setFab('circle',this)">Floating circle</div>
+    <div class="tw-opt" onclick="setFab('pill',this)">Docked pill</div>
+  </div>
+
+  <div class="tw-label">BOTTOM AREA</div>
+  <div class="tw-seg" id="seg-bottom">
+    <div class="tw-opt on" onclick="setBottom('friends',this)">Friends strip</div>
+    <div class="tw-opt" onclick="setBottom('nav',this)">Bottom nav</div>
+  </div>
+
   <div class="tw-label">FEED VIEW</div>
   <div class="tw-seg4" id="seg-view">
     <div class="tw-opt on" onclick="setView('col',this)">Col</div>
@@ -337,39 +274,39 @@ body{font-family:'Inter',sans-serif;background:#e8e8ec;display:flex;gap:20px;pad
   </div>
 
   <div class="tw-section">TRY IT OUT</div>
-<div class="tw-try-item" id="try-fab" onclick="tryAction('fab')">
-  <svg class="tw-try-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-  <span class="tw-try-label">Open speed-dial</span><span class="tw-try-hint">FAB</span>
-</div>
-<div class="tw-try-item" id="try-settings" onclick="tryAction('settings')">
-  <svg class="tw-try-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l-.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-  <span class="tw-try-label">Open Settings</span><span class="tw-try-hint">avatar</span>
-</div>
-<div class="tw-try-item" id="try-tags" onclick="tryAction('tags')">
-  <svg class="tw-try-icon" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-  <span class="tw-try-label">Toggle tags strip</span><span class="tw-try-hint">tags icon</span>
-</div>
-<div class="tw-try-item" id="try-friends" onclick="tryAction('friends')">
-  <svg class="tw-try-icon" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
-  <span class="tw-try-label">Expand friends panel</span><span class="tw-try-hint">swipe up</span>
-</div>
-<div class="tw-try-item" id="try-hide-friends" onclick="tryAction('hideFriends')">
-  <svg class="tw-try-icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-  <span class="tw-try-label">Hide friends strip</span><span class="tw-try-hint">swipe down</span>
-</div>
-<div class="tw-try-item" id="try-folders" onclick="tryAction('folders')">
-  <svg class="tw-try-icon" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-  <span class="tw-try-label">Browse folders</span><span class="tw-try-hint">nav</span>
-</div>
-<div class="tw-try-item" id="try-card" onclick="tryAction('card')">
-  <svg class="tw-try-icon" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-  <span class="tw-try-label">Open card + rate</span><span class="tw-try-hint">tap</span>
-</div>
-<div class="tw-try-item" id="try-reset" onclick="tryAction('reset')">
-  <svg class="tw-try-icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-  <span class="tw-try-label">Reset layout</span><span class="tw-try-hint">undo</span>
-</div>
-<div class="tw-tip">
+  <div class="tw-try-item" id="try-fab" onclick="tryAction('fab')">
+    <svg class="tw-try-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    <span class="tw-try-label">Save a link</span><span class="tw-try-hint">FAB</span>
+  </div>
+  <div class="tw-try-item" id="try-settings" onclick="tryAction('settings')">
+    <svg class="tw-try-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    <span class="tw-try-label">Open Settings</span><span class="tw-try-hint">avatar</span>
+  </div>
+  <div class="tw-try-item" id="try-filter" onclick="tryAction('filter')">
+    <svg class="tw-try-icon" viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+    <span class="tw-try-label">Filter feed</span><span class="tw-try-hint">sliders</span>
+  </div>
+  <div class="tw-try-item" id="try-friends" onclick="tryAction('friends')">
+    <svg class="tw-try-icon" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
+    <span class="tw-try-label">Expand friends</span><span class="tw-try-hint">drag up</span>
+  </div>
+  <div class="tw-try-item" id="try-folders" onclick="tryAction('folders')">
+    <svg class="tw-try-icon" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+    <span class="tw-try-label">Browse folders</span><span class="tw-try-hint">nav</span>
+  </div>
+  <div class="tw-try-item" id="try-card" onclick="tryAction('card')">
+    <svg class="tw-try-icon" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+    <span class="tw-try-label">Open card + rate</span><span class="tw-try-hint">tap</span>
+  </div>
+  <div class="tw-try-item" id="try-free" onclick="tryAction('free')">
+    <svg class="tw-try-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="4" height="4" rx="1"/><rect x="10" y="3" width="8" height="4" rx="1"/><rect x="3" y="10" width="8" height="8" rx="1"/><rect x="14" y="10" width="7" height="4" rx="1"/></svg>
+    <span class="tw-try-label">Switch to Free view</span><span class="tw-try-hint">view</span>
+  </div>
+  <div class="tw-try-item" id="try-reset" onclick="tryAction('reset')">
+    <svg class="tw-try-icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+    <span class="tw-try-label">Reset layout</span><span class="tw-try-hint">undo</span>
+  </div>
+  <div class="tw-tip">
     <div class="tw-tip-label">TIP</div>
     <div class="tw-tip-text"><b>Long-drag</b> a tile onto another to reorder, or onto a friend avatar to share. Grab the <b>corner</b> to resize. Your layout is kept per view.</div>
   </div>
@@ -384,82 +321,35 @@ body{font-family:'Inter',sans-serif;background:#e8e8ec;display:flex;gap:20px;pad
     <!-- TOPBAR -->
     <div class="topbar">
       <div class="logo" id="logo">liked<span class="logo-dot">.</span></div>
-      <div class="topbar-r" id="topbar-r">
-  <div class="icon-btn" id="search-icon-btn" onclick="toggleSearch()" style="position:relative;z-index:11">
-    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-  </div>
-  <div class="search-expand" id="search-expand">
-    <div class="search-field">
-      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" id="top-search-input" placeholder="Search..." onkeydown="if(event.key==='Enter')doSearch(this.value)" onblur="if(!this.value.trim())closeSearch()">
-      <div class="search-clear" onclick="clearTopSearch()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
-    </div>
-  </div>
-  <div class="icon-btn" id="tags-icon-btn" onclick="tryAction('tags')" style="position:relative">
-    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-    <div id="tags-badge" style="display:none;position:absolute;top:-2px;right:-2px;min-width:16px;height:16px;background:#7c5cbf;border-radius:50%;font-size:8px;font-weight:800;color:#fff;align-items:center;justify-content:center;border:2px solid #f2f2f6;padding:0 3px"></div>
-  </div>
-  <div class="icon-btn" onclick="tryAction('settings')">
-    <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-    <div class="notif-dot">2</div>
-  </div>
-  <div class="avatar-btn" id="avatar-btn" onclick="tryAction('settings')" style="background:linear-gradient(135deg,#f5a623,#e06020)">JS</div>
-</div>
-    </div>
-
-    <!-- TAGS STRIP -->
-    <div id="tags-strip" style="max-height:0;overflow:hidden;transition:max-height .2s ease;flex-shrink:0">
-      <div style="padding:6px 12px 4px">
-        <div style="display:flex;align-items:center;gap:8px;background:#e8e8ec;border-radius:10px;padding:7px 10px;margin-bottom:8px">
-          <svg width="14" height="14" fill="none" stroke="#aaa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input id="tags-search" placeholder="Search tags…" style="border:none;outline:none;background:transparent;font-size:13px;color:#111;flex:1;font-family:inherit" oninput="filterTagChips(this.value)">
-          <svg id="tags-search-clear" width="14" height="14" fill="none" stroke="#aaa" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" style="cursor:pointer;display:none" onclick="clearTagSearch()"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      <div class="topbar-r">
+        <div class="icon-btn" id="sliders-btn" onclick="tryAction('filter')">
+          <svg viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
         </div>
-        <div id="tags-chip-row" style="display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;flex-wrap:nowrap"></div>
+        <div class="icon-btn" onclick="tryAction('filter')">
+          <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <div class="notif-dot">2</div>
+        </div>
+        <div class="avatar-btn" id="avatar-btn" onclick="tryAction('settings')" style="background:linear-gradient(135deg,#f5a623,#e06020)">JS</div>
       </div>
     </div>
 
     <!-- FEED TABS -->
     <div class="feed-tabs" id="feed-tabs">
-      <div class="feed-tab active" data-tab="all" onclick="setTab(this,'all')">All</div>
-      <div class="feed-tab" data-tab="mine" onclick="setTab(this,'mine')">Mine</div>
-      <div class="feed-tab" data-tab="received" onclick="setTab(this,'received')">Received</div>
+      <div class="feed-tab active" onclick="setTab(this,'all')">All</div>
+      <div class="feed-tab" onclick="setTab(this,'mine')">Mine</div>
+      <div class="feed-tab" onclick="setTab(this,'received')">Received</div>
     </div>
 
     <!-- SORT ROW -->
     <div class="sort-row">
-      <div class="sort-btn" id="sort-btn" onclick="toggleSortDropdown()">
-        <svg viewBox="0 0 24 24"><polyline points="7 16 12 21 17 16"/><polyline points="7 8 12 3 17 8"/></svg>
-        <span id="sort-label">Newest</span>
-        <div class="sort-dropdown" id="sort-dropdown">
-          <div class="sort-opt active" data-sort="newest" onclick="setSort('newest',event)">
-            <span>Newest</span>
-            <div class="sort-arrows">
-              <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
-              <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-            </div>
-          </div>
-          <div class="sort-opt" data-sort="alpha" onclick="setSort('alpha',event)">
-            <span>Alphabetical</span>
-            <div class="sort-arrows">
-              <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
-              <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-            </div>
-          </div>
-          <div class="sort-opt" data-sort="rating" onclick="setSort('rating',event)">
-            <span>Rating</span>
-            <div class="sort-arrows">
-              <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
-              <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-            </div>
-          </div>
-        </div>
+      <div class="sort-btn">
+        <svg viewBox="0 0 24 24"><polyline points="7 16 12 21 17 16"/><polyline points="7 8 12 3 17 8"/></svg> Newest
       </div>
       <div style="display:flex;align-items:center;gap:4px">
         <div class="col-ctrl" id="col-display">
-          <div class="col-btn" onclick="adjustCols(-1)"><svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
-          <span class="col-label" id="col-label">2 col</span>
-          <div class="col-btn" onclick="adjustCols(1)"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <span id="col-label">2 col</span>
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         </div>
         <div class="view-btns">
           <div class="vbtn active" id="vbtn-col" onclick="setView('col',null)"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg></div>
@@ -477,65 +367,28 @@ body{font-family:'Inter',sans-serif;background:#e8e8ec;display:flex;gap:20px;pad
 
     <!-- BOTTOM AREA -->
     <div class="bottom-area" id="bottom-area">
-      <!-- FAB scrim -->
-      <div class="fab-scrim" id="fab-scrim" onclick="closeDial()"></div>
-
-      <!-- SPEED-DIAL radial arc -->
-      <div class="speed-dial" id="speed-dial">
-        <div class="sd-bg"></div>
-        <!-- Tag -->
-        <div class="sd-item" style="transform:translateX(-50%) rotate(-75deg) translateY(-72px) rotate(75deg)">
-          <div class="sd-wrap">
-            <div class="sd-btn" style="background:#7c5cbf" onclick="dialAction('tag')"><svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></div>
-            <div class="sd-label">Tag</div>
-          </div>
-        </div>
-        <!-- Card -->
-        <div class="sd-item" style="transform:translateX(-50%) rotate(-25deg) translateY(-72px) rotate(25deg)">
-          <div class="sd-wrap">
-            <div class="sd-btn" style="background:#457b9d" onclick="dialAction('card')"><svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="3"/><line x1="2" y1="10" x2="22" y2="10"/></svg></div>
-            <div class="sd-label">Card</div>
-          </div>
-        </div>
-        <!-- Folder -->
-        <div class="sd-item" style="transform:translateX(-50%) rotate(25deg) translateY(-72px) rotate(-25deg)">
-          <div class="sd-wrap">
-            <div class="sd-btn" style="background:#e76f51" onclick="dialAction('folder')"><svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div>
-            <div class="sd-label">Folder</div>
-          </div>
-        </div>
-        <!-- Template -->
-        <div class="sd-item" style="transform:translateX(-50%) rotate(75deg) translateY(-72px) rotate(-75deg)">
-          <div class="sd-wrap">
-            <div class="sd-btn" style="background:#2a9d8f" onclick="dialAction('template')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="11" width="7" height="9" rx="1"/><rect x="3" y="13" width="7" height="7" rx="1"/></svg></div>
-            <div class="sd-label">Template</div>
-          </div>
-        </div>
+      <div class="fab" id="fab-btn" onclick="tryAction('fab')">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span id="fab-text" style="display:none;font-size:13px;font-weight:700;color:#fff">+ Save</span>
       </div>
-
-      <!-- FAB -->
-      <div class="fab" id="fab-btn" onclick="toggleDial()">
-        <svg id="fab-icon" viewBox="0 0 24 24" style="transition:transform .2s"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      </div>
-
-      <!-- FRIENDS AREA -->
+      <!-- FRIENDS STRIP -->
       <div id="friends-area">
-        <div class="friends-handle" id="friends-handle" onclick="cycleStrip()">
-          <div class="fh-section left">
-            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-            <span>FRIENDS (11)</span>
-          </div>
-          <div class="fh-pill"></div>
-          <div class="fh-section right">
-            <span>GROUPS (4)</span>
-            <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-          </div>
+        <div class="friends-handle" onclick="tryAction('friends')">
+          <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
+          FRIENDS
         </div>
-        <div class="friends-strip-wrap strip-visible" id="friends-strip-wrap">
-          <div class="friends-strip-container" id="friends-strip-container">
-            <div class="friends-me" id="friends-me"></div>
-            <div class="friends-scroll" id="friends-scroll"></div>
+        <div class="friends-strip" id="friends-strip"></div>
+      </div>
+      <!-- BOTTOM NAV (hidden by default) -->
+      <div id="bnav-area" style="display:none">
+        <div class="bottom-nav">
+          <div class="bnav-item active"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg><div class="bnav-label">Feed</div></div>
+          <div class="bnav-item" onclick="tryAction('folders')"><svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><div class="bnav-label">Folders</div></div>
+          <div class="bnav-item" style="opacity:1;margin-top:-8px">
+            <div class="fab" style="position:relative;top:0;transform:none;width:46px;height:46px;left:0" onclick="tryAction('fab')"><svg viewBox="0 0 24 24" style="width:20px;height:20px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
           </div>
+          <div class="bnav-item" onclick="tryAction('friends')"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><div class="bnav-label">Friends</div></div>
+          <div class="bnav-item" onclick="tryAction('settings')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><div class="bnav-label">Settings</div></div>
         </div>
       </div>
     </div>
@@ -578,24 +431,12 @@ body{font-family:'Inter',sans-serif;background:#e8e8ec;display:flex;gap:20px;pad
         </div>
         <div class="bottom-area" style="background:#f2f2f6">
           <div class="fab" onclick="tryAction('fab')"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
-          <div class="friends-handle">
-            <div class="fh-section left">
-              <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-              <span>FRIENDS (4)</span>
-            </div>
-            <div class="fh-pill"></div>
-            <div class="fh-section right">
-              <span>GROUPS (0)</span>
-              <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-            </div>
-          </div>
-          <div class="friends-strip-container">
-            <div class="friends-me"><div class="friend-av" style="background:linear-gradient(135deg,#f5a623,#e06020)">JS</div><div class="friend-name">Me</div></div>
-            <div class="friends-scroll">
-              <div class="friend-item"><div class="friend-av has-new" style="background:linear-gradient(135deg,#4a9fd5,#1c6fa0);--after-bg:#7c5cbf">A</div><div class="friend-name">Alice</div></div>
-              <div class="friend-item"><div class="friend-av" style="background:linear-gradient(135deg,#cc3399,#aa1a77)">B</div><div class="friend-name">Bob</div></div>
-              <div class="friend-item"><div class="friend-av" style="background:linear-gradient(135deg,#22bb77,#1a8855)">C</div><div class="friend-name">Chiara</div></div>
-            </div>
+          <div class="friends-handle"><svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>FRIENDS</div>
+          <div class="friends-strip">
+            <div class="friend-item"><div class="friend-av" style="background:linear-gradient(135deg,#f5a623,#e06020)">JS</div><div class="friend-name">Me</div></div>
+            <div class="friend-item"><div class="friend-av has-new" style="background:linear-gradient(135deg,#4a9fd5,#1c6fa0);--after-bg:#7c5cbf">A</div><div class="friend-name">Alice</div></div>
+            <div class="friend-item"><div class="friend-av" style="background:linear-gradient(135deg,#cc3399,#aa1a77)">B</div><div class="friend-name">Bob</div></div>
+            <div class="friend-item"><div class="friend-av" style="background:linear-gradient(135deg,#22bb77,#1a8855)">C</div><div class="friend-name">Chiara</div></div>
           </div>
         </div>
       </div>
@@ -631,86 +472,6 @@ body{font-family:'Inter',sans-serif;background:#e8e8ec;display:flex;gap:20px;pad
       </div>
       <div class="sheet-btn" id="save-btn" style="background:#ccc;color:#999" onclick="closeSheet('fab')">Save</div>
     </div>
-
-<!-- SHEET: NEW FOLDER -->
-<div class="sheet" id="sheet-folder">
-  <div class="sheet-handle"></div>
-  <div class="sheet-hdr">
-    <div><div class="sheet-title">New Folder</div><div class="sheet-sub">Name it and pick a color</div></div>
-    <div class="sheet-x" onclick="closeSheet('folder')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
-  </div>
-  <input class="sheet-input" placeholder="Folder name…">
-  <div class="sheet-sec">
-    <div class="sheet-sec-label">COLOR</div>
-    <div style="display:flex;gap:10px;padding:0 0 6px">
-      <div style="width:32px;height:32px;border-radius:8px;background:#e84040;cursor:pointer;outline:3px solid #e84040;outline-offset:2px"></div>
-      <div style="width:32px;height:32px;border-radius:8px;background:#e76f51;cursor:pointer"></div>
-      <div style="width:32px;height:32px;border-radius:8px;background:#f5a623;cursor:pointer"></div>
-      <div style="width:32px;height:32px;border-radius:8px;background:#2a9d8f;cursor:pointer"></div>
-      <div style="width:32px;height:32px;border-radius:8px;background:#457b9d;cursor:pointer"></div>
-      <div style="width:32px;height:32px;border-radius:8px;background:#7c5cbf;cursor:pointer"></div>
-      <div style="width:32px;height:32px;border-radius:8px;background:#333;cursor:pointer"></div>
-    </div>
-  </div>
-  <div class="sheet-btn" style="background:#7c5cbf" onclick="closeSheet('folder')">Create Folder</div>
-</div>
-
-<!-- SHEET: TEMPLATE PICKER -->
-<div class="sheet" id="sheet-template">
-  <div class="sheet-handle"></div>
-  <div class="sheet-hdr">
-    <div><div class="sheet-title">Choose a template</div><div class="sheet-sub">Pick one to add to your workspace</div></div>
-    <div class="sheet-x" onclick="closeSheet('template')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
-  </div>
-  <div style="padding:0 18px 10px;display:flex;flex-direction:column;gap:6px">
-    <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:#f5f5f7;border-radius:12px;cursor:pointer">
-      <svg width="20" height="20" fill="none" stroke="#7c5cbf" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-      <div><div style="font-size:14px;font-weight:700;color:#111">Read Later</div><div style="font-size:11px;color:#999">A folder to save things for later</div></div>
-    </div>
-    <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:#f5f5f7;border-radius:12px;cursor:pointer">
-      <svg width="20" height="20" fill="none" stroke="#457b9d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-      <div><div style="font-size:14px;font-weight:700;color:#111">Watch List</div><div style="font-size:11px;color:#999">Collect videos to watch</div></div>
-    </div>
-    <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:#f5f5f7;border-radius:12px;cursor:pointer">
-      <svg width="20" height="20" fill="none" stroke="#2a9d8f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-      <div><div style="font-size:14px;font-weight:700;color:#111">Trip Planner</div><div style="font-size:11px;color:#999">3 sub-folders: Before / During / After</div></div>
-    </div>
-    <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:#f5f5f7;border-radius:12px;cursor:pointer">
-      <svg width="20" height="20" fill="none" stroke="#e76f51" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-      <div><div style="font-size:14px;font-weight:700;color:#111">Book Notes</div><div style="font-size:11px;color:#999">Capture highlights and reflections</div></div>
-    </div>
-  </div>
-  <input class="sheet-input" placeholder="Name it… (optional)">
-  <div class="sheet-btn" style="background:#7c5cbf" onclick="closeSheet('template')">Add to Workspace</div>
-</div>
-
-<!-- SHEET: TAG MODE -->
-<div class="sheet" id="sheet-tag" style="max-height:55%">
-  <div class="sheet-handle"></div>
-  <div class="sheet-hdr">
-    <div><div class="sheet-title">Tag Mode</div><div class="sheet-sub">Tap cards in the feed to apply the selected tag</div></div>
-    <div class="sheet-x" onclick="closeSheet('tag')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
-  </div>
-  <div class="sheet-search">
-    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-    <input class="sheet-search-input" placeholder="Search tags…">
-  </div>
-  <div class="sheet-sec">
-    <div class="chip-row">
-      <div class="chip on" onclick="toggleChip(this)">Music</div>
-      <div class="chip" onclick="toggleChip(this)">Film</div>
-      <div class="chip" onclick="toggleChip(this)">Food</div>
-      <div class="chip" onclick="toggleChip(this)">Travel</div>
-      <div class="chip" onclick="toggleChip(this)">Tech</div>
-      <div class="chip" onclick="toggleChip(this)">Finance</div>
-      <div class="chip" onclick="toggleChip(this)">Health</div>
-      <div class="chip" onclick="toggleChip(this)">Design</div>
-      <div class="chip" onclick="toggleChip(this)">Books</div>
-      <div class="chip" onclick="toggleChip(this)">Art</div>
-    </div>
-  </div>
-  <input class="sheet-input" placeholder="＋ New tag…">
-</div>
 
     <!-- SHEET: SETTINGS -->
     <div class="sheet" id="sheet-settings">
@@ -870,43 +631,20 @@ body{font-family:'Inter',sans-serif;background:#e8e8ec;display:flex;gap:20px;pad
 </div>
 
 <script>
-var state={dark:false,accent:'#7c5cbf',cols:2,view:'col',stripState:'strip',rating:5,activeSheet:null,dialOpen:false,tagsStripOpen:false,sortBy:'newest'};
+// ── STATE ──
+var state = {
+  dark: false,
+  accent: '#7c5cbf',
+  cols: 2,
+  view: 'col',
+  bottom: 'friends',
+  fab: 'circle',
+  rating: 5,
+  activeSheet: null
+};
 
-var tagsData=[
-  {id:'music',label:'Music',color:'#c0392b'},
-  {id:'film',label:'Film',color:'#8e44ad'},
-  {id:'food',label:'Food',color:'#e67e22'},
-  {id:'travel',label:'Travel',color:'#2980b9'},
-  {id:'tech',label:'Tech',color:'#27ae60'},
-  {id:'finance',label:'Finance',color:'#16a085'},
-  {id:'health',label:'Health',color:'#d35400'},
-  {id:'design',label:'Design',color:'#7c5cbf'},
-  {id:'books',label:'Books',color:'#2c3e50'},
-  {id:'games',label:'Games',color:'#1abc9c'},
-  {id:'art',label:'Art',color:'#e91e8c'}
-];
-var activeTagIds=[];
-var tagSearchQuery='';
-
-var FRIENDS=[
-  {init:'JS',name:'Me',color:'linear-gradient(135deg,#f5a623,#e06020)',group:false},
-  {init:'A',name:'Alice',color:'linear-gradient(135deg,#4a9fd5,#1c6fa0)',group:false},
-  {init:'B',name:'Bob',color:'linear-gradient(135deg,#cc3399,#aa1a77)',group:false},
-  {init:'C',name:'Chiara',color:'linear-gradient(135deg,#22bb77,#1a8855)',group:false},
-  {init:'D',name:'Diego',color:'linear-gradient(135deg,#cc9922,#aa7710)',group:false},
-  {init:'E',name:'Elena',color:'linear-gradient(135deg,#8844cc,#6622aa)',group:false},
-  {init:'F',name:'Fabio',color:'linear-gradient(135deg,#e84040,#c02020)',group:false},
-  {init:'G',name:'Giulia',color:'linear-gradient(135deg,#22aaaa,#1a8888)',group:false},
-  {init:'H',name:'Hugo',color:'linear-gradient(135deg,#22aa44,#1a8833)',group:false},
-  {init:'I',name:'Iris',color:'linear-gradient(135deg,#dd8822,#bb6610)',group:false},
-  {init:'J',name:'Jean',color:'linear-gradient(135deg,#4455dd,#2233bb)',group:false},
-  {init:'M',name:'Music',color:'linear-gradient(135deg,#3a5cd5,#1c3aa0)',group:true},
-  {init:'T',name:'Tech',color:'linear-gradient(135deg,#c43a5a,#8a1c3a)',group:true},
-  {init:'H',name:'Health',color:'linear-gradient(135deg,#22aa44,#1a8833)',group:true},
-  {init:'F',name:'Film',color:'linear-gradient(135deg,#dd8822,#bb6610)',group:true}
-];
-
-var feedItems=[
+// ── FEED DATA ──
+var feedItems = [
   {type:'folder',name:'Favorites',count:'42 items',dot:'#e84040',colors:['#5533a0','#1a7a7a','#c04060','#2a6a20']},
   {type:'folder',name:'Travel',count:'28 items',dot:'#60c5f1',colors:['#1a7aaa','#2a5aaa','#1a3a80','#2a6aaa']},
   {type:'folder',name:'Read Later',count:'64 items',dot:'#8855cc',colors:['#6633aa','#8833aa','#aa8833','#2a88aa']},
@@ -921,10 +659,10 @@ var feedItems=[
   {type:'card',title:'Fermented foods 101',tag:'Health',tagColor:'#2a8a4a',star:5,dot:'recv',bg:'#2288aa,#1a6688'},
 ];
 
-function buildFeedItem(item,cols){
-  var size=cols>=5?48:(cols>=4?70:(cols>=3?88:110));
-  if(item.type==='folder'){
-    var c=item.colors;
+function buildFeedItem(item, cols) {
+  var size = cols >= 5 ? 48 : (cols >= 4 ? 70 : (cols >= 3 ? 88 : 110));
+  if (item.type === 'folder') {
+    var c = item.colors;
     return '<div class="fcard" onclick="tryAction(\'card\')">'
       +'<div class="fcard-collage" style="height:'+size+'px">'
       +'<div style="background:linear-gradient(135deg,'+c[0]+','+c[0]+'99)"></div>'
@@ -934,11 +672,11 @@ function buildFeedItem(item,cols){
       +'</div>'
       +'<div class="fcard-dot" style="background:'+item.dot+'"></div>'
       +'<div class="fcard-overlay"><div class="fcard-name">'+item.name+'</div>'
-      +(cols<=3?'<div class="fcard-count">'+item.count+'</div>':'')
+      +(cols <= 3 ? '<div class="fcard-count">'+item.count+'</div>' : '')
       +'</div></div>';
-  }else{
-    var starBadge=item.star?'<div class="ccard-star">★ '+item.star+'</div>':'';
-    var meta=cols<=3?'<div class="ccard-meta"><div class="ccard-title">'+item.title+'</div><div class="ccard-tags"><span class="ctag" style="background:'+item.tagColor+'">'+item.tag+'</span></div></div>':'';
+  } else {
+    var starBadge = item.star ? '<div class="ccard-star">★ '+item.star+'</div>' : '';
+    var meta = cols <= 3 ? '<div class="ccard-meta"><div class="ccard-title">'+item.title+'</div><div class="ccard-tags"><span class="ctag" style="background:'+item.tagColor+'">'+item.tag+'</span></div></div>' : '';
     return '<div class="ccard" onclick="tryAction(\'card\')">'
       +'<div class="ccard-img" style="height:'+size+'px;background:linear-gradient(135deg,'+item.bg+')"></div>'
       +starBadge
@@ -947,366 +685,316 @@ function buildFeedItem(item,cols){
   }
 }
 
-function renderFeed(){
-  var c=state.cols;
-  var grid=document.getElementById('feed-grid');
-  if(!grid)return;
-  document.getElementById('col-label').textContent=c+' col';
-  var colDisplay=document.getElementById('col-display');
-  colDisplay.style.display=(state.view==='col')?'flex':'none';
+function renderFeed() {
+  var c = state.cols;
+  var grid = document.getElementById('feed-grid');
+  if (!grid) return;
+  // col label
+  document.getElementById('col-label').textContent = c + ' col';
+  document.getElementById('col-num').textContent = c;
+  document.getElementById('col-slider').value = c;
+  // col display visibility
+  var colDisplay = document.getElementById('col-display');
+  colDisplay.style.display = (state.view === 'col') ? 'flex' : 'none';
 
-  if(state.view==='list'){
-    grid.style.gridTemplateColumns='1fr';
-    grid.style.display='';grid.style.columns='';
-    grid.innerHTML=feedItems.map(function(item){
-      var bg=item.type==='folder'?'linear-gradient(135deg,'+item.colors[0]+','+item.colors[2]+')':'linear-gradient(135deg,'+item.bg+')';
-      var label=item.type==='folder'?item.name+' — '+item.count:item.title;
+  if (state.view === 'list') {
+    grid.style.gridTemplateColumns = '1fr';
+    grid.innerHTML = feedItems.map(function(item) {
+      var bg = item.type === 'folder' ? 'linear-gradient(135deg,'+item.colors[0]+','+item.colors[2]+')' : 'linear-gradient(135deg,'+item.bg+')';
+      var label = item.type === 'folder' ? item.name + ' — ' + item.count : item.title;
       return '<div style="display:flex;align-items:center;gap:10px;padding:8px;background:#fff;border-radius:12px;cursor:pointer" onclick="tryAction(\'card\')">'
         +'<div style="width:48px;height:48px;border-radius:10px;background:'+bg+';flex-shrink:0"></div>'
         +'<div style="font-size:13px;font-weight:600;color:#111">'+label+'</div>'
         +'</div>';
     }).join('');
-    if(state.dark)grid.querySelectorAll('div[style*="background:#fff"]').forEach(function(el){el.style.background='#1c1c1f';el.querySelectorAll('div[style*="color:#111"]').forEach(function(t){t.style.color='#f0f0f0';});});
+    if (state.dark) grid.querySelectorAll('div[style*="background:#fff"]').forEach(function(el){el.style.background='#1c1c1f';el.querySelectorAll('div[style*="color:#111"]').forEach(function(t){t.style.color='#f0f0f0';});});
     return;
   }
-  if(state.view==='masonry'){
-    grid.style.display='block';
-    grid.style.columns='2';
-    grid.style.columnGap='6px';
-    var html='';
-    feedItems.forEach(function(item){
-      var h=60+Math.floor(Math.random()*70);
-      var bg=item.type==='folder'?'linear-gradient(135deg,'+item.colors[0]+','+item.colors[2]+')':'linear-gradient(135deg,'+item.bg+')';
-      html+='<div style="break-inside:avoid;margin-bottom:6px;border-radius:14px;overflow:hidden;background:#ddd;cursor:pointer" onclick="tryAction(\'card\')">'
+  if (state.view === 'masonry') {
+    grid.style.display = 'block';
+    grid.style.columns = '2';
+    grid.style.columnGap = '6px';
+    var html = '';
+    feedItems.forEach(function(item) {
+      var h = 60 + Math.floor(Math.random()*70);
+      var bg = item.type === 'folder' ? 'linear-gradient(135deg,'+item.colors[0]+','+item.colors[2]+')' : 'linear-gradient(135deg,'+item.bg+')';
+      html += '<div style="break-inside:avoid;margin-bottom:6px;border-radius:14px;overflow:hidden;background:#ddd;cursor:pointer" onclick="tryAction(\'card\')">'
         +'<div style="height:'+h+'px;background:'+bg+'"></div>'
         +'<div style="padding:6px 8px 8px;background:#fff"><div style="font-size:10px;font-weight:600;color:#111">'+(item.type==='folder'?item.name:item.title)+'</div></div>'
         +'</div>';
     });
-    grid.innerHTML=html;
+    grid.innerHTML = html;
     return;
   }
-  if(state.view==='free'){
-    grid.style.display='block';
-    grid.style.columns='';
-    grid.style.position='relative';
-    grid.style.minHeight='400px';
-    var positions=[{t:0,l:0,w:140,h:120},{t:0,l:148,w:100,h:80},{t:0,l:256,w:120,h:100},{t:88,l:0,w:100,h:140},{t:128,l:108,w:130,h:100},{t:108,l:246,w:110,h:80}];
-    var html='<div style="position:relative;height:400px">';
-    feedItems.slice(0,6).forEach(function(item,i){
-      var p=positions[i]||{t:i*60,l:0,w:140,h:100};
-      var bg=item.type==='folder'?'linear-gradient(135deg,'+item.colors[0]+','+item.colors[2]+')':'linear-gradient(135deg,'+item.bg+')';
-      html+='<div style="position:absolute;top:'+p.t+'px;left:'+p.l+'px;width:'+p.w+'px;height:'+p.h+'px;border-radius:14px;background:'+bg+';cursor:pointer;overflow:hidden" onclick="tryAction(\'card\')">'
+  if (state.view === 'free') {
+    grid.style.display = 'block';
+    grid.style.columns = '';
+    grid.style.position = 'relative';
+    grid.style.minHeight = '400px';
+    var positions = [{t:0,l:0,w:140,h:120},{t:0,l:148,w:100,h:80},{t:0,l:256,w:120,h:100},{t:88,l:0,w:100,h:140},{t:128,l:108,w:130,h:100},{t:108,l:246,w:110,h:80}];
+    var html = '<div style="position:relative;height:400px">';
+    feedItems.slice(0,6).forEach(function(item, i) {
+      var p = positions[i] || {t:i*60,l:0,w:140,h:100};
+      var bg = item.type==='folder' ? 'linear-gradient(135deg,'+item.colors[0]+','+item.colors[2]+')' : 'linear-gradient(135deg,'+item.bg+')';
+      html += '<div style="position:absolute;top:'+p.t+'px;left:'+p.l+'px;width:'+p.w+'px;height:'+p.h+'px;border-radius:14px;background:'+bg+';cursor:pointer;overflow:hidden" onclick="tryAction(\'card\')">'
         +'<div style="position:absolute;bottom:0;left:0;right:0;padding:4px 7px 6px;background:linear-gradient(to top,rgba(0,0,0,.7),transparent);font-size:9px;font-weight:700;color:#fff">'+(item.type==='folder'?item.name:item.title)+'</div>'
         +'</div>';
     });
-    html+='</div>';
-    grid.innerHTML=html;
+    html += '</div>';
+    grid.innerHTML = html;
     return;
   }
   // COL view
-  grid.style.display='';
-  grid.style.columns='';
-  grid.style.gridTemplateColumns='repeat('+c+',1fr)';
-  grid.innerHTML=feedItems.map(function(item){return buildFeedItem(item,c);}).join('');
+  grid.style.display = '';
+  grid.style.columns = '';
+  grid.style.gridTemplateColumns = 'repeat('+c+', 1fr)';
+  grid.innerHTML = feedItems.map(function(item){ return buildFeedItem(item, c); }).join('');
 }
 
-function renderFriendsStrip(){
-  var meContainer=document.getElementById('friends-me');
-  var scrollContainer=document.getElementById('friends-scroll');
-  if(!meContainer || !scrollContainer)return;
-  var me=FRIENDS[0];
-  meContainer.innerHTML='<div class="friend-av" style="background:'+me.color+'">'+me.init+'</div><div class="friend-name">'+me.name+'</div>';
-  scrollContainer.innerHTML=FRIENDS.slice(1).map(function(f){
-    var cls='friend-av'+(f.group?' group':'');
-    return '<div class="friend-item"><div class="'+cls+'" style="background:'+f.color+'">'+f.init+'</div><div class="friend-name">'+f.name+'</div></div>';
+// ── FRIENDS STRIP ──
+var friendsData = [
+  {init:'JS',bg:'linear-gradient(135deg,#f5a623,#e06020)',new:false},
+  {init:'A',bg:'linear-gradient(135deg,#4a9fd5,#1c6fa0)',new:true},
+  {init:'B',bg:'linear-gradient(135deg,#cc3399,#aa1a77)',new:true,new2:true},
+  {init:'C',bg:'linear-gradient(135deg,#22bb77,#1a8855)',new:false},
+  {init:'D',bg:'linear-gradient(135deg,#cc9922,#aa7710)',new:false},
+  {init:'M',bg:'linear-gradient(135deg,#4455dd,#2233bb)',new:false,group:true},
+];
+function renderFriendsStrip() {
+  var strip = document.getElementById('friends-strip');
+  if (!strip) return;
+  var border = state.accent;
+  strip.innerHTML = friendsData.map(function(f) {
+    var classes = 'friend-av'+(f.group?' group':'')+(f.new?' has-new':'');
+    var after = f.new ? 'style="--new-color:'+border+'"' : '';
+    return '<div class="friend-item" onclick="tryAction(\'friends\')">'
+      +'<div class="'+classes+'" style="background:'+f.bg+(f.new?';outline:2px solid '+border+';outline-offset:2px':'')+'">'+f.init+'</div>'
+      +'<div class="friend-name">'+f.init+'</div>'
+      +'</div>';
   }).join('');
 }
 
-function applyAccent(color){
-  var fab=document.getElementById('fab-btn');
-  if(fab)fab.style.background=color;
-  var f2=document.getElementById('folders-fab');
-  if(f2)f2.style.background=color;
-  var sb=document.getElementById('save-btn');
-  if(sb)sb.style.background=color;
-  var sl=document.getElementById('col-slider');
-  if(sl){var pct=((state.cols-1)/7)*100;sl.style.background='linear-gradient(to right,'+color+' '+pct+'%,#ddd '+pct+'%)';}
-  updateChipStyle();
-}
-
-var chipStyle=document.createElement('style');
-document.head.appendChild(chipStyle);
-function updateChipStyle(){
-  chipStyle.textContent='.chip.on{border-color:'+state.accent+' !important;color:'+state.accent+' !important;background:'+state.accent+'11 !important}';
-}
-
-/* ── TOP SEARCH ── */
-function toggleSearch(){
-  var expand=document.getElementById('search-expand');
-  var input=document.getElementById('top-search-input');
-  var container=document.getElementById('topbar-r');
-  var isOpen=expand.classList.contains('open');
-  if(isOpen){
-    expand.classList.remove('open');
-    if(container)container.classList.remove('search-active');
-  }else{
-    expand.classList.add('open');
-    if(container)container.classList.add('search-active');
-    setTimeout(function(){if(input)input.focus();},50);
-  }
-}
-function clearTopSearch(){
-  var input=document.getElementById('top-search-input');
-  if(input && input.value){input.value='';input.focus();}
-  else{closeSearch();}
-}
-function closeSearch(){
-  var expand=document.getElementById('search-expand');
-  var container=document.getElementById('topbar-r');
-  if(expand)expand.classList.remove('open');
-  if(container)container.classList.remove('search-active');
-}
-function doSearch(q){
-  if(!q||!q.trim())return;
-  alert('Search: '+q.trim());
-}
-document.addEventListener('click',function(e){
-  var expand=document.getElementById('search-expand');
-  var btn=document.getElementById('search-icon-btn');
-  var input=document.getElementById('top-search-input');
-  if(expand && btn && !expand.contains(e.target) && !btn.contains(e.target)){
-    if(!input||!input.value.trim())closeSearch();
-  }
-});
-
-/* ── SPEED DIAL ── */
-function toggleDial(){
-  state.dialOpen=!state.dialOpen;
-  document.getElementById('speed-dial').classList.toggle('open',state.dialOpen);
-  document.getElementById('fab-scrim').classList.toggle('open',state.dialOpen);
-  document.getElementById('fab-icon').style.transform=state.dialOpen?'rotate(45deg)':'rotate(0deg)';
-}
-function closeDial(){
-  state.dialOpen=false;
-  var sd=document.getElementById('speed-dial');if(sd)sd.classList.remove('open');
-  var sc=document.getElementById('fab-scrim');if(sc)sc.classList.remove('open');
-  var fi=document.getElementById('fab-icon');if(fi)fi.style.transform='rotate(0deg)';
-}
-function dialAction(action){
-  closeDial();
-  if(action==='card')openSheet('fab');
-  else if(action==='folder')openSheet('folder');
-  else if(action==='template')openSheet('template');
-  else if(action==='tag')openSheet('tag');
-}
-
-/* ── FRIENDS STRIP 3-STATE ── */
-function setStripState(s){
-  state.stripState=s;
-  var wrap=document.getElementById('friends-strip-wrap');
-  if(!wrap)return;
-  if(s==='hidden'){wrap.classList.remove('strip-visible');wrap.classList.add('strip-hidden');}
-  else{wrap.classList.remove('strip-hidden');wrap.classList.add('strip-visible');}
-  if(s==='expanded')openSheet('friends');
-}
-function cycleStrip(){
-  if(state.stripState==='hidden')setStripState('strip');
-  else if(state.stripState==='strip')setStripState('expanded');
-  else setStripState('strip');
-}
-
-/* ── TAGS STRIP ── */
-function renderTagChips(){
-  var row=document.getElementById('tags-chip-row');
-  if(!row)return;
-  var q=tagSearchQuery.toLowerCase();
-  var filtered=tagsData.filter(function(t){
-    return activeTagIds.indexOf(t.id)!==-1||t.label.toLowerCase().indexOf(q)!==-1;
+// ── ACCENT ──
+function applyAccent(color) {
+  state.accent = color;
+  // FAB
+  var fab = document.getElementById('fab-btn');
+  if (fab) { fab.style.background = color; fab.style.boxShadow = '0 4px 20px '+color+'66,0 0 0 4px '+(state.dark?'#111':'#f2f2f6'); }
+  // Done/Apply/Save buttons
+  ['settings-done-btn','filter-apply-btn','friends-done-btn'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.style.background = color;
   });
-  var active=filtered.filter(function(t){return activeTagIds.indexOf(t.id)!==-1;});
-  var inactive=filtered.filter(function(t){return activeTagIds.indexOf(t.id)===-1;});
-  row.innerHTML=active.concat(inactive).map(function(t){
-    var on=activeTagIds.indexOf(t.id)!==-1;
-    return '<div class="tag-chip'+(on?' active':'')+'" style="background:'+t.color+'" onclick="toggleTagChip(\''+t.id+'\')">'+t.label+'</div>';
-  }).join('');
-}
-function toggleTagChip(id){
-  var idx=activeTagIds.indexOf(id);
-  if(idx===-1)activeTagIds.push(id);else activeTagIds.splice(idx,1);
-  renderTagChips();
-  updateTagsBadge();
-  if(activeTagIds.length===0)setTagsStrip(false);
-}
-function filterTagChips(q){
-  tagSearchQuery=q;
-  var c=document.getElementById('tags-search-clear');
-  if(c)c.style.display=q.length>0?'flex':'none';
-  renderTagChips();
-}
-function clearTagSearch(){
-  tagSearchQuery='';
-  var inp=document.getElementById('tags-search');if(inp){inp.value='';inp.focus();}
-  var c=document.getElementById('tags-search-clear');if(c)c.style.display='none';
-  renderTagChips();
-}
-function setTagsStrip(open){
-  state.tagsStripOpen=open;
-  var strip=document.getElementById('tags-strip');
-  if(!strip)return;
-  strip.style.maxHeight=open?'140px':'0';
-  if(open){renderTagChips();setTimeout(function(){var i=document.getElementById('tags-search');if(i)i.focus();},220);}
-}
-function updateTagsBadge(){
-  var b=document.getElementById('tags-badge');
-  if(!b)return;
-  if(activeTagIds.length>0){b.style.display='flex';b.textContent=activeTagIds.length;}
-  else{b.style.display='none';}
+  // card open button
+  var ob = document.getElementById('open-yt-btn');
+  if (ob) ob.style.background = color;
+  // star clear
+  var sc = document.getElementById('star-clear-btn');
+  if (sc) sc.style.color = color;
+  // active chips
+  document.querySelectorAll('.chip.on').forEach(function(c){ c.style.borderColor=color; c.style.color=color; });
+  // logo dot
+  var ld = document.querySelector('.logo-dot');
+  if (ld) ld.style.color = color;
+  // slider
+  var sl = document.getElementById('col-slider');
+  if (sl) { sl.style.background = 'linear-gradient(to right,'+color+' '+(((state.cols-1)/7)*100)+'%,#ddd '+(((state.cols-1)/7)*100)+'%)'; sl.style.setProperty('--thumb',color); }
+  updateSliderStyle();
+  renderFriendsStrip();
 }
 
-/* ── VIEW / THEME / ACCENT / COLS ── */
-function setView(mode,el){
-  state.view=mode;
-  var map={col:0,masonry:1,list:2,free:3};
-  document.querySelectorAll('#seg-view .tw-opt').forEach(function(o,i){o.classList.toggle('on',i===map[mode]);});
+function updateSliderStyle() {
+  var sl = document.getElementById('col-slider');
+  if (!sl) return;
+  var pct = ((state.cols-1)/7)*100;
+  sl.style.background = 'linear-gradient(to right,'+state.accent+' '+pct+'%,#ddd '+pct+'%)';
+}
+
+// ── CONTROLS ──
+function setFab(mode, el) {
+  state.fab = mode;
+  document.querySelectorAll('#seg-fab .tw-opt').forEach(function(o){o.classList.remove('on')});
+  if(el) el.classList.add('on');
+  var fab = document.getElementById('fab-btn');
+  var fabText = document.getElementById('fab-text');
+  if (mode === 'pill') {
+    fab.classList.add('docked');
+    fabText.style.display = 'inline';
+  } else {
+    fab.classList.remove('docked');
+    fabText.style.display = 'none';
+  }
+}
+
+function setBottom(mode, el) {
+  state.bottom = mode;
+  document.querySelectorAll('#seg-bottom .tw-opt').forEach(function(o){o.classList.remove('on')});
+  if(el) el.classList.add('on');
+  document.getElementById('friends-area').style.display = mode === 'friends' ? '' : 'none';
+  document.getElementById('bnav-area').style.display = mode === 'nav' ? '' : 'none';
+}
+
+function setView(mode, el) {
+  state.view = mode;
+  if (el) {
+    document.querySelectorAll('#seg-view .tw-opt').forEach(function(o){o.classList.remove('on')});
+    el.classList.add('on');
+  }
+  // sync seg4
+  var map = {col:0,masonry:1,list:2,free:3};
+  document.querySelectorAll('#seg-view .tw-opt').forEach(function(o,i){
+    o.classList.toggle('on', i===map[mode]);
+  });
+  // sync vbtns
   ['col','mas','list'].forEach(function(v){
-    var btn=document.getElementById('vbtn-'+v);
-    if(btn)btn.classList.toggle('active',v===mode||(v==='mas'&&mode==='masonry'));
+    var btn = document.getElementById('vbtn-'+v);
+    if(btn) btn.classList.toggle('active', v===mode || (v==='mas'&&mode==='masonry'));
   });
-  var colDisplay=document.getElementById('col-display');
-  if(colDisplay)colDisplay.style.display=(mode==='col')?'flex':'none';
   renderFeed();
 }
-function setCols(v){
-  state.cols=parseInt(v);
-  var cn=document.getElementById('col-num');if(cn)cn.textContent=v;
-  var cl=document.getElementById('col-label');if(cl)cl.textContent=v+' col';
-  updateSliderStyle();renderFeed();
+
+function setCols(v) {
+  state.cols = parseInt(v);
+  document.getElementById('col-num').textContent = v;
+  document.getElementById('col-label').textContent = v + ' col';
+  updateSliderStyle();
+  renderFeed();
 }
-function adjustCols(delta){
-  var newCols=Math.max(1,Math.min(8,state.cols+delta));
-  setCols(newCols);
-}
-function updateSliderStyle(){
-  var sl=document.getElementById('col-slider');
-  if(!sl)return;
-  var pct=((state.cols-1)/7)*100;
-  sl.style.background='linear-gradient(to right,'+state.accent+' '+pct+'%,#ddd '+pct+'%)';
-}
-function setTab(el){
-  document.querySelectorAll('.feed-tab').forEach(function(t){t.classList.remove('active');});
+
+function setTab(el, tab) {
+  document.querySelectorAll('.feed-tab').forEach(function(t){t.classList.remove('active')});
   el.classList.add('active');
 }
-function toggleSortDropdown(){
-  var dd=document.getElementById('sort-dropdown');
-  dd.classList.toggle('open');
-}
-function setSort(sortKey,event){
-  event.stopPropagation();
-  state.sortBy=sortKey;
-  document.getElementById('sort-label').textContent=sortKey.charAt(0).toUpperCase()+sortKey.slice(1).replace('alpha','Alphabetical');
-  document.querySelectorAll('.sort-opt').forEach(function(o){o.classList.remove('active');});
-  document.querySelector('.sort-opt[data-sort="'+sortKey+'"]').classList.add('active');
-  document.getElementById('sort-dropdown').classList.remove('open');
+
+function setTheme(mode) {
+  state.dark = mode === 'dark';
+  var phone = document.getElementById('phone');
+  phone.classList.toggle('dark', state.dark);
+  document.getElementById('theme-dark').classList.toggle('on', state.dark);
+  document.getElementById('theme-light').classList.toggle('on', !state.dark);
+  applyAccent(state.accent);
   renderFeed();
 }
-document.addEventListener('click',function(e){
-  var btn=document.getElementById('sort-btn');
-  var dd=document.getElementById('sort-dropdown');
-  if(btn && dd && !btn.contains(e.target) && dd.classList.contains('open')){
-    dd.classList.remove('open');
-  }
-});
-function setTheme(mode){
-  state.dark=mode==='dark';
-  document.getElementById('phone').classList.toggle('dark',state.dark);
-  var td=document.getElementById('theme-dark');if(td)td.classList.toggle('on',state.dark);
-  var tl=document.getElementById('theme-light');if(tl)tl.classList.toggle('on',!state.dark);
-  applyAccent(state.accent);renderFeed();
-}
-function setAccent(color,name,el){
-  state.accent=color;
-  document.querySelectorAll('.acc-circle').forEach(function(c){c.classList.remove('on');c.style.outline='';});
-  var circle=el.querySelector('.acc-circle');
-  if(circle){circle.classList.add('on');circle.style.outline='3px solid '+color;circle.style.outlineOffset='2px';}
+
+function setAccent(color, name, el) {
+  state.accent = color;
+  document.querySelectorAll('.acc-circle').forEach(function(c){c.classList.remove('on'); c.style.outline='';});
+  var circle = el.querySelector('.acc-circle');
+  if (circle) { circle.classList.add('on'); circle.style.outline = '3px solid '+color; circle.style.outlineOffset = '2px'; }
   applyAccent(color);
 }
-function setRating(n){
-  state.rating=n;
-  document.querySelectorAll('#star-row .star svg').forEach(function(svg,i){svg.style.fill=i<n?'#f5a623':'#ddd';});
-}
-function toggleChip(el){el.classList.toggle('on');}
-function toggleFgAv(item){
-  var av=item.querySelector('.fg-av');if(!av)return;
-  var isOn=av.style.outline!=='';
-  av.style.outline=isOn?'':'3px solid '+state.accent;
-  av.style.outlineOffset=isOn?'':'2px';
+
+function setRating(n) {
+  state.rating = n;
+  document.querySelectorAll('#star-row .star svg').forEach(function(svg, i){
+    svg.style.fill = i < n ? '#f5a623' : '#ddd';
+  });
 }
 
-/* ── SHEETS ── */
-function openSheet(name){
+function toggleChip(el) {
+  el.classList.toggle('on');
+}
+
+function toggleFgAv(item) {
+  var av = item.querySelector('.fg-av');
+  if (!av) return;
+  var isOn = av.style.outline !== '';
+  av.style.outline = isOn ? '' : '3px solid '+state.accent;
+  av.style.outlineOffset = isOn ? '' : '2px';
+}
+
+// ── SHEETS ──
+function openSheet(name) {
   closeAll();
-  state.activeSheet=name;
+  state.activeSheet = name;
   document.getElementById('dim-bg').classList.add('visible');
-  var sheet=document.getElementById('sheet-'+name);if(sheet)sheet.classList.add('open');
-  var tryMap={fab:'try-fab',settings:'try-settings',friends:'try-friends',card:'try-card',folder:'try-fab',template:'try-fab',tag:'try-fab'};
-  document.querySelectorAll('.tw-try-item').forEach(function(i){i.classList.remove('active-link');});
-  if(tryMap[name]){var ti=document.getElementById(tryMap[name]);if(ti)ti.classList.add('active-link');}
+  var sheet = document.getElementById('sheet-'+name);
+  if (sheet) sheet.classList.add('open');
+  // mark active try item
+  var tryMap = {fab:'try-fab',settings:'try-settings',filter:'try-filter',friends:'try-friends',card:'try-card'};
+  document.querySelectorAll('.tw-try-item').forEach(function(i){i.classList.remove('active-link')});
+  if(tryMap[name]) { var ti = document.getElementById(tryMap[name]); if(ti) ti.classList.add('active-link'); }
 }
-function closeSheet(name){
-  var sheet=document.getElementById('sheet-'+name);if(sheet)sheet.classList.remove('open');
+
+function closeSheet(name) {
+  var sheet = document.getElementById('sheet-'+name);
+  if (sheet) sheet.classList.remove('open');
   document.getElementById('dim-bg').classList.remove('visible');
-  state.activeSheet=null;
-  document.querySelectorAll('.tw-try-item').forEach(function(i){i.classList.remove('active-link');});
+  state.activeSheet = null;
+  document.querySelectorAll('.tw-try-item').forEach(function(i){i.classList.remove('active-link')});
 }
-function closeScreen(name){
-  var screen=document.getElementById('screen-'+name);if(screen)screen.classList.remove('visible');
-  document.querySelectorAll('.tw-try-item').forEach(function(i){i.classList.remove('active-link');});
+
+function closeScreen(name) {
+  var screen = document.getElementById('screen-'+name);
+  if (screen) screen.classList.remove('visible');
+  document.querySelectorAll('.tw-try-item').forEach(function(i){i.classList.remove('active-link')});
 }
-function closeAll(){
-  ['fab','settings','filter','friends','card','folder','template','tag'].forEach(function(n){
-    var s=document.getElementById('sheet-'+n);if(s)s.classList.remove('open');
+
+function closeAll() {
+  ['fab','settings','filter','friends','card'].forEach(function(n){
+    var s = document.getElementById('sheet-'+n);
+    if(s) s.classList.remove('open');
   });
   ['folders'].forEach(function(n){
-    var s=document.getElementById('screen-'+n);if(s)s.classList.remove('visible');
+    var s = document.getElementById('screen-'+n);
+    if(s) s.classList.remove('visible');
   });
   document.getElementById('dim-bg').classList.remove('visible');
-  state.activeSheet=null;
-  document.querySelectorAll('.tw-try-item').forEach(function(i){i.classList.remove('active-link');});
+  state.activeSheet = null;
+  document.querySelectorAll('.tw-try-item').forEach(function(i){i.classList.remove('active-link')});
 }
 
-/* ── ACTIONS ── */
-function tryAction(action){
-  switch(action){
-    case 'fab':toggleDial();break;
-    case 'settings':openSheet('settings');break;
-    case 'tags':setTagsStrip(!state.tagsStripOpen);break;
-    case 'filter':/* retired — no-op */break;
-    case 'friends':setStripState('expanded');break;
-    case 'hideFriends':setStripState('hidden');break;
-    case 'card':openSheet('card');break;
+// ── TRY IT OUT ──
+function tryAction(action) {
+  switch(action) {
+    case 'fab': openSheet('fab'); break;
+    case 'settings': openSheet('settings'); break;
+    case 'filter': openSheet('filter'); break;
+    case 'friends': openSheet('friends'); break;
+    case 'card': openSheet('card'); break;
     case 'folders':
       closeAll();
-      document.getElementById('screen-folders').classList.add('visible');
-      var ti=document.getElementById('try-folders');if(ti)ti.classList.add('active-link');
+      var screen = document.getElementById('screen-folders');
+      screen.classList.add('visible');
+      var ti = document.getElementById('try-folders');
+      if(ti) ti.classList.add('active-link');
       break;
     case 'free':
-      setView('free',null);
-      document.querySelectorAll('.tw-try-item').forEach(function(i){i.classList.remove('active-link');});
-      var tf=document.getElementById('try-free');if(tf){tf.classList.add('active-link');setTimeout(function(){tf.classList.remove('active-link');},1500);}
+      setView('free', null);
+      document.querySelectorAll('.tw-try-item').forEach(function(i){i.classList.remove('active-link')});
+      var tf = document.getElementById('try-free');
+      if(tf) tf.classList.add('active-link');
+      setTimeout(function(){if(tf)tf.classList.remove('active-link');},1500);
       break;
     case 'reset':
-      state={dark:false,accent:'#7c5cbf',cols:2,view:'col',stripState:'strip',rating:5,activeSheet:null,dialOpen:false,tagsStripOpen:false,sortBy:'newest'};
-      activeTagIds=[];tagSearchQuery='';
-      closeAll();closeDial();setTheme('light');setView('col',null);setCols(2);applyAccent('#7c5cbf');
-      setStripState('strip');setTagsStrip(false);updateTagsBadge();
-      var tr=document.getElementById('try-reset');if(tr){tr.classList.add('active-link');setTimeout(function(){tr.classList.remove('active-link');},1000);}
+      state = {dark:false,accent:'#7c5cbf',cols:2,view:'col',bottom:'friends',fab:'circle',rating:5,activeSheet:null};
+      closeAll();
+      setTheme('light');
+      setFab('circle',null);
+      setBottom('friends',null);
+      setView('col',null);
+      setCols(2);
+      applyAccent('#7c5cbf');
+      document.querySelectorAll('#seg-fab .tw-opt').forEach(function(o,i){o.classList.toggle('on',i===0)});
+      document.querySelectorAll('#seg-bottom .tw-opt').forEach(function(o,i){o.classList.toggle('on',i===0)});
+      var ti = document.getElementById('try-reset');
+      if(ti){ti.classList.add('active-link');setTimeout(function(){ti.classList.remove('active-link');},1000);}
       break;
   }
 }
 
-/* ── INIT ── */
+// ── INIT ──
 renderFeed();
 renderFriendsStrip();
 applyAccent(state.accent);
-setStripState('strip');
+// make .chip.on use accent
+var style = document.createElement('style');
+document.head.appendChild(style);
+function updateChipStyle() {
+  style.textContent = '.chip.on{border-color:'+state.accent+' !important;color:'+state.accent+' !important;background:'+state.accent+'11 !important}';
+}
+updateChipStyle();
+var origApply = applyAccent;
+applyAccent = function(c) { origApply(c); updateChipStyle(); };
+applyAccent(state.accent);
 </script>

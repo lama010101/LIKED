@@ -1,16 +1,18 @@
 'use client';
 
-import { CSSProperties, useState } from 'react';
+import { CSSProperties, useState, useRef, useCallback, useEffect } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { targetId } from '@/lib/dnd/types';
 import { useDndState } from '@/lib/dnd/DndProvider';
+import { useFilterStore } from '@/lib/store/filterStore';
 
 interface TopBarProps {
   notificationCount: number;
   userId: string;
   avatarKey: string | null;
   displayName: string;
-  onFilterClick: () => void;
+  /** User's language code for search (e.g., 'en', 'fr', 'th') */
+  languageCode?: string;
   onNotificationClick: () => void;
   onProfileClick: () => void;
   /** Optional: clicking the trash icon navigates to the trash view (P7-T04). */
@@ -129,10 +131,190 @@ function TrashDropButton({ onClick, count = 0 }: { onClick?: () => void; count?:
   );
 }
 
+/** Expandable search input with 300ms debounce */
+function SearchInput() {
+  const { searchQuery, setSearchQuery } = useFilterStore();
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [inputValue, setInputValue] = useState(searchQuery);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Focus input when expanded
+  useEffect(() => {
+    if (isExpanded && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isExpanded]);
+
+  // Debounced update to filterStore (300ms)
+  const debouncedSetSearch = useCallback((value: string) => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    timeoutRef.current = setTimeout(() => {
+      setSearchQuery(value);
+    }, 300);
+  }, [setSearchQuery]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setInputValue(value);
+    debouncedSetSearch(value);
+  };
+
+  const handleClear = () => {
+    setInputValue('');
+    setSearchQuery('');
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  };
+
+  const handleBlur = () => {
+    // Collapse if empty
+    if (!inputValue.trim()) {
+      setIsExpanded(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      setInputValue('');
+      setSearchQuery('');
+      setIsExpanded(false);
+    }
+  };
+
+  if (!isExpanded) {
+    // Icon-only state (PRD §11.1: search icon-btn, tap to expand)
+    return (
+      <IconBtn onClick={() => setIsExpanded(true)} label="Search">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.75"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+      </IconBtn>
+    );
+  }
+
+  // Expanded state: full input
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        background: 'var(--surface-3)',
+        border: '1px solid var(--border-1)',
+        borderRadius: 12,
+        padding: '0 12px',
+        height: 36,
+        flex: 1,
+        maxWidth: 240,
+      }}
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+        style={{ color: 'var(--text-3)', flexShrink: 0 }}
+      >
+        <circle cx="11" cy="11" r="8" />
+        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+      </svg>
+      <input
+        ref={inputRef}
+        type="text"
+        value={inputValue}
+        onChange={handleChange}
+        onBlur={handleBlur}
+        onKeyDown={handleKeyDown}
+        placeholder="Search..."
+        style={{
+          flex: 1,
+          background: 'transparent',
+          border: 'none',
+          outline: 'none',
+          fontSize: 14,
+          color: 'var(--text-1)',
+          minWidth: 0,
+        }}
+        aria-label="Search cards"
+      />
+      {inputValue && (
+        <button
+          type="button"
+          onMouseDown={(e) => {
+            // Prevent blur before click
+            e.preventDefault();
+            handleClear();
+          }}
+          aria-label="Clear search"
+          style={{
+            width: 18,
+            height: 18,
+            borderRadius: '50%',
+            background: 'var(--surface-4)',
+            border: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            flexShrink: 0,
+            padding: 0,
+            color: 'var(--text-3)',
+          }}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      )}
+    </div>
+  );
+}
+
 export default function TopBar({
   notificationCount,
   displayName,
-  onFilterClick,
   onNotificationClick,
   onProfileClick,
   onTrashClick,
@@ -163,8 +345,8 @@ export default function TopBar({
 
       {/* Right group */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-        {/* Sliders / Filter */}
-        <IconBtn onClick={onFilterClick} label="Filter feed">
+        {/* Tags icon (P9-T03 placeholder) */}
+        <IconBtn onClick={() => { /* P9-T03: toggle Tags Strip */ }} label="Tags">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="16"
@@ -177,14 +359,13 @@ export default function TopBar({
             strokeLinejoin="round"
             aria-hidden="true"
           >
-            <line x1="4" y1="6" x2="20" y2="6" />
-            <line x1="4" y1="12" x2="20" y2="12" />
-            <line x1="4" y1="18" x2="20" y2="18" />
-            <circle cx="9" cy="6" r="2.5" fill="var(--surface-3)" />
-            <circle cx="15" cy="12" r="2.5" fill="var(--surface-3)" />
-            <circle cx="9" cy="18" r="2.5" fill="var(--surface-3)" />
+            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+            <line x1="7" y1="7" x2="7.01" y2="7" />
           </svg>
         </IconBtn>
+
+        {/* Search (P9-T02: icon-only → expandable input) */}
+        <SearchInput />
 
         {/* Bell */}
         <IconBtn onClick={onNotificationClick} label="Notifications">

@@ -843,6 +843,36 @@
 
 ---
 
+### P9-T02.5 — UI Alignment with Prototype (BLOCKING)
+
+**Goal:**
+Align production UI with HTML prototype (single source of truth)
+
+**Rule (MANDATORY):**
+- Blocks P9-T03 execution until completed
+
+**Scope:**
+- Extract UI rules from prototype
+- Perform gap analysis (visual / structural / behavioral)
+- Fix UI component-by-component
+- No backend or logic changes allowed
+
+**Constraints:**
+- Prototype overrides PRD and code (UI only)
+- No heuristic interpretation
+- No redesign
+
+**Output:**
+- UI fully matches prototype
+- No regressions
+
+**Failure Conditions:**
+- Missing states in prototype
+- Requires backend change
+- Ambiguity in interaction
+
+---
+
 ### P9-T03 — Multi-filter system
 
 **Cascade prompt:**
