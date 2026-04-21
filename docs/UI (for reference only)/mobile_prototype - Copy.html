@@ -1,39 +1,21 @@
-
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Liked - Mobile Prototype</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Inter',sans-serif;background:#e8e8ec;display:flex;gap:20px;padding:20px;min-height:100vh;align-items:flex-start;justify-content:center;flex-wrap:wrap}
+body{font-family:'Inter',sans-serif;background:#e8e8ec;margin:0;padding:0;min-height:100vh;overflow:hidden;zoom:1.15}
 
-/* TWEAKS */
-.tweaks{width:230px;background:#fff;border-radius:16px;padding:18px;box-shadow:0 4px 20px rgba(0,0,0,.08);align-self:flex-start;position:sticky;top:20px}
-.tw-title{font-size:19px;font-weight:800;color:#111;margin-bottom:3px}
-.tw-sub{font-size:10px;color:#888;margin-bottom:16px;line-height:1.5}
-.tw-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#aaa;margin-bottom:7px}
-.tw-seg{display:flex;border-radius:9px;overflow:hidden;border:1px solid #e8e8e8;margin-bottom:13px}
-.tw-opt{flex:1;padding:7px 4px;text-align:center;font-size:11px;font-weight:600;color:#888;cursor:pointer;background:#fff;transition:all .15s;user-select:none}
-.tw-opt.on{background:#111;color:#fff}
-.tw-seg4{display:flex;border-radius:9px;overflow:hidden;border:1px solid #e8e8e8;margin-bottom:6px}
-.tw-seg4 .tw-opt{font-size:10px;padding:6px 2px}
-.tw-slider-row{display:flex;align-items:center;gap:6px;margin-bottom:13px}
-.tw-slider-row svg{width:13px;height:13px;flex-shrink:0;fill:none;stroke:#aaa;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.tw-slider{flex:1;-webkit-appearance:none;appearance:none;height:4px;border-radius:2px;outline:none;cursor:pointer}
-.tw-slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;cursor:pointer}
-.tw-num{font-size:12px;font-weight:700;color:#111;min-width:14px;text-align:right}
-.tw-section{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#aaa;margin-bottom:8px;margin-top:2px}
-.tw-try-item{display:flex;align-items:center;padding:8px 10px;border-radius:9px;background:#fafafa;margin-bottom:5px;cursor:pointer;transition:background .15s;border:1.5px solid transparent}
-.tw-try-item:hover{background:#f0f0f3}
-.tw-try-item.active-link{border-color:#8b5cf6;background:rgba(139,92,246,.08)}
-.tw-try-icon{margin-right:8px;width:14px;height:14px;fill:none;stroke:#555;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
-.tw-try-label{flex:1;font-size:12px;color:#333;font-weight:500}
-.tw-try-hint{font-size:9px;color:#bbb;font-weight:600;background:#f0f0f0;padding:2px 6px;border-radius:4px}
-.tw-tip{background:#fafafa;border-radius:9px;padding:9px 10px;margin-top:6px}
-.tw-tip-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#aaa;margin-bottom:4px}
-.tw-tip-text{font-size:10px;color:#666;line-height:1.5}
-.tw-tip-text b{color:#8b5cf6}
-
-/* PHONE */
-.phone-wrap{display:flex;flex-direction:column;align-items:center;gap:8px}
-.phone{width:320px;background:#f2f2f6;border-radius:48px;border:2px solid #c8c8cc;box-shadow:0 20px 60px rgba(0,0,0,.18),0 0 0 6px #dddde0;overflow:hidden;display:flex;flex-direction:column;position:relative;height:680px;transition:background .3s}
+/* MOBILE APP - Full screen */
+#root{width:100%;height:calc(100dvh / 1.15);max-width:100%;margin:0;padding:0;overflow:hidden}
+.phone-wrap{width:100%;height:100%}
+.phone{width:100%;height:100%;background:#f2f2f6;overflow-y:auto;display:flex;flex-direction:column;position:relative;transition:background .3s;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.phone::-webkit-scrollbar{display:none}
 .phone.dark{background:#111;border-color:#333}
 
 /* STATUS */
@@ -121,10 +103,10 @@ body{font-family:'Inter',sans-serif;background:#e8e8ec;display:flex;gap:20px;pad
 .feed-grid{display:grid;gap:6px}
 
 /* CARDS */
-.fcard{border-radius:16px;overflow:hidden;position:relative;cursor:pointer;background:#ddd;transition:transform .15s,opacity .15s}
+.fcard{border-radius:16px;overflow:hidden;position:relative;cursor:pointer;background:#ddd;transition:transform .15s,opacity .15s;aspect-ratio:1/1}
 .fcard.dragging{opacity:.5;transform:scale(0.95)}
-.fcard-collage{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;height:110px;gap:2px}
-.ccard{border-radius:16px;overflow:hidden;position:relative;cursor:pointer;background:#ddd;transition:transform .15s,opacity .15s}
+.fcard-collage{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;height:100%;gap:2px}
+.ccard{border-radius:16px;overflow:hidden;position:relative;cursor:pointer;background:#ddd;transition:transform .15s,opacity .15s;aspect-ratio:1/1;display:flex;flex-direction:column}
 .ccard.dragging{opacity:.5;transform:scale(0.95)}
 /* Drag ghost for cards/folders */
 .card-drag-ghost{position:fixed;width:100px;height:100px;border-radius:16px;pointer-events:none;z-index:1000;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;box-shadow:0 10px 40px rgba(0,0,0,.4),0 0 0 3px rgba(139,92,246,.5);transform:translate(-50%,-50%) scale(1.1);transition:transform .1s}
@@ -139,12 +121,16 @@ body{font-family:'Inter',sans-serif;background:#e8e8ec;display:flex;gap:20px;pad
 .dp-fitem.drop-hover .dp-fav{border-color:#8b5cf6;box-shadow:0 0 0 3px rgba(139,92,246,.3)}
 .dp-fitem.drop-hover .dp-fname{color:#8b5cf6;font-weight:600}
 .fcard-collage div{min-height:0}
-.fcard-overlay{position:absolute;bottom:0;left:0;right:0;padding:8px 10px 10px;background:linear-gradient(to top,rgba(0,0,0,.7),transparent)}
+.fcard-overlay{display:none}
 .fcard-name{font-size:13px;font-weight:700;color:#fff}
 .fcard-count{font-size:10px;color:rgba(255,255,255,.7);margin-top:1px}
 .fcard-dot{position:absolute;top:8px;left:8px;width:10px;height:10px;border-radius:3px}
-.ccard-img{width:100%;height:110px;display:block}
+.fcard-menu{position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:5;opacity:1}
+.fcard-menu svg{width:14px;height:14px;fill:#fff;pointer-events:none}
+.ccard-img{width:100%;flex:1;object-fit:cover;display:block}
 .ccard-dot{position:absolute;bottom:6px;right:6px;width:10px;height:10px;border-radius:50%;border:1.5px solid rgba(255,255,255,.5)}
+.ccard-menu{position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:5;opacity:1}
+.ccard-menu svg{width:14px;height:14px;fill:#fff;pointer-events:none}
 .ccard-dot.mine{background:#ff6b35}.ccard-dot.recv{background:#00d9ff}
 .ccard-star{position:absolute;top:7px;left:7px;background:rgba(139,92,246,.9);color:#fff;font-size:9px;font-weight:700;padding:2px 5px;border-radius:5px}
 .ccard-meta{padding:7px 9px 9px;background:#fff}
@@ -155,7 +141,7 @@ body{font-family:'Inter',sans-serif;background:#e8e8ec;display:flex;gap:20px;pad
 .ctag{font-size:9px;padding:1px 6px;border-radius:4px;color:#fff;font-weight:600}
 
 /* BOTTOM */
-.bottom-area{flex-shrink:0;background:#f2f2f6;position:relative;padding-top:0;transition:background .3s}
+.bottom-area{flex-shrink:0;background:#f2f2f6;position:sticky;bottom:0;left:0;right:0;z-index:30;padding-top:0;padding-bottom:env(safe-area-inset-bottom,0);transition:background .3s}
 .phone.dark .bottom-area{background:#111}
 .phone.dark .sd-bg{background:rgba(30,30,36,.96);border-color:rgba(255,255,255,.08);box-shadow:0 -6px 24px rgba(0,0,0,.5)}
 .phone.dark .sd-label{color:#eee;text-shadow:0 1px 2px rgba(0,0,0,.4)}
@@ -175,7 +161,7 @@ body{font-family:'Inter',sans-serif;background:#e8e8ec;display:flex;gap:20px;pad
 /* SPEED-DIAL - vertical stack layout */
 .fab-scrim{position:absolute;inset:0;background:rgba(0,0,0,.7);z-index:20;opacity:0;pointer-events:none;transition:opacity .2s}
 .fab-scrim.open{opacity:1;pointer-events:all}
-.speed-dial{position:absolute;bottom:calc(100% + 52px);right:24px;display:flex;flex-direction:column-reverse;align-items:flex-end;gap:12px;z-index:21;pointer-events:none}
+.speed-dial{position:absolute;bottom:calc(100% + 52px);right:24px;display:flex;flex-direction:column-reverse;align-items:flex-end;gap:12px;z-index:100;pointer-events:none}
 .speed-dial.open{pointer-events:all}
 .sd-bg{display:none}
 .sd-item{display:flex;flex-direction:row;align-items:center;gap:10px;pointer-events:none;transform:translateY(20px);opacity:0;transition:opacity .2s,transform .25s cubic-bezier(.34,1.56,.64,1)}
@@ -285,7 +271,7 @@ body{font-family:'Inter',sans-serif;background:#e8e8ec;display:flex;gap:20px;pad
 .dim-bg.visible{opacity:1;pointer-events:all}
 
 /* SHEET */
-.sheet{background:#fff;border-radius:24px 24px 0 0;padding:0 0 20px;overflow-y:auto;max-height:88%;scrollbar-width:none;position:absolute;bottom:0;left:0;right:0;z-index:30;transform:translateY(100%);transition:transform .25s cubic-bezier(.4,0,.2,1)}
+.sheet{background:#fff;border-radius:24px 24px 0 0;padding:0 0 20px;overflow-y:auto;max-height:88%;scrollbar-width:none;position:fixed;bottom:0;left:0;right:0;z-index:30;transform:translateY(100%);transition:transform .25s cubic-bezier(.4,0,.2,1)}
 .sheet::-webkit-scrollbar{display:none}
 .sheet.open{transform:translateY(0)}
 .phone.dark .sheet{background:#1c1c1f}
@@ -466,82 +452,11 @@ body{font-family:'Inter',sans-serif;background:#e8e8ec;display:flex;gap:20px;pad
 .bc-back svg{width:12px;height:12px;fill:none;stroke:#555;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
 </style>
 
-<div id="root" style="display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;min-height:100vh;background:#e8e8ec;padding:20px">
-
-<!-- TWEAKS -->
-<div class="tweaks">
-  <div class="tw-title">Tweaks</div>
-  <div class="tw-sub">Live prototype controls. Theme & accent live inside the app — tap the avatar to change them.</div>
-
-  <div class="tw-label">FEED VIEW</div>
-  <div class="tw-seg4" id="seg-view">
-    <div class="tw-opt on" onclick="setView('col',this)">Col</div>
-    <div class="tw-opt" onclick="setView('masonry',this)">Masonry</div>
-    <div class="tw-opt" onclick="setView('list',this)">List</div>
-    <div class="tw-opt" onclick="setView('free',this)">Free</div>
-  </div>
-  <div class="tw-slider-row">
-    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-    <input type="range" class="tw-slider" id="col-slider" min="1" max="8" value="2" step="1" oninput="setCols(this.value)">
-    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-    <div class="tw-num" id="col-num">2</div>
-  </div>
-
-  <div class="tw-section">TRY IT OUT</div>
-<div class="tw-try-item" id="try-fab" onclick="tryAction('fab')">
-  <svg class="tw-try-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-  <span class="tw-try-label">Open speed-dial</span><span class="tw-try-hint">FAB</span>
-</div>
-<div class="tw-try-item" id="try-settings" onclick="tryAction('settings')">
-  <svg class="tw-try-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l-.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-  <span class="tw-try-label">Open Settings</span><span class="tw-try-hint">avatar</span>
-</div>
-<div class="tw-try-item" id="try-tags" onclick="tryAction('tags')">
-  <svg class="tw-try-icon" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-  <span class="tw-try-label">Toggle tags strip</span><span class="tw-try-hint">tags icon</span>
-</div>
-<div class="tw-try-item" id="try-friends" onclick="tryAction('friends')">
-  <svg class="tw-try-icon" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
-  <span class="tw-try-label">Expand friends panel</span><span class="tw-try-hint">swipe up</span>
-</div>
-<div class="tw-try-item" id="try-hide-friends" onclick="tryAction('hideFriends')">
-  <svg class="tw-try-icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-  <span class="tw-try-label">Hide friends strip</span><span class="tw-try-hint">swipe down</span>
-</div>
-<div class="tw-try-item" id="try-folders" onclick="tryAction('folders')">
-  <svg class="tw-try-icon" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-  <span class="tw-try-label">Browse folders</span><span class="tw-try-hint">nav</span>
-</div>
-<div class="tw-try-item" id="try-groups" onclick="tryAction('groups')">
-  <svg class="tw-try-icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-  <span class="tw-try-label">View group members</span><span class="tw-try-hint">friends sheet</span>
-</div>
-<div class="tw-try-item" id="try-folder-drag" onclick="tryAction('folder-drag')">
-  <svg class="tw-try-icon" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><polyline points="9 14 12 11 15 14"/><line x1="12" y1="11" x2="12" y2="21"/></svg>
-  <span class="tw-try-label">Move to folder panel</span><span class="tw-try-hint">drag</span>
-</div>
-<div class="tw-try-item" id="try-card" onclick="tryAction('card')">
-  <svg class="tw-try-icon" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-  <span class="tw-try-label">Open card + rate</span><span class="tw-try-hint">tap</span>
-</div>
-<div class="tw-try-item" id="try-reset" onclick="tryAction('reset')">
-  <svg class="tw-try-icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-  <span class="tw-try-label">Reset layout</span><span class="tw-try-hint">undo</span>
-</div>
-<div class="tw-tip">
-    <div class="tw-tip-label">TIP</div>
-    <div class="tw-tip-text"><b>Drag & drop:</b> Long-press any card/folder, drag it, and the folder panel will slide up automatically. Drop onto a folder to move. Or drag a friend onto cards to share. In Friends sheet: tap friends to select, click groups to view members, drag members outside to remove. Works on mobile + desktop.</div>
-  </div>
-</div>
-
-<!-- PHONE -->
-<div class="phone-wrap">
-  <div class="phone" id="phone">
+<div id="root">
+  <div class="phone-wrap">
+    <div class="phone" id="phone">
     <!-- FAB scrim - covers entire phone -->
     <div class="fab-scrim" id="fab-scrim" onclick="closeDial()"></div>
-    <!-- STATUS -->
-    <div class="status"><span style="font-size:15px;font-weight:700">9:41</span><span>●●●●● 100%</span></div>
-
     <!-- TOPBAR -->
     <div class="topbar">
       <div class="logo" id="logo">liked<span class="logo-dot">.</span></div>
@@ -994,6 +909,41 @@ body{font-family:'Inter',sans-serif;background:#e8e8ec;display:flex;gap:20px;pad
       <div class="sheet-btn" id="filter-apply-btn" onclick="closeSheet('filter')">Apply</div>
     </div>
 
+    <!-- SHEET: EDIT ITEM -->
+    <div class="sheet" id="sheet-edit">
+      <div class="sheet-handle"></div>
+      <div class="sheet-hdr">
+        <div><div class="sheet-title" id="edit-sheet-title">Edit</div><div class="sheet-sub" id="edit-sheet-sub">Modify name and details</div></div>
+        <div class="sheet-x" onclick="closeSheet('edit')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+      </div>
+      <div class="sheet-sec">
+        <div class="sheet-sec-label">NAME</div>
+        <input class="sheet-input" id="edit-name-input" placeholder="Enter name...">
+      </div>
+      <div class="sheet-sec" id="edit-tags-section">
+        <div class="sheet-sec-label">TAGS</div>
+        <div class="chip-row" id="edit-tags-row"><div class="chip" onclick="toggleChip(this)">Music</div><div class="chip" onclick="toggleChip(this)">Film</div><div class="chip" onclick="toggleChip(this)">Food</div><div class="chip" onclick="toggleChip(this)">Travel</div><div class="chip" onclick="toggleChip(this)">Tech</div></div>
+      </div>
+      <div class="sheet-sec">
+        <div class="sheet-sec-label">ACTIONS</div>
+        <div style="display:flex;flex-direction:column;gap:8px;padding:0 18px">
+          <div style="display:flex;align-items:center;gap:12px;padding:12px;background:#f5f5f7;border-radius:10px;cursor:pointer" onclick="showToast('Move to folder - coming soon')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+            <span style="font-size:13px;font-weight:500">Move to folder</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:12px;background:#f5f5f7;border-radius:10px;cursor:pointer" onclick="showToast('Share - coming soon')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+            <span style="font-size:13px;font-weight:500">Share with friend</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:12px;background:#ffe5e5;border-radius:10px;cursor:pointer" onclick="showToast('Item deleted')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e84040" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+            <span style="font-size:13px;font-weight:500;color:#e84040">Delete</span>
+          </div>
+        </div>
+      </div>
+      <div class="sheet-btn" style="background:#8b5cf6" onclick="saveEdit()">Save</div>
+    </div>
+
     <!-- SHEET: FRIENDS PANEL -->
     <div class="sheet" id="sheet-friends">
       <div class="sheet-handle"></div>
@@ -1240,24 +1190,26 @@ function buildFeedItem(item, cols, idx) {
 
   if (item.type === 'folder') {
     var c = item.colors;
+    var menuBtn = '<div class="fcard-menu" onclick="event.stopPropagation();openEditSheet(\'folder\','+idx+')" onpointerdown="event.stopPropagation()"><svg viewBox="0 0 24 24"><circle cx="12" cy="6" r="2" fill="#fff"/><circle cx="12" cy="12" r="2" fill="#fff"/><circle cx="12" cy="18" r="2" fill="#fff"/></svg></div>';
     return '<div class="fcard feed-item" '+dataAttrs+'>'
-      +'<div class="fcard-collage" style="height:'+size+'px">'
+      +'<div class="fcard-collage" style="height:100%">'
       +'<div style="background:linear-gradient(135deg,'+c[0]+','+c[0]+'99)"></div>'
       +'<div style="background:linear-gradient(135deg,'+c[1]+','+c[1]+'99)"></div>'
       +'<div style="background:linear-gradient(135deg,'+c[2]+','+c[2]+'99)"></div>'
       +'<div style="background:linear-gradient(135deg,'+c[3]+','+c[3]+'99)"></div>'
       +'</div>'
       +'<div class="fcard-dot" style="background:'+item.dot+'"></div>'
-      +'<div class="fcard-overlay"><div class="fcard-name">'+item.name+'</div>'
-      +(cols <= 3 ? '<div class="fcard-count">'+item.count+'</div>' : '')
-      +'</div></div>';
+      +menuBtn
+      +'</div>';
   } else {
     var starBadge = item.star ? '<div class="ccard-star">★ '+item.star+'</div>' : '';
     var meta = cols <= 3 ? '<div class="ccard-meta"><div class="ccard-title">'+item.title+'</div><div class="ccard-tags"><span class="ctag" style="background:'+item.tagColor+'">'+item.tag+'</span></div></div>' : '';
+    var menuBtn = '<div class="ccard-menu" onclick="event.stopPropagation();openEditSheet(\'card\','+idx+')" onpointerdown="event.stopPropagation()"><svg viewBox="0 0 24 24"><circle cx="12" cy="6" r="2" fill="#fff"/><circle cx="12" cy="12" r="2" fill="#fff"/><circle cx="12" cy="18" r="2" fill="#fff"/></svg></div>';
     return '<div class="ccard feed-item" '+dataAttrs+'>'
-      +'<div class="ccard-img" style="height:'+size+'px;background:linear-gradient(135deg,'+item.bg+')"></div>'
+      +'<div class="ccard-img" style="background:linear-gradient(135deg,'+item.bg+')"></div>'
       +starBadge
       +'<div class="ccard-dot '+item.dot+'"></div>'
+      +menuBtn
       +meta+'</div>';
   }
 }
@@ -1638,12 +1590,56 @@ function closeSheet(name){
   state.activeSheet=null;
   document.querySelectorAll('.tw-try-item').forEach(function(i){i.classList.remove('active-link');});
 }
+
+/* ── EDIT SHEET FUNCTIONS ── */
+var currentEditItem=null;
+
+function openEditSheet(type, idx){
+  currentEditItem={type:type, idx:idx};
+  var item=feedItems[idx];
+  if(!item)return;
+  
+  document.getElementById('edit-sheet-title').textContent=type==='folder'?'Edit Folder':'Edit Card';
+  document.getElementById('edit-sheet-sub').textContent=type==='folder'?item.name:item.title;
+  document.getElementById('edit-name-input').value=type==='folder'?item.name:item.title;
+  
+  // Show/hide tags section for cards only
+  var tagsSection=document.getElementById('edit-tags-section');
+  if(tagsSection)tagsSection.style.display=type==='card'?'block':'none';
+  
+  openSheet('edit');
+}
+
+function saveEdit(){
+  if(!currentEditItem)return;
+  var newName=document.getElementById('edit-name-input').value.trim();
+  if(!newName)return;
+  
+  var item=feedItems[currentEditItem.idx];
+  if(item){
+    if(currentEditItem.type==='folder')item.name=newName;
+    else item.title=newName;
+    renderFeed();
+    showToast(currentEditItem.type==='folder'?'Folder updated':'Card updated');
+  }
+  closeSheet('edit');
+}
+
+function showToast(msg){
+  var toast=document.getElementById('share-toast');
+  var msgEl=document.getElementById('share-toast-msg');
+  if(toast&&msgEl){
+    msgEl.textContent=msg;
+    toast.classList.add('show');
+    setTimeout(function(){toast.classList.remove('show');},2500);
+  }
+}
 function closeScreen(name){
   var screen=document.getElementById('screen-'+name);if(screen)screen.classList.remove('visible');
   document.querySelectorAll('.tw-try-item').forEach(function(i){i.classList.remove('active-link');});
 }
 function closeAll(){
-  ['fab','settings','filter','friends','card','folder','template','tag','notifications'].forEach(function(n){
+  ['fab','settings','filter','friends','card','folder','template','tag','notifications','edit'].forEach(function(n){
     var s=document.getElementById('sheet-'+n);if(s)s.classList.remove('open');
   });
   ['folders'].forEach(function(n){
@@ -2751,6 +2747,9 @@ function onCardPointerUp(e){
       if(cardDragState.dragGhost)cardDragState.dragGhost.remove();
       cardDragState.dragGhost=null;
     }
+  }else{
+    // Just a click, not a drag - open card detail
+    tryAction('card');
   }
 
   if(cardDragState.sourceEl)cardDragState.sourceEl.classList.remove('dragging');
@@ -2783,3 +2782,5 @@ document.addEventListener('DOMContentLoaded',function(){
   initCardDragHandlers();
 });
 </script>
+</body>
+</html>

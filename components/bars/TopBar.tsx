@@ -5,6 +5,7 @@ import { useDroppable } from '@dnd-kit/core';
 import { targetId } from '@/lib/dnd/types';
 import { useDndState } from '@/lib/dnd/DndProvider';
 import { useFilterStore } from '@/lib/store/filterStore';
+import { useSearchController } from '@/lib/hooks/useSearchController';
 
 interface TopBarProps {
   notificationCount: number;
@@ -131,13 +132,23 @@ function TrashDropButton({ onClick, count = 0 }: { onClick?: () => void; count?:
   );
 }
 
-/** Expandable search input with 300ms debounce */
+/**
+ * Expandable search input using useSearchController
+ * P9-T04: Search Input System
+ *
+ * - Debounced via useDebouncedSearch (300ms)
+ * - Normalized via normalizeSearch from feedParams.ts
+ * - URL sync via existing useFeedURLSync
+ * - Empty input → null (removes search from URL)
+ */
 function SearchInput() {
-  const { searchQuery, setSearchQuery } = useFilterStore();
   const [isExpanded, setIsExpanded] = useState(false);
-  const [inputValue, setInputValue] = useState(searchQuery);
   const inputRef = useRef<HTMLInputElement>(null);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Use search controller for debounced, normalized search
+  const { inputValue, setInputValue, clearSearch } = useSearchController({
+    debounceMs: 300,
+  });
 
   // Focus input when expanded
   useEffect(() => {
@@ -146,34 +157,12 @@ function SearchInput() {
     }
   }, [isExpanded]);
 
-  // Debounced update to filterStore (300ms)
-  const debouncedSetSearch = useCallback((value: string) => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-    timeoutRef.current = setTimeout(() => {
-      setSearchQuery(value);
-    }, 300);
-  }, [setSearchQuery]);
-
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, []);
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setInputValue(value);
-    debouncedSetSearch(value);
+    setInputValue(e.target.value);
   };
 
   const handleClear = () => {
-    setInputValue('');
-    setSearchQuery('');
+    clearSearch();
     if (inputRef.current) {
       inputRef.current.focus();
     }
@@ -188,8 +177,7 @@ function SearchInput() {
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
-      setInputValue('');
-      setSearchQuery('');
+      clearSearch();
       setIsExpanded(false);
     }
   };
@@ -312,6 +300,79 @@ function SearchInput() {
   );
 }
 
+/**
+ * Filter status indicator with clear button
+ * P9-T05: Filter State Control System
+ *
+ * - Shows active filter count badge
+ * - Clear button visible only when filters active
+ * - Clicking clear resets all filters (preserves view/sort)
+ */
+function FilterStatus() {
+  const hasActiveFilters = useFilterStore((s) => s.hasActiveFilters());
+  const activeFilterCount = useFilterStore((s) => s.activeFilterCount());
+  const clearFilters = useFilterStore((s) => s.clearFilters);
+
+  if (!hasActiveFilters) {
+    return null;
+  }
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+      {/* Active filter count badge */}
+      <span
+        style={{
+          minWidth: 18,
+          height: 18,
+          padding: '0 5px',
+          borderRadius: 100,
+          background: 'var(--accent)',
+          color: '#fff',
+          fontSize: 10,
+          fontWeight: 700,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          lineHeight: 1,
+        }}
+        aria-label={`${activeFilterCount} active filters`}
+      >
+        {activeFilterCount}
+      </span>
+
+      {/* Clear filters button */}
+      <button
+        type="button"
+        onClick={clearFilters}
+        aria-label="Clear all filters"
+        style={{
+          ...iconBtnBase,
+          width: 28,
+          height: 28,
+          borderRadius: 8,
+        }}
+        title="Clear filters"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
 export default function TopBar({
   notificationCount,
   displayName,
@@ -366,6 +427,9 @@ export default function TopBar({
 
         {/* Search (P9-T02: icon-only → expandable input) */}
         <SearchInput />
+
+        {/* Filter status + clear (P9-T05) */}
+        <FilterStatus />
 
         {/* Bell */}
         <IconBtn onClick={onNotificationClick} label="Notifications">

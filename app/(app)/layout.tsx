@@ -11,6 +11,8 @@ import SelectionOverlay from '@/components/selection/SelectionOverlay';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { useLocalStorage } from '@/lib/hooks/useLocalStorage';
 import { getTrashCount } from '@/app/lib/actions/trash';
+import { useFilterStore } from '@/lib/store/filterStore';
+import { useFeedURLSync } from '@/lib/hooks/useFeedURLSync';
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(false);
@@ -134,41 +136,23 @@ const PlusIcon = () => (
 );
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  // P9-T01: Feed tabs synced with URL search params for SSR
-  const searchParams = useSearchParams();
-  const viewParam = searchParams.get('view') as TabId | null;
-  const mineParam = searchParams.get('mine') as MineSubTab | null;
-  const [tab, setTabState] = useState<TabId>(viewParam && tabs.some(t => t.id === viewParam) ? viewParam : 'all');
-  const [mineSubTab, setMineSubTabState] = useState<MineSubTab>(
-    mineParam && ['all', 'not-shared', 'shared'].includes(mineParam) ? mineParam : 'all'
-  );
+  // P9-T03: Filter state from store (URL is source of truth via useFeedURLSync)
+  useFeedURLSync();
+  const filterView = useFilterStore((s) => s.view);
+  const filterSort = useFilterStore((s) => s.sort);
+  const setFilterView = useFilterStore((s) => s.setView);
+  const setMineSubTabStore = useFilterStore((s) => s.setMineSubTab);
+  const mineSubTabStore = useFilterStore((s) => s.mineSubTab);
 
-  // Sync URL when tabs change (P9-T01)
+  // Map store view to layout TabId
+  const tab = filterView as TabId;
   const setTab = (next: TabId) => {
-    setTabState(next);
-    const params = new URLSearchParams(searchParams.toString());
-    if (next === 'all') {
-      params.delete('view');
-    } else {
-      params.set('view', next);
-    }
-    // Reset mine sub-tab when leaving mine tab
-    if (next !== 'mine') {
-      params.delete('mine');
-      setMineSubTabState('all');
-    }
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    setFilterView(next as typeof filterView);
+    if (next !== 'mine') setMineSubTabStore('all');
   };
-
+  const mineSubTab = mineSubTabStore === 'not_shared' ? 'not-shared' : mineSubTabStore === 'shared' ? 'shared' : 'all';
   const setMineSubTab = (next: MineSubTab) => {
-    setMineSubTabState(next);
-    const params = new URLSearchParams(searchParams.toString());
-    if (next === 'all') {
-      params.delete('mine');
-    } else {
-      params.set('mine', next);
-    }
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    setMineSubTabStore(next === 'not-shared' ? 'not_shared' : next === 'shared' ? 'shared' : 'all');
   };
   const [view, setView] = useLocalStorage<ViewMode>('liked.view', 'col');
   const [zoom, setZoom] = useLocalStorage<number>('liked.zoom', 2);

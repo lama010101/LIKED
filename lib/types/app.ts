@@ -5,7 +5,7 @@
 // Feed types
 export type FeedView = "masonry" | "icon" | "list" | "horizontal" | "canvas";
 export type FeedState = "all" | "mine" | "received";
-export type SortOption = "newest" | "oldest" | "mostShared" | "highestRated" | "custom";
+export type SortOption = "newest" | "oldest" | "most_shared" | "highest_rated" | "custom";
 
 // Node types
 export interface Node {

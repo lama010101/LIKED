@@ -1,6 +1,8 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { getVisibleNodes, type FeedView, type MineSubFilter } from "@/lib/db/visibility";
+import { parseURLToFilterState } from "@/lib/utils/feedParams";
+import { type FilterState } from "@/lib/store/filterStore";
 import FeedGrid from "./_components/FeedGrid";
 
 interface FeedPageProps {
@@ -17,20 +19,24 @@ export default async function FeedPage({ searchParams }: FeedPageProps) {
     redirect("/login");
   }
 
-  // P9-T01: Read feed view from URL search params (SSR)
-  const viewParam = typeof searchParams.view === 'string' ? searchParams.view : 'all';
-  const mineParam = typeof searchParams.mine === 'string' ? searchParams.mine : 'all';
+  // P9-T03-B: Parse full filter state from URL (deterministic, normalized)
+  const filterState = parseURLToFilterState(searchParams);
 
-  const view: FeedView = ['all', 'mine', 'received'].includes(viewParam) ? (viewParam as FeedView) : 'all';
-  const mineFilter: MineSubFilter = ['all', 'not_shared', 'shared'].includes(mineParam)
-    ? (mineParam as MineSubFilter)
-    : 'all';
+  // Map filterState view to legacy getVisibleNodes params (until get_feed RPC is wired)
+  const view: FeedView = filterState.view;
+  const mineFilter: MineSubFilter = filterState.mineSubTab;
 
   const nodes = await getVisibleNodes(user.id, view, mineFilter);
 
   return (
     <div className="min-h-[60vh] bg-[#F8F6F2]">
-      <FeedGrid nodes={nodes} currentUserId={user.id} feedView={view} mineFilter={mineFilter} />
+      <FeedGrid
+        nodes={nodes}
+        currentUserId={user.id}
+        feedView={view}
+        mineFilter={mineFilter}
+        initialFilterState={filterState}
+      />
     </div>
   );
 }

@@ -1,11 +1,13 @@
 /**
  * Feed data fetching hook
  * P2-T03 + P6-T03 (sort wiring)
+ * P9-T03-B: Sort mapping removed — buildFeedParams is single authority
  */
 
 import { useState, useEffect, useCallback } from "react";
 import { Node, FeedState, SortOption, FeedFilters } from "@/lib/types/app";
-import { useFeedStore } from "@/lib/store/feedStore";
+import { useFilterStore } from "@/lib/store/filterStore";
+import { buildFeedParams } from "@/lib/utils/feedParams";
 import { supabaseBrowser } from "@/lib/supabase/client";
 
 interface UseFeedOptions {
@@ -27,30 +29,9 @@ interface UseFeedResult {
   refresh: () => void;
 }
 
-/**
- * Map UI SortOption values to the p_sort strings understood by the
- * get_visible_nodes / get_nodes_in_folder RPCs.
- */
-function toSortKey(sort: SortOption): string {
-  switch (sort) {
-    case "newest":
-      return "newest";
-    case "oldest":
-      return "oldest";
-    case "highestRated":
-      return "rating";
-    case "mostShared":
-      return "most_shared";
-    case "custom":
-      return "custom";
-    default:
-      return "newest";
-  }
-}
-
 export function useFeed(options: UseFeedOptions): UseFeedResult {
   const { userId, folderId, sortOption: sortOverride } = options;
-  const storeSort = useFeedStore((s) => s.sortOption);
+  const storeSort = useFilterStore((s) => s.sort);
   const sortOption = sortOverride ?? storeSort;
 
   const [nodes, setNodes] = useState<Node[]>([]);
@@ -74,7 +55,6 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
     }
 
     let cancelled = false;
-    const sortKey = toSortKey(sortOption);
 
     async function run() {
       setIsLoading(true);
@@ -82,18 +62,24 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
       try {
         let data: Node[] | null = null;
 
+        // Use buildFeedParams as single mapping authority for sort
+        const feedParams = buildFeedParams(
+          { ...useFilterStore.getState(), sort: sortOption },
+          userId
+        );
+
         if (folderId) {
           const res = await supabaseBrowser.rpc("get_nodes_in_folder", {
             p_user_id: userId,
             p_folder_id: folderId,
-            p_sort: sortKey,
+            p_sort: feedParams.p_sort,
           });
           if (res.error) throw res.error;
           data = (res.data ?? null) as unknown as Node[] | null;
         } else {
           const res = await supabaseBrowser.rpc("get_visible_nodes", {
             p_user_id: userId,
-            p_sort: sortKey,
+            p_sort: feedParams.p_sort,
           });
           if (res.error) throw res.error;
           data = (res.data ?? null) as unknown as Node[] | null;

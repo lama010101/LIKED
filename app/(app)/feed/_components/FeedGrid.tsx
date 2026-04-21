@@ -4,7 +4,8 @@ import { useState, useCallback, useEffect, useMemo } from "react";
 import type { VisibleNode, FeedView, MineSubFilter } from "@/lib/db/visibility";
 import type { FeedItem } from "@/lib/types/feed";
 import { useLocalStorage } from "@/lib/hooks/useLocalStorage";
-import { useFilterStore } from "@/lib/store/filterStore";
+import { useFeedURLSync } from "@/lib/hooks/useFeedURLSync";
+import { useFilterStore, type FilterState } from "@/lib/store/filterStore";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import CardDetailSheet from "@/components/modals/CardDetailSheet";
 import FreeGrid from "./FreeGrid";
@@ -37,6 +38,8 @@ interface FeedGridProps {
   onFolderFilterClick?: () => void;
   /** User's language code for search (e.g., 'en', 'fr', 'th') */
   languageCode?: string;
+  /** Server-parsed initial filter state for SSR hydration */
+  initialFilterState?: Partial<FilterState>;
 }
 
 const STUB_ITEMS: FeedItem[] = [
@@ -73,23 +76,6 @@ function toFeedItems(nodes: VisibleNode[]): FeedItem[] {
   });
 }
 
-/**
- * Map UI sort to RPC sort parameter
- */
-function toSortKey(sort: string): string {
-  switch (sort) {
-    case 'oldest':
-      return 'oldest';
-    case 'highestRated':
-      return 'rating';
-    case 'mostShared':
-      return 'most_shared';
-    case 'custom':
-      return 'custom';
-    default:
-      return 'newest';
-  }
-}
 
 export default function FeedGrid({
   nodes,
@@ -103,22 +89,25 @@ export default function FeedGrid({
   onExitFolder,
   onFolderFilterClick,
   languageCode = 'en',
+  initialFilterState,
 }: FeedGridProps) {
+  // P9-T03-B: SSR hydration — initialize store from server-parsed state
+  useFeedURLSync({ initialFilterState });
   // P9-T01: feedView and mineFilter are passed for future client-side filtering
   const [storedView] = useLocalStorage<ViewMode>('liked.view', 'col');
   const [storedZoom] = useLocalStorage<number>('liked.zoom', 2);
   const view = viewProp ?? storedView;
   const zoom = zoomProp ?? storedZoom;
 
-  // P9-T02: Search integration
-  const { searchQuery } = useFilterStore();
+  // P9-T02: Search integration (P9-T03: searchQuery from filterStore)
+  const searchQuery = useFilterStore((s) => s.searchQuery);
   const [searchResults, setSearchResults] = useState<VisibleNode[] | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState<Error | null>(null);
 
   // Debounced search effect (300ms)
   useEffect(() => {
-    if (!searchQuery.trim()) {
+    if (!searchQuery?.trim()) {
       setSearchResults(null);
       setIsSearching(false);
       setSearchError(null);
@@ -134,7 +123,7 @@ export default function FeedGrid({
           p_user_id: currentUserId,
           p_query: searchQuery.trim(),
           p_language_code: languageCode,
-          p_sort: 'newest', // TODO: wire from feedStore
+          p_sort: 'newest', // TODO: wire from filterStore
           p_view: feedView ?? 'all',
           p_mine_filter: mineFilter ?? 'all',
         });
@@ -154,7 +143,7 @@ export default function FeedGrid({
 
   // Use search results when available, otherwise use server-rendered nodes
   const displayNodes = useMemo(() => {
-    if (searchQuery.trim()) {
+    if (searchQuery?.trim()) {
       return searchResults ?? [];
     }
     return nodes;
@@ -177,7 +166,7 @@ export default function FeedGrid({
   // P9-T02: Search-specific empty state
   const emptyState = (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "128px 0", textAlign: "center" }}>
-      {searchQuery.trim() ? (
+      {searchQuery?.trim() ? (
         <>
           <p style={{ color: "var(--text-3)", fontSize: 14 }}>No results for &ldquo;{searchQuery}&rdquo;</p>
           <p style={{ color: "var(--text-3)", fontSize: 12, marginTop: 8 }}>Try different keywords</p>
@@ -229,7 +218,7 @@ export default function FeedGrid({
 
   // When searching or real data is available, convert VisibleNode[] → FeedItem[]
   const feedItems = useMemo(() => {
-    if (searchQuery.trim() || displayNodes.length > 0) {
+    if (searchQuery?.trim() || displayNodes.length > 0) {
       return toFeedItems(displayNodes);
     }
     return STUB_ITEMS;
