@@ -456,6 +456,10 @@ body{font-family:'Inter',sans-serif;background:#e8e8ec;margin:0;padding:0;min-he
 .bc-back{width:24px;height:24px;border-radius:7px;background:#f0f0f3;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
 .phone.dark .bc-back{background:#2a2a2e}
 .bc-back svg{width:12px;height:12px;fill:none;stroke:#555;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.bc-home{cursor:pointer;color:#8b5cf6}
+.bc-home:hover{text-decoration:underline}
+.bc-current{font-weight:600;color:#111}
+.phone.dark .bc-current{color:#f0f0f0}
 </style>
 
 <div id="root">
@@ -1134,7 +1138,7 @@ body{font-family:'Inter',sans-serif;background:#e8e8ec;margin:0;padding:0;min-he
 </div>
 
 <script>
-var state={dark:false,accent:'#8b5cf6',cols:2,view:'col',stripState:'strip',rating:5,activeSheet:null,dialOpen:false,tagsStripOpen:false,sortBy:'newest'};
+var state={dark:false,accent:'#8b5cf6',cols:2,view:'col',stripState:'strip',rating:5,activeSheet:null,dialOpen:false,tagsStripOpen:false,sortBy:'newest',currentFolder:null};
 
 var tagsData=[
   {id:'music',label:'Music',color:'#ff006e'},
