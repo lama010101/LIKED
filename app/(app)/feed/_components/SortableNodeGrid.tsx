@@ -32,15 +32,15 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { VisibleNode } from "@/lib/db/visibility";
+import type { FeedNode } from "@/lib/hooks/useFeed";
 import { useFeedStore } from "@/lib/store/feedStore";
 import { dndReorderFeed } from "@/app/lib/actions/dnd";
 import NodeCardInner from "./NodeCard";
 
 interface SortableNodeGridProps {
-  nodes: VisibleNode[];
+  nodes: FeedNode[];
   scopeKey: string;
-  onCardClick: (node: VisibleNode) => void;
+  onCardClick: (node: FeedNode) => void;
   currentUserId: string;
 }
 
@@ -55,8 +55,8 @@ function SortableCard({
   onClick,
   currentUserId,
 }: {
-  node: VisibleNode;
-  onClick: (node: VisibleNode) => void;
+  node: FeedNode;
+  onClick: (node: FeedNode) => void;
   currentUserId: string;
 }) {
   const {
@@ -66,7 +66,7 @@ function SortableCard({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: node.id });
+  } = useSortable({ id: node.node_id });
 
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
@@ -95,13 +95,14 @@ export default function SortableNodeGrid({
   currentUserId,
 }: SortableNodeGridProps) {
   const setCustomOrder = useFeedStore((s) => s.setCustomOrder);
-  const storedOrder = useFeedStore((s) => s.customOrders[scopeKey]);
+  // Get customOrder via getState to avoid INVARIANT 1 violation (method selector)
+  const storedOrder = useMemo(() => useFeedStore.getState().customOrders[scopeKey] ?? [], [scopeKey]);
 
   // Merge stored order (persisted) with incoming nodes:
   // 1) items that exist in both, in the stored order
   // 2) any new nodes (not yet ordered) appended at the end by created_at DESC
   const orderedIds = useMemo(() => {
-    const byId = new Map(nodes.map((n) => [n.id, n]));
+    const byId = new Map(nodes.map((n) => [n.node_id, n]));
     const used = new Set<string>();
     const result: string[] = [];
     if (storedOrder) {
@@ -113,7 +114,7 @@ export default function SortableNodeGrid({
       }
     }
     for (const n of nodes) {
-      if (!used.has(n.id)) result.push(n.id);
+      if (!used.has(n.node_id)) result.push(n.node_id);
     }
     return result;
   }, [nodes, storedOrder]);
@@ -128,7 +129,7 @@ export default function SortableNodeGrid({
   );
 
   const nodeById = useMemo(
-    () => new Map(nodes.map((n) => [n.id, n])),
+    () => new Map(nodes.map((n) => [n.node_id, n])),
     [nodes]
   );
 

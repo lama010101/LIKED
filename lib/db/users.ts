@@ -81,6 +81,8 @@ export async function updateDisplayName(
   await supabase.from("activity_log").insert({
     user_id: userId,
     action: "username_change",
+    target_id: null,
+    target_type: null,
     metadata: { old: current?.display_name ?? null, new: trimmed },
   });
 }
@@ -117,6 +119,8 @@ export async function updateAvatar(
   await supabase.from("activity_log").insert({
     user_id: userId,
     action: "avatar_change",
+    target_id: null,
+    target_type: null,
     metadata: { avatar_key: avatarKey },
   });
 }

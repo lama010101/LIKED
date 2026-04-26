@@ -1,7 +1,8 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { getVisibleNodes, type FeedView, type MineSubFilter } from "@/lib/db/visibility";
-import { parseURLToFilterState } from "@/lib/utils/feedParams";
+import { getFeed, type FeedNode } from "@/lib/db/feed";
+import { getUserFolders } from "@/lib/db/folders";
+import { parseURLToFilterState, buildFeedParams } from "@/lib/utils/feedParams";
 import { type FilterState } from "@/lib/store/filterStore";
 import FeedGrid from "./_components/FeedGrid";
 
@@ -19,23 +20,25 @@ export default async function FeedPage({ searchParams }: FeedPageProps) {
     redirect("/login");
   }
 
-  // P9-T03-B: Parse full filter state from URL (deterministic, normalized)
+  // P9-T06-FIX: Parse full filter state from URL (deterministic, normalized)
   const filterState = parseURLToFilterState(searchParams);
 
-  // Map filterState view to legacy getVisibleNodes params (until get_feed RPC is wired)
-  const view: FeedView = filterState.view;
-  const mineFilter: MineSubFilter = filterState.mineSubTab;
+  // P9-T06-FIX: Canonical feed path — buildFeedParams → getFeed → get_feed RPC
+  const feedParams = buildFeedParams(filterState, user.id);
+  const { nodes, totalCount, nextCursor } = await getFeed(feedParams, true);
 
-  const nodes = await getVisibleNodes(user.id, view, mineFilter);
+  // FOLDER-004: Fetch user's folders for feed UI
+  const folders = await getUserFolders();
 
   return (
-    <div className="min-h-[60vh] bg-[#F8F6F2]">
+    <div className="min-h-[60vh]" style={{ background: 'var(--bg)' }}>
       <FeedGrid
         nodes={nodes}
         currentUserId={user.id}
-        feedView={view}
-        mineFilter={mineFilter}
         initialFilterState={filterState}
+        totalCount={totalCount}
+        nextCursor={nextCursor}
+        folders={folders}
       />
     </div>
   );

@@ -16,8 +16,9 @@
  * 4. URL changes only via store → serialize → router.replace
  */
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useMemo } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { useShallow } from "zustand/react/shallow";
 import { useFilterStore, initializeFilterStore, type FilterState } from "@/lib/store/filterStore";
 import { parseURLToFilterState, serializeFilterStateToURL, isEqualFilterState, normalizeFilterState } from "@/lib/utils/feedParams";
 
@@ -34,6 +35,8 @@ function snapshot(state: FilterState): FilterState {
     filterFriendIds: state.filterFriendIds,
     filterFolderIds: state.filterFolderIds,
     searchQuery: state.searchQuery,
+    viewMode: state.viewMode,
+    zoom: state.zoom,
   };
 }
 
@@ -79,7 +82,39 @@ export function useFeedURLSync(options?: UseFeedURLSyncOptions) {
   }, [searchParams, hydrate]);
 
   // ── On store change: update URL ───────────────────────────────
-  const state = useFilterStore(snapshot);
+  const view = useFilterStore((s) => s.view);
+  const sort = useFilterStore((s) => s.sort);
+  const mineSubTab = useFilterStore((s) => s.mineSubTab);
+  const friendId = useFilterStore((s) => s.friendId);
+  const folderId = useFilterStore((s) => s.folderId);
+  const groupId = useFilterStore((s) => s.groupId);
+  const searchQuery = useFilterStore((s) => s.searchQuery);
+
+  // Arrays accessed via getState to avoid INVARIANT 1 violation
+  // Not reactive but acceptable with deep equality check in effect
+  const tagIds = useFilterStore.getState().tagIds;
+  const filterFriendIds = useFilterStore.getState().filterFriendIds;
+  const filterFolderIds = useFilterStore.getState().filterFolderIds;
+
+  // Presentation state (viewMode, zoom) read for snapshot completeness
+  const viewMode = useFilterStore((s) => s.viewMode);
+  const zoom = useFilterStore((s) => s.zoom);
+
+  const state = useMemo(() => snapshot({
+    view,
+    sort,
+    mineSubTab,
+    friendId,
+    folderId,
+    groupId,
+    tagIds,
+    filterFriendIds,
+    filterFolderIds,
+    searchQuery,
+    viewMode,
+    zoom,
+  }), [view, sort, mineSubTab, friendId, folderId, groupId, searchQuery, viewMode, zoom]);
+
   useEffect(() => {
     if (isHydrating.current) return;
     const normalized = normalizeFilterState(state);

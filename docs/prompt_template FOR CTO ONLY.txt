@@ -1,0 +1,305 @@
+PROJECT: LIKED
+TASK ID: <TASK_ID>
+TITLE: <TITLE>
+
+---
+
+## DOCUMENT AUTHORITY BLOCK (MANDATORY)
+
+Binding documents:
+- 01_PRD.md
+- 03_TECHNICAL_ARCHITECTURE.md
+- 04_FEED_SQL_SPEC.md
+
+Core invariants:
+- Visibility = edges ONLY (never nodes, never joins)
+- Feed = get_feed SQL ONLY (no frontend logic, no TS replication)
+- Writes = cause → edges (atomic, single transaction)
+- Deletion = cause deletion → cascade edges
+- DB = SINGLE source of truth
+- Frontend = rendering only
+- API = orchestration only
+
+If ANY cannot be proven with code:
+→ BLOCKED: ARCHITECTURE NOT VERIFIED
+
+---
+
+## 1. MODE
+
+<INVESTIGATION | IMPLEMENTATION>
+
+### RULES
+
+If INVESTIGATION:
+- NO code changes
+- ONLY evidence (file + lines + code)
+- NO interpretation
+- NO assumptions
+
+If IMPLEMENTATION:
+- ONE file only
+- ONE function only
+- ONE behavior only
+- NO refactor
+- NO optimization
+- NO additional logic
+
+Violation:
+→ FAILED
+
+---
+
+## 1.1 ZERO-DECISION EXECUTION (MANDATORY)
+
+You are NOT allowed to:
+- interpret intent
+- redesign logic
+- move logic across layers
+- introduce alternative implementations
+
+You MUST:
+- implement EXACTLY what is specified
+- preserve transaction semantics EXACTLY
+- preserve SQL calls EXACTLY
+- preserve return shape EXACTLY
+
+If unclear:
+→ BLOCKED: NOT DETERMINISTIC
+
+---
+
+## 1.2 FEED LOCK (CRITICAL)
+
+Feed logic exists ONLY in SQL (`get_feed`).
+
+FORBIDDEN:
+- filtering in React
+- sorting in TypeScript
+- deduplication outside SQL
+- reconstructing feed logic anywhere
+
+Allowed:
+- call get_feed
+- pass parameters
+- return result
+
+Any violation:
+→ FAILED: FEED VIOLATION
+
+---
+
+## 1.3 WRITE LOCK (CRITICAL)
+
+Every write MUST:
+
+1. CREATE cause
+2. CREATE edges linked to cause
+3. EXECUTE in ONE transaction
+
+FORBIDDEN:
+- edge without cause
+- partial writes
+- multi-transaction flows
+- conditional edge creation
+
+Violation:
+→ FAILED: WRITE VIOLATION
+
+---
+
+## 2. SCOPE (MANDATORY)
+
+File: <exact path>
+Function: <exact function name>
+Behavior: <single behavior change>
+
+If scope expands:
+→ FAILED
+
+---
+
+## 3. SOURCE OF TRUTH (MANDATORY)
+
+State:
+<what state is modified>
+
+Source of truth:
+<DB table>
+
+Write authority:
+<which function writes it>
+
+Read path:
+<how it is read (SQL / API / hook)>
+
+Lifecycle owner:
+<who owns creation / deletion>
+
+Missing ANY:
+→ FAILED
+
+---
+
+## 4. PRECONDITION (MANDATORY)
+
+You MUST prove with code:
+
+- structure (tables / function)
+- ownership (who writes)
+- read path (who reads)
+- lifecycle (create → delete)
+
+Format:
+
+FILE:
+FUNCTION:
+LINES:
+CODE:
+
+If not proven:
+→ BLOCKED: ARCHITECTURE NOT VERIFIED
+
+---
+
+## 5. BEFORE
+
+<exact code>
+
+---
+
+## 6. AFTER
+
+<exact code>
+
+---
+
+## 7. PATCH (MANDATORY)
+
+<non-empty diff>
+
+Empty:
+→ FAILED
+
+---
+
+## 8. VALIDATION (MANDATORY)
+
+### 8.1 Single Source of Truth
+
+Command:
+grep -rn "<table_or_function>" .
+
+Expected:
+- exactly one authority
+- no duplicated logic outside DB
+
+---
+
+### 8.2 No Logic Outside SQL (FEED)
+
+Command:
+grep -rn "sort\\|filter\\|map\\|reduce" app/ components/ lib/hooks/
+
+Expected:
+- NO feed logic outside SQL
+- ONLY rendering transformations allowed
+
+---
+
+### 8.3 Write Integrity
+
+You MUST prove:
+
+- cause is created
+- edges reference cause_id
+- transaction wraps ALL writes
+
+If not:
+→ FAILED
+
+---
+
+### 8.4 Determinism
+
+You MUST prove:
+
+- no frontend-derived truth
+- no in-memory state dependency
+- system rebuildable from DB only
+
+If not:
+→ FAILED
+
+---
+
+### 8.5 Scope Compliance
+
+Command:
+grep -rn "<function_name>" .
+
+Expected:
+- only one function modified
+- only one file modified
+
+---
+
+### 8.6 No Duplicate Logic
+
+Command:
+grep -rn "<logic_pattern>" .
+
+Expected:
+- EXACTLY one implementation
+
+---
+
+## 9. FAILURE CONDITIONS
+
+If ANY occurs → FAILED:
+
+- multiple files modified
+- multiple functions modified
+- feed logic outside SQL
+- missing cause → edges chain
+- missing transaction
+- duplicate logic
+- assumptions
+- missing code proof
+
+---
+
+## 10. OUTPUT FORMAT (STRICT)
+
+You MUST output EXACTLY:
+
+BEFORE:
+<code>
+
+AFTER:
+<code>
+
+PATCH:
+<diff>
+
+VALIDATION:
+<commands + results + explanation>
+
+---
+
+## 11. OUTPUT TERMINATION (MANDATORY)
+
+Your response MUST end with:
+
+Task Reference: <TASK_ID>
+
+If missing:
+→ FAILED
+
+---
+
+## FINAL INSTRUCTION
+
+Do not ask questions.
+Do not interpret.
+Execute exactly as specified.

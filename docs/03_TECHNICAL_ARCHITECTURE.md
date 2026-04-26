@@ -471,17 +471,41 @@ All these functions must be created in `supabase/migrations/004_write_functions.
 
 Postgres functions using `LANGUAGE plpgsql` are automatically transactional. Any error inside the function rolls back all statements in that call. No manual `BEGIN/COMMIT` needed when using RPC.
 
+## 8. WRITE AUTHORITY RULE
+
+Every write to the database must have an explicit authority level.
+
+| Authority | Scope | Rule |
+|---|---|---|
+| **TypeScript (temporary)** | Single-table inserts with no side effects | Allowed now; must be migrated to RPC before the phase is complete |
+| **SQL RPC (mandatory)** | Multiple tables, future expansion, permissions, sharing, tag auto-creation, cache updates | Required. No exceptions. |
+
+**Decision tree:**
+
+```
+Does the write touch more than one table?
+  → YES → RPC
+Does the write have a side effect (cache update, permission change, edge creation)?
+  → YES → RPC
+Is this operation expected to grow (batching, bulk import, future permission checks)?
+  → YES → RPC
+Otherwise:
+  → TypeScript allowed (flag for RPC migration in task notes)
+```
+
+**Consequence:** Mixing RPC and TypeScript for the same logical write path is forbidden. If a table is written from both sources, either merge them into one RPC or document the exception with a migration task ID.
+
 ---
 
-## 8. ROW-LEVEL SECURITY (RLS) DESIGN
+## 9. ROW-LEVEL SECURITY (RLS) DESIGN
 
-### 8.1 Philosophy
+### 9.1 Philosophy
 
 - RLS is a **safety net**, not the primary access control mechanism. The primary control is the server-side `lib/db/visibility.ts` query.
 - All writes go through the service role (bypasses RLS) — this is intentional. Application logic enforces write rules.
 - RLS on SELECT prevents direct client queries from bypassing visibility.
 
-### 8.2 Policy table
+### 9.2 Policy table
 
 | Table | SELECT policy | INSERT/UPDATE/DELETE |
 |---|---|---|
@@ -499,7 +523,7 @@ Postgres functions using `LANGUAGE plpgsql` are automatically transactional. Any
 | `tags`, `tag_translations`, `tag_edges` | Authenticated | Service role only |
 | `translations` | Authenticated | Service role only |
 
-### 8.3 Critical RLS rule
+### 9.3 Critical RLS rule
 
 **The `nodes` SELECT policy must mirror the visibility model exactly:**
 
@@ -527,13 +551,13 @@ This policy must be **identical** to the query in `lib/db/visibility.ts`. If one
 
 ---
 
-## 9. TYPESCRIPT TYPE SYSTEM
+## 10. TYPESCRIPT TYPE SYSTEM
 
-### 9.1 Database types — generated, never hand-written
+### 10.1 Database types — generated, never hand-written
 
 Run `supabase gen types typescript --project-id <id> > lib/types/database.ts` after every schema migration. Never manually write types that mirror the database schema.
 
-### 9.2 App types
+### 10.2 App types
 
 `lib/types/app.ts` contains derived types used in components. They extend database types but add computed/joined fields:
 
@@ -566,15 +590,15 @@ export type ViewMode = 'masonry' | 'icons' | 'list' | 'horizontal' | 'canvas'
 export type FeedView = 'all' | 'mine' | 'received'
 ```
 
-### 9.3 Never use `any`
+### 10.3 Never use `any`
 
 TypeScript strict mode is on. `any` is banned. Use `unknown` + type narrowing where needed.
 
 ---
 
-## 10. COMPONENT PATTERNS
+## 11. COMPONENT PATTERNS
 
-### 10.1 Server vs Client Component decision tree
+### 11.1 Server vs Client Component decision tree
 
 ```
 Does the component need:
@@ -585,7 +609,7 @@ Does the component need:
 
 **Never add `'use client'` to a file that imports from `lib/db/*` or `lib/supabase/server.ts`.**
 
-### 10.2 Modal pattern
+### 11.2 Modal pattern
 
 All modals use a single `Modal` primitive from `components/ui/Modal.tsx`. They are rendered in a portal at the root layout level, never inside the component that triggers them. State controlling modal open/close lives in `uiStore.ts`.
 
@@ -608,7 +632,7 @@ export function Modal({ isOpen, onClose, children }) {
 }
 ```
 
-### 10.3 Bottom sheet vs side drawer
+### 11.3 Bottom sheet vs side drawer
 
 Per PRD §14, context menus are Bottom-sheet on mobile, Side drawer on desktop. Use Tailwind breakpoints to swap:
 
@@ -633,7 +657,7 @@ export function ContextMenu({ isOpen, onClose, children }) {
 }
 ```
 
-### 10.4 Minimum tap target enforcement
+### 11.4 Minimum tap target enforcement
 
 All interactive elements must be at minimum 44×44px. Use this Tailwind utility class combination consistently:
 
@@ -645,17 +669,17 @@ Apply this to every button, icon button, avatar, chip, and toggle.
 
 ---
 
-## 11. DRAG-AND-DROP ARCHITECTURE
+## 12. DRAG-AND-DROP ARCHITECTURE
 
-### 11.1 Library choice: @dnd-kit/core
+### 12.1 Library choice: @dnd-kit/core
 
 Use `@dnd-kit/core` with `@dnd-kit/sortable`. It supports touch events natively, works in Next.js App Router, and does not require a DOM-based collision detection setup.
 
-### 11.2 DnD provider placement
+### 12.2 DnD provider placement
 
 `DndProvider.tsx` wraps `FeedContainer.tsx` and the bars. It must NOT wrap the entire app layout — only the content area where drags originate and land.
 
-### 11.3 Drag item types
+### 12.3 Drag item types
 
 Every draggable item has a `type` in its drag data:
 
@@ -669,7 +693,7 @@ type DragData =
 
 Drop handlers check `dragData.type` to decide what action to fire. This avoids ambiguous drop behavior.
 
-### 11.4 Auto-expand on drag-pause
+### 12.4 Auto-expand on drag-pause
 
 When a drag item hovers over a collapsed bar for >500ms, the bar auto-expands. Implement this with a `useRef` timer in the droppable bar component:
 
@@ -687,7 +711,7 @@ const handleDragLeave = () => {
 }
 ```
 
-### 11.5 Mobile touch events
+### 12.5 Mobile touch events
 
 `@dnd-kit` handles pointer events, which unifies mouse and touch. Do NOT add separate `onTouchStart`/`onTouchMove` handlers. Add the `TouchBackend` sensor configuration:
 
@@ -701,9 +725,9 @@ const sensors = useSensors(
 
 ---
 
-## 12. TAILWIND CONFIGURATION
+## 13. TAILWIND CONFIGURATION
 
-### 12.1 Custom tokens (`tailwind.config.ts`)
+### 13.1 Custom tokens (`tailwind.config.ts`)
 
 ```typescript
 theme: {
@@ -752,7 +776,7 @@ theme: {
 }
 ```
 
-### 12.2 CSS custom properties (`app/globals.css`)
+### 13.2 CSS custom properties (`app/globals.css`)
 
 All design tokens are also defined as CSS custom properties so they can be used in non-Tailwind contexts (e.g., inline styles, SVG, Canvas):
 
@@ -786,7 +810,7 @@ All design tokens are also defined as CSS custom properties so they can be used 
 
 **Critical:** `--color-mine` and `--color-received` are defined ONCE and used for BOTH feed filter tabs AND card direction badges. Never hardcode these hex values in component code.
 
-### 12.3 Dark mode
+### 13.3 Dark mode
 
 Use `class` strategy (not `media`):
 ```typescript
@@ -795,7 +819,7 @@ darkMode: 'class'
 
 Theme toggle in Profile Modal adds/removes `dark` class on `<html>`. Persisted to `localStorage`.
 
-### 12.4 Tailwind class discipline
+### 13.4 Tailwind class discipline
 
 - Never use arbitrary values (`w-[347px]`) for layout dimensions — use the spacing scale.
 - Arbitrary values are allowed only for brand-specific measurements explicitly stated in the PRD (e.g., `bottom-[24px]` for FAB positioning).
@@ -804,9 +828,9 @@ Theme toggle in Profile Modal adds/removes `dark` class on `<html>`. Persisted t
 
 ---
 
-## 13. SUPABASE STORAGE CONVENTIONS
+## 14. SUPABASE STORAGE CONVENTIONS
 
-### 13.1 Buckets
+### 14.1 Buckets
 
 | Bucket | Contents | Access |
 |---|---|---|
@@ -815,14 +839,14 @@ Theme toggle in Profile Modal adds/removes `dark` class on `<html>`. Persisted t
 
 Both buckets are public-readable. Write access is service-role only.
 
-### 13.2 Key naming conventions
+### 14.2 Key naming conventions
 
 ```
 avatars/{userId}/{timestamp}.{ext}          # user avatars
 thumbnails/{nodeId}/{timestamp}.{ext}       # node thumbnails
 ```
 
-### 13.3 URL construction
+### 14.3 URL construction
 
 Never store full public URLs. Store only the path key. Construct URLs at display time:
 
@@ -835,9 +859,9 @@ export function getStorageUrl(bucket: 'avatars' | 'thumbnails', key: string): st
 
 ---
 
-## 14. EDGE FUNCTION CONVENTIONS
+## 15. EDGE FUNCTION CONVENTIONS
 
-### 14.1 Function: `extract-node-metadata`
+### 15.1 Function: `extract-node-metadata`
 
 Located at `supabase/functions/extract-node-metadata/index.ts`.
 
@@ -848,7 +872,7 @@ Located at `supabase/functions/extract-node-metadata/index.ts`.
 
 **Pattern: Edge Function must NOT write to DB.** It returns data to the calling server route, which writes everything in one transaction. This is non-negotiable — the function is a pure data extractor.
 
-### 14.2 Calling Edge Functions from API routes
+### 15.2 Calling Edge Functions from API routes
 
 ```typescript
 // app/api/nodes/route.ts (inside POST handler)
@@ -869,9 +893,9 @@ await serviceClient.rpc('create_node_with_metadata', { ...metadata, owner_id: us
 
 ---
 
-## 15. ERROR HANDLING CONVENTIONS
+## 16. ERROR HANDLING CONVENTIONS
 
-### 15.1 API route errors
+### 16.1 API route errors
 
 All API routes return consistent JSON error shapes:
 
@@ -886,7 +910,7 @@ Response.json({ success: false, error: 'DUPLICATE_NODE' }, { status: 400 })
 Response.json({ success: false, error: 'INTERNAL_ERROR' }, { status: 500 })
 ```
 
-### 15.2 Error codes (canonical list)
+### 16.2 Error codes (canonical list)
 
 | Code | HTTP | Meaning |
 |---|---|---|
@@ -899,7 +923,7 @@ Response.json({ success: false, error: 'INTERNAL_ERROR' }, { status: 500 })
 | `NOT_FOUND` | 404 | Resource doesn't exist or isn't visible |
 | `INTERNAL_ERROR` | 500 | Unexpected server error |
 
-### 15.3 Client-side error handling
+### 16.3 Client-side error handling
 
 Client components that call API routes use a consistent pattern:
 
@@ -920,27 +944,27 @@ if (!data.success) {
 
 ---
 
-## 16. PERFORMANCE CONVENTIONS
+## 17. PERFORMANCE CONVENTIONS
 
-### 16.1 Feed pagination
+### 17.1 Feed pagination
 
 The feed uses **cursor-based pagination** (not offset). The cursor is the `created_at` timestamp of the last visible node. Initial load: 30 nodes. Each subsequent page: 20 nodes. Implementation detail deferred to Feed SQL Spec (`04_FEED_SQL_SPEC.md`).
 
-### 16.2 Image optimization
+### 17.2 Image optimization
 
 All thumbnails and avatars rendered via Next.js `<Image>` component with explicit `width`, `height`, and `priority={false}` (except the first 6 cards in the feed which get `priority={true}`).
 
-### 16.3 No N+1 queries
+### 17.3 No N+1 queries
 
 The visibility query in `lib/db/visibility.ts` must JOIN all necessary data in one query: nodes, sort cache, tags (with translated labels), sender info, direction. Do not make separate queries per card to fetch tags or sender data.
 
-### 16.4 Memoization
+### 17.4 Memoization
 
 Card components (`NodeCard.tsx`) must be wrapped in `React.memo`. The equality check should compare `nodeId` + `updated_at` only — not deep equality.
 
 ---
 
-## 17. ENVIRONMENT VARIABLES
+## 18. ENVIRONMENT VARIABLES
 
 ```bash
 # .env.local — required variables
@@ -960,7 +984,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 ---
 
-## 18. CONSTANTS FILE
+## 19. CONSTANTS FILE
 
 ```typescript
 // lib/constants.ts
@@ -1001,9 +1025,9 @@ export const TAG_COLOR_PALETTE = [
 
 ---
 
-## 19. TESTING STRATEGY
+## 20. TESTING STRATEGY
 
-### 19.1 What to test
+### 20.1 What to test
 
 | Test type | Tool | What |
 |---|---|---|
@@ -1011,7 +1035,7 @@ export const TAG_COLOR_PALETTE = [
 | Integration | Vitest + Supabase local | `lib/db/*` functions against local Supabase |
 | E2E | Playwright | Critical paths: login, create node, share, unshare, feed visibility |
 
-### 19.2 Critical invariant tests
+### 20.2 Critical invariant tests
 
 The following must be automated before Phase 3 is considered complete:
 
@@ -1026,30 +1050,30 @@ test: "group unshare cascades to all member edges"
 
 ---
 
-## 20. DEPLOYMENT
+## 21. DEPLOYMENT
 
-### 20.1 Target platform
+### 21.1 Target platform
 
 Vercel (primary). The app is a standard Next.js 15 app with no special deployment requirements.
 
-### 20.2 Supabase project
+### 21.2 Supabase project
 
 One Supabase project per environment:
 - `liked-dev` — local development (`supabase start`)
 - `liked-prod` — production
 
-### 20.3 Deploy checklist
+### 21.3 Deploy checklist
 
 Before every production deploy:
 - [ ] `supabase db push` — migrations applied
 - [ ] `supabase functions deploy extract-node-metadata` — Edge Function updated
 - [ ] `supabase gen types typescript` — types regenerated
 - [ ] `SUPABASE_SERVICE_ROLE_KEY` set in Vercel environment variables (not `NEXT_PUBLIC_`)
-- [ ] RLS policies verified — run the invariant SQL tests from §8.3
+- [ ] RLS policies verified — run the invariant SQL tests from §9.3
 
 ---
 
-## 21. DECISIONS LOG
+## 22. DECISIONS LOG
 
 These decisions are final. Do not re-litigate them in Cascade sessions.
 

@@ -31,7 +31,7 @@ import {
   useState,
   useTransition,
 } from "react";
-import type { VisibleNode } from "@/lib/db/visibility";
+import type { FeedNode } from "@/lib/hooks/useFeed";
 import type { CardDetail } from "@/lib/db/cardDetail";
 import {
   fetchCardDetail,
@@ -41,7 +41,7 @@ import {
 } from "@/app/lib/actions/cardDetail";
 
 interface CardDetailSheetProps {
-  node: VisibleNode | null;
+  node: FeedNode | null;
   currentUserId: string;
   onClose: () => void;
   onShareClick?: (nodeId: string) => void;
@@ -170,10 +170,10 @@ export default function CardDetailSheet({
     [node?.url]
   );
 
-  // Fetch detail whenever the node changes (scoped by node.id).
+  // Fetch detail whenever the node changes (scoped by node.node_id).
   // All resets are deferred via queueMicrotask so the effect body itself
   // doesn't synchronously call setState (react-hooks/set-state-in-effect).
-  const nodeId = node?.id ?? null;
+  const nodeId = node?.node_id ?? null;
   useEffect(() => {
     let cancelled = false;
     if (!nodeId) {

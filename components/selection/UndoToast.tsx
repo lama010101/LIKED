@@ -10,7 +10,7 @@
  * actually call the restore server action.
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useSelectionStore, PendingRestore } from "@/lib/store/selectionStore";
 
 interface UndoToastProps {
@@ -19,9 +19,17 @@ interface UndoToastProps {
 }
 
 export default function UndoToast({ onUndo, durationMs = 5000 }: UndoToastProps) {
-  const pending = useSelectionStore((s) => s.pendingRestore);
+  const pendingKind = useSelectionStore((s) => s.pendingRestore?.kind ?? null);
+  const pendingId = useSelectionStore((s) => s.pendingRestore?.id ?? null);
+  const pendingLabel = useSelectionStore((s) => s.pendingRestore?.label ?? undefined);
+  const pendingAt = useSelectionStore((s) => s.pendingRestore?.at ?? null);
   const setPending = useSelectionStore((s) => s.setPendingRestore);
   const [progress, setProgress] = useState(1);
+
+  const pending = useMemo(() => {
+    if (!pendingKind || !pendingId || pendingAt === null) return null;
+    return { kind: pendingKind, id: pendingId, label: pendingLabel, at: pendingAt };
+  }, [pendingKind, pendingId, pendingLabel, pendingAt]);
 
   useEffect(() => {
     if (!pending) return;

@@ -1,18 +1,17 @@
 "use client";
 
 import { useCallback } from "react";
-import { useDraggable, useDroppable } from "@dnd-kit/core";
-import type { VisibleNode } from "@/lib/db/visibility";
+import { useDraggable, useDroppable, useDndContext } from "@dnd-kit/core";
+import type { FeedNode } from "@/lib/hooks/useFeed";
 import { sourceId, targetId } from "@/lib/dnd/types";
-import { useDndState } from "@/lib/dnd/DndProvider";
 import { useLongPress } from "@/lib/hooks/useLongPress";
 import { useSelectionStore } from "@/lib/store/selectionStore";
 import SelectionCloseButton from "@/components/selection/SelectionCloseButton";
 import { trashNode } from "@/app/lib/actions/selection";
 
 interface NodeCardProps {
-  node: VisibleNode;
-  onClick: (node: VisibleNode) => void;
+  node: FeedNode;
+  onClick: (node: FeedNode) => void;
   currentUserId: string;
 }
 
@@ -24,22 +23,20 @@ function formatDate(iso: string): string {
 export default function NodeCard({ node, onClick, currentUserId }: NodeCardProps) {
   const isTextCard = !node.url && !!node.text_content;
 
-  // P9-T01: Direction badge — amber for mine, blue for received
-  const isMine = node.origin_user_id === currentUserId;
-  const badgeColor = isMine ? 'var(--accent, #f5a623)' : 'var(--color-received, #60c5f1)';
+  // P9-T01: Direction badge — amber for mine, blue for received (PRD §11.3)
+  const isMine = node.direction === 'own' || node.direction === 'sent';
+  const badgeColor = isMine ? 'var(--accent)' : 'var(--tab-received)';
 
   // Multi-select (P7-T03)
   const selectionActive = useSelectionStore((s) => s.isActive);
-  const isSelected = useSelectionStore((s) =>
-    s.items.some((i) => i.kind === "node" && i.id === node.id)
-  );
+  const isSelected = useSelectionStore((s) => s.isSelected({ kind: "node", id: node.node_id }));
   const activate = useSelectionStore((s) => s.activate);
   const toggle = useSelectionStore((s) => s.toggle);
 
   const longPressRef = useLongPress(
     useCallback(() => {
-      activate({ kind: "node", id: node.id });
-    }, [activate, node.id]),
+      activate({ kind: "node", id: node.node_id });
+    }, [activate, node.node_id]),
     { delayMs: 500 }
   );
 
@@ -51,19 +48,20 @@ export default function NodeCard({ node, onClick, currentUserId }: NodeCardProps
     setNodeRef: setDragRef,
     isDragging,
   } = useDraggable({
-    id: sourceId({ kind: "node", nodeId: node.id }),
-    data: { dragSource: { kind: "node", nodeId: node.id } },
+    id: sourceId({ kind: "node", nodeId: node.node_id }),
+    data: { dragSource: { kind: "node", nodeId: node.node_id } },
     disabled: selectionActive,
   });
 
   // Drop target: P7-T02 card→card auto-create folder.
-  const { activeSource } = useDndState();
+  const { active } = useDndContext();
+  const activeSource = active?.data?.current?.dragSource;
   const isOtherNodeDragging =
-    activeSource?.kind === "node" && activeSource.nodeId !== node.id;
+    activeSource?.kind === "node" && activeSource.nodeId !== node.node_id;
   const { setNodeRef: setDropRef, isOver } = useDroppable({
-    id: targetId({ kind: "node", nodeId: node.id }),
+    id: targetId({ kind: "node", nodeId: node.node_id }),
     disabled: !isOtherNodeDragging || selectionActive,
-    data: { dropTarget: { kind: "node", nodeId: node.id } },
+    data: { dropTarget: { kind: "node", nodeId: node.node_id } },
   });
 
   const setRef = (el: HTMLButtonElement | null) => {
@@ -76,7 +74,7 @@ export default function NodeCard({ node, onClick, currentUserId }: NodeCardProps
     // While in selection mode, tap toggles this card in/out of the
     // selection set (PRD §17.1).
     if (selectionActive) {
-      toggle({ kind: "node", id: node.id });
+      toggle({ kind: "node", id: node.node_id });
       return;
     }
     onClick(node);
@@ -88,7 +86,7 @@ export default function NodeCard({ node, onClick, currentUserId }: NodeCardProps
     <div style={{ position: "relative" }}>
       {isSelected && (
         <SelectionCloseButton
-          item={{ kind: "node", id: node.id }}
+          item={{ kind: "node", id: node.node_id }}
           label={title}
           onTrash={async (i) => {
             const result = await trashNode(i.id);
@@ -107,25 +105,32 @@ export default function NodeCard({ node, onClick, currentUserId }: NodeCardProps
         touchAction: "manipulation",
         outline:
           isSelected || (isOver && isOtherNodeDragging)
-            ? "3px solid var(--accent, #f5a623)"
+            ? "3px solid var(--accent)"
             : "none",
         outlineOffset: isSelected || (isOver && isOtherNodeDragging) ? 2 : 0,
         transform:
           isOver && isOtherNodeDragging && !selectionActive ? "scale(1.02)" : undefined,
-        transition: "transform 0.12s, outline-offset 0.12s",
+        transition: "transform 0.12s, outline-offset 0.12s, box-shadow 0.15s",
       }}
-      className={`w-full text-left bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-150 overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 cursor-pointer${isSelected ? " liked-wobble" : ""}`}
+      className={`w-full text-left overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 cursor-pointer${isSelected ? " liked-wobble" : ""}${isTextCard ? " note-card" : " rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-px active:scale-[0.97] active:shadow-none transition-all duration-150"}`}
     >
       {/* Thumbnail area */}
       {!isTextCard && (
-        <div className="w-full bg-gray-100 aspect-video flex items-center justify-center">
+        <div
+          className="w-full flex items-center justify-center"
+          style={{
+            aspectRatio: '16 / 10',
+            background: 'var(--surface-3)',
+          }}
+        >
           {node.thumbnail_key ? (
             /* Real thumbnail would be resolved via storage URL — placeholder for now */
-            <div className="w-full h-full bg-gray-200" />
+            <div className="w-full h-full" style={{ background: 'var(--surface-4)' }} />
           ) : (
-            <div className="w-full h-full bg-[#EAE8E3] flex items-center justify-center">
+            <div className="w-full h-full flex items-center justify-center" style={{ background: 'var(--surface-3)' }}>
               <svg
-                className="w-8 h-8 text-gray-300"
+                className="w-8 h-8"
+                style={{ color: 'var(--text-3)' }}
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -143,39 +148,45 @@ export default function NodeCard({ node, onClick, currentUserId }: NodeCardProps
         </div>
       )}
 
-      {/* Text card body (no image area) */}
-      {isTextCard && (
-        <div className="px-4 pt-4 pb-1 bg-[#F8F6F2]">
-          <p className="text-sm text-gray-700 line-clamp-4 leading-relaxed">
+      {/* Text card — sticky-note style (mockup) */}
+      {isTextCard ? (
+        <>
+          <div className="note-card__corner" />
+          <p className="note-card__text">
             {node.text_content}
           </p>
-        </div>
+          <span className="note-card__meta">
+            {formatDate(node.created_at)}
+          </span>
+        </>
+      ) : (
+        <>
+          {/* Card footer for non-text cards */}
+          <div className="px-4 py-3 relative">
+            <p className="text-sm font-medium truncate leading-snug" style={{ color: 'var(--text-1)' }}>
+              {title}
+            </p>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--text-3)' }}>
+              {formatDate(node.created_at)}
+            </p>
+            {/* Direction badge — bottom-right corner */}
+            <span
+              aria-label={isMine ? 'Mine' : 'Received'}
+              title={isMine ? 'Mine' : 'Received'}
+              style={{
+                position: 'absolute',
+                bottom: 10,
+                right: 10,
+                width: 10,
+                height: 10,
+                borderRadius: '50%',
+                background: badgeColor,
+                border: '1.5px solid rgba(0,0,0,0.2)',
+              }}
+            />
+          </div>
+        </>
       )}
-
-      {/* Card footer */}
-      <div className="px-4 py-3 relative">
-        <p className="text-sm font-medium text-gray-900 truncate leading-snug">
-          {title}
-        </p>
-        <p className="text-xs text-gray-400 mt-0.5">
-          {formatDate(node.created_at)}
-        </p>
-        {/* P9-T01: Direction badge — bottom-right corner */}
-        <span
-          aria-label={isMine ? 'Mine' : 'Received'}
-          title={isMine ? 'Mine' : 'Received'}
-          style={{
-            position: 'absolute',
-            bottom: 10,
-            right: 10,
-            width: 10,
-            height: 10,
-            borderRadius: '50%',
-            background: badgeColor,
-            border: '1.5px solid rgba(0,0,0,0.2)',
-          }}
-        />
-      </div>
     </button>
     </div>
   );

@@ -1,0 +1,265 @@
+
+=== Table: activity_log ===
+  id: uuid NOT NULL DEFAULT gen_random_uuid()
+  user_id: uuid NOT NULL
+  action: text NOT NULL
+  target_id: uuid NULL
+  target_type: text NULL
+  metadata: jsonb NULL
+  created_at: timestamp with time zone NOT NULL DEFAULT now()
+  [PK] id
+  [FK] user_id -> users(id)
+
+=== Table: blocks ===
+  blocker_id: uuid NOT NULL
+  blocked_id: uuid NOT NULL
+  [PK] blocker_id, blocked_id
+  [FK] blocked_id -> users(id)
+  [FK] blocker_id -> users(id)
+
+=== Table: causes ===
+  id: uuid NOT NULL DEFAULT gen_random_uuid()
+  cause_type: text NOT NULL
+  created_by: uuid NOT NULL
+  created_at: timestamp with time zone NOT NULL DEFAULT now()
+  metadata: jsonb NULL
+  [PK] id
+  [FK] created_by -> users(id)
+
+=== Table: direct_chats ===
+  id: uuid NOT NULL DEFAULT gen_random_uuid()
+  user_1_id: uuid NOT NULL
+  user_2_id: uuid NOT NULL
+  created_at: timestamp with time zone NOT NULL DEFAULT now()
+  [PK] id
+  [FK] user_1_id -> users(id)
+  [FK] user_2_id -> users(id)
+
+=== Table: edges ===
+  id: uuid NOT NULL DEFAULT gen_random_uuid()
+  node_id: uuid NOT NULL
+  user_id: uuid NOT NULL
+  cause_id: uuid NOT NULL
+  sender_id: uuid NULL
+  direction: text NOT NULL
+  depth: integer NULL
+  created_at: timestamp with time zone NOT NULL DEFAULT now()
+  permission: text NOT NULL DEFAULT 'view'::text
+  [PK] id
+  [FK] cause_id -> causes(id)
+  [FK] node_id -> nodes(id)
+  [FK] sender_id -> users(id)
+  [FK] user_id -> users(id)
+
+=== Table: external_items_map ===
+  id: uuid NOT NULL DEFAULT gen_random_uuid()
+  external_source_id: uuid NOT NULL
+  external_id: text NOT NULL
+  node_id: uuid NOT NULL
+  created_at: timestamp with time zone NOT NULL DEFAULT now()
+  [PK] id
+  [FK] external_source_id -> external_sources(id)
+  [FK] node_id -> nodes(id)
+
+=== Table: external_sources ===
+  id: uuid NOT NULL DEFAULT gen_random_uuid()
+  name: text NOT NULL
+  base_url: text NOT NULL
+  created_at: timestamp with time zone NOT NULL DEFAULT now()
+  [PK] id
+
+=== Table: folder_edges ===
+  id: uuid NOT NULL DEFAULT gen_random_uuid()
+  node_id: uuid NOT NULL
+  folder_id: uuid NOT NULL
+  created_at: timestamp with time zone NOT NULL DEFAULT now()
+  [PK] id
+  [FK] folder_id -> folders(id)
+  [FK] node_id -> nodes(id)
+
+=== Table: folder_tree ===
+  folder_id: uuid NOT NULL
+  ancestor_id: uuid NOT NULL
+  depth: integer NOT NULL
+  [PK] folder_id, ancestor_id
+  [FK] ancestor_id -> folders(id)
+  [FK] folder_id -> folders(id)
+
+=== Table: folders ===
+  id: uuid NOT NULL DEFAULT gen_random_uuid()
+  name: text NOT NULL
+  owner_id: uuid NOT NULL
+  parent_folder_id: uuid NULL
+  deleted_at: timestamp with time zone NULL
+  created_at: timestamp with time zone NOT NULL DEFAULT now()
+  is_project: boolean NOT NULL DEFAULT false
+  [PK] id
+  [FK] owner_id -> users(id)
+  [FK] parent_folder_id -> folders(id)
+
+=== Table: friend_invites ===
+  id: uuid NOT NULL DEFAULT gen_random_uuid()
+  from_user_id: uuid NOT NULL
+  to_user_id: uuid NULL
+  to_email: text NOT NULL
+  created_at: timestamp with time zone NOT NULL DEFAULT now()
+  [PK] id
+  [FK] from_user_id -> users(id)
+  [FK] to_user_id -> users(id)
+
+=== Table: group_members ===
+  group_id: uuid NOT NULL
+  user_id: uuid NOT NULL
+  [PK] group_id, user_id
+  [FK] group_id -> groups(id)
+  [FK] user_id -> users(id)
+
+=== Table: group_messages ===
+  id: uuid NOT NULL DEFAULT gen_random_uuid()
+  group_id: uuid NOT NULL
+  sender_id: uuid NOT NULL
+  content: text NOT NULL
+  created_at: timestamp with time zone NOT NULL DEFAULT now()
+  [PK] id
+  [FK] group_id -> groups(id)
+  [FK] sender_id -> users(id)
+
+=== Table: group_nodes ===
+  group_id: uuid NOT NULL
+  node_id: uuid NOT NULL
+  created_at: timestamp with time zone NOT NULL DEFAULT now()
+  [PK] group_id, node_id
+  [FK] group_id -> groups(id)
+  [FK] node_id -> nodes(id)
+
+=== Table: groups ===
+  id: uuid NOT NULL DEFAULT gen_random_uuid()
+  name: text NOT NULL
+  owner_id: uuid NOT NULL
+  deleted_at: timestamp with time zone NULL
+  created_at: timestamp with time zone NOT NULL DEFAULT now()
+  [PK] id
+  [FK] owner_id -> users(id)
+
+=== Table: messages ===
+  id: uuid NOT NULL DEFAULT gen_random_uuid()
+  chat_id: uuid NOT NULL
+  sender_id: uuid NOT NULL
+  content: text NOT NULL
+  created_at: timestamp with time zone NOT NULL DEFAULT now()
+  [PK] id
+  [FK] chat_id -> direct_chats(id)
+  [FK] sender_id -> users(id)
+
+=== Table: node_messages ===
+  id: uuid NOT NULL DEFAULT gen_random_uuid()
+  node_id: uuid NOT NULL
+  sender_id: uuid NOT NULL
+  content: text NOT NULL
+  created_at: timestamp with time zone NOT NULL DEFAULT now()
+  [PK] id
+  [FK] node_id -> nodes(id)
+  [FK] sender_id -> users(id)
+
+=== Table: nodes ===
+  id: uuid NOT NULL DEFAULT gen_random_uuid()
+  url: text NULL
+  text_content: text NULL
+  title: text NULL
+  thumbnail_key: text NULL
+  owner_id: uuid NOT NULL
+  language_code: text NOT NULL DEFAULT 'en'::text
+  origin_user_id: uuid NOT NULL
+  origin_created_at: timestamp with time zone NOT NULL DEFAULT now()
+  deleted_at: timestamp with time zone NULL
+  created_at: timestamp with time zone NOT NULL DEFAULT now()
+  [PK] id
+  [FK] origin_user_id -> users(id)
+  [FK] owner_id -> users(id)
+
+=== Table: nodes_sort_cache ===
+  node_id: uuid NOT NULL
+  avg_rating: numeric NULL
+  view_count: integer NOT NULL DEFAULT 0
+  share_count: integer NOT NULL DEFAULT 0
+  updated_at: timestamp with time zone NOT NULL DEFAULT now()
+  [PK] node_id
+  [FK] node_id -> nodes(id)
+
+=== Table: notifications ===
+  id: uuid NOT NULL DEFAULT gen_random_uuid()
+  user_id: uuid NOT NULL
+  type: text NOT NULL
+  payload: jsonb NULL
+  read: boolean NOT NULL DEFAULT false
+  created_at: timestamp with time zone NOT NULL DEFAULT now()
+  [PK] id
+  [FK] user_id -> users(id)
+
+=== Table: ratings ===
+  id: uuid NOT NULL DEFAULT gen_random_uuid()
+  node_id: uuid NOT NULL
+  user_id: uuid NOT NULL
+  score: numeric NOT NULL
+  updated_at: timestamp with time zone NOT NULL DEFAULT now()
+  [PK] id
+  [FK] node_id -> nodes(id)
+  [FK] user_id -> users(id)
+
+=== Table: tag_edges ===
+  id: uuid NOT NULL DEFAULT gen_random_uuid()
+  tag_id: uuid NOT NULL
+  node_id: uuid NULL
+  folder_id: uuid NULL
+  created_at: timestamp with time zone NOT NULL DEFAULT now()
+  [PK] id
+  [FK] folder_id -> folders(id)
+  [FK] node_id -> nodes(id)
+  [FK] tag_id -> tags(id)
+
+=== Table: tag_translations ===
+  id: uuid NOT NULL DEFAULT gen_random_uuid()
+  tag_id: uuid NOT NULL
+  language_code: text NOT NULL
+  label: text NOT NULL
+  created_at: timestamp with time zone NOT NULL DEFAULT now()
+  [PK] id
+  [FK] tag_id -> tags(id)
+
+=== Table: tags ===
+  id: uuid NOT NULL DEFAULT gen_random_uuid()
+  color_hex: text NOT NULL
+  created_at: timestamp with time zone NOT NULL DEFAULT now()
+  [PK] id
+
+=== Table: translations ===
+  id: uuid NOT NULL DEFAULT gen_random_uuid()
+  node_id: uuid NOT NULL
+  language_code: text NOT NULL
+  title: text NULL
+  description: text NULL
+  created_at: timestamp with time zone NOT NULL DEFAULT now()
+  [PK] id
+  [FK] node_id -> nodes(id)
+
+=== Table: user_node_preferences ===
+  user_id: uuid NOT NULL
+  scope_key: text NOT NULL
+  node_id: uuid NOT NULL
+  position: integer NOT NULL
+  updated_at: timestamp with time zone NOT NULL DEFAULT now()
+  [PK] user_id, scope_key, node_id
+  [FK] node_id -> nodes(id)
+  [FK] user_id -> users(id)
+
+=== Table: users ===
+  id: uuid NOT NULL DEFAULT gen_random_uuid()
+  display_name: text NOT NULL
+  normalized_display_name: text NOT NULL
+  language_code: text NOT NULL DEFAULT 'en'::text
+  avatar_key: text NULL
+  username_changed_at: timestamp with time zone NULL
+  avatar_change_count_today: integer NOT NULL DEFAULT 0
+  avatar_last_reset_date: date NULL
+  created_at: timestamp with time zone NOT NULL DEFAULT now()
+  [PK] id

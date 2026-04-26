@@ -688,6 +688,45 @@ export interface Database {
         }
         Returns: unknown
       }
+      get_feed: {
+        Args: {
+          p_user_id: string
+          p_language_code?: string
+          p_view?: string
+          p_friend_id?: string
+          p_folder_id?: string
+          p_group_id?: string
+          p_filter_tag_ids?: string[]
+          p_filter_friend_ids?: string[]
+          p_filter_folder_ids?: string[]
+          p_search_query?: string
+          p_sort?: string
+          p_cursor_created_at?: string
+          p_cursor_node_id?: string
+          p_limit?: number
+        }
+        Returns: {
+          node_id: string
+          url: string | null
+          text_content: string | null
+          title: string | null
+          thumbnail_key: string | null
+          owner_id: string
+          language_code: string
+          origin_user_id: string
+          origin_created_at: string
+          created_at: string
+          avg_rating: number | null
+          view_count: number | null
+          share_count: number | null
+          direction: string
+          sender_id: string | null
+          sender_name: string | null
+          sender_avatar_key: string | null
+          tags: Json | null
+          total_count: number
+        }[]
+      }
       upsert_rating: {
         Args: {
           p_user_id: string

@@ -339,6 +339,7 @@ async function logInvocation(
     await supabase.from("activity_log").insert({
       user_id: userId,
       action: "metadata_extraction",
+      target_id: null,
       target_type: "node",
       metadata,
     });

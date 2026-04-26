@@ -112,6 +112,8 @@ export function normalizeFilterState(state: Partial<FilterState>): FilterState {
     folderId,
     groupId,
     tagIds: normalizeIdArray(state.tagIds ?? []),
+    viewMode: state.viewMode ?? DEFAULT_FILTER_STATE.viewMode,
+    zoom: state.zoom ?? DEFAULT_FILTER_STATE.zoom,
     filterFriendIds: normalizeIdArray(state.filterFriendIds ?? []),
     filterFolderIds: normalizeIdArray(state.filterFolderIds ?? []),
     searchQuery: normalizeSearch(state.searchQuery ?? null),
@@ -222,13 +224,13 @@ export function serializeFilterStateToURL(state: FilterState): string {
  * Map filterStore.SortOption (snake_case) → RPC p_sort value.
  * This is the ONLY place sort values are mapped.
  * filterStore.SortOption uses snake_case: newest, oldest, most_shared, highest_rated, custom
- * get_feed RPC uses: newest, oldest, most_shared, rating, custom
+ * get_feed RPC uses: newest, oldest, most_shared, custom
  */
 const SORT_TO_RPC: Record<SortOption, string> = {
   newest: "newest",
   oldest: "oldest",
   most_shared: "most_shared",
-  highest_rated: "rating",
+  highest_rated: "highest_rated",
   custom: "custom",
 };
 

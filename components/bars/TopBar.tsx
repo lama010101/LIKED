@@ -1,9 +1,8 @@
 'use client';
 
-import { CSSProperties, useState, useRef, useCallback, useEffect } from 'react';
-import { useDroppable } from '@dnd-kit/core';
+import { CSSProperties, useState, useRef, useEffect, useMemo } from 'react';
+import { useDroppable, useDndContext } from '@dnd-kit/core';
 import { targetId } from '@/lib/dnd/types';
-import { useDndState } from '@/lib/dnd/DndProvider';
 import { useFilterStore } from '@/lib/store/filterStore';
 import { useSearchController } from '@/lib/hooks/useSearchController';
 
@@ -20,13 +19,20 @@ interface TopBarProps {
   onTrashClick?: () => void;
   /** Soft-deleted node count → badge on trash icon (P7-T04, PRD §20.1). */
   trashCount?: number;
+  /** When provided, renders Folder View Header (PRD §11.5a) instead of wordmark. */
+  folderName?: string;
+  folderColor?: string;
+  onBackClick?: () => void;
+  /** Active tag count badge on Tags icon (PRD §11.3f). */
+  activeTagCount?: number;
+  onTagsClick?: () => void;
 }
 
 const iconBtnBase: CSSProperties = {
-  width: 36,
-  height: 36,
-  borderRadius: 12,
-  background: 'var(--surface-3)',
+  width: 38,
+  height: 38,
+  borderRadius: 'var(--r-md)',
+  background: 'var(--surface-1)',
   border: '1px solid var(--border-1)',
   color: 'var(--text-2)',
   display: 'flex',
@@ -57,7 +63,7 @@ function IconBtn({
       aria-label={label}
       style={{
         ...iconBtnBase,
-        background: hovered ? 'var(--surface-4)' : 'var(--surface-3)',
+        background: hovered ? 'var(--surface-2)' : 'var(--surface-1)',
         color: hovered ? 'var(--text-1)' : 'var(--text-2)',
         transform: pressed ? 'scale(0.92)' : undefined,
         transition: 'background 0.15s, color 0.15s, transform 0.1s',
@@ -76,7 +82,8 @@ function IconBtn({
 
 /** Trash icon with droppable zone for Node → Trash (P7-T01) + count badge (P7-T04). */
 function TrashDropButton({ onClick, count = 0 }: { onClick?: () => void; count?: number }) {
-  const { activeSource } = useDndState();
+  const { active } = useDndContext();
+  const activeSource = active?.data?.current?.dragSource;
   const isDraggingNode = activeSource?.kind === 'node';
   const { setNodeRef, isOver } = useDroppable({
     id: targetId({ kind: 'trash' }),
@@ -106,25 +113,7 @@ function TrashDropButton({ onClick, count = 0 }: { onClick?: () => void; count?:
         <path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
       </svg>
       {count > 0 && (
-        <span
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            top: -4,
-            right: -4,
-            minWidth: 16,
-            height: 16,
-            padding: '0 4px',
-            borderRadius: 8,
-            background: 'var(--accent)',
-            color: 'var(--accent-ink)',
-            fontSize: 10,
-            fontWeight: 700,
-            lineHeight: '16px',
-            textAlign: 'center',
-            border: '1.5px solid var(--surface-2)',
-          }}
-        >
+        <span className="badge" aria-hidden="true">
           {count > 99 ? '99+' : count}
         </span>
       )}
@@ -208,17 +197,11 @@ function SearchInput() {
   // Expanded state: full input
   return (
     <div
+      className="search-field"
       style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-        background: 'var(--surface-3)',
-        border: '1px solid var(--border-1)',
-        borderRadius: 12,
-        padding: '0 12px',
-        height: 36,
         flex: 1,
         maxWidth: 240,
+        height: 40,
       }}
     >
       <svg
@@ -309,9 +292,29 @@ function SearchInput() {
  * - Clicking clear resets all filters (preserves view/sort)
  */
 function FilterStatus() {
-  const hasActiveFilters = useFilterStore((s) => s.hasActiveFilters());
-  const activeFilterCount = useFilterStore((s) => s.activeFilterCount());
+  const tagIdsLength = useFilterStore((s) => s.tagIds.length);
+  const filterFriendIdsLength = useFilterStore((s) => s.filterFriendIds.length);
+  const filterFolderIdsLength = useFilterStore((s) => s.filterFolderIds.length);
+  const searchQuery = useFilterStore((s) => s.searchQuery);
   const clearFilters = useFilterStore((s) => s.clearFilters);
+
+  const hasActiveFilters = useMemo(() => {
+    return (
+      tagIdsLength > 0 ||
+      filterFriendIdsLength > 0 ||
+      filterFolderIdsLength > 0 ||
+      searchQuery !== null
+    );
+  }, [tagIdsLength, filterFriendIdsLength, filterFolderIdsLength, searchQuery]);
+
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (tagIdsLength > 0) count++;
+    if (filterFriendIdsLength > 0) count++;
+    if (filterFolderIdsLength > 0) count++;
+    if (searchQuery !== null) count++;
+    return count;
+  }, [tagIdsLength, filterFriendIdsLength, filterFolderIdsLength, searchQuery]);
 
   if (!hasActiveFilters) {
     return null;
@@ -380,49 +383,138 @@ export default function TopBar({
   onProfileClick,
   onTrashClick,
   trashCount = 0,
+  folderName,
+  folderColor,
+  onBackClick,
+  activeTagCount = 0,
+  onTagsClick,
 }: TopBarProps) {
   const initials = displayName.slice(0, 2).toUpperCase();
+  const isFolderHeader = !!folderName;
 
   return (
     <header
       style={{
         position: 'sticky',
         top: 0,
-        background: 'var(--surface-2)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '6px 16px 10px',
+        padding: 'var(--space-sm) var(--space-lg) 4px',
+        zIndex: 'var(--z-top-bar)',
+        gap: 'var(--space-sm)',
       }}
     >
-      {/* Wordmark */}
-      <span
-        className="font-serif"
-        style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1 }}
-      >
-        <span style={{ color: 'var(--text-1)' }}>liked</span>
-        <span style={{ color: 'var(--accent)' }}>.</span>
-      </span>
+      {isFolderHeader ? (
+        /* ── Folder View Header (PRD §11.5a) ── */
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+          <button
+            type="button"
+            onClick={onBackClick}
+            aria-label="Back"
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 'var(--r-md)',
+              background: 'var(--surface-3)',
+              border: '1px solid var(--border-1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              transition: 'transform var(--transition-fast), background var(--transition-fast)',
+              flexShrink: 0,
+              color: 'var(--text-1)',
+              padding: 0,
+            }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <path d="m15 18-6-6 6-6" />
+            </svg>
+          </button>
+          {folderColor && (
+            <div
+              style={{
+                width: 12,
+                height: 12,
+                borderRadius: '50%',
+                background: folderColor,
+                flexShrink: 0,
+              }}
+            />
+          )}
+          <span
+            className="font-serif"
+            style={{
+              fontSize: 20,
+              fontWeight: 800,
+              color: 'var(--text-1)',
+              letterSpacing: '-0.02em',
+              lineHeight: 1.2,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              maxWidth: 200,
+            }}
+          >
+            {folderName}
+          </span>
+        </div>
+      ) : (
+        /* ── Wordmark ── */
+        <span
+          className="font-serif"
+          style={{ fontSize: 22, fontWeight: 900, letterSpacing: '-1.5px', lineHeight: 1 }}
+        >
+          <span style={{ color: 'var(--text-1)' }}>liked</span>
+          <span style={{ color: 'var(--accent)' }}>.</span>
+        </span>
+      )}
 
       {/* Right group */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-        {/* Tags icon (P9-T03 placeholder) */}
-        <IconBtn onClick={() => { /* P9-T03: toggle Tags Strip */ }} label="Tags">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.75"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
-            <line x1="7" y1="7" x2="7.01" y2="7" />
-          </svg>
+        {/* Tags icon (P9-T03 / Phase 4) */}
+        <IconBtn onClick={onTagsClick ?? (() => {})} label="Tags">
+          <div style={{ position: 'relative' }}>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.75"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+              <line x1="7" y1="7" x2="7.01" y2="7" />
+            </svg>
+            {activeTagCount > 0 && (
+              <span
+                aria-hidden="true"
+                style={{
+                  position: 'absolute',
+                  top: -5,
+                  right: -6,
+                  minWidth: 14,
+                  height: 14,
+                  padding: '0 3px',
+                  borderRadius: 'var(--r-full)',
+                  background: 'var(--accent)',
+                  color: 'var(--accent-ink)',
+                  fontSize: 9,
+                  fontWeight: 700,
+                  lineHeight: '14px',
+                  textAlign: 'center',
+                  border: '1.5px solid var(--surface-2)',
+                }}
+              >
+                {activeTagCount > 99 ? '99+' : activeTagCount}
+              </span>
+            )}
+          </div>
         </IconBtn>
 
         {/* Search (P9-T02: icon-only → expandable input) */}

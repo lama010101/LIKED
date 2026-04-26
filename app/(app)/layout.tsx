@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import TopBar from '@/components/bars/TopBar';
 import BottomBar from '@/components/bars/BottomBar';
 import AddCardSheet from '@/components/sheets/AddCardSheet';
+import AddFolderSheet from '@/components/sheets/AddFolderSheet';
 import ProfileModal from '@/components/modals/ProfileModal';
 import DesktopSidebar from '@/components/sidebar/DesktopSidebar';
 import DndProvider from '@/lib/dnd/DndProvider';
@@ -13,6 +14,14 @@ import { useLocalStorage } from '@/lib/hooks/useLocalStorage';
 import { getTrashCount } from '@/app/lib/actions/trash';
 import { useFilterStore } from '@/lib/store/filterStore';
 import { useFeedURLSync } from '@/lib/hooks/useFeedURLSync';
+import FeedTabs, { TabId } from '@/components/bars/FeedTabs';
+import MineSubTabs, { MineSubTab } from '@/components/bars/MineSubTabs';
+import SortViewRow, { ViewMode } from '@/components/bars/SortViewRow';
+import TagsStrip from '@/components/bars/TagsStrip';
+import ContextStrip, { ContextPill } from '@/components/bars/ContextStrip';
+import FabSpeedDial from '@/components/bars/FabSpeedDial';
+import FolderPathBar from '@/components/bars/FolderPathBar';
+import DesktopToolbar from '@/components/bars/DesktopToolbar';
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(false);
@@ -28,16 +37,6 @@ function useIsMobile() {
 
   return isMobile;
 }
-
-const tabs = [
-  { id: 'all', label: 'All' },
-  { id: 'mine', label: 'Mine' },
-  { id: 'received', label: 'Received' },
-] as const;
-
-type TabId = typeof tabs[number]['id'];
-type MineSubTab = 'all' | 'not-shared' | 'shared';
-type ViewMode = 'col' | 'mason' | 'list' | 'horiz' | 'free';
 
 interface BottomBarItem {
   id: string;
@@ -57,84 +56,6 @@ const stubItems: BottomBarItem[] = [
   { id: 'g1', type: 'group', displayName: 'Music', initial: 'M', bg: 'linear-gradient(135deg,#3a5cd5,#1c3aa0)' },
 ];
 
-// Inline SVG icons
-const SortIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="m3 16 4 4 4-4" />
-    <path d="M7 20V4" />
-    <path d="m21 8-4-4-4 4" />
-    <path d="M17 4v16" />
-  </svg>
-);
-
-const ZoomOutIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="11" cy="11" r="8" />
-    <line x1="21" y1="21" x2="16.65" y2="16.65" />
-    <line x1="8" y1="11" x2="14" y2="11" />
-  </svg>
-);
-
-const ZoomInIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="11" cy="11" r="8" />
-    <line x1="21" y1="21" x2="16.65" y2="16.65" />
-    <line x1="11" y1="8" x2="11" y2="14" />
-    <line x1="8" y1="11" x2="14" y2="11" />
-  </svg>
-);
-
-const GridIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect width="7" height="7" x="3" y="3" rx="1" />
-    <rect width="7" height="7" x="14" y="3" rx="1" />
-    <rect width="7" height="7" x="14" y="14" rx="1" />
-    <rect width="7" height="7" x="3" y="14" rx="1" />
-  </svg>
-);
-
-const MasonIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect width="6" height="20" x="4" y="2" rx="1" />
-    <rect width="6" height="20" x="14" y="2" rx="1" />
-  </svg>
-);
-
-const ListIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="8" y1="6" x2="21" y2="6" />
-    <line x1="8" y1="12" x2="21" y2="12" />
-    <line x1="8" y1="18" x2="21" y2="18" />
-    <line x1="3" y1="6" x2="3.01" y2="6" />
-    <line x1="3" y1="12" x2="3.01" y2="12" />
-    <line x1="3" y1="18" x2="3.01" y2="18" />
-  </svg>
-);
-
-const FreeIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M8 3H5a2 2 0 0 0-2 2v3" />
-    <path d="M21 8V5a2 2 0 0 0-2-2h-3" />
-    <path d="M3 16v3a2 2 0 0 0 2 2h3" />
-    <path d="M16 21h3a2 2 0 0 0 2-2v-3" />
-  </svg>
-);
-
-const HorizIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect width="20" height="4" x="2" y="4" rx="1" />
-    <rect width="16" height="4" x="2" y="10" rx="1" />
-    <rect width="20" height="4" x="2" y="16" rx="1" />
-  </svg>
-);
-
-const PlusIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M5 12h14" />
-    <path d="M12 5v14" />
-  </svg>
-);
-
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   // P9-T03: Filter state from store (URL is source of truth via useFeedURLSync)
   useFeedURLSync();
@@ -143,6 +64,42 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const setFilterView = useFilterStore((s) => s.setView);
   const setMineSubTabStore = useFilterStore((s) => s.setMineSubTab);
   const mineSubTabStore = useFilterStore((s) => s.mineSubTab);
+  const tagIds = useFilterStore((s) => s.tagIds);
+  const filterFriendIds = useFilterStore((s) => s.filterFriendIds);
+  const filterFolderIds = useFilterStore((s) => s.filterFolderIds);
+  const searchQuery = useFilterStore((s) => s.searchQuery);
+  const toggleTagFilter = useFilterStore((s) => s.toggleTagFilter);
+  const toggleFriendFilter = useFilterStore((s) => s.toggleFriendFilter);
+  const toggleFolderFilter = useFilterStore((s) => s.toggleFolderFilter);
+  const setSearch = useFilterStore((s) => s.setSearch);
+  const clearFilters = useFilterStore((s) => s.clearFilters);
+
+  // Stub tag label lookup for Context Strip (until real tag data is wired)
+  const tagLabelMap: Record<string, string> = {
+    t1: 'Design', t2: 'Music', t3: 'Work', t4: 'Travel', t5: 'Food', t6: 'Read later', t7: 'Inspiration',
+  };
+  const tagColorMap: Record<string, string> = {
+    t1: '#ef4444', t2: '#3b82f6', t3: '#22c55e', t4: '#f59e0b', t5: '#ec4899', t6: '#8b5cf6', t7: '#06b6d4',
+  };
+
+  // Build active-context pills for Context Strip (PRD §11.3g)
+  const contextPills = useMemo<ContextPill[]>(() => {
+    const pills: ContextPill[] = [];
+    tagIds.forEach((id) => {
+      pills.push({ id, type: 'tag', label: tagLabelMap[id] ?? id, color: tagColorMap[id] });
+    });
+    filterFriendIds.forEach((id) => {
+      const friend = stubItems.find((s) => s.id === id);
+      pills.push({ id, type: 'friend', label: friend?.displayName ?? id, avatar: friend?.bg });
+    });
+    filterFolderIds.forEach((id) => {
+      pills.push({ id, type: 'folder', label: 'Folder' });
+    });
+    if (searchQuery) {
+      pills.push({ id: 'search', type: 'search', label: `"${searchQuery}"` });
+    }
+    return pills;
+  }, [tagIds, filterFriendIds, filterFolderIds, searchQuery]);
 
   // Map store view to layout TabId
   const tab = filterView as TabId;
@@ -154,13 +111,20 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const setMineSubTab = (next: MineSubTab) => {
     setMineSubTabStore(next === 'not-shared' ? 'not_shared' : next === 'shared' ? 'shared' : 'all');
   };
-  const [view, setView] = useLocalStorage<ViewMode>('liked.view', 'col');
-  const [zoom, setZoom] = useLocalStorage<number>('liked.zoom', 2);
+  // View/zoom presentation state — read from shared Zustand store (reactive across components)
+  const view = useFilterStore((s) => s.viewMode);
+  const zoom = useFilterStore((s) => s.zoom);
+  const setViewMode = useFilterStore((s) => s.setViewMode);
+  const setZoom = useFilterStore((s) => s.setZoom);
   const [theme, setThemeState] = useLocalStorage<'dark' | 'light'>('liked.theme', 'dark');
   const [folderPath, setFolderPath] = useState<string[]>([]);
-  const [openFriends, setOpenFriends] = useState(false);
+  const [friendsState, setFriendsState] = useLocalStorage<'hidden' | 'strip' | 'expanded'>('liked.friendsStripState', 'strip');
+  const [tagsStripOpen, setTagsStripOpen] = useState(false);
+  const [folderPathBarVisible, setFolderPathBarVisible] = useState(true);
   const [openFilter, setOpenFilter] = useState(false);
   const [openAdd, setOpenAdd] = useState(false);
+  const [openFolder, setOpenFolder] = useState(false);
+  const [speedDialOpen, setSpeedDialOpen] = useState(false);
   const [openProfile, setOpenProfile] = useState(false);
   const [profileDisplayName, setProfileDisplayName] = useState('JS');
   const [notificationCount] = useState(2);
@@ -200,21 +164,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   const isInFolder = folderPath.length > 0;
 
-  const getTabActiveStyle = (tabId: TabId): React.CSSProperties => {
-    const base: React.CSSProperties = {
-      background: 'var(--surface-3)',
-      borderColor: 'var(--border-1)',
-    };
-    if (tabId === 'all') return { ...base, color: 'var(--text-1)' };
-    if (tabId === 'mine') return { ...base, color: 'var(--accent)' };
-    return { ...base, color: '#60c5f1' };
-  };
-
   return (
-    <DndProvider
-      onSuccess={(m) => setToast({ kind: 'ok', message: m })}
-      onError={(m) => setToast({ kind: 'err', message: m })}
-    >
+    <DndProvider>
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
       {/* DESKTOP SIDEBAR — hidden below lg */}
       <div className="hidden lg:flex" style={{ flexShrink: 0 }}>
@@ -233,8 +184,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         }}
       >
       {/* TopBar — mobile only; desktop has wordmark in sidebar */}
-      {!isInFolder && (
-        <div className="lg:hidden">
+      <div className="lg:hidden">
         <TopBar
           notificationCount={notificationCount}
           userId="stub-user-id"
@@ -244,225 +194,75 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           onProfileClick={() => setOpenProfile(true)}
           onTrashClick={() => router.push('/trash')}
           trashCount={trashCount}
+          folderName={isInFolder ? 'Current Folder' : undefined}
+          folderColor={isInFolder ? 'var(--accent)' : undefined}
+          onBackClick={() => setFolderPath((p) => p.slice(0, -1))}
+          activeTagCount={useFilterStore((s) => s.tagIds.length)}
+          onTagsClick={() => setTagsStripOpen((v) => !v)}
         />
-        </div>
+      </div>
+
+      {/* Tags Strip — collapsible, between TopBar and feed tabs (PRD §11.3f) */}
+      {tagsStripOpen && (
+        <TagsStrip visible={tagsStripOpen} />
       )}
 
-      {/* Feed filter tabs — hidden when in folder context */}
-      {!isInFolder && (
-        <div
-          style={{
-            display: 'flex',
-            gap: 4,
-            padding: '0 14px 8px',
-            background: 'var(--surface-2)',
-            flexShrink: 0,
-          }}
-        >
-          {tabs.map((t) => {
-            const isActive = tab === t.id;
-            return (
-              <button
-                key={t.id}
-                onClick={() => setTab(t.id)}
-                style={{
-                  flex: 1,
-                  padding: '8px 6px',
-                  textAlign: 'center',
-                  fontSize: 12,
-                  fontWeight: 600,
-                  borderRadius: 10,
-                  borderColor: 'transparent',
-                  cursor: 'pointer',
-                  transition: 'background .15s, color .15s',
-                  background: isActive ? undefined : 'transparent',
-                  color: isActive ? undefined : 'var(--text-3)',
-                  ...(isActive ? getTabActiveStyle(t.id) : {}),
-                }}
-              >
-                {t.label}
-              </button>
-            );
-          })}
-        </div>
-      )}
+      {/* Desktop Toolbar — unified toolbar for lg+ screens (PRD §11.8) */}
+      <DesktopToolbar
+        className="hidden lg:flex"
+        tab={tab}
+        onTabChange={setTab}
+        mineSubTab={mineSubTab}
+        onMineSubTabChange={setMineSubTab}
+        view={view}
+        onViewChange={setViewMode}
+        sortLabel="Newest"
+        onSortClick={() => setOpenFilter(true)}
+        notificationCount={notificationCount}
+        onNotificationClick={() => {}}
+        isInFolder={isInFolder}
+        folderName={isInFolder ? 'Current Folder' : undefined}
+        onBackClick={() => setFolderPath((p) => p.slice(0, -1))}
+      />
 
-      {/* Mine sub-tabs — only when tab === 'mine', hidden in folder context */}
-      {!isInFolder && tab === 'mine' && (
-        <div
-          style={{
-            display: 'flex',
-            gap: 6,
-            padding: '0 14px 8px',
-            background: 'var(--surface-2)',
-            flexShrink: 0,
-          }}
-        >
-          {[
-            { id: 'all', label: 'All Mine' },
-            { id: 'not-shared', label: 'Not shared' },
-            { id: 'shared', label: 'Shared' },
-          ].map((st) => {
-            const isActive = mineSubTab === (st.id as MineSubTab);
-            return (
-              <button
-                key={st.id}
-                onClick={() => setMineSubTab(st.id as MineSubTab)}
-                style={{
-                  fontSize: 11,
-                  fontWeight: 500,
-                  padding: '4px 10px',
-                  borderRadius: 8,
-                  cursor: 'pointer',
-                  background: isActive ? 'var(--surface-3)' : 'transparent',
-                  color: isActive ? 'var(--accent)' : 'var(--text-3)',
-                  border: isActive ? '1px solid var(--border-1)' : '1px solid transparent',
-                }}
-              >
-                {st.label}
-              </button>
-            );
-          })}
-        </div>
-      )}
+      {/* Feed filter tabs — mobile only, hidden on desktop */}
+      <div className="lg:hidden">
+        {!isInFolder && (
+          <FeedTabs activeTab={tab} onTabChange={setTab} />
+        )}
+      </div>
 
-      {/* Context strip — stub: always hidden for now */}
-      {/* activeFilters.length > 0 && <div>...</div> */}
+      {/* Mine sub-tabs — mobile only, hidden on desktop */}
+      <div className="lg:hidden">
+        {!isInFolder && tab === 'mine' && (
+          <MineSubTabs activeSubTab={mineSubTab} onSubTabChange={setMineSubTab} scope="mine" />
+        )}
+      </div>
 
-      {/* Util bar — always visible, including inside folders */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '4px 14px 10px',
-          background: 'var(--surface-2)',
-          borderBottom: '1px solid var(--border-1)',
-          flexShrink: 0,
+      {/* Context Strip — active filter pills (PRD §11.3g) — mobile only, desktop filters in sidebar */}
+      <div className="lg:hidden">
+      <ContextStrip
+        pills={contextPills}
+        onRemove={(id, type) => {
+          if (type === 'tag') toggleTagFilter(id);
+          else if (type === 'friend') toggleFriendFilter(id);
+          else if (type === 'folder') toggleFolderFilter(id);
+          else if (type === 'search') setSearch(null);
         }}
-      >
-        {/* Left group */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {/* Sort button */}
-          <button
-            onClick={() => setOpenFilter(true)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 5,
-              padding: '5px 10px',
-              background: 'var(--surface-3)',
-              border: '1px solid var(--border-1)',
-              borderRadius: 8,
-              fontSize: 11,
-              fontWeight: 500,
-              color: 'var(--text-2)',
-              cursor: 'pointer',
-            }}
-          >
-            <SortIcon />
-            <span>Newest</span>
-          </button>
+        onClearAll={clearFilters}
+      />
+      </div>
 
-          {/* Zoom pill — only when view === 'col' */}
-          {view === 'col' && (
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 4,
-                padding: '4px 8px',
-                background: 'var(--surface-3)',
-                border: '1px solid var(--border-1)',
-                borderRadius: 8,
-              }}
-            >
-              <button
-                onClick={() => setZoom(Math.max(2, zoom - 1))}
-                style={{
-                  padding: 2,
-                  cursor: 'pointer',
-                  color: 'var(--text-2)',
-                  background: 'transparent',
-                  border: 'none',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <ZoomOutIcon />
-              </button>
-              <span
-                style={{
-                  fontSize: 11,
-                  color: 'var(--text-2)',
-                  minWidth: 32,
-                  textAlign: 'center',
-                }}
-              >
-                {zoom} col
-              </span>
-              <button
-                onClick={() => setZoom(Math.min(6, zoom + 1))}
-                style={{
-                  padding: 2,
-                  cursor: 'pointer',
-                  color: 'var(--text-2)',
-                  background: 'transparent',
-                  border: 'none',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <ZoomInIcon />
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Right group — view switch */}
-        <div
-          style={{
-            display: 'flex',
-            gap: 2,
-            background: 'var(--surface-3)',
-            border: '1px solid var(--border-1)',
-            borderRadius: 9,
-            padding: 2,
-          }}
-        >
-          {([
-            { id: 'col', icon: GridIcon },
-            { id: 'mason', icon: MasonIcon },
-            { id: 'list', icon: ListIcon },
-            { id: 'horiz', icon: HorizIcon },
-            { id: 'free', icon: FreeIcon },
-          ] as { id: ViewMode; icon: React.FC }[]).map(({ id, icon: Icon }) => {
-            const isActive = view === id;
-            return (
-              <button
-                key={id}
-                onClick={() => setView(id)}
-                style={{
-                  width: 28,
-                  height: 24,
-                  borderRadius: 6,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  background: isActive ? 'var(--surface-4)' : 'transparent',
-                  color: isActive ? 'var(--text-1)' : 'var(--text-3)',
-                  border: 'none',
-                  padding: 0,
-                }}
-              >
-                <Icon />
-              </button>
-            );
-          })}
-        </div>
+      {/* Sort / View Row — mobile only, hidden on desktop (unified in DesktopToolbar) */}
+      <div className="lg:hidden">
+        <SortViewRow
+          view={view}
+          onViewChange={setViewMode}
+          zoom={zoom}
+          onZoomChange={setZoom}
+          sortLabel="Newest"
+          onSortClick={() => setOpenFilter(true)}
+        />
       </div>
 
       {/* Main content area */}
@@ -478,45 +278,45 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         {children}
       </div>
 
-      {/* Bottom area */}
-      <div style={{ position: 'relative', flexShrink: 0 }}>
-        {/* FAB */}
-        <button
-          onClick={() => {
-            if (isMobile) {
-              setOpenAdd(true);
-            }
-            // TODO: desktop create modal — future task
+      {/* Bottom area — prototype: sticky bottom container with FAB overlapping */}
+      <div className="bottom-area">
+        {/* FAB Speed-Dial (PRD §11.3) */}
+        <FabSpeedDial
+          open={speedDialOpen}
+          onToggle={() => setSpeedDialOpen((v) => !v)}
+          onAction={(id) => {
+            setSpeedDialOpen(false);
+            if (id === 'card') setOpenAdd(true);
+            else if (id === 'folder') setOpenFolder(true);
+            else setToast({ kind: 'ok', message: 'Coming soon' });
           }}
-          className="lg:fixed lg:bottom-6 lg:right-6"
-          style={{
-            position: 'absolute',
-            top: -21,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: 42,
-            height: 42,
-            borderRadius: '50%',
-            background: 'var(--accent)',
-            color: 'var(--accent-ink)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 4px 16px rgba(245,166,35,0.5), 0 0 0 3px var(--surface-2)',
-            cursor: 'pointer',
-            zIndex: 10,
-            border: 'none',
-            padding: 0,
-          }}
-        >
-          <PlusIcon />
-        </button>
+        />
 
-        {/* BottomBar */}
-        <BottomBar
+        {/* Bottom dock: folders + friends (PRD §11.8) */}
+        <div className="bottom-dock lg:hidden">
+          {/* Folder Path Bar — always visible in bottom dock */}
+          {friendsState !== 'expanded' && (
+            <FolderPathBar
+              path={folderPath.map((id, i) => ({ id, name: `Folder ${i + 1}`, count: i === folderPath.length - 1 ? 12 : undefined }))}
+              totalCount={12}
+              onNavigate={(id) => {
+                if (id === 'root') setFolderPath([]);
+                else {
+                  const idx = folderPath.indexOf(id);
+                  if (idx >= 0) setFolderPath(folderPath.slice(0, idx + 1));
+                }
+              }}
+              onBack={() => setFolderPath((p) => p.slice(0, -1))}
+              visible={folderPathBarVisible}
+              onToggleVisibility={() => setFolderPathBarVisible((v) => !v)}
+            />
+          )}
+
+          {/* BottomBar */}
+          <BottomBar
           items={stubItems}
-          isCollapsed={!openFriends}
-          onExpandClick={() => setOpenFriends(true)}
+          state={friendsState}
+          onStateChange={setFriendsState}
           onAvatarClick={(id, type) => {
             // Clicking Me navigates to home feed with "Mine" view
             if (type === 'me') {
@@ -530,10 +330,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </div>
 
       </div>
+      </div>
 
-      {/* Add Card Sheet — mobile only */}
+      {/* Add Card Sheet */}
+      <AddCardSheet open={openAdd} onClose={() => setOpenAdd(false)} />
+
+      {/* Add Folder Sheet — mobile only */}
       {isMobile && (
-        <AddCardSheet open={openAdd} onClose={() => setOpenAdd(false)} />
+        <AddFolderSheet open={openFolder} onClose={() => setOpenFolder(false)} />
       )}
 
       {/* Profile Modal */}

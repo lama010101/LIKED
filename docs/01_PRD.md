@@ -529,7 +529,7 @@ The FAB is a floating amber circle. Visual and positional spec unchanged (44×44
 |---|---|---|---|
 | 1 (closest to FAB) | `tag` | Tag | Enters Tag Mode (§11.3b) |
 | 2 | `credit-card` | Card | Opens Add Card bottom sheet (§11.3c) |
-| 3 | `folder-plus` | Folder | Opens New Folder sheet: name input + color swatch row (7 colors from system palette) + Save button |
+| 3 | `folder-plus` | Folder | Opens New Folder sheet: name input + color swatch row (7 colors from system palette) + **tag chip rail** (single-select, all tags + `+ New`) + **share-with friend avatar grid** (5-column, multi-select, toggle-all) + Save button |
 | 4 (farthest) | `layout-template` | Template | Opens Template Picker sheet (§11.3d) |
 
 **Desktop:** buttons fan out in the same radial arc pattern upward-left from the bottom-right FAB position.
@@ -551,15 +551,25 @@ Entered via the Tag speed-dial button. Speed-dial collapses on entry.
 
 Triggered by tapping the FAB.
 
-Two separate input fields (not auto-detect):
-1. **URL input field**: placeholder 'Paste or type URL…'. When a URL is entered and focus leaves the field (or after 600ms debounce), fetch OG metadata and show preview card (thumbnail + title + domain) below the field.
-2. **Note/text textarea**: placeholder 'Add a note (optional)'. Grows with content up to 40% of sheet height.
+**Single input field** (auto-detect):
+- Placeholder: 'Paste or type a URL, note, or idea…'.
+- Input auto-grows with content (starts 1 line, max ~40% sheet height).
+- **Auto-detect** on input:
+  - Starts with `http://` / `https://` → detected as **Link** (or **Image** if URL ends in `.jpg`/`.jpeg`/`.png`/`.gif`/`.webp`/`.svg`).
+  - Contains newlines or length > 120 chars → detected as **Note**.
+  - Otherwise defaults to **Auto**.
+- **Manual type override chips**: row of 4 chips (Auto · Link · Image · Note). Tapping a chip forces that type regardless of input content. Active chip highlighted with accent outline.
+- **Preview area**:
+  - Link: OG thumbnail + title + domain preview card.
+  - Image: full-bleed image preview.
+  - Note: rendered text preview.
+  - Auto (unmatched): empty preview placeholder.
 
-Below the inputs: **TAG section** — chip row, single-select, all available tags shown. Selected tag highlighted with accent outline.
+Below the input: **TAG section** — chip row, single-select, all available tags shown. Selected tag highlighted with accent outline. `+ New` button creates a new tag inline via prompt.
 
-Below tags: **SHARE WITH (OPTIONAL) section** — 5-column grid of friend avatars (circles) and group avatars (rounded squares). Tap to select (accent outline + checkmark badge).
+Below tags: **SHARE WITH (OPTIONAL) section** — 5-column grid of friend avatars (circles) and group avatars (rounded squares). Tap to select (accent outline + checkmark badge). A `+` toggle-all button selects/deselects all.
 
-Save button: full-width amber button at bottom.
+Save button: full-width amber button at bottom. Disabled (greyed) when input is empty.
 
 ### 11.3d Template Picker Sheet
 
@@ -751,6 +761,8 @@ Triggered by the **top-right profile avatar** (not "Me" in the strip).
 
 - User avatar + display_name
 - Light / Dark theme toggle (persisted to `localStorage`)
+- **Accent color picker**: row of 6 selectable accent swatches (Amber, Coral, Mint, Sky, Violet, Forest). Updates `--color-accent` CSS custom property dynamically; recolors FAB, active rings, and primary buttons. Persisted to `localStorage` key `liked.accentColor`.
+- **Full view toggle**: switch that triggers `requestFullscreen` / `exitFullscreen` and toggles a `full-view` class on `<body>`. Persisted to `localStorage` key `liked.fullView`.
 - Log out → `supabase.auth.signOut()` + redirect to `/login`
 - Username change (rate-limited: 1 per 24h)
 - Avatar change (rate-limited: 5 per day)
@@ -759,7 +771,8 @@ Triggered by the **top-right profile avatar** (not "Me" in the strip).
 
 Shown **only when inside a folder** (depth ≥ 1). Hidden at root feed.
 
-- Placement: between top bar and sort/view row.
+- **Primary placement (mobile HTML ref)**: inside the **bottom dock** as a collapsible `path-area` above the Friends Strip. Contains a `path-handle` ("Folders" label + chevron + item count) and a scrollable `path-strip` row of crumb pills (`Feed › FolderName › SubfolderName`). Auto-visible when inside a folder; collapsible via handle tap.
+- **Secondary placement (desktop)**: between top bar and sort/view row.
 - Format: `← [Back button]   Feed  ›  FolderName  ›  SubfolderName`
 - Back button (←): returns to parent folder, or to root if at top-level folder. 26×22 px, `bg3`, rounded 7 px.
 - Each path segment is tappable (jumps directly to that depth).
@@ -796,9 +809,22 @@ A dragged item must behave like a lifted physical object: it scales up slightly 
 
 **Additions and overrides from UIX Amendment v26.0 (all v25 drag rules remain):**
 
-### 12.1 Mobile Drag-to-Share / Move — Panel Pattern
+### 12.1 Mobile Drag-to-Share / Move — Direct Pointer-Drag Ghost Model (HTML ref)
 
-When a card drag is initiated on mobile (hold ~400 ms → haptic → lift):
+On mobile (primary implementation in HTML reference), drag uses direct pointer events:
+
+1. **Pointer down** on a draggable item (card, friend avatar) initiates tracking.
+2. **Movement threshold** (> 8 px) starts drag; vertical-dominant movement on items cancels drag (scrolling).
+3. **Ghost element** created at pointer position: cloned card/folder thumbnail or friend avatar, with `drag-ghost` / `card-drag-ghost` styling. Ghost follows pointer via `left/top` updates on `pointermove`.
+4. **Target highlighting**: valid drop targets (feed items, path crumbs, folder tiles) gain `drop-target` / `drop-hover` classes. Feed dims via `feed--dimmed` / `feed--share-drag`.
+5. **Release**: on `pointerup`, if over a valid target, action executes (share or move). Toast confirms. If no target, ghost vanishes and item returns.
+6. **Friend → Card/Folder drag**: ghost shows "Share with [FriendName]" label; dropping on card shares card, on folder shares entire folder contents.
+7. **Item → Path Crumb drag**: ghost shows item name; dropping on crumb moves item to that folder path. Auto-reveals path strip if hidden.
+8. **Cleanup**: removes ghost, restores opacity, removes all target classes.
+
+### 12.1a Mobile Drag-to-Share / Move — Panel Pattern (alternative)
+
+When a card drag is initiated on mobile via long-press panel (hold ~400 ms → haptic → lift):
 
 1. FAB + Friends Strip animate **out** (slide down, ~200 ms ease-out).
 2. **Drag Panel** slides up from the bottom in their place. The panel is a full-width surface with two tab sections:
@@ -865,6 +891,7 @@ Every card in the feed displays:
 | Title | Meta area | 2-line truncation. User's `language_code` translation if available. |
 | Tag chips | Meta area | Single-line, scrollable. Each chip in its `color_hex`. |
 | Sender avatar | Meta area bottom-left | Avatar of friend who shared it (if received). Initials fallback. |
+| **Note card (sticky)** | Full card | Pastel tint background (`#fde68a`, `#bbf7d0`, `#fbcfe8`, `#bfdbfe`, `#ddd6fe`). Top-right corner folded via CSS `::after` pseudo-element (triangle clip). "Note" tag chip always present. No thumbnail. |
 
 #### Card Interactions
 
@@ -887,6 +914,14 @@ Folder tiles in the feed grid are **visually identical in size to card tiles**. 
 | Folder name | Overlay at bottom of tile. White text, gradient scrim behind. 8 px bold, truncated. |
 | Access avatars | **Removed from tile face.** Visible in Card Detail / folder detail only. |
 | Average rating | **Removed from tile face.** Visible in folder detail only. |
+
+**Ranked List Folder variant** (e.g. "Top Rated", "Trending Now"):
+- Same tile size as standard folder tiles.
+- Instead of a 2×2 collage, the tile face renders an **internal scrollable ranked list** of the folder's top N items.
+- Each ranked row shows: numeric rank position (1, 2, 3…) + mini thumbnail + title + rating value.
+- Ranked rows are scrollable vertically inside the tile bounds.
+- Folder name overlay remains at bottom with gradient scrim.
+- `rankedList: true` flag on the folder node drives this rendering path.
 
 **In drag panel and filter sheet**, folder tiles follow the same collage pattern at smaller size (48×40 px).
 
@@ -2099,6 +2134,14 @@ CREATE TABLE translations ( ... );  -- per §35
 - [ ] No Filter Feed bottom sheet anywhere in the layout
 - [ ] No bottom tab bar anywhere on mobile
 
+### Profile Modal
+
+- [ ] Light / Dark theme toggle present; persisted to `localStorage`
+- [ ] Accent color picker: 6 swatches (Amber, Coral, Mint, Sky, Violet, Forest); updates `--color-accent` dynamically; persisted to `localStorage`
+- [ ] Full view toggle: triggers native fullscreen API; persisted to `localStorage`
+- [ ] Username change rate-limited to 1 per 24h
+- [ ] Avatar change rate-limited to 5 per day
+
 ### Feed Filter Tabs
 
 - [ ] 3 tabs only: All · Mine · Received
@@ -2136,7 +2179,7 @@ CREATE TABLE translations ( ... );  -- per §35
 - [ ] Speed-dial scrim dismisses on tap outside
 - [ ] Tag Mode: floating Tag Pill + half-height sheet; card tap assigns tag, not detail
 - [ ] Tag Mode exits on `×` tap; feed returns to normal
-- [ ] New Folder sheet: name input + 7-color swatch + Save
+- [ ] New Folder sheet: name input + 7-color swatch + tag chip rail (single-select, all tags + `+ New`) + share-with friend avatar grid (5-column, multi-select, toggle-all) + Save
 - [ ] Template Picker: preset list + optional name input + "Add to workspace"
 - [ ] Unwired actions (pre-dependency phase) show "Coming soon" toast
 - [ ] FAB floats 20 px above Friends Strip handle on mobile
@@ -2145,12 +2188,13 @@ CREATE TABLE translations ( ... );  -- per §35
 ### Add Card Sheet
 
 - [ ] Single input field, no URL/Text tabs
-- [ ] Auto-detects URL on paste (starts with `http://`/`https://`)
-- [ ] Auto-detects text card on regular typing
+- [ ] Auto-detects URL on paste (starts with `http://`/`https://`); Image if URL ends in `.jpg`/`.jpeg`/`.png`/`.gif`/`.webp`/`.svg`
+- [ ] Auto-detects text card on regular typing (newlines or >120 chars)
+- [ ] Manual type override chips: Auto · Link · Image · Note; force type regardless of input
 - [ ] Input expands with content (starts 1 line, max ~40% sheet height)
-- [ ] URL preview (thumbnail + title + domain) shown during/after fetch
-- [ ] Auto-tag chips shown; user can remove/add before save
-- [ ] Quick share avatar row present (optional, multi-select)
+- [ ] Preview area: Link (OG thumbnail + title + domain), Image (full-bleed), Note (rendered text), Auto (empty placeholder)
+- [ ] Tag chips single-select with `+ New` button creating tag via prompt
+- [ ] Quick share avatar row present (optional, multi-select) with `+` toggle-all button
 - [ ] Save creates `node + cause (import) + edge` atomically
 - [ ] Fetch failure: saves card with URL as title, no thumbnail, never blocks
 
@@ -2193,6 +2237,13 @@ CREATE TABLE translations ( ... );  -- per §35
 - [ ] Already-in-group rows greyed out with "already in" label
 - [ ] Save button persists changes
 
+### Drag & Drop (mobile)
+
+- [ ] Direct pointer-drag ghost model supported: pointer down → movement threshold → ghost element follows cursor → target highlighting → release to execute
+- [ ] Friend → Card/Folder drag: ghost shows "Share with [FriendName]"; dropping on card shares card, on folder shares folder contents
+- [ ] Item → Path Crumb drag: auto-reveals path strip; dropping moves item to that folder
+- [ ] Vertical-dominant movement on items cancels drag (allows scrolling)
+
 ### Drag Panel (mobile)
 
 - [ ] Card drag (hold ~400 ms) slides FAB + strip out, drag panel slides up
@@ -2223,17 +2274,24 @@ CREATE TABLE translations ( ... );  -- per §35
 - [ ] Color dot (7×7 px rounded square) top-left showing `folders.color_hex`
 - [ ] Folder name overlay at bottom (gradient scrim behind)
 - [ ] Sub-folder tiles appear before card tiles in folder context
+- [ ] Ranked List variant: internal scrollable ranked list with numeric rank + mini thumbnail + title + rating; driven by `rankedList: true` flag
 
 ### Breadcrumb
 
 - [ ] Breadcrumb hidden at root feed
 - [ ] Breadcrumb visible when inside any folder (depth ≥ 1)
+- [ ] Mobile: breadcrumb lives in bottom dock as collapsible `path-area` above Friends Strip (path handle + scrollable crumb row)
+- [ ] Desktop: breadcrumb between top bar and sort/view row
 - [ ] Folder name replaces logo in top bar when inside folder
 - [ ] Color dot + folder name in top bar
 - [ ] `⋯` button replaces tags/search icons in top bar when inside folder
 - [ ] Back `←` button returns to parent or root
 - [ ] Each path segment tappable
 - [ ] Middle segments truncated with `…` if path too long
+
+### Cards
+
+- [ ] Note cards (sticky): pastel tint background (`#fde68a`, `#bbf7d0`, `#fbcfe8`, `#bfdbfe`, `#ddd6fe`); folded corner via CSS `::after`; "Note" tag chip always present
 
 ### Card Detail Sheet
 

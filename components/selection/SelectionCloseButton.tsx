@@ -11,6 +11,7 @@
  * Consumer supplies an async `onTrash` that performs the soft delete.
  */
 
+import { useMemo } from "react";
 import { useSelectionStore, SelectionItem } from "@/lib/store/selectionStore";
 
 interface SelectionCloseButtonProps {
@@ -24,7 +25,8 @@ export default function SelectionCloseButton({
   label,
   onTrash,
 }: SelectionCloseButtonProps) {
-  const items = useSelectionStore((s) => s.items);
+  const itemsCount = useSelectionStore((s) => s.items.length);
+  const isSelected = useSelectionStore((s) => s.isSelected(item));
   const remove = useSelectionStore((s) => s.remove);
   const clear = useSelectionStore((s) => s.clear);
   const setPendingRestore = useSelectionStore((s) => s.setPendingRestore);
@@ -32,7 +34,7 @@ export default function SelectionCloseButton({
   const handleClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
-    if (items.length > 1) {
+    if (itemsCount > 1) {
       remove(item);
       return;
     }

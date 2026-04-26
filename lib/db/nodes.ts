@@ -4,6 +4,7 @@
  */
 
 import { getSupabaseServiceClient } from "@/lib/supabase/service";
+import { rpc } from "@/lib/db/rpc";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnySupabase = ReturnType<typeof getSupabaseServiceClient> & { rpc: (...a: any[]) => any };
@@ -185,14 +186,10 @@ export async function softDeleteNode(nodeId: string, userId: string): Promise<vo
     return; // already trashed — no-op
   }
 
-  const { error: updateErr } = await supabase
-    .from("nodes")
-    .update({ deleted_at: new Date().toISOString() })
-    .eq("id", nodeId);
-
-  if (updateErr) {
-    throw new Error(`Failed to soft-delete node: ${updateErr.message}`);
-  }
+  await rpc("set_node_deleted", {
+    p_node_id: nodeId,
+    p_deleted: true,
+  });
 }
 
 /**
@@ -223,14 +220,10 @@ export async function restoreNode(nodeId: string, userId: string): Promise<void>
     return; // already live — no-op
   }
 
-  const { error: updateErr } = await supabase
-    .from("nodes")
-    .update({ deleted_at: null })
-    .eq("id", nodeId);
-
-  if (updateErr) {
-    throw new Error(`Failed to restore node: ${updateErr.message}`);
-  }
+  await rpc("set_node_deleted", {
+    p_node_id: nodeId,
+    p_deleted: false,
+  });
 }
 
 /**

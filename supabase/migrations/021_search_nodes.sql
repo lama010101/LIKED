@@ -33,7 +33,7 @@ LANGUAGE sql
 STABLE
 SECURITY DEFINER
 AS $$
-  SELECT DISTINCT n.*
+  SELECT n.*
   FROM nodes n
   LEFT JOIN nodes_sort_cache nsc ON nsc.node_id = n.id
 

@@ -6,7 +6,7 @@ export interface FeedItem {
   tag?: string;
   tagColor?: string;
   rating?: number;
-  dir?: 'mine' | 'received';
+  dir?: 'mine' | 'received' | 'sent';
   sentTo?: string[];
   source?: string;
   daysAgo?: number;

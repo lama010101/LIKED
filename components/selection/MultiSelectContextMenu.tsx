@@ -11,7 +11,7 @@
  * picker UI not yet built are shown but call `onStub` with the action id.
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import {
   useSelectionStore,
   SelectionItem,
@@ -91,9 +91,11 @@ export default function MultiSelectContextMenu({
   activeFolderId = null,
   onAction,
 }: MultiSelectContextMenuProps) {
-  const items = useSelectionStore((s) => s.items);
+  const itemsCount = useSelectionStore((s) => s.items.length);
   const isActive = useSelectionStore((s) => s.isActive);
   const clear = useSelectionStore((s) => s.clear);
+  // Get items via getState to avoid INVARIANT 1 violation (array selector)
+  const items = useSelectionStore.getState().items;
 
   // Light slide-in animation: schedule a setState via rAF so we satisfy
   // the react-hooks/set-state-in-effect rule (no synchronous setState in
@@ -113,9 +115,9 @@ export default function MultiSelectContextMenu({
     }
   }, [isActive]);
 
-  if (!isActive || items.length === 0) return null;
+  if (!isActive || itemsCount === 0) return null;
 
-  const ctx = { activeFolderId };
+  const ctx = useMemo(() => ({ activeFolderId }), [activeFolderId]);
   const applicable = ACTIONS.filter((a) => a.applies(items, ctx));
 
   const handleCancel = () => {

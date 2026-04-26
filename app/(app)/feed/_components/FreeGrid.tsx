@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import type { VisibleNode } from "@/lib/db/visibility";
+import type { FeedNode } from "@/lib/hooks/useFeed";
 import NodeCard from "./NodeCard";
 
 const COLS = 4;
@@ -14,12 +14,13 @@ interface CardSize {
 }
 
 interface FreeGridProps {
-  nodes: VisibleNode[];
+  nodes: FeedNode[];
   scopeKey: string;
-  onCardClick: (node: VisibleNode) => void;
+  onCardClick: (node: FeedNode) => void;
+  currentUserId: string;
 }
 
-export default function FreeGrid({ nodes, scopeKey, onCardClick }: FreeGridProps) {
+export default function FreeGrid({ nodes, scopeKey, onCardClick, currentUserId }: FreeGridProps) {
   const [sizes, setSizes] = useState<Record<string, Record<string, CardSize>>>({});
 
   const getSize = useCallback(
@@ -54,14 +55,15 @@ export default function FreeGrid({ nodes, scopeKey, onCardClick }: FreeGridProps
     >
       {nodes.map((node) => (
         <ResizableCard
-          key={node.id}
+          key={node.node_id}
           node={node}
-          size={getSize(node.id)}
+          size={getSize(node.node_id)}
           cols={COLS}
           rowPx={ROW_PX}
           gapPx={GAP_PX}
-          onResize={(size) => setSize(node.id, size)}
+          onResize={(size) => setSize(node.node_id, size)}
           onClick={onCardClick}
+          currentUserId={currentUserId}
         />
       ))}
     </div>
@@ -69,13 +71,14 @@ export default function FreeGrid({ nodes, scopeKey, onCardClick }: FreeGridProps
 }
 
 interface ResizableCardProps {
-  node: VisibleNode;
+  node: FeedNode;
   size: CardSize;
   cols: number;
   rowPx: number;
   gapPx: number;
   onResize: (size: CardSize) => void;
-  onClick: (node: VisibleNode) => void;
+  onClick: (node: FeedNode) => void;
+  currentUserId: string;
 }
 
 function ResizableCard({
@@ -86,6 +89,7 @@ function ResizableCard({
   gapPx,
   onResize,
   onClick,
+  currentUserId,
 }: ResizableCardProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const dragState = useRef<{
@@ -147,7 +151,7 @@ function ResizableCard({
       }}
     >
       <div style={{ height: "100%", overflow: "hidden", borderRadius: 12 }}>
-        <NodeCard node={node} onClick={onClick} />
+        <NodeCard node={node} onClick={onClick} currentUserId={currentUserId} />
       </div>
 
       {/* Resize handle — bottom-right corner */}

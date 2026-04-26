@@ -1,17 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import type { VisibleNode } from "@/lib/db/visibility";
+import type { FeedNode } from "@/lib/hooks/useFeed";
 import NodeCard from "./NodeCard";
 
 interface FolderViewProps {
   folderName: string;
   folderColor: string;
   breadcrumb: string[];
-  nodes: VisibleNode[];
+  nodes: FeedNode[];
   onBack: () => void;
   onFilterClick: () => void;
-  onCardClick: (node: VisibleNode) => void;
+  onCardClick: (node: FeedNode) => void;
+  currentUserId: string;
 }
 
 export default function FolderView({
@@ -22,6 +23,7 @@ export default function FolderView({
   onBack,
   onFilterClick,
   onCardClick,
+  currentUserId,
 }: FolderViewProps) {
   const [layout, setLayout] = useState<"grid" | "list">("grid");
 
@@ -201,7 +203,7 @@ export default function FolderView({
             }}
           >
             {nodes.map((node) => (
-              <NodeCard key={node.id} node={node} onClick={onCardClick} />
+              <NodeCard key={node.node_id} node={node} onClick={onCardClick} currentUserId={currentUserId} />
             ))}
           </div>
         )}
@@ -209,7 +211,7 @@ export default function FolderView({
         {layout === "list" && nodes.length > 0 && (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {nodes.map((node) => (
-              <NodeCard key={node.id} node={node} onClick={onCardClick} />
+              <NodeCard key={node.node_id} node={node} onClick={onCardClick} currentUserId={currentUserId} />
             ))}
           </div>
         )}

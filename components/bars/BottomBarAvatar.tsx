@@ -6,7 +6,7 @@
  * Pure presentational — the parent BottomBar owns the list + layout.
  */
 
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { sourceId, targetId, DragSource, DropTarget } from "@/lib/dnd/types";
 import { useLongPress } from "@/lib/hooks/useLongPress";
@@ -28,6 +28,13 @@ interface BottomBarAvatarProps {
 }
 
 export default function BottomBarAvatar({ item, onClick }: BottomBarAvatarProps) {
+  // Disable DnD during SSR to prevent hydration mismatch
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   // `me` avatar isn't a share target. Everything else accepts drops.
   const dropTarget: DropTarget | null =
     item.type === "friend"
@@ -44,11 +51,7 @@ export default function BottomBarAvatar({ item, onClick }: BottomBarAvatarProps)
   const selectionKind: SelectionKind | null =
     item.type === "friend" ? "friend" : item.type === "group" ? "group" : null;
   const selectionActive = useSelectionStore((s) => s.isActive);
-  const isSelected = useSelectionStore((s) =>
-    selectionKind
-      ? s.items.some((i) => i.kind === selectionKind && i.id === item.id)
-      : false
-  );
+  const isSelected = useSelectionStore((s) => s.isSelected({ kind: selectionKind!, id: item.id }));
   const activate = useSelectionStore((s) => s.activate);
   const toggle = useSelectionStore((s) => s.toggle);
 
@@ -65,7 +68,7 @@ export default function BottomBarAvatar({ item, onClick }: BottomBarAvatarProps)
     isOver,
   } = useDroppable({
     id: dropTarget ? targetId(dropTarget) : `me:${item.id}`,
-    disabled: !dropTarget || selectionActive,
+    disabled: !dropTarget || selectionActive || !isMounted,
     data: dropTarget ? { dropTarget } : undefined,
   });
 
@@ -76,7 +79,7 @@ export default function BottomBarAvatar({ item, onClick }: BottomBarAvatarProps)
     isDragging,
   } = useDraggable({
     id: dragSource ? sourceId(dragSource) : `me-src:${item.id}`,
-    disabled: !dragSource || selectionActive,
+    disabled: !dragSource || selectionActive || !isMounted,
     data: dragSource ? { dragSource } : undefined,
   });
 
@@ -99,8 +102,8 @@ export default function BottomBarAvatar({ item, onClick }: BottomBarAvatarProps)
   return (
     <div
       ref={setRef}
-      {...(dragSource && !selectionActive ? attributes : {})}
-      {...(dragSource && !selectionActive ? listeners : {})}
+      {...(dragSource && !selectionActive && isMounted ? attributes : {})}
+      {...(dragSource && !selectionActive && isMounted ? listeners : {})}
       onClick={handleClick}
       style={{
         display: "flex",

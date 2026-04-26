@@ -9,6 +9,8 @@
  */
 
 import { getSupabaseServiceClient } from "@/lib/supabase/service";
+import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { rpc } from "@/lib/db/rpc";
 import { Folder, Permission } from "@/lib/types/app";
 import {
   hasFolderPermission,
@@ -16,39 +18,51 @@ import {
   PermissionError,
 } from "./permissions";
 
-export interface CreateFolderInput {
-  ownerId: string;
-  name: string;
-  parentFolderId?: string;
-}
-
 /**
  * Create a new folder
  *
  * Per P13-T01 E1:
- * - If parentFolderId is null/undefined: set is_project = TRUE
+ * - If parentFolderId is null: set is_project = TRUE
  * - If parentFolderId is provided: set is_project = FALSE
  *
  * Uses the create_folder RPC function for atomic transaction with folder_tree setup.
+ * Owner is derived from auth context (auth.uid()) inside the RPC.
  */
-export async function createFolder(input: CreateFolderInput): Promise<Folder> {
-  const supabase = getSupabaseServiceClient();
-
-  const { data, error } = await supabase.rpc("create_folder", {
-    p_owner_id: input.ownerId,
+export async function createFolder(input: {
+  name: string;
+  parentFolderId: string | null;
+}): Promise<{ id: string }> {
+  const id = (await rpc("create_folder", {
     p_name: input.name,
     p_parent_folder_id: input.parentFolderId,
-  });
+  })) as string;
+  return { id };
+}
+
+/**
+ * Fetch folders owned by the current authenticated user.
+ * Server-only — derives user from auth context.
+ */
+export async function getUserFolders(): Promise<Folder[]> {
+  const supabase = await getSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return [];
+
+  const { data, error } = await supabase
+    .from("folders")
+    .select("id, name, owner_id, parent_folder_id, deleted_at, created_at")
+    .eq("owner_id", user.id)
+    .is("deleted_at", null)
+    .order("created_at", { ascending: false });
 
   if (error) {
-    throw new Error(`Failed to create folder: ${error.message}`);
+    throw new Error(`Failed to fetch user folders: ${error.message}`);
   }
 
-  if (!data || data.length === 0) {
-    throw new Error("Create folder returned no data");
-  }
-
-  return data[0] as Folder;
+  return (data ?? []) as unknown as Folder[];
 }
 
 /**
@@ -63,19 +77,13 @@ export async function renameFolder(
   newName: string,
   requestingUserId: string
 ): Promise<void> {
-  const supabase = getSupabaseServiceClient();
-
   // Verify user has edit permission
   await assertFolderPermission(requestingUserId, folderId, "edit");
 
-  const { error } = await supabase
-    .from("folders")
-    .update({ name: newName })
-    .eq("id", folderId);
-
-  if (error) {
-    throw new Error(`Failed to rename folder: ${error.message}`);
-  }
+  await rpc("rename_folder", {
+    p_folder_id: folderId,
+    p_name: newName,
+  });
 }
 
 /**
@@ -208,14 +216,20 @@ export async function getFolderTree(userId: string): Promise<Folder[]> {
     (folder, index, self) => index === self.findIndex((f) => f.id === folder.id)
   );
 
+  // Map to Folder type with computed is_project
+  const foldersWithProject = uniqueFolders.map((folder) => ({
+    ...folder,
+    is_project: folder.parent_folder_id === null,
+  })) as Folder[];
+
   // Sort: projects first (is_project=TRUE), then by name
-  uniqueFolders.sort((a, b) => {
+  foldersWithProject.sort((a, b) => {
     if (a.is_project && !b.is_project) return -1;
     if (!a.is_project && b.is_project) return 1;
     return a.name.localeCompare(b.name);
   });
 
-  return uniqueFolders as Folder[];
+  return foldersWithProject;
 }
 
 /**
@@ -296,14 +310,10 @@ export async function moveFolder(
   // Verify user has edit permission
   await assertFolderPermission(requestingUserId, folderId, "edit");
 
-  // Determine is_project based on new parent
-  const isProject = newParentFolderId === null;
-
   const { error } = await supabase
     .from("folders")
     .update({
       parent_folder_id: newParentFolderId,
-      is_project: isProject,
     })
     .eq("id", folderId);
 

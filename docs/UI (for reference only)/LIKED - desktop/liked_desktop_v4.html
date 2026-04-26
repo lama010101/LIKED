@@ -1,0 +1,1678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>liked. — Desktop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Fraunces:wght@700&display=swap" rel="stylesheet">
+
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="ic-search"    viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol>
+  <symbol id="ic-bell"      viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></symbol>
+  <symbol id="ic-sliders"   viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></symbol>
+  <symbol id="ic-plus"      viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+  <symbol id="ic-sort"      viewBox="0 0 24 24"><polyline points="7 16 12 21 17 16"/><polyline points="7 8 12 3 17 8"/></symbol>
+  <symbol id="ic-grid"      viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></symbol>
+  <symbol id="ic-cols"      viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="18" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/></symbol>
+  <symbol id="ic-list"      viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></symbol>
+  <symbol id="ic-rows"      viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="5" rx="1"/><rect x="3" y="10" width="18" height="5" rx="1"/><rect x="3" y="17" width="18" height="4" rx="1"/></symbol>
+  <symbol id="ic-canvas"    viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="5" cy="7" r="1"/><circle cx="19" cy="7" r="1"/><circle cx="5" cy="17" r="1"/><circle cx="19" cy="17" r="1"/><path d="M12 13v3m0-9v2M6 7h2M16 7h2M6 17h2M16 17h2"/></symbol>
+  <symbol id="ic-folder"    viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></symbol>
+  <symbol id="ic-trash"     viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></symbol>
+  <symbol id="ic-settings"  viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
+  <symbol id="ic-share"     viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></symbol>
+  <symbol id="ic-tag"       viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></symbol>
+</svg>
+
+<style>
+*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+:root {
+  --bg:#0e0f14; --bg2:#16181f; --bg3:#1e2029; --bg4:#252733; --bg5:#2e3040;
+  --border:rgba(255,255,255,.07); --border2:rgba(255,255,255,.12);
+  --text:#f0f1f5; --text2:#9395a0; --text3:#5a5d6b;
+  --accent:#f5a623; --red:#ff6b6b; --blue:#60c5f1; --purple:#a78bfa; --green:#4ad58a;
+  --shadow:0 8px 32px rgba(0,0,0,.5); --shadow-sm:0 2px 10px rgba(0,0,0,.3);
+  --sidebar-w: 220px;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+}
+
+/* icons */
+.ic { display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; }
+svg.si { fill:none; stroke:currentColor; stroke-width:1.75; stroke-linecap:round; stroke-linejoin:round; }
+.ic14 { width:14px; height:14px; }
+.ic16 { width:16px; height:16px; }
+.ic18 { width:18px; height:18px; }
+
+/* ─── APP SHELL ─── */
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+
+
+/* ─── MAIN LAYOUT ─── */
+.layout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ─── SIDEBAR ─── */
+.sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sb-top { padding: 16px 14px 10px; }
+.dlogo { font-family:'Fraunces',serif; font-size:20px; font-weight:700; color:var(--accent); letter-spacing:-.5px; }
+.dlogo span { color:var(--text); }
+
+.sb-search {
+  margin: 0 10px 10px;
+  background: var(--bg3);
+  border-radius: 9px;
+  padding: 7px 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  cursor: text;
+}
+.sb-search-t { font-size:11px; color:var(--text3); }
+
+/* nav */
+.sb-nav { padding: 0 7px; display:flex; flex-direction:column; gap:1px; }
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 9px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--text2);
+  font-size: 12px;
+  font-weight: 500;
+  transition: background .12s;
+}
+.nav-item:hover { background: var(--bg3); }
+.nav-item.on { background: rgba(245,166,35,.1); color: var(--accent); }
+.nav-badge {
+  margin-left: auto;
+  background: var(--red);
+  color: #fff;
+  border-radius: 100px;
+  font-size: 8px;
+  font-weight: 700;
+  padding: 2px 6px;
+}
+
+/* section label */
+.sb-sec {
+  padding: 10px 16px 3px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+
+/* sidebar list */
+.sb-list { padding: 0 7px; display:flex; flex-direction:column; gap:1px; }
+
+.sb-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 9px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background .12s;
+}
+.sb-row:hover { background: var(--bg3); }
+
+.av-circle {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  display: flex; align-items:center; justify-content:center;
+  font-size: 9px; font-weight: 700; color:#fff;
+  flex-shrink: 0;
+}
+.av-square {
+  width: 24px; height: 24px;
+  border-radius: 6px;
+  display: flex; align-items:center; justify-content:center;
+  font-size: 9px; font-weight: 700; color:#fff;
+  flex-shrink: 0;
+}
+.av-dot {
+  width: 8px; height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.sb-name { font-size: 12px; color: var(--text2); flex:1; }
+.sb-count { font-size: 10px; color: var(--text3); }
+.sb-new { width:6px; height:6px; border-radius:50%; background:var(--accent); }
+
+/* tags */
+.sb-tags { padding: 4px 10px 8px; display:flex; flex-wrap:wrap; gap:3px; }
+.sb-tag { font-size: 9px; padding: 2px 8px; border-radius: 5px; color:#fff; font-weight:700; cursor:pointer; opacity:.85; }
+.sb-tag:hover { opacity:1; }
+
+/* sidebar indent */
+.indent { padding-left: 20px !important; }
+
+/* sidebar bottom */
+.sb-bot {
+  margin-top: auto;
+  padding: 10px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.me-av {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(135deg,#f5a623,#ff6b6b);
+  display: flex; align-items:center; justify-content:center;
+  font-size: 11px; font-weight: 700; color:#fff;
+  flex-shrink: 0;
+}
+.me-name { font-size: 12px; color: var(--text); flex:1; }
+
+/* ─── MAIN CONTENT ─── */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  background: var(--bg);
+}
+
+/* toolbar */
+.toolbar {
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg2);
+  flex-shrink: 0;
+}
+
+/* feed tabs */
+.feed-tabs { display:flex; gap:3px; }
+.feed-tab {
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text3);
+  cursor: pointer;
+  transition: all .12s;
+}
+.feed-tab:hover { background:var(--bg3); color:var(--text2); }
+.feed-tab.all  { background:rgba(176,179,192,.1); color:var(--text2); font-weight:700; }
+.feed-tab.mine { background:rgba(245,166,35,.1); color:var(--accent); font-weight:700; }
+.feed-tab.recv { background:rgba(96,197,241,.1); color:var(--blue); font-weight:700; }
+
+/* right side of toolbar */
+.toolbar-right { margin-left:auto; display:flex; align-items:center; gap:8px; }
+
+.sort-btn {
+  display: flex; align-items:center; gap:5px;
+  padding: 6px 11px;
+  background: var(--bg3);
+  border-radius: 8px;
+  font-size: 11px;
+  color: var(--text2);
+  border: 1px solid var(--border);
+  cursor: pointer;
+}
+
+.view-switcher {
+  display: flex;
+  gap:2px;
+  background: var(--bg3);
+  padding: 2px;
+  border-radius: 9px;
+}
+.view-btn {
+  width: 28px; height: 28px;
+  border-radius: 7px;
+  display: flex; align-items:center; justify-content:center;
+  color: var(--text3);
+  cursor: pointer;
+  transition: all .12s;
+}
+.view-btn:hover { color: var(--text2); }
+.view-btn.on { background: var(--bg4); color: var(--text); }
+
+.notif-btn {
+  width: 32px; height: 32px;
+  background: var(--bg3);
+  border-radius: 8px;
+  display: flex; align-items:center; justify-content:center;
+  color: var(--text2);
+  border: 1px solid var(--border);
+  position: relative;
+  cursor: pointer;
+}
+.notif-btn .badge {
+  position: absolute;
+  top: -3px; right: -3px;
+  background: var(--red);
+  border-radius: 50%;
+  width: 12px; height: 12px;
+  font-size: 7px; font-weight: 800; color:#fff;
+  display: flex; align-items:center; justify-content:center;
+}
+
+/* ─── FEED ─── */
+.feed {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 18px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--bg4) transparent;
+}
+
+.masonry {
+  columns: 4;
+  column-gap: 10px;
+}
+
+@media (min-width: 1600px) {
+  .masonry { columns: 5; }
+}
+@media (max-width: 1200px) {
+  .masonry { columns: 3; }
+}
+
+.card {
+  break-inside: avoid;
+  margin-bottom: 10px;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  background: var(--bg3);
+  transition: transform .15s, box-shadow .15s;
+  position: relative;
+}
+.card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,.4); }
+
+.card-img { width:100%; display:block; }
+
+/* hover overlay with quick actions */
+.card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 40%, rgba(0,0,0,.75) 100%);
+  opacity: 0;
+  transition: opacity .15s;
+  display: flex;
+  align-items: flex-end;
+  padding: 9px;
+  gap: 5px;
+}
+.card:hover .card-overlay { opacity:1; }
+.qbtn {
+  padding: 4px 9px;
+  background: rgba(255,255,255,.92);
+  border-radius: 5px;
+  font-size: 9px;
+  font-weight: 700;
+  color: #000;
+}
+
+/* badges */
+.badge-dir {
+  position: absolute;
+  top: 7px; right: 7px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 7px; font-weight: 800;
+}
+.badge-dir.r { background:rgba(96,197,241,.9); color:#000; }
+.badge-dir.m { background:rgba(245,166,35,.9); color:#000; }
+
+.badge-sent {
+  position: absolute;
+  top: 7px; left: 7px;
+  background: rgba(167,139,250,.9);
+  border-radius: 3px;
+  padding: 2px 6px;
+  font-size: 7px; font-weight: 700; color:#fff;
+}
+
+.card-rating {
+  position: absolute;
+  bottom: 36px; left: 7px;
+  background: rgba(0,0,0,.65);
+  color: var(--accent);
+  font-size: 9px; font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.card-meta { padding: 7px 9px 9px; }
+.card-title { font-size: 10px; font-weight: 500; color:var(--text); margin-bottom:3px; line-height:1.35; }
+.card-tags { display:flex; gap:3px; flex-wrap:wrap; }
+.card-tag { font-size: 7px; padding: 2px 6px; border-radius: 3px; color:#fff; font-weight:700; white-space:nowrap; }
+
+/* ─── FAB ─── */
+.fab {
+  position: absolute;
+  bottom: 20px; right: 20px;
+  width: 46px; height: 46px;
+  border-radius: 50%;
+  background: var(--accent);
+  display: flex; align-items:center; justify-content:center;
+  color: #000;
+  box-shadow: 0 4px 20px rgba(245,166,35,.5), 0 0 0 3px var(--bg2);
+  cursor: pointer;
+  z-index: 10;
+  transition: transform .15s;
+}
+.fab:hover { transform: scale(1.08); }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <div class="layout">
+
+    <!-- ── SIDEBAR ── -->
+    <div class="sidebar">
+      <div class="sb-top">
+        <div class="dlogo">liked<span>.</span></div>
+      </div>
+
+      <div class="sb-search">
+        <svg class="si ic14" style="color:var(--text3)"><use href="#ic-search"/></svg>
+        <div class="sb-search-t">Search...</div>
+      </div>
+
+      <div class="sb-nav">
+        <div class="nav-item on">
+          <svg class="si ic14"><use href="#ic-rows"/></svg>Feed
+        </div>
+        <div class="nav-item">
+          <svg class="si ic14"><use href="#ic-folder"/></svg>Folders
+        </div>
+        <div class="nav-item">
+          <svg class="si ic14"><use href="#ic-trash"/></svg>Trash
+          <span class="nav-badge">4</span>
+        </div>
+      </div>
+
+      <div class="sb-sec">Friends</div>
+      <div class="sb-list">
+        <div class="sb-row">
+          <div class="av-circle" style="background:linear-gradient(135deg,#4a9fd5,#1c6fa0)">A</div>
+          <span class="sb-name">Alice</span>
+          <div class="sb-new"></div>
+        </div>
+        <div class="sb-row">
+          <div class="av-circle" style="background:linear-gradient(135deg,#d54a9f,#a01c6f)">B</div>
+          <span class="sb-name">Bob</span>
+          <div class="sb-new"></div>
+        </div>
+        <div class="sb-row">
+          <div class="av-circle" style="background:linear-gradient(135deg,#4ad58a,#1ca06f)">C</div>
+          <span class="sb-name">Chiara</span>
+        </div>
+        <div class="sb-row">
+          <div class="av-circle" style="background:linear-gradient(135deg,#d5a44a,#a07a1c)">D</div>
+          <span class="sb-name">Diego</span>
+        </div>
+      </div>
+
+      <div class="sb-sec">Groups</div>
+      <div class="sb-list">
+        <div class="sb-row">
+          <div class="av-square" style="background:linear-gradient(135deg,#3a5cd5,#1c3aa0)">M</div>
+          <span class="sb-name">Music</span>
+        </div>
+        <div class="sb-row">
+          <div class="av-square" style="background:linear-gradient(135deg,#c43a5a,#8a1c3a)">T</div>
+          <span class="sb-name">Tech</span>
+        </div>
+      </div>
+
+      <div class="sb-sec">Folders</div>
+      <div class="sb-list">
+        <div class="sb-row">
+          <div class="av-dot" style="background:#e05c3a"></div>
+          <span class="sb-name">Favorites</span>
+          <span class="sb-count">24</span>
+        </div>
+        <div class="sb-row indent">
+          <div class="av-dot" style="background:#3a7bd5"></div>
+          <span class="sb-name">Summer 25</span>
+          <span class="sb-count">8</span>
+        </div>
+        <div class="sb-row indent">
+          <div class="av-dot" style="background:#7b3ad5"></div>
+          <span class="sb-name">Tokyo Trip</span>
+          <span class="sb-count">5</span>
+        </div>
+        <div class="sb-row">
+          <div class="av-dot" style="background:#2a8a4a"></div>
+          <span class="sb-name">Watch Later</span>
+          <span class="sb-count">17</span>
+        </div>
+      </div>
+
+      <div class="sb-tags">
+        <div class="sb-tag" style="background:#3a7bd5">Music</div>
+        <div class="sb-tag" style="background:#c43a5a">Film</div>
+        <div class="sb-tag" style="background:#e05c3a">Prod</div>
+        <div class="sb-tag" style="background:#2a8a4a">Health</div>
+        <div class="sb-tag" style="background:#7b3ad5">Tech</div>
+        <div class="sb-tag" style="background:#7a9a2a">Food</div>
+      </div>
+
+      <div class="sb-bot">
+        <div class="me-av" id="me-avatar" onclick="openProfile()" style="cursor:pointer">JS</div>
+        <div class="me-name">jean.sophie</div>
+        <svg class="si ic14" style="color:var(--text2);cursor:pointer;" onclick="openProfile()"><use href="#ic-settings"/></svg>
+      </div>
+    </div>
+
+    <!-- ── MAIN ── -->
+    <div class="main">
+
+      <!-- toolbar -->
+      <div class="toolbar">
+        <div class="feed-tabs">
+          <div class="feed-tab all" onclick="setTab(this,'all')">All</div>
+          <div class="feed-tab" onclick="setTab(this,'mine')">Mine</div>
+          <div class="feed-tab" onclick="setTab(this,'recv')">Received</div>
+        </div>
+        <div class="toolbar-right">
+          <div class="search-trigger" onclick="openSearch()">
+            <svg class="si ic14"><use href="#ic-search"/></svg>
+            <span>Search</span>
+            <kbd>⌘K</kbd>
+          </div>
+          <div class="sort-btn" id="sort-btn" onclick="toggleSort()">
+            <svg class="si ic14"><use href="#ic-sort"/></svg> <span id="sort-label">Newest</span>
+            <svg class="si ic14" style="opacity:.4"><use href="#ic-chevd"/></svg>
+          </div>
+          <div class="filter-btn" id="filter-btn" onclick="toggleFilter()">
+            <svg class="si ic14"><use href="#ic-sliders"/></svg>
+          </div>
+          <div class="view-switcher" id="view-switcher">
+            <div class="view-btn on" data-view="cols" onclick="setView(this)"><svg class="si ic14"><use href="#ic-cols"/></svg></div>
+            <div class="view-btn" data-view="grid" onclick="setView(this)"><svg class="si ic14"><use href="#ic-grid"/></svg></div>
+            <div class="view-btn" data-view="list" onclick="setView(this)"><svg class="si ic14"><use href="#ic-list"/></svg></div>
+            <div class="view-btn" data-view="rows" onclick="setView(this)"><svg class="si ic14"><use href="#ic-rows"/></svg></div>
+            <div class="view-btn" data-view="canvas" onclick="setView(this)"><svg class="si ic14"><use href="#ic-canvas"/></svg></div>
+          </div>
+          <div class="notif-btn" id="notif-btn" onclick="toggleNotif()">
+            <svg class="si ic14"><use href="#ic-bell"/></svg>
+            <div class="badge" id="notif-badge">2</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sort dropdown -->
+      <div class="dropdown" id="sort-dropdown">
+        <div class="dropdown-item on" onclick="pickSort('Newest',this)">Newest first</div>
+        <div class="dropdown-item" onclick="pickSort('Oldest',this)">Oldest first</div>
+        <div class="dropdown-item" onclick="pickSort('Top rated',this)">Top rated</div>
+        <div class="dropdown-item" onclick="pickSort('A–Z',this)">Title A–Z</div>
+        <div class="dropdown-item" onclick="pickSort('Sent',this)">Most shared</div>
+      </div>
+
+      <!-- Notifications panel -->
+      <div class="notif-panel" id="notif-panel">
+        <div class="notif-panel-hdr">
+          <span>Notifications</span>
+          <span class="notif-clear" onclick="clearNotifs()">Mark all read</span>
+        </div>
+        <div class="notif-item unread">
+          <div class="notif-av" style="background:linear-gradient(135deg,#4a9fd5,#1c6fa0)">A</div>
+          <div class="notif-body">
+            <div class="notif-text"><b>Alice</b> shared <em>Coltrane: A Love Supreme</em> with you</div>
+            <div class="notif-time">2 min ago</div>
+          </div>
+          <div class="notif-dot"></div>
+        </div>
+        <div class="notif-item unread">
+          <div class="notif-av" style="background:linear-gradient(135deg,#d54a9f,#a01c6f)">B</div>
+          <div class="notif-body">
+            <div class="notif-text"><b>Bob</b> rated <em>Japanese jazz history</em> · ★ 8.0</div>
+            <div class="notif-time">14 min ago</div>
+          </div>
+          <div class="notif-dot"></div>
+        </div>
+        <div class="notif-item">
+          <div class="notif-av" style="background:linear-gradient(135deg,#4ad58a,#1ca06f)">C</div>
+          <div class="notif-body">
+            <div class="notif-text"><b>Chiara</b> added you to group <em>Design Inspo</em></div>
+            <div class="notif-time">1 hr ago</div>
+          </div>
+        </div>
+        <div class="notif-item">
+          <div class="notif-av" style="background:linear-gradient(135deg,#3a5cd5,#1c3aa0)">M</div>
+          <div class="notif-body">
+            <div class="notif-text"><b>Music</b> group — 3 new cards from Alice, Bob</div>
+            <div class="notif-time">3 hr ago</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter panel -->
+      <div class="filter-panel" id="filter-panel">
+        <div class="filter-hdr">
+          <span>Filter feed</span>
+          <span class="filter-clear" onclick="clearFilters()">Clear all</span>
+        </div>
+        <div class="filter-sec">FRIENDS</div>
+        <div class="filter-chips">
+          <div class="fchip" onclick="this.classList.toggle('on')"><div class="fchip-av" style="background:linear-gradient(135deg,#4a9fd5,#1c6fa0)">A</div>Alice</div>
+          <div class="fchip" onclick="this.classList.toggle('on')"><div class="fchip-av" style="background:linear-gradient(135deg,#d54a9f,#a01c6f)">B</div>Bob</div>
+          <div class="fchip" onclick="this.classList.toggle('on')"><div class="fchip-av" style="background:linear-gradient(135deg,#4ad58a,#1ca06f)">C</div>Chiara</div>
+          <div class="fchip" onclick="this.classList.toggle('on')"><div class="fchip-av" style="background:linear-gradient(135deg,#d5a44a,#a07a1c)">D</div>Diego</div>
+        </div>
+        <div class="filter-sec">TAGS</div>
+        <div class="filter-chips">
+          <div class="fchip tag-chip" style="--tc:#3a7bd5" onclick="this.classList.toggle('on')">Music</div>
+          <div class="fchip tag-chip" style="--tc:#c43a5a" onclick="this.classList.toggle('on')">Film</div>
+          <div class="fchip tag-chip" style="--tc:#e05c3a" onclick="this.classList.toggle('on')">Prod</div>
+          <div class="fchip tag-chip" style="--tc:#2a8a4a" onclick="this.classList.toggle('on')">Health</div>
+          <div class="fchip tag-chip" style="--tc:#7b3ad5" onclick="this.classList.toggle('on')">Tech</div>
+          <div class="fchip tag-chip" style="--tc:#7a9a2a" onclick="this.classList.toggle('on')">Food</div>
+        </div>
+        <div class="filter-sec">RATING</div>
+        <div class="filter-rating-row">
+          <span class="filter-rating-label">Min ★</span>
+          <input type="range" min="0" max="10" value="0" step="0.5" class="filter-slider" id="rating-slider" oninput="document.getElementById('rating-val').textContent=this.value">
+          <span class="filter-rating-val" id="rating-val">0</span>
+        </div>
+        <div class="filter-apply" onclick="applyFilters()">Apply filters</div>
+      </div>
+
+      <!-- feed -->
+      <div class="feed" id="main-feed">
+        <div class="masonry">
+
+          <div class="card">
+            <div class="card-img" style="height:130px;background:linear-gradient(135deg,#1c2040,#4a2060);"></div>
+            <div class="card-overlay"><div class="qbtn">Share</div><div class="qbtn">Folder</div></div>
+            <div class="badge-dir r">↓ recv</div>
+            <div class="card-rating">★ 8.5</div>
+            <div class="card-meta">
+              <div class="card-title">Morning routine triggers</div>
+              <div class="card-tags"><span class="card-tag" style="background:#e05c3a">Prod</span></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-img" style="height:88px;background:linear-gradient(135deg,#0d3030,#1c4a2d);"></div>
+            <div class="card-overlay"><div class="qbtn">Share</div></div>
+            <div class="badge-dir m">mine</div>
+            <div class="badge-sent">↑ sent</div>
+            <div class="card-meta">
+              <div class="card-title">Fermented foods guide</div>
+              <div class="card-tags"><span class="card-tag" style="background:#2a8a4a">Health</span></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-img" style="height:112px;background:linear-gradient(135deg,#3d2a10,#4a3a15);"></div>
+            <div class="card-overlay"><div class="qbtn">Share</div><div class="qbtn">Folder</div></div>
+            <div class="badge-dir r">↓ recv</div>
+            <div class="card-rating">★ 9.0</div>
+            <div class="card-meta">
+              <div class="card-title">Japanese jazz history</div>
+              <div class="card-tags"><span class="card-tag" style="background:#3a7bd5">Music</span></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-img" style="height:118px;background:linear-gradient(135deg,#102040,#1c1040);"></div>
+            <div class="card-overlay"><div class="qbtn">Share</div></div>
+            <div class="badge-dir m">mine</div>
+            <div class="badge-sent">↑ sent</div>
+            <div class="card-meta">
+              <div class="card-title">Film: Past Lives</div>
+              <div class="card-tags"><span class="card-tag" style="background:#c43a5a">Film</span></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-img" style="height:76px;background:linear-gradient(135deg,#3a0d20,#601040);"></div>
+            <div class="card-overlay"><div class="qbtn">Share</div></div>
+            <div class="badge-dir m">mine</div>
+            <div class="card-rating">★ 7.5</div>
+            <div class="card-meta">
+              <div class="card-title">BTFD investing</div>
+              <div class="card-tags"><span class="card-tag" style="background:#2a8a4a">Finance</span></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-img" style="height:132px;background:linear-gradient(135deg,#1a4020,#0d3010);"></div>
+            <div class="card-overlay"><div class="qbtn">Share</div></div>
+            <div class="badge-dir r">↓ recv</div>
+            <div class="card-meta">
+              <div class="card-title">Radiohead – In Rainbows</div>
+              <div class="card-tags"><span class="card-tag" style="background:#3a7bd5">Music</span></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-img" style="height:100px;background:linear-gradient(135deg,#2d1040,#3d2060);"></div>
+            <div class="card-overlay"><div class="qbtn">Share</div><div class="qbtn">Folder</div></div>
+            <div class="badge-dir m">mine</div>
+            <div class="badge-sent">↑ sent</div>
+            <div class="card-rating">★ 8.0</div>
+            <div class="card-meta">
+              <div class="card-title">How transformers work</div>
+              <div class="card-tags"><span class="card-tag" style="background:#7b3ad5">Tech</span></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-img" style="height:90px;background:linear-gradient(135deg,#402010,#4a1520);"></div>
+            <div class="card-overlay"><div class="qbtn">Share</div></div>
+            <div class="badge-dir r">↓ recv</div>
+            <div class="card-meta">
+              <div class="card-title">Sourdough starter 101</div>
+              <div class="card-tags"><span class="card-tag" style="background:#7a9a2a">Food</span></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-img" style="height:108px;background:linear-gradient(135deg,#1c2a40,#2d1a60);"></div>
+            <div class="card-overlay"><div class="qbtn">Share</div><div class="qbtn">Folder</div></div>
+            <div class="badge-dir r">↓ recv</div>
+            <div class="card-meta">
+              <div class="card-title">Why cities need more trees</div>
+              <div class="card-tags"><span class="card-tag" style="background:#2a8a4a">Health</span></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-img" style="height:82px;background:linear-gradient(135deg,#3d3010,#4a2510);"></div>
+            <div class="card-overlay"><div class="qbtn">Share</div></div>
+            <div class="badge-dir m">mine</div>
+            <div class="card-meta">
+              <div class="card-title">Analog photography revival</div>
+              <div class="card-tags"><span class="card-tag" style="background:#c43a5a">Film</span></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-img" style="height:142px;background:linear-gradient(135deg,#1a3a20,#0d2a1c);"></div>
+            <div class="card-overlay"><div class="qbtn">Share</div><div class="qbtn">Folder</div></div>
+            <div class="badge-dir r">↓ recv</div>
+            <div class="card-rating">★ 9.2</div>
+            <div class="card-meta">
+              <div class="card-title">Coltrane: A Love Supreme annotated</div>
+              <div class="card-tags"><span class="card-tag" style="background:#3a7bd5">Music</span></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-img" style="height:74px;background:linear-gradient(135deg,#401020,#3d0d30);"></div>
+            <div class="card-overlay"><div class="qbtn">Share</div></div>
+            <div class="badge-dir m">mine</div>
+            <div class="badge-sent">↑ sent</div>
+            <div class="card-meta">
+              <div class="card-title">RSS is not dead</div>
+              <div class="card-tags"><span class="card-tag" style="background:#7b3ad5">Tech</span></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-img" style="height:96px;background:linear-gradient(135deg,#401a10,#601520);"></div>
+            <div class="card-overlay"><div class="qbtn">Share</div><div class="qbtn">Folder</div></div>
+            <div class="badge-dir r">↓ recv</div>
+            <div class="card-rating">★ 8.1</div>
+            <div class="card-meta">
+              <div class="card-title">Wabi-sabi interior design</div>
+              <div class="card-tags"><span class="card-tag" style="background:#e05c3a">Prod</span></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-img" style="height:114px;background:linear-gradient(135deg,#1c1040,#2d1560);"></div>
+            <div class="card-overlay"><div class="qbtn">Share</div></div>
+            <div class="badge-dir m">mine</div>
+            <div class="card-meta">
+              <div class="card-title">The case for slow travel</div>
+              <div class="card-tags"><span class="card-tag" style="background:#d5a44a">Travel</span></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-img" style="height:86px;background:linear-gradient(135deg,#2a3a10,#3a4a15);"></div>
+            <div class="card-overlay"><div class="qbtn">Share</div><div class="qbtn">Folder</div></div>
+            <div class="badge-dir m">mine</div>
+            <div class="badge-sent">↑ sent</div>
+            <div class="card-meta">
+              <div class="card-title">Kettlebell flow for posture</div>
+              <div class="card-tags"><span class="card-tag" style="background:#2a8a4a">Health</span></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-img" style="height:122px;background:linear-gradient(135deg,#102030,#1c3040);"></div>
+            <div class="card-overlay"><div class="qbtn">Share</div></div>
+            <div class="badge-dir r">↓ recv</div>
+            <div class="card-meta">
+              <div class="card-title">Notion vs Obsidian for PKM</div>
+              <div class="card-tags"><span class="card-tag" style="background:#7b3ad5">Tech</span></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- FAB speed-dial -->
+      <div class="fab" id="fab" onclick="toggleFab()">
+        <svg class="si ic18" id="fab-icon"><use href="#ic-plus"/></svg>
+      </div>
+      <div class="fab-menu" id="fab-menu">
+        <div class="fab-item" onclick="closeFab()">
+          <span class="fab-label">Tag</span>
+          <div class="fab-btn" style="background:var(--purple)"><svg class="si ic16"><use href="#ic-tag"/></svg></div>
+        </div>
+        <div class="fab-item" onclick="closeFab()">
+          <span class="fab-label">Folder</span>
+          <div class="fab-btn" style="background:var(--blue)"><svg class="si ic16"><use href="#ic-folder"/></svg></div>
+        </div>
+        <div class="fab-item" onclick="openAddCard()">
+          <span class="fab-label">Card</span>
+          <div class="fab-btn" style="background:var(--accent)"><svg class="si ic16"><use href="#ic-plus"/></svg></div>
+        </div>
+      </div>
+
+      <!-- Card detail panel -->
+      <div class="detail-panel" id="detail-panel">
+        <div class="detail-header">
+          <button class="detail-close" onclick="closeDetail()">
+            <svg class="si ic16"><use href="#ic-chevl"/></svg>
+          </button>
+          <div class="detail-title-row">
+            <span class="detail-badge r">↓ Received</span>
+          </div>
+          <div class="detail-actions-top">
+            <div class="detail-btn"><svg class="si ic16"><use href="#ic-share"/></svg></div>
+            <div class="detail-btn danger"><svg class="si ic16"><use href="#ic-trash"/></svg></div>
+          </div>
+        </div>
+        <div class="detail-thumb" id="detail-thumb"></div>
+        <div class="detail-body">
+          <div class="detail-open-btn">
+            <svg class="si ic14"><use href="#ic-ext"/></svg>
+            Open link
+          </div>
+          <div class="detail-name" id="detail-name">Japanese jazz history</div>
+          <div class="detail-meta">
+            <span class="meta-pill">★ 9.0 avg</span>
+            <span class="meta-pill">12 views</span>
+            <span class="meta-pill">4 shares</span>
+            <span class="meta-pill" style="color:var(--blue)">↓ Received</span>
+          </div>
+          <div class="detail-section-label">Your rating</div>
+          <div class="rating-row">
+            <div class="rating-track"><div class="rating-fill" style="width:90%"></div><div class="rating-thumb" style="left:90%"></div></div>
+            <div class="rating-val">9.0</div>
+          </div>
+          <div class="detail-section-label">Tags</div>
+          <div class="detail-tags">
+            <span class="dtag-pill" style="background:rgba(58,123,213,.2);color:#60c5f1;border:1px solid rgba(58,123,213,.3)">Music</span>
+            <span class="dtag-pill add-tag">+ Add tag</span>
+          </div>
+          <div class="detail-section-label">Shared with</div>
+          <div class="shared-with">
+            <div class="sw-av" style="background:linear-gradient(135deg,#4a9fd5,#1c6fa0)">A</div>
+            <div class="sw-av" style="background:linear-gradient(135deg,#4ad58a,#1ca06f)">C</div>
+            <div class="sw-av add-person">+</div>
+          </div>
+          <div class="detail-section-label">In folders</div>
+          <div class="detail-folders">
+            <div class="folder-chip"><div style="width:7px;height:7px;border-radius:2px;background:#e05c3a;flex-shrink:0"></div>Favorites</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add Card modal -->
+      <div class="modal-overlay" id="add-modal" onclick="closeAddCard()">
+        <div class="modal" onclick="event.stopPropagation()">
+          <div class="modal-header">
+            <div class="modal-title">Add card</div>
+            <div class="modal-close" onclick="closeAddCard()"><svg class="si ic16"><use href="#ic-x"/></svg></div>
+          </div>
+          <div class="modal-input-wrap">
+            <div class="modal-input" contenteditable="true" placeholder="Paste a link or type anything…"></div>
+          </div>
+          <div class="modal-url-preview">
+            <div class="url-thumb" style="background:linear-gradient(135deg,#1a3040,#0d2030)">🎵</div>
+            <div>
+              <div class="url-title">Japanese jazz — Hideo Shiraki Quintet</div>
+              <div class="url-src">youtube.com</div>
+            </div>
+          </div>
+          <div class="modal-row">
+            <div class="modal-sec-label">Share with</div>
+            <div class="modal-avatars">
+              <div class="mo-av on" style="background:linear-gradient(135deg,#4a9fd5,#1c6fa0)">A</div>
+              <div class="mo-av" style="background:linear-gradient(135deg,#d54a9f,#a01c6f)">B</div>
+              <div class="mo-av on" style="background:linear-gradient(135deg,#4ad58a,#1ca06f)">C</div>
+              <div class="mo-av" style="background:linear-gradient(135deg,#d5a44a,#a07a1c)">D</div>
+              <div class="mo-av" style="background:linear-gradient(135deg,#7b3ad5,#4a1ca0)">E</div>
+            </div>
+          </div>
+          <div class="modal-row">
+            <div class="modal-sec-label">Add to folder</div>
+            <div class="modal-folders">
+              <div class="mo-folder on"><div style="width:7px;height:7px;border-radius:2px;background:#e05c3a"></div>Favorites</div>
+              <div class="mo-folder"><div style="width:7px;height:7px;border-radius:2px;background:#2a8a4a"></div>Watch Later</div>
+              <div class="mo-folder"><div style="width:7px;height:7px;border-radius:2px;background:#3a7bd5"></div>Summer 25</div>
+            </div>
+          </div>
+          <div class="modal-submit" onclick="closeAddCard()">Save to liked.</div>
+        </div>
+      </div>
+
+    </div><!-- /main -->
+
+    <!-- Folders view (hidden by default) -->
+    <div class="folders-view" id="folders-view" style="display:none">
+      <div class="toolbar">
+        <div style="font-size:15px;font-weight:700;color:var(--text)">Folders</div>
+        <div class="toolbar-right">
+          <div class="sort-btn"><svg class="si ic14"><use href="#ic-sort"/></svg> A–Z</div>
+          <div class="notif-btn">
+            <svg class="si ic14"><use href="#ic-bell"/></svg>
+            <div class="badge">2</div>
+          </div>
+        </div>
+      </div>
+      <div class="feed" style="padding:20px;">
+        <div class="folders-grid">
+          <div class="folder-tile" onclick="openFolder('Favorites','#e05c3a')">
+            <div class="folder-collage">
+              <div style="background:linear-gradient(135deg,#1c2040,#4a2060)"></div>
+              <div style="background:linear-gradient(135deg,#3d2a10,#4a3a15)"></div>
+              <div style="background:linear-gradient(135deg,#0d3030,#1c4a2d)"></div>
+              <div style="background:linear-gradient(135deg,#3a0d20,#601040)"></div>
+            </div>
+            <div class="folder-dot" style="background:#e05c3a"></div>
+            <div class="folder-info">
+              <div class="folder-name">Favorites</div>
+              <div class="folder-count">24 cards</div>
+            </div>
+          </div>
+          <div class="folder-tile" onclick="openFolder('Watch Later','#2a8a4a')">
+            <div class="folder-collage">
+              <div style="background:linear-gradient(135deg,#1a4020,#0d3010)"></div>
+              <div style="background:linear-gradient(135deg,#102040,#1c1040)"></div>
+              <div style="background:linear-gradient(135deg,#2d1040,#3d2060)"></div>
+              <div style="background:linear-gradient(135deg,#1c2a40,#2d1a60)"></div>
+            </div>
+            <div class="folder-dot" style="background:#2a8a4a"></div>
+            <div class="folder-info">
+              <div class="folder-name">Watch Later</div>
+              <div class="folder-count">17 cards</div>
+            </div>
+          </div>
+          <div class="folder-tile" onclick="openFolder('Summer 25','#3a7bd5')">
+            <div class="folder-collage">
+              <div style="background:linear-gradient(135deg,#401a10,#601520)"></div>
+              <div style="background:linear-gradient(135deg,#2a3a10,#3a4a15)"></div>
+              <div style="background:linear-gradient(135deg,#3d3010,#4a2510)"></div>
+              <div style="background:linear-gradient(135deg,#402010,#4a1520)"></div>
+            </div>
+            <div class="folder-dot" style="background:#3a7bd5"></div>
+            <div class="folder-info">
+              <div class="folder-name">Summer 25</div>
+              <div class="folder-count">8 cards</div>
+            </div>
+          </div>
+          <div class="folder-tile" onclick="openFolder('Tokyo Trip','#7b3ad5')">
+            <div class="folder-collage">
+              <div style="background:linear-gradient(135deg,#3a0d20,#601040)"></div>
+              <div style="background:linear-gradient(135deg,#1c2040,#4a2060)"></div>
+              <div style="background:linear-gradient(135deg,#1a3a20,#0d2a1c)"></div>
+              <div style="background:linear-gradient(135deg,#2d1040,#3d2060)"></div>
+            </div>
+            <div class="folder-dot" style="background:#7b3ad5"></div>
+            <div class="folder-info">
+              <div class="folder-name">Tokyo Trip</div>
+              <div class="folder-count">5 cards</div>
+            </div>
+          </div>
+          <div class="folder-tile folder-new" onclick="closeFab()">
+            <div style="font-size:28px;color:var(--text3);margin-bottom:8px">+</div>
+            <div style="font-size:12px;color:var(--text3)">New folder</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /layout -->
+</div><!-- /app -->
+
+<style>
+/* ─── EXTRA ICONS ─── */
+svg.si use { } /* ensure symbol ic-x and ic-chevl and ic-ext are defined */
+
+/* ─── FAB SPEED DIAL ─── */
+.fab-menu {
+  position: absolute;
+  bottom: 76px; right: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 20;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(10px);
+  transition: opacity .2s, transform .2s;
+}
+.fab-menu.open { opacity:1; pointer-events:all; transform:translateY(0); }
+.fab-item { display:flex; align-items:center; gap:10px; justify-content:flex-end; }
+.fab-label { font-size:11px; font-weight:600; color:var(--text); background:var(--bg3); padding:4px 10px; border-radius:7px; border:1px solid var(--border); box-shadow:var(--shadow-sm); }
+.fab-btn { width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#000; box-shadow:0 3px 12px rgba(0,0,0,.4); cursor:pointer; }
+.fab.open { transform: rotate(45deg); }
+
+/* ─── CARD DETAIL PANEL ─── */
+.detail-panel {
+  position: absolute;
+  top: 0; right: 0; bottom: 0;
+  width: 340px;
+  background: var(--bg2);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  z-index: 15;
+  transform: translateX(100%);
+  transition: transform .25s cubic-bezier(.4,0,.2,1);
+  overflow: hidden;
+}
+.detail-panel.open { transform: translateX(0); }
+
+.detail-header {
+  padding: 14px 14px 10px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  background: var(--bg2);
+}
+.detail-close {
+  width:30px; height:30px; background:var(--bg3); border-radius:8px;
+  border:none; cursor:pointer; color:var(--text2);
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.detail-title-row { flex:1; }
+.detail-badge { font-size:9px; font-weight:700; padding:2px 8px; border-radius:4px; }
+.detail-badge.r { background:rgba(96,197,241,.15); color:var(--blue); }
+.detail-badge.m { background:rgba(245,166,35,.15); color:var(--accent); }
+.detail-actions-top { display:flex; gap:5px; }
+.detail-btn {
+  width:30px; height:30px; background:var(--bg3); border-radius:8px;
+  display:flex; align-items:center; justify-content:center; color:var(--text2); cursor:pointer;
+}
+.detail-btn.danger { color:var(--red); }
+.detail-btn:hover { background:var(--bg4); }
+
+.detail-thumb {
+  height: 160px;
+  flex-shrink: 0;
+}
+.detail-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--bg4) transparent;
+}
+.detail-open-btn {
+  display: flex; align-items:center; justify-content:center; gap:7px;
+  padding: 10px;
+  background: var(--blue);
+  border-radius: 9px;
+  font-size: 12px; font-weight: 700; color:#000;
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+.detail-name { font-size: 15px; font-weight: 600; color:var(--text); margin-bottom:10px; line-height:1.35; }
+.detail-meta { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:14px; }
+.meta-pill { font-size:10px; padding:3px 8px; background:var(--bg3); border-radius:6px; color:var(--text2); }
+.detail-section-label { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--text3); margin-bottom:7px; margin-top:14px; }
+.rating-row { display:flex; align-items:center; gap:10px; margin-bottom:4px; }
+.rating-track { flex:1; height:4px; background:var(--bg4); border-radius:2px; position:relative; }
+.rating-fill { position:absolute; left:0; top:0; bottom:0; background:var(--accent); border-radius:2px; }
+.rating-thumb { position:absolute; top:50%; transform:translate(-50%,-50%); width:13px; height:13px; background:#fff; border-radius:50%; box-shadow:0 2px 6px rgba(0,0,0,.5); }
+.rating-val { font-size:13px; font-weight:700; color:var(--accent); min-width:28px; text-align:right; }
+.detail-tags { display:flex; flex-wrap:wrap; gap:5px; }
+.dtag-pill { font-size:10px; padding:3px 10px; border-radius:6px; cursor:pointer; font-weight:500; }
+.add-tag { background:var(--bg3); color:var(--text3); border:1px dashed var(--border2); }
+.shared-with { display:flex; gap:6px; align-items:center; }
+.sw-av { width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; color:#fff; }
+.add-person { background:var(--bg3); border:1px dashed var(--border2); color:var(--text3); font-size:14px; }
+.detail-folders { display:flex; flex-wrap:wrap; gap:5px; }
+.folder-chip { display:flex; align-items:center; gap:5px; font-size:10px; color:var(--text2); background:var(--bg3); padding:4px 9px; border-radius:7px; border:1px solid var(--border); cursor:pointer; }
+
+/* ─── ADD CARD MODAL ─── */
+.modal-overlay {
+  position: fixed; inset:0;
+  background: rgba(0,0,0,.6);
+  z-index: 30;
+  display: flex; align-items:center; justify-content:center;
+  opacity:0; pointer-events:none; transition: opacity .2s;
+}
+.modal-overlay.open { opacity:1; pointer-events:all; }
+.modal {
+  background: var(--bg2);
+  border-radius: 16px;
+  border: 1px solid var(--border2);
+  width: 480px;
+  box-shadow: var(--shadow);
+  padding: 20px;
+  display: flex; flex-direction:column; gap:14px;
+  transform: scale(.96); transition: transform .2s;
+}
+.modal-overlay.open .modal { transform: scale(1); }
+.modal-header { display:flex; align-items:center; justify-content:space-between; }
+.modal-title { font-size:15px; font-weight:700; }
+.modal-close { width:28px; height:28px; background:var(--bg3); border-radius:8px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text2); }
+.modal-input-wrap { background:var(--bg3); border-radius:10px; padding:10px 14px; border:1px solid var(--border2); }
+.modal-input { font-size:13px; color:var(--text); outline:none; min-height:20px; }
+.modal-input:empty::before { content:attr(placeholder); color:var(--text3); }
+.modal-url-preview { display:flex; gap:12px; align-items:center; background:var(--bg3); border-radius:10px; padding:10px; border:1px solid var(--border); }
+.url-thumb { width:44px; height:44px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
+.url-title { font-size:12px; font-weight:600; color:var(--text); margin-bottom:2px; }
+.url-src { font-size:10px; color:var(--text3); }
+.modal-row { display:flex; flex-direction:column; gap:8px; }
+.modal-sec-label { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--text3); }
+.modal-avatars { display:flex; gap:7px; }
+.mo-av { width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#fff; cursor:pointer; border:2px solid transparent; opacity:.6; transition:all .12s; }
+.mo-av.on { border-color:var(--accent); opacity:1; }
+.modal-folders { display:flex; gap:6px; flex-wrap:wrap; }
+.mo-folder { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--text2); background:var(--bg3); padding:5px 11px; border-radius:7px; border:1px solid var(--border); cursor:pointer; opacity:.6; transition:all .12s; }
+.mo-folder.on { border-color:var(--accent); color:var(--accent); opacity:1; }
+.modal-submit { padding:12px; background:var(--accent); border-radius:10px; font-size:13px; font-weight:800; color:#000; text-align:center; cursor:pointer; transition:opacity .12s; }
+.modal-submit:hover { opacity:.9; }
+
+/* ─── FOLDERS VIEW ─── */
+.folders-view {
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  background:var(--bg);
+}
+.folders-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+}
+.folder-tile {
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--bg3);
+  cursor: pointer;
+  border: 1px solid var(--border);
+  transition: transform .15s, box-shadow .15s;
+  position: relative;
+}
+.folder-tile:hover { transform:translateY(-3px); box-shadow:0 8px 24px rgba(0,0,0,.4); }
+.folder-collage {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  height: 120px;
+  gap: 1px;
+}
+.folder-collage > div { }
+.folder-dot { position:absolute; top:8px; left:8px; width:9px; height:9px; border-radius:3px; }
+.folder-info { padding:10px 12px 12px; }
+.folder-name { font-size:13px; font-weight:700; color:var(--text); margin-bottom:2px; }
+.folder-count { font-size:10px; color:var(--text3); }
+.folder-new {
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  height: 170px;
+  border: 2px dashed var(--border2);
+  background: transparent;
+}
+.folder-new:hover { background:var(--bg3); border-color:var(--accent); }
+
+/* ─── ICON ADDITIONS ─── */
+</style>
+
+<script>
+// ── missing icon symbols (not in original SVG block) ──
+document.querySelector('svg[style="display:none"]').innerHTML += `
+  <symbol id="ic-chevl"    viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></symbol>
+  <symbol id="ic-chevd"    viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></symbol>
+  <symbol id="ic-user-plus" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></symbol>
+`;
+
+// ── VIEW SWITCHER ──
+document.querySelectorAll('.view-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+  });
+});
+
+// ── FEED TABS ──
+document.querySelectorAll('.feed-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.feed-tab').forEach(t => {
+      t.classList.remove('all','mine','recv');
+    });
+    const label = tab.textContent.trim();
+    if (label === 'All') tab.classList.add('all');
+    else if (label === 'Mine') tab.classList.add('mine');
+    else if (label === 'Received') tab.classList.add('recv');
+  });
+});
+
+// ── CARD CLICK → DETAIL ──
+const cardData = [
+  { name:'Morning routine triggers', color:'linear-gradient(135deg,#1c2040,#4a2060)', badge:'r', rating:'8.5' },
+  { name:'Fermented foods guide', color:'linear-gradient(135deg,#0d3030,#1c4a2d)', badge:'m', rating:null },
+  { name:'Japanese jazz history', color:'linear-gradient(135deg,#3d2a10,#4a3a15)', badge:'r', rating:'9.0' },
+  { name:'Film: Past Lives', color:'linear-gradient(135deg,#102040,#1c1040)', badge:'m', rating:null },
+  { name:'BTFD investing', color:'linear-gradient(135deg,#3a0d20,#601040)', badge:'m', rating:'7.5' },
+  { name:'Radiohead – In Rainbows', color:'linear-gradient(135deg,#1a4020,#0d3010)', badge:'r', rating:null },
+  { name:'How transformers work', color:'linear-gradient(135deg,#2d1040,#3d2060)', badge:'m', rating:'8.0' },
+  { name:'Sourdough starter 101', color:'linear-gradient(135deg,#402010,#4a1520)', badge:'r', rating:null },
+  { name:'Why cities need more trees', color:'linear-gradient(135deg,#1c2a40,#2d1a60)', badge:'r', rating:null },
+  { name:'Analog photography revival', color:'linear-gradient(135deg,#3d3010,#4a2510)', badge:'m', rating:null },
+  { name:'Coltrane: A Love Supreme annotated', color:'linear-gradient(135deg,#1a3a20,#0d2a1c)', badge:'r', rating:'9.2' },
+  { name:'RSS is not dead', color:'linear-gradient(135deg,#401020,#3d0d30)', badge:'m', rating:null },
+  { name:'Wabi-sabi interior design', color:'linear-gradient(135deg,#401a10,#601520)', badge:'r', rating:'8.1' },
+  { name:'The case for slow travel', color:'linear-gradient(135deg,#1c1040,#2d1560)', badge:'m', rating:null },
+  { name:'Kettlebell flow for posture', color:'linear-gradient(135deg,#2a3a10,#3a4a15)', badge:'m', rating:null },
+  { name:'Notion vs Obsidian for PKM', color:'linear-gradient(135deg,#102030,#1c3040)', badge:'r', rating:null },
+];
+
+document.querySelectorAll('.card').forEach((card, i) => {
+  card.addEventListener('click', (e) => {
+    if (e.target.classList.contains('qbtn')) return;
+    const d = cardData[i] || cardData[0];
+    const panel = document.getElementById('detail-panel');
+    document.getElementById('detail-thumb').style.background = d.color;
+    document.getElementById('detail-name').textContent = d.name;
+    const badge = panel.querySelector('.detail-badge');
+    badge.className = 'detail-badge ' + d.badge;
+    badge.textContent = d.badge === 'r' ? '↓ Received' : 'mine';
+    if (d.rating) {
+      const pct = (parseFloat(d.rating) / 10 * 100) + '%';
+      panel.querySelector('.rating-fill').style.width = pct;
+      panel.querySelector('.rating-thumb').style.left = pct;
+      panel.querySelector('.rating-val').textContent = d.rating;
+    }
+    panel.classList.add('open');
+    closeFab();
+  });
+});
+
+function closeDetail() {
+  document.getElementById('detail-panel').classList.remove('open');
+}
+
+// ── FAB ──
+function toggleFab() {
+  const menu = document.getElementById('fab-menu');
+  const fab = document.getElementById('fab');
+  menu.classList.toggle('open');
+  fab.classList.toggle('open');
+}
+function closeFab() {
+  document.getElementById('fab-menu').classList.remove('open');
+  document.getElementById('fab').classList.remove('open');
+}
+
+// ── ADD CARD MODAL ──
+function openAddCard() {
+  closeFab();
+  document.getElementById('add-modal').classList.add('open');
+}
+function closeAddCard() {
+  document.getElementById('add-modal').classList.remove('open');
+}
+
+// ── SIDEBAR NAV ──
+document.querySelectorAll('.nav-item').forEach((item, i) => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('on'));
+    item.classList.add('on');
+    const main = document.querySelector('.main');
+    const foldersView = document.getElementById('folders-view');
+    if (i === 1) { // Folders
+      main.style.display = 'none';
+      foldersView.style.display = 'flex';
+    } else {
+      main.style.display = 'flex';
+      foldersView.style.display = 'none';
+      closeDetail();
+    }
+  });
+});
+
+// ── SIDEBAR FRIEND FILTER ──
+document.querySelectorAll('.sb-row').forEach(row => {
+  row.addEventListener('click', () => row.classList.toggle('sb-active'));
+});
+
+// ── MODAL AVATAR TOGGLE ──
+document.querySelectorAll('.mo-av').forEach(av => av.addEventListener('click', () => av.classList.toggle('on')));
+document.querySelectorAll('.mo-folder').forEach(f => f.addEventListener('click', () => f.classList.toggle('on')));
+
+// ── SIDEBAR ROW + TAG STYLES ──
+const style = document.createElement('style');
+style.textContent = `
+  .sb-row.sb-active { background:rgba(245,166,35,.08); }
+  .sb-row.sb-active .sb-name { color:var(--accent); }
+  .sb-tag.sb-tag-on { opacity:1; outline:2px solid rgba(255,255,255,.25); outline-offset:1px; }
+`;
+document.head.appendChild(style);
+
+// ── FEED TABS ──
+function setTab(el, cls) {
+  document.querySelectorAll('.feed-tab').forEach(t => t.className = 'feed-tab');
+  el.classList.add(cls);
+  closeAllDropdowns();
+}
+
+// ── SEARCH ──
+function openSearch() {
+  document.getElementById('search-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('search-input').focus(), 50);
+}
+function closeSearch() {
+  document.getElementById('search-overlay').classList.remove('open');
+  document.getElementById('search-input').value = '';
+  document.getElementById('search-results').innerHTML = '';
+}
+document.addEventListener('keydown', e => {
+  if ((e.metaKey||e.ctrlKey) && e.key==='k') { e.preventDefault(); openSearch(); }
+  if (e.key==='Escape') { closeSearch(); closeAllDropdowns(); closeDetail(); }
+});
+const searchData = ['Morning routine triggers','Fermented foods guide','Japanese jazz history','Film: Past Lives','BTFD investing','Radiohead – In Rainbows','How transformers work','Sourdough starter 101','Why cities need more trees','Analog photography revival','Coltrane: A Love Supreme annotated','RSS is not dead','Wabi-sabi interior design','The case for slow travel','Kettlebell flow for posture','Notion vs Obsidian for PKM'];
+document.getElementById('search-input').addEventListener('input', function() {
+  const q = this.value.toLowerCase().trim();
+  const res = document.getElementById('search-results');
+  if (!q) { res.innerHTML=''; return; }
+  const matches = searchData.filter(s => s.toLowerCase().includes(q));
+  res.innerHTML = matches.length
+    ? matches.map(m=>`<div class="sr-item" onclick="closeSearch()">${m.replace(new RegExp(q,'gi'),s=>`<mark>${s}</mark>`)}</div>`).join('')
+    : `<div class="sr-empty">No results for "${this.value}"</div>`;
+});
+
+// ── SORT ──
+function toggleSort() {
+  const d = document.getElementById('sort-dropdown');
+  const open = d.classList.contains('open');
+  closeAllDropdowns();
+  if (!open) {
+    const r = document.getElementById('sort-btn').getBoundingClientRect();
+    d.style.top = (r.bottom+6)+'px'; d.style.right = (window.innerWidth-r.right)+'px';
+    d.classList.add('open');
+  }
+}
+function pickSort(label, el) {
+  document.getElementById('sort-label').textContent = label;
+  document.querySelectorAll('.dropdown-item').forEach(i=>i.classList.remove('on'));
+  el.classList.add('on'); closeAllDropdowns();
+}
+
+// ── FILTER ──
+function toggleFilter() {
+  const p = document.getElementById('filter-panel');
+  const open = p.classList.contains('open');
+  closeAllDropdowns();
+  if (!open) { p.classList.add('open'); document.getElementById('filter-btn').classList.add('on'); }
+}
+function clearFilters() {
+  document.querySelectorAll('.fchip').forEach(c=>c.classList.remove('on'));
+  document.getElementById('rating-slider').value=0;
+  document.getElementById('rating-val').textContent='0';
+  document.getElementById('filter-btn').removeAttribute('data-count');
+}
+function applyFilters() {
+  const n = document.querySelectorAll('.fchip.on').length;
+  const btn = document.getElementById('filter-btn');
+  if (n>0) btn.setAttribute('data-count',n); else btn.removeAttribute('data-count');
+  closeAllDropdowns();
+}
+
+// ── NOTIFICATIONS ──
+function toggleNotif() {
+  const p = document.getElementById('notif-panel');
+  const open = p.classList.contains('open');
+  closeAllDropdowns();
+  if (!open) p.classList.add('open');
+}
+function clearNotifs() {
+  document.querySelectorAll('.notif-item').forEach(i=>i.classList.remove('unread'));
+  document.querySelectorAll('.notif-dot').forEach(d=>d.remove());
+  document.getElementById('notif-badge').style.display='none';
+}
+
+// ── PROFILE ──
+function openProfile() { closeAllDropdowns(); document.getElementById('profile-modal').classList.add('open'); }
+function closeProfile() { document.getElementById('profile-modal').classList.remove('open'); }
+
+// ── VIEW MODES ──
+function setView(btn) {
+  document.querySelectorAll('#view-switcher .view-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  const masonry = document.querySelector('#main-feed .masonry');
+  masonry.className = 'masonry';
+  const v = btn.dataset.view;
+  if (v!=='cols') masonry.classList.add('view-'+v);
+  closeAllDropdowns();
+}
+
+// ── FOLDER DRILL-DOWN ──
+function openFolder(name, color) {
+  document.getElementById('folder-detail-name').textContent = name;
+  document.getElementById('folder-detail-dot').style.background = color;
+  document.getElementById('folder-detail-view').classList.add('open');
+}
+function closeFolderDetail() { document.getElementById('folder-detail-view').classList.remove('open'); }
+
+// ── CLOSE ALL DROPDOWNS ──
+function closeAllDropdowns() {
+  ['sort-dropdown','filter-panel','notif-panel'].forEach(id=>document.getElementById(id)?.classList.remove('open'));
+  document.getElementById('filter-btn')?.classList.remove('on');
+}
+document.addEventListener('click', e => {
+  const all = ['sort-dropdown','filter-panel','notif-panel','sort-btn','filter-btn','notif-btn'];
+  if (!all.some(id=>document.getElementById(id)?.contains(e.target))) closeAllDropdowns();
+});
+
+// ── SIDEBAR TAGS ──
+document.querySelectorAll('.sb-tag').forEach(t=>t.addEventListener('click',()=>t.classList.toggle('sb-tag-on')));
+
+</script>
+
+<!-- ══ SEARCH OVERLAY ══ -->
+<div class="search-overlay" id="search-overlay" onclick="if(event.target===this)closeSearch()">
+  <div class="search-box">
+    <div class="search-box-inner">
+      <svg class="si ic16" style="color:var(--text3);flex-shrink:0"><use href="#ic-search"/></svg>
+      <input id="search-input" class="search-input" placeholder="Search cards, folders, tags…" autocomplete="off">
+      <kbd class="search-esc" onclick="closeSearch()">esc</kbd>
+    </div>
+    <div id="search-results" class="search-results"></div>
+    <div class="search-hints"><span><b>#</b> tag</span><span><b>@</b> friend</span><span><b>/</b> folder</span><span><b>★</b> rated</span></div>
+  </div>
+</div>
+
+<!-- ══ PROFILE MODAL ══ -->
+<div class="modal-overlay" id="profile-modal" onclick="if(event.target===this)closeProfile()">
+  <div class="modal" style="width:420px" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">Profile</div>
+      <div class="modal-close" onclick="closeProfile()"><svg class="si ic16"><use href="#ic-x"/></svg></div>
+    </div>
+    <div style="display:flex;gap:16px;align-items:center;padding-bottom:18px;border-bottom:1px solid var(--border);margin-bottom:16px">
+      <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#f5a623,#ff6b6b);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#fff;flex-shrink:0">JS</div>
+      <div>
+        <div style="font-size:17px;font-weight:700;margin-bottom:2px">jean.sophie</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:10px">jean.sophie@liked.app</div>
+        <div style="display:flex;gap:18px;">
+          <div style="text-align:center"><div style="font-size:16px;font-weight:700">142</div><div style="font-size:10px;color:var(--text3)">cards</div></div>
+          <div style="text-align:center"><div style="font-size:16px;font-weight:700">4</div><div style="font-size:10px;color:var(--text3)">friends</div></div>
+          <div style="text-align:center"><div style="font-size:16px;font-weight:700">2</div><div style="font-size:10px;color:var(--text3)">groups</div></div>
+          <div style="text-align:center"><div style="font-size:16px;font-weight:700;color:var(--accent)">8.1</div><div style="font-size:10px;color:var(--text3)">avg ★</div></div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:16px;">
+      <div class="profile-row">👥 Invite friends</div>
+      <div class="profile-row">⚙ Account settings</div>
+      <div class="profile-row">🏷 Manage tags</div>
+      <div class="profile-row" style="color:var(--red)">↩ Sign out</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg3);border-radius:10px;border:1px solid var(--border);">
+      <div style="font-size:12px;color:var(--text2);flex:1">Dark mode</div>
+      <div class="toggle on" onclick="this.classList.toggle('on')"><div class="toggle-knob"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SORT DROPDOWN ══ -->
+<div class="dropdown" id="sort-dropdown">
+  <div class="dropdown-item on" onclick="pickSort('Newest',this)">Newest first</div>
+  <div class="dropdown-item" onclick="pickSort('Oldest',this)">Oldest first</div>
+  <div class="dropdown-item" onclick="pickSort('Top rated',this)">Top rated</div>
+  <div class="dropdown-item" onclick="pickSort('A–Z',this)">Title A–Z</div>
+  <div class="dropdown-item" onclick="pickSort('Sent',this)">Most shared</div>
+</div>
+
+<!-- ══ FILTER PANEL ══ -->
+<div class="filter-panel" id="filter-panel">
+  <div class="filter-hdr"><span>Filter feed</span><span class="filter-clear" onclick="clearFilters()">Clear all</span></div>
+  <div class="filter-sec">FRIENDS</div>
+  <div class="filter-chips">
+    <div class="fchip" onclick="this.classList.toggle('on')"><div class="fchip-av" style="background:linear-gradient(135deg,#4a9fd5,#1c6fa0)">A</div>Alice</div>
+    <div class="fchip" onclick="this.classList.toggle('on')"><div class="fchip-av" style="background:linear-gradient(135deg,#d54a9f,#a01c6f)">B</div>Bob</div>
+    <div class="fchip" onclick="this.classList.toggle('on')"><div class="fchip-av" style="background:linear-gradient(135deg,#4ad58a,#1ca06f)">C</div>Chiara</div>
+    <div class="fchip" onclick="this.classList.toggle('on')"><div class="fchip-av" style="background:linear-gradient(135deg,#d5a44a,#a07a1c)">D</div>Diego</div>
+  </div>
+  <div class="filter-sec">TAGS</div>
+  <div class="filter-chips">
+    <div class="fchip" onclick="this.classList.toggle('on')">Music</div>
+    <div class="fchip" onclick="this.classList.toggle('on')">Film</div>
+    <div class="fchip" onclick="this.classList.toggle('on')">Prod</div>
+    <div class="fchip" onclick="this.classList.toggle('on')">Health</div>
+    <div class="fchip" onclick="this.classList.toggle('on')">Tech</div>
+    <div class="fchip" onclick="this.classList.toggle('on')">Food</div>
+  </div>
+  <div class="filter-sec">MIN RATING</div>
+  <div class="filter-rating-row">
+    <span class="filter-rating-label">★</span>
+    <input type="range" min="0" max="10" value="0" step="0.5" class="filter-slider" id="rating-slider" oninput="document.getElementById('rating-val').textContent=this.value">
+    <span class="filter-rating-val" id="rating-val">0</span>
+  </div>
+  <div class="filter-apply" onclick="applyFilters()">Apply</div>
+</div>
+
+<!-- ══ NOTIFICATIONS PANEL ══ -->
+<div class="notif-panel" id="notif-panel">
+  <div class="notif-panel-hdr"><span>Notifications</span><span class="notif-clear" onclick="clearNotifs()">Mark all read</span></div>
+  <div class="notif-item unread">
+    <div class="notif-av" style="background:linear-gradient(135deg,#4a9fd5,#1c6fa0)">A</div>
+    <div class="notif-body"><div class="notif-text"><b>Alice</b> shared <em>Coltrane: A Love Supreme</em> with you</div><div class="notif-time">2 min ago</div></div>
+    <div class="notif-dot"></div>
+  </div>
+  <div class="notif-item unread">
+    <div class="notif-av" style="background:linear-gradient(135deg,#d54a9f,#a01c6f)">B</div>
+    <div class="notif-body"><div class="notif-text"><b>Bob</b> rated <em>Japanese jazz history</em> · ★ 8.0</div><div class="notif-time">14 min ago</div></div>
+    <div class="notif-dot"></div>
+  </div>
+  <div class="notif-item">
+    <div class="notif-av" style="background:linear-gradient(135deg,#4ad58a,#1ca06f)">C</div>
+    <div class="notif-body"><div class="notif-text"><b>Chiara</b> added you to group <em>Design Inspo</em></div><div class="notif-time">1 hr ago</div></div>
+  </div>
+  <div class="notif-item">
+    <div class="notif-av" style="background:linear-gradient(135deg,#3a5cd5,#1c3aa0)">M</div>
+    <div class="notif-body"><div class="notif-text"><b>Music</b> group — 3 new cards from Alice, Bob</div><div class="notif-time">3 hr ago</div></div>
+  </div>
+</div>
+
+<!-- ══ FOLDER DETAIL VIEW ══ -->
+<div class="folder-detail-view" id="folder-detail-view">
+  <div class="toolbar">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <button onclick="closeFolderDetail()" style="width:30px;height:30px;background:var(--bg3);border:none;border-radius:8px;cursor:pointer;color:var(--text2);display:flex;align-items:center;justify-content:center;">
+        <svg class="si ic16"><use href="#ic-chevl"/></svg>
+      </button>
+      <div id="folder-detail-dot" style="width:10px;height:10px;border-radius:3px;background:#e05c3a"></div>
+      <span id="folder-detail-name" style="font-size:15px;font-weight:700">Favorites</span>
+      <span style="font-size:11px;color:var(--text3)">24 cards</span>
+    </div>
+    <div class="toolbar-right">
+      <div class="sort-btn"><svg class="si ic14"><use href="#ic-sort"/></svg> Newest</div>
+      <div class="view-switcher">
+        <div class="view-btn on"><svg class="si ic14"><use href="#ic-cols"/></svg></div>
+        <div class="view-btn"><svg class="si ic14"><use href="#ic-grid"/></svg></div>
+        <div class="view-btn"><svg class="si ic14"><use href="#ic-list"/></svg></div>
+      </div>
+    </div>
+  </div>
+  <div class="feed" style="padding:16px 18px;background:var(--bg);flex:1;overflow-y:auto;">
+    <div class="masonry">
+      <div class="card"><div class="card-img" style="height:130px;background:linear-gradient(135deg,#1c2040,#4a2060)"></div><div class="card-overlay"><div class="qbtn">Share</div></div><div class="badge-dir m">mine</div><div class="card-rating">★ 8.5</div><div class="card-meta"><div class="card-title">Morning routine triggers</div><div class="card-tags"><span class="card-tag" style="background:#e05c3a">Prod</span></div></div></div>
+      <div class="card"><div class="card-img" style="height:104px;background:linear-gradient(135deg,#3d2a10,#4a3a15)"></div><div class="card-overlay"><div class="qbtn">Share</div></div><div class="badge-dir r">↓ recv</div><div class="card-rating">★ 9.0</div><div class="card-meta"><div class="card-title">Japanese jazz history</div><div class="card-tags"><span class="card-tag" style="background:#3a7bd5">Music</span></div></div></div>
+      <div class="card"><div class="card-img" style="height:88px;background:linear-gradient(135deg,#1a4020,#0d3010)"></div><div class="card-overlay"><div class="qbtn">Share</div></div><div class="badge-dir r">↓ recv</div><div class="card-meta"><div class="card-title">Radiohead – In Rainbows</div><div class="card-tags"><span class="card-tag" style="background:#3a7bd5">Music</span></div></div></div>
+      <div class="card"><div class="card-img" style="height:112px;background:linear-gradient(135deg,#2d1040,#3d2060)"></div><div class="card-overlay"><div class="qbtn">Share</div></div><div class="badge-dir m">mine</div><div class="card-rating">★ 8.0</div><div class="card-meta"><div class="card-title">How transformers work</div><div class="card-tags"><span class="card-tag" style="background:#7b3ad5">Tech</span></div></div></div>
+      <div class="card"><div class="card-img" style="height:76px;background:linear-gradient(135deg,#401a10,#601520)"></div><div class="card-overlay"><div class="qbtn">Share</div></div><div class="badge-dir r">↓ recv</div><div class="card-rating">★ 8.1</div><div class="card-meta"><div class="card-title">Wabi-sabi interior design</div><div class="card-tags"><span class="card-tag" style="background:#e05c3a">Prod</span></div></div></div>
+      <div class="card"><div class="card-img" style="height:98px;background:linear-gradient(135deg,#1a3a20,#0d2a1c)"></div><div class="card-overlay"><div class="qbtn">Share</div></div><div class="badge-dir r">↓ recv</div><div class="card-rating">★ 9.2</div><div class="card-meta"><div class="card-title">Coltrane: A Love Supreme</div><div class="card-tags"><span class="card-tag" style="background:#3a7bd5">Music</span></div></div></div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* ── SEARCH TRIGGER ── */
+.search-trigger { display:flex;align-items:center;gap:7px;padding:6px 12px;background:var(--bg3);border-radius:8px;border:1px solid var(--border);cursor:pointer;color:var(--text3);font-size:11px;transition:all .12s; }
+.search-trigger:hover { border-color:var(--border2);color:var(--text2); }
+.search-trigger kbd { background:var(--bg4);border-radius:4px;padding:1px 5px;font-size:9px;font-family:monospace;border:1px solid var(--border2); }
+
+/* ── FILTER BTN ── */
+.filter-btn { width:32px;height:32px;background:var(--bg3);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--text2);border:1px solid var(--border);cursor:pointer;transition:all .12s;position:relative; }
+.filter-btn.on { background:rgba(245,166,35,.12);color:var(--accent);border-color:rgba(245,166,35,.3); }
+.filter-btn[data-count]::after { content:attr(data-count);position:absolute;top:-4px;right:-4px;width:14px;height:14px;background:var(--accent);border-radius:50%;font-size:8px;font-weight:800;color:#000;display:flex;align-items:center;justify-content:center; }
+
+/* ── SORT DROPDOWN ── */
+.dropdown { position:fixed;z-index:50;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;box-shadow:var(--shadow);min-width:160px;opacity:0;pointer-events:none;transform:translateY(-6px);transition:opacity .15s,transform .15s; }
+.dropdown.open { opacity:1;pointer-events:all;transform:translateY(0); }
+.dropdown-item { padding:9px 14px;font-size:12px;color:var(--text2);cursor:pointer;transition:background .1s; }
+.dropdown-item:first-child { border-radius:10px 10px 0 0; }
+.dropdown-item:last-child { border-radius:0 0 10px 10px; }
+.dropdown-item:hover { background:var(--bg3);color:var(--text); }
+.dropdown-item.on { color:var(--accent);font-weight:600; }
+.dropdown-item.on::after { content:'✓';float:right; }
+
+/* ── FILTER PANEL ── */
+.filter-panel { position:absolute;top:53px;right:0;z-index:40;width:268px;background:var(--bg2);border-left:1px solid var(--border2);border-bottom:1px solid var(--border2);border-radius:0 0 0 12px;padding:16px;opacity:0;pointer-events:none;transform:translateY(-8px);transition:opacity .2s,transform .2s; }
+.filter-panel.open { opacity:1;pointer-events:all;transform:translateY(0); }
+.filter-hdr { display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;font-size:13px;font-weight:700; }
+.filter-clear { font-size:11px;color:var(--accent);cursor:pointer;font-weight:400; }
+.filter-sec { font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:7px; }
+.filter-chips { display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px; }
+.fchip { display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:7px;font-size:11px;background:var(--bg3);color:var(--text2);cursor:pointer;border:1px solid var(--border);transition:all .12s; }
+.fchip:hover { border-color:var(--border2);color:var(--text); }
+.fchip.on { background:rgba(245,166,35,.1);color:var(--accent);border-color:rgba(245,166,35,.3); }
+.fchip-av { width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:#fff; }
+.filter-rating-row { display:flex;align-items:center;gap:10px;margin-bottom:16px; }
+.filter-rating-label { font-size:12px;color:var(--accent); }
+.filter-slider { flex:1;accent-color:var(--accent); }
+.filter-rating-val { font-size:12px;font-weight:700;color:var(--accent);min-width:24px;text-align:right; }
+.filter-apply { padding:9px;background:var(--accent);border-radius:8px;font-size:12px;font-weight:700;color:#000;text-align:center;cursor:pointer; }
+
+/* ── NOTIFICATIONS PANEL ── */
+.notif-panel { position:absolute;top:53px;right:0;z-index:40;width:320px;background:var(--bg2);border-left:1px solid var(--border2);border-bottom:1px solid var(--border2);border-radius:0 0 0 12px;opacity:0;pointer-events:none;transform:translateY(-8px);transition:opacity .2s,transform .2s; }
+.notif-panel.open { opacity:1;pointer-events:all;transform:translateY(0); }
+.notif-panel-hdr { display:flex;justify-content:space-between;align-items:center;padding:14px 16px 10px;font-size:13px;font-weight:700;border-bottom:1px solid var(--border); }
+.notif-clear { font-size:11px;color:var(--accent);cursor:pointer;font-weight:400; }
+.notif-item { display:flex;align-items:flex-start;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;position:relative;transition:background .1s; }
+.notif-item:hover { background:var(--bg3); }
+.notif-item:last-child { border-bottom:none; }
+.notif-item.unread { background:rgba(245,166,35,.04); }
+.notif-av { width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0; }
+.notif-body { flex:1; }
+.notif-text { font-size:12px;color:var(--text2);line-height:1.45; }
+.notif-text b { color:var(--text); }
+.notif-text em { color:var(--text);font-style:normal; }
+.notif-time { font-size:10px;color:var(--text3);margin-top:3px; }
+.notif-dot { width:7px;height:7px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:5px; }
+
+/* ── SEARCH OVERLAY ── */
+.search-overlay { position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.72);backdrop-filter:blur(4px);display:flex;align-items:flex-start;justify-content:center;padding-top:14vh;opacity:0;pointer-events:none;transition:opacity .2s; }
+.search-overlay.open { opacity:1;pointer-events:all; }
+.search-box { width:560px;background:var(--bg2);border-radius:14px;border:1px solid var(--border2);box-shadow:0 24px 64px rgba(0,0,0,.7);overflow:hidden;transform:scale(.97) translateY(-10px);transition:transform .2s; }
+.search-overlay.open .search-box { transform:scale(1) translateY(0); }
+.search-box-inner { display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border); }
+.search-input { flex:1;background:none;border:none;outline:none;font-size:15px;color:var(--text);font-family:'DM Sans',sans-serif; }
+.search-input::placeholder { color:var(--text3); }
+.search-esc { background:var(--bg3);border:1px solid var(--border2);border-radius:5px;padding:2px 7px;font-size:10px;color:var(--text3);cursor:pointer;font-family:monospace;flex-shrink:0; }
+.search-results { max-height:300px;overflow-y:auto; }
+.sr-item { padding:11px 16px;font-size:13px;color:var(--text2);cursor:pointer;border-bottom:1px solid var(--border);transition:background .1s; }
+.sr-item:hover { background:var(--bg3);color:var(--text); }
+.sr-item mark { background:rgba(245,166,35,.25);color:var(--accent);border-radius:2px;font-style:normal; }
+.sr-empty { padding:20px 16px;text-align:center;font-size:12px;color:var(--text3); }
+.search-hints { display:flex;gap:16px;padding:10px 16px;border-top:1px solid var(--border); }
+.search-hints span { font-size:11px;color:var(--text3); }
+.search-hints b { color:var(--accent);margin-right:3px; }
+
+/* ── PROFILE MODAL ── */
+.profile-row { display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--text2);transition:background .1s; }
+.profile-row:hover { background:var(--bg3);color:var(--text); }
+.toggle { width:36px;height:20px;border-radius:100px;background:var(--bg4);cursor:pointer;position:relative;transition:background .2s;flex-shrink:0; }
+.toggle.on { background:var(--accent); }
+.toggle-knob { position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.3); }
+.toggle.on .toggle-knob { transform:translateX(16px); }
+
+/* ── FOLDER DETAIL VIEW ── */
+.folder-detail-view { position:absolute;inset:0;z-index:20;background:var(--bg);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .25s cubic-bezier(.4,0,.2,1); }
+.folder-detail-view.open { transform:translateX(0); }
+
+/* ── VIEW MODES ── */
+.masonry.view-grid { columns:unset;display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px; }
+.masonry.view-grid .card { margin-bottom:0; }
+.masonry.view-grid .card-img { height:90px !important; }
+.masonry.view-list { columns:unset;display:flex;flex-direction:column;gap:6px; }
+.masonry.view-list .card { display:flex;flex-direction:row;align-items:stretch;margin-bottom:0; }
+.masonry.view-list .card-img { width:80px !important;height:72px !important;flex-shrink:0;border-radius:10px 0 0 10px; }
+.masonry.view-list .card-overlay { display:none; }
+.masonry.view-list .card-meta { flex:1;padding:10px 14px;display:flex;flex-direction:column;justify-content:center; }
+.masonry.view-list .card-title { font-size:13px; }
+.masonry.view-list .badge-dir { top:50%;transform:translateY(-50%);right:12px; }
+.masonry.view-list .badge-sent { top:8px;left:8px; }
+.masonry.view-list .card-rating { position:static;background:none;padding:0;margin-top:4px;font-size:10px;color:var(--accent);font-weight:700; }
+.masonry.view-rows { columns:unset;display:flex;flex-direction:column;gap:3px; }
+.masonry.view-rows .card { display:flex;flex-direction:row;align-items:center;margin-bottom:0;border-radius:8px; }
+.masonry.view-rows .card-img { width:48px !important;height:48px !important;flex-shrink:0;border-radius:8px 0 0 8px; }
+.masonry.view-rows .card-overlay { display:none; }
+.masonry.view-rows .card-meta { flex:1;padding:0 14px; }
+.masonry.view-rows .card-title { font-size:12px; }
+.masonry.view-rows .badge-dir { top:50%;transform:translateY(-50%);right:10px; }
+.masonry.view-rows .badge-sent,.masonry.view-rows .card-rating { display:none; }
+.masonry.view-canvas { columns:unset;display:grid;grid-template-columns:repeat(3,1fr);gap:20px;padding:4px; }
+.masonry.view-canvas .card { margin-bottom:0;background:transparent;border:none;box-shadow:none; }
+.masonry.view-canvas .card:hover { transform:none;box-shadow:none; }
+.masonry.view-canvas .card-img { border-radius:12px;height:200px !important;box-shadow:0 4px 20px rgba(0,0,0,.4); }
+.masonry.view-canvas .card-meta { padding:10px 2px; }
+.masonry.view-canvas .card-title { font-size:13px; }
+</style>
+
+

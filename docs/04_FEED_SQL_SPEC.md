@@ -582,53 +582,6 @@ CREATE TABLE user_node_sort_positions (
 CREATE INDEX unsp_user_context_idx ON user_node_sort_positions(user_id, context_key, position);
 ```
 
-Custom sort query — replaces `get_feed` when `p_sort = 'custom'`:
-
-```sql
-CREATE OR REPLACE FUNCTION get_feed_custom_sort(
-  p_user_id       UUID,
-  p_language_code TEXT    DEFAULT 'en',
-  p_context_key   TEXT    DEFAULT 'personal',
-  p_view          TEXT    DEFAULT 'all',
-  p_limit         INTEGER DEFAULT 20,
-  p_offset        INTEGER DEFAULT 0   -- offset pagination for custom sort (simpler than cursor)
-) RETURNS TABLE (
-  -- same return shape as get_feed()
-  node_id UUID, url TEXT, text_content TEXT, title TEXT,
-  thumbnail_key TEXT, owner_id UUID, language_code TEXT,
-  origin_user_id UUID, origin_created_at TIMESTAMPTZ, created_at TIMESTAMPTZ,
-  avg_rating NUMERIC, view_count INTEGER, share_count INTEGER,
-  direction TEXT, sender_id UUID, sender_name TEXT, sender_avatar_key TEXT,
-  tags JSONB, total_count BIGINT
-) LANGUAGE plpgsql STABLE SECURITY DEFINER AS $$
-BEGIN
-  RETURN QUERY
-  SELECT
-    -- (same CTE chain as get_feed up through deduped stage)
-    -- then JOIN to user_node_sort_positions and ORDER BY position
-    d.node_id, d.url, d.text_content, d.resolved_title,
-    d.thumbnail_key, d.owner_id, d.node_language_code,
-    d.origin_user_id, d.origin_created_at, d.created_at,
-    d.avg_rating, d.view_count, d.share_count,
-    d.direction, d.sender_id, d.sender_name, d.sender_avatar_key,
-    d.tags,
-    COUNT(*) OVER()::BIGINT
-  FROM deduped d   -- reuse the full CTE chain; this is a simplification placeholder
-  LEFT JOIN user_node_sort_positions unsp
-    ON unsp.node_id = d.node_id
-   AND unsp.user_id = p_user_id
-   AND unsp.context_key = p_context_key
-  ORDER BY
-    COALESCE(unsp.position, 99999999) ASC,  -- unpositioned nodes go to end
-    d.created_at DESC                        -- tiebreaker: newer nodes first
-  LIMIT p_limit
-  OFFSET p_offset;
-END;
-$$;
-```
-
-**Note:** The full CTE chain from `get_feed()` should be extracted into a shared function or replicated in `get_feed_custom_sort()`. The placeholder comment above indicates where the shared CTEs apply. In practice, create a Postgres function `get_visible_nodes_base(p_user_id, p_language_code, p_view, p_friend_id, p_folder_id, p_group_id, p_filter_tag_ids, p_filter_friend_ids, p_filter_folder_ids, p_search_query)` returning the deduped CTE result, then call it from both `get_feed()` and `get_feed_custom_sort()`.
-
 ---
 
 ## 5. SIDEBAR QUERIES (supporting the feed UI)
@@ -1101,29 +1054,6 @@ export async function getFeed(params: FeedParams): Promise<FeedResult> {
   const supabase = createServiceClient()
   const limit = params.isInitialLoad ? PAGINATION.FEED_INITIAL_LOAD : PAGINATION.FEED_PAGE_SIZE
 
-  if (params.sort === 'custom') {
-    const contextKey = params.folderId
-      ? `folder:${params.folderId}`
-      : params.friendId
-        ? `friend:${params.friendId}`
-        : params.groupId
-          ? `group:${params.groupId}`
-          : 'personal'
-
-    const { data, error } = await supabase.rpc('get_feed_custom_sort', {
-      p_user_id: params.userId,
-      p_language_code: params.languageCode,
-      p_context_key: contextKey,
-      p_view: params.view ?? 'all',
-      p_limit: limit,
-      p_offset: 0  // TODO: implement offset tracking for custom sort
-    })
-
-    if (error) throw new Error(`Feed query failed: ${error.message}`)
-    const nodes = (data ?? []) as VisibleNode[]
-    return { nodes, totalCount: nodes[0]?.total_count ?? 0, nextCursor: null }
-  }
-
   const { data, error } = await supabase.rpc('get_feed', {
     p_user_id: params.userId,
     p_language_code: params.languageCode,
@@ -1186,7 +1116,7 @@ Use this table to verify that every UI state maps to the correct parameters:
 | `total_count` via `COUNT(*) OVER()` | Adds ~10% query overhead | Acceptable; only used for UI display, not cursor logic |
 | ILIKE search on large datasets | Linear scan without trgm | `pg_trgm` extension + GIN indexes (§6) required |
 | Custom sort with offset pagination | Stale pages on insert | Acceptable for MVP; switch to stable cursor in v2 |
-| Nested folder feed | Resolved in P4-T04 | Subtree expanded via folder_tree in get_feed, get_feed_custom_sort, and get_user_folders |
+| Nested folder feed | Resolved in P4-T04 | Subtree expanded via folder_tree in get_feed and get_user_folders |
 
 ---
 

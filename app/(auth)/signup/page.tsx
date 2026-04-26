@@ -53,29 +53,6 @@ export default function SignupPage() {
       return;
     }
 
-    // Create user profile in public.users table
-    const userId = authData.user.id;
-    const finalDisplayName = displayName.trim() || getEmailPrefix(email);
-    const normalizedName = normalizeDisplayName(finalDisplayName);
-
-    const { error: profileError } = await supabase.from("users").insert({
-      id: userId,
-      display_name: finalDisplayName,
-      normalized_display_name: normalizedName,
-      language_code: "en",
-      avatar_key: null,
-      avatar_change_count_today: 0,
-    });
-
-    if (profileError) {
-      // Hard-block: profile creation is mandatory. Sign out and show error.
-      console.error("Failed to create user profile:", profileError);
-      await supabase.auth.signOut();
-      setError("Account setup failed. Please try again.");
-      setLoading(false);
-      return;
-    }
-
     router.push("/feed");
     router.refresh();
   };

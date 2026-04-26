@@ -16,7 +16,7 @@
  */
 
 import { useCallback, useEffect, useRef } from "react";
-import { useDndState } from "./DndProvider";
+import { useDndContext } from "@dnd-kit/core";
 
 export interface UseDragPauseExpandOptions {
   /** Is the bar currently collapsed? Only then will auto-expand fire. */
@@ -31,7 +31,8 @@ export function useDragPauseExpand<T extends HTMLElement>(
   opts: UseDragPauseExpandOptions
 ): (node: T | null) => void {
   const { isCollapsed, onExpand, delayMs = 500 } = opts;
-  const { activeSource } = useDndState();
+  const { active } = useDndContext();
+  const activeSource = active?.data?.current?.dragSource;
   const timerRef = useRef<number | null>(null);
   const nodeRef = useRef<T | null>(null);
   const firedRef = useRef(false);

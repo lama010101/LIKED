@@ -34,6 +34,8 @@ export interface FilterState {
   filterFriendIds: string[];
   filterFolderIds: string[];
   searchQuery: string | null;
+  viewMode: 'col' | 'mason' | 'list' | 'horiz' | 'free';
+  zoom: number;
 }
 
 export const DEFAULT_FILTER_STATE: FilterState = {
@@ -47,6 +49,8 @@ export const DEFAULT_FILTER_STATE: FilterState = {
   filterFriendIds: [],
   filterFolderIds: [],
   searchQuery: null,
+  viewMode: "col",
+  zoom: 2,
 };
 
 interface FilterStore extends FilterState {
@@ -62,6 +66,8 @@ interface FilterStore extends FilterState {
   setFolderFilters: (folderIds: string[]) => void;
   toggleFolderFilter: (folderId: string) => void;
   setSearch: (query: string | null) => void;
+  setViewMode: (viewMode: FilterState['viewMode']) => void;
+  setZoom: (zoom: number) => void;
   clearFilters: () => void;
   resetFilters: () => void;
   clearAll: () => void;
@@ -93,13 +99,48 @@ export function _resetInitGuard(): void {
   initialized = false;
 }
 
+// Read persisted presentation state safely (client-only)
+const getStoredViewMode = (): FilterState['viewMode'] => {
+  if (typeof window === 'undefined') return DEFAULT_FILTER_STATE.viewMode;
+  try {
+    const s = localStorage.getItem('liked.view');
+    if (s) return JSON.parse(s) as FilterState['viewMode'];
+  } catch {}
+  return DEFAULT_FILTER_STATE.viewMode;
+};
+
+const getStoredZoom = (): number => {
+  if (typeof window === 'undefined') return DEFAULT_FILTER_STATE.zoom;
+  try {
+    const s = localStorage.getItem('liked.zoom');
+    if (s) return JSON.parse(s) as number;
+  } catch {}
+  return DEFAULT_FILTER_STATE.zoom;
+};
+
 export const useFilterStore = create<FilterStore>((set, get) => ({
   ...DEFAULT_FILTER_STATE,
+  viewMode: getStoredViewMode(),
+  zoom: getStoredZoom(),
 
   // ── View ───────────────────────────────────────────────────────
   setView: (view) => set({ view }),
   setSort: (sort) => set({ sort }),
   setMineSubTab: (mineSubTab) => set({ mineSubTab }),
+
+  // ── Presentation (shared reactive state, persisted to localStorage) ──
+  setViewMode: (viewMode) => {
+    set({ viewMode });
+    if (typeof window !== 'undefined') {
+      try { localStorage.setItem('liked.view', JSON.stringify(viewMode)); } catch {}
+    }
+  },
+  setZoom: (zoom) => {
+    set({ zoom });
+    if (typeof window !== 'undefined') {
+      try { localStorage.setItem('liked.zoom', JSON.stringify(zoom)); } catch {}
+    }
+  },
 
   // ── Context (mutually exclusive, normalized) ──────────────────
   setContext: (context) => {

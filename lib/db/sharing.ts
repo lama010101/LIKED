@@ -11,7 +11,8 @@
  */
 
 import { getSupabaseServiceClient } from "@/lib/supabase/service";
-import { Tables } from "@/lib/types/database";
+import type { Database } from "@/lib/types/database";
+type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row'];
 
 export type Cause = Tables<"causes">;
 
@@ -55,10 +56,14 @@ export async function directShare(input: ShareInput): Promise<string> {
     p_sharer_id: input.sharerId,
     p_node_id: input.nodeId,
     p_target_user_id: input.targetUserId,
-  });
+  }) as { data: string | null; error: any };
 
   if (error) {
     throw new Error(`Direct share failed: ${error.message}`);
+  }
+
+  if (!data) {
+    throw new Error(`Direct share failed: no data returned`);
   }
 
   return data;

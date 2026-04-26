@@ -105,6 +105,8 @@ export async function updateUsername(
   await db.from("activity_log").insert({
     user_id: userId,
     action: "username_change",
+    target_id: null,
+    target_type: null,
     metadata: { old: current.display_name, new: trimmed },
   });
 
@@ -187,6 +189,8 @@ export async function uploadAvatar(
   await db.from("activity_log").insert({
     user_id: userId,
     action: "avatar_change",
+    target_id: null,
+    target_type: null,
     metadata: { avatar_key: avatarKey },
   });
 

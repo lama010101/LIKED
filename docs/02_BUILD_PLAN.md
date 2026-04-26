@@ -28,6 +28,8 @@
 3. No `UNIQUE(node_id, user_id)` on the `edges` table.
 4. All writes are atomic transactions with rollback on failure.
 5. Soft delete never removes causes or edges.
+6. Determinism is mandatory for all system-assigned values (colors, ordering, IDs).
+7. Write authority must be explicit (DB vs TS). No implicit mixing allowed.
 
 ---
 
@@ -35,6 +37,7 @@
 
 | Phase | Name | Scope | Complexity |
 |-------|------|-------|------------|
+| P0 | Foundation Hardening | Deterministic writes, write authority, atomic guarantees | High |
 | P1 | Foundation | Repo + Supabase + DB schema + auth + seed | High |
 | P2 | Core Feed | Node creation, visibility query, basic card display | High |
 | P3 | Sharing System | Causes + edges + friends + groups | Very High |
@@ -50,6 +53,64 @@
 | P13 | Chat | Deferred — last phase per PRD §28 | TBD |
 
 **Estimated minimum viable product (MVP):** Phases P1–P5 complete = working app with creation, feed, sharing, folders, and full UI.
+
+---
+
+## PHASE 0 — Foundation Hardening
+
+**Goal:** Ensure cards + folders are deterministic, atomic, and future-proof.
+
+**PRD sections:** §4.1, §4.3, §6.5, §22
+
+---
+
+### P0-T01 — Fix folder color determinism
+
+**Cascade prompt:**
+> Project: LIKED · Task: P0-T01
+> In `supabase/migrations/010_unified_permissions.sql`, the `create_folder` function assigns `color_hex` using `ORDER BY random() LIMIT 1`. Replace this with deterministic palette cycling (same logic as `liked_tag_palette` used for tags). The PRD §4.3 requires system-assigned colors to use the same cycling logic as tags. Please include Task ID P0-T01 in your reply.
+
+**Acceptance criteria:**
+- [ ] Folder color assignment is deterministic
+- [ ] Same cycling logic as tags (`liked_tag_palette`)
+
+---
+
+### P0-T02 — Define write authority (MANDATORY)
+
+**Cascade prompt:**
+> Project: LIKED · Task: P0-T02
+> Add a WRITE RULE section to `03_TECHNICAL_ARCHITECTURE.md`. Rule: Simple inserts (no side effects) are allowed in TypeScript temporarily. Any operation involving multiple tables, future expansion, permissions, or sharing MUST be implemented as a SQL RPC. No exceptions. Please include Task ID P0-T02 in your reply.
+
+**Acceptance criteria:**
+- [ ] WRITE RULE is present in `03_TECHNICAL_ARCHITECTURE.md`
+- [ ] Rule is referenced in all subsequent phase prompts
+
+---
+
+### P0-T03 — Wrap folder_edges write (preparation step)
+
+**Cascade prompt:**
+> Project: LIKED · Task: P0-T03
+> Create a Postgres RPC `add_node_to_folder(p_node_id UUID, p_folder_id UUID)` that performs exactly one `INSERT INTO folder_edges (node_id, folder_id) VALUES (p_node_id, p_folder_id)`. Update `lib/db/folders.ts::addNodeToFolder` to call this RPC instead of using `.insert()`. Do not add permission checks or extra logic inside the RPC — the TypeScript wrapper already calls `assertFolderPermission` before invoking it. This prevents future migration pain by moving table-write authority to the DB. Please include Task ID P0-T03 in your reply.
+
+**Acceptance criteria:**
+- [ ] `add_node_to_folder` RPC exists in a migration file
+- [ ] `lib/db/folders.ts::addNodeToFolder` calls the RPC
+- [ ] No extra logic added inside the RPC
+
+---
+
+### P0 Gate Condition
+
+System is valid ONLY if:
+
+- [ ] Folder color is deterministic
+- [ ] All folder-related writes have a defined authority (DB RPC vs TS)
+- [ ] No randomness in persistence layer
+- [ ] No mixed responsibility ambiguity
+
+Do NOT proceed to P1 until all gate conditions pass.
 
 ---
 
@@ -343,6 +404,8 @@
 
 **Goal:** Folders exist, nodes can be organized into them, folder sharing creates the correct causes+edges, and the breadcrumb navigation works.
 
+**Constraint:** All folder-related writes MUST be implemented as SQL RPC before adding folder sharing, permissions, or batch operations.
+
 **PRD sections:** §6.5 (folder share), §8 (context system), §11.5 (folders bar), §11.8 (breadcrumb), §21.1 (folder admins)
 
 ---
@@ -408,17 +471,15 @@
 >      )
 >    folder_tree already contains a self-reference row (depth = 0) for every folder, so the root folder itself is included automatically. Only apply this expansion when p_folder_id IS NOT NULL.
 >
-> 2. get_feed_custom_sort() — apply the same subtree expansion to its folder context filter.
->
-> 3. get_user_folders() — update item_count so it counts nodes across the full subtree of each folder, not just direct folder_edges for f.id:
+> 2. get_user_folders() — update item_count so it counts nodes across the full subtree of each folder, not just direct folder_edges for f.id:
 >      COUNT(DISTINCT fe.node_id) where fe.folder_id IN (
 >        SELECT ft2.folder_id FROM folder_tree ft2 WHERE ft2.ancestor_id = f.id
 >      )
 >
-> 4. In 04_FEED_SQL_SPEC.md, remove the known limitation row:
+> 3. In 04_FEED_SQL_SPEC.md, remove the known limitation row:
 >      "Nested folder feed not recursive | Folder context = single folder only | ..."
 >    Replace it with:
->      "Nested folder feed | Resolved in P4-T04 | Subtree expanded via folder_tree in get_feed, get_feed_custom_sort, and get_user_folders"
+>      "Nested folder feed | Resolved in P4-T04 | Subtree expanded via folder_tree in get_feed and get_user_folders"
 >
 > Do not change any function signatures or return shapes. Do not touch visibility, edge, or cause logic.
 >
@@ -428,7 +489,6 @@
 - [ ] Selecting a parent folder in the feed shows cards from all descendant folders
 - [ ] Selecting a leaf folder shows only that folder's cards (unchanged behavior)
 - [ ] item_count on folder chips reflects total nodes across the full subtree
-- [ ] get_feed_custom_sort applies the same subtree logic
 - [ ] No function signatures or return shapes changed
 - [ ] Known limitation row removed from 04_FEED_SQL_SPEC.md
 
