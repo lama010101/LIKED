@@ -202,6 +202,28 @@ export interface Database {
         }
         Relationships: []
       }
+      friend_invites: {
+        Row: {
+          id: string
+          from_user_id: string
+          to_user_id: string | null
+          to_email: string
+          created_at: string
+        }
+        Insert: {
+          from_user_id: string
+          to_user_id: string | null
+          to_email: string
+        }
+        Update: {
+          id?: string | null
+          from_user_id?: string | null
+          to_user_id?: string | null
+          to_email?: string | null
+          created_at?: string | null
+        }
+        Relationships: []
+      }
       folder_tree: {
         Row: {
           folder_id: string
@@ -607,6 +629,19 @@ export interface Database {
       }
     }
     Functions: {
+      get_friend_bar: {
+        Args: {
+          p_user_id: string
+        }
+        Returns: {
+          user_id: string | null
+          display_name: string | null
+          avatar_key: string | null
+          to_email: string | null
+          is_pending: boolean
+          last_activity: string | null
+        }[]
+      }
       create_group: {
         Args: {
           p_owner_id: string
@@ -629,6 +664,36 @@ export interface Database {
           p_sharer_id: string
           p_node_id: string
           p_target_user_id: string
+        }
+        Returns: unknown
+      }
+      has_node_permission: {
+        Args: {
+          p_user_id: string
+          p_node_id: string
+          p_required_permission: string
+        }
+        Returns: boolean
+      }
+      has_folder_permission: {
+        Args: {
+          p_user_id: string
+          p_folder_id: string
+          p_required_permission: string
+        }
+        Returns: boolean
+      }
+      get_node_permission: {
+        Args: {
+          p_user_id: string
+          p_node_id: string
+        }
+        Returns: unknown
+      }
+      get_folder_permission: {
+        Args: {
+          p_user_id: string
+          p_folder_id: string
         }
         Returns: unknown
       }
@@ -674,6 +739,14 @@ export interface Database {
         Args: {
           p_cause_id: string
           p_requesting_user_id: string
+        }
+        Returns: unknown
+      }
+      share_folder: {
+        Args: {
+          p_sharer_id: string
+          p_folder_id: string
+          p_target_user_ids: string[]
         }
         Returns: unknown
       }
