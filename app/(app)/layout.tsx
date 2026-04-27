@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, Suspense } from 'react';
 import TopBar from '@/components/bars/TopBar';
 import BottomBar from '@/components/bars/BottomBar';
 import AddCardSheet from '@/components/sheets/AddCardSheet';
@@ -9,7 +9,7 @@ import ProfileModal from '@/components/modals/ProfileModal';
 import DesktopSidebar from '@/components/sidebar/DesktopSidebar';
 import DndProvider from '@/lib/dnd/DndProvider';
 import SelectionOverlay from '@/components/selection/SelectionOverlay';
-import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useLocalStorage } from '@/lib/hooks/useLocalStorage';
 import { getTrashCount } from '@/app/lib/actions/trash';
 import { useFilterStore } from '@/lib/store/filterStore';
@@ -56,7 +56,7 @@ const stubItems: BottomBarItem[] = [
   { id: 'g1', type: 'group', displayName: 'Music', initial: 'M', bg: 'linear-gradient(135deg,#3a5cd5,#1c3aa0)' },
 ];
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+function AppShell({ children }: { children: React.ReactNode }) {
   // P9-T03: Filter state from store (URL is source of truth via useFeedURLSync)
   useFeedURLSync();
   const filterView = useFilterStore((s) => s.view);
@@ -384,5 +384,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       )}
     </div>
     </DndProvider>
+  );
+}
+
+export default function AppLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <Suspense fallback={null}>
+      <AppShell>{children}</AppShell>
+    </Suspense>
   );
 }

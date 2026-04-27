@@ -123,6 +123,7 @@
 | FAB-FIX-001 | FAB visibility + card sheet on all viewports | ✅ | **3 bugs fixed**: (1) FAB zIndex changed from 50 to 51 to prevent BottomBar (also zIndex 50) from covering it, (2) FAB position changed from fragile absolute positioning to fixed with isMobile branching (mobile: bottom 88, centered; desktop: bottom 24, right 24), (3) Removed isMobile guard from AddCardSheet — now mounted on all viewports. FAB visible/tappable on mobile and desktop, AddCardSheet opens on both viewports. |
 | BUG-FIX-001 | Add get_friend_bar to Supabase RPC type definitions | ✅ | Updated `lib/types/database.ts` `get_friend_bar` Returns type from `unknown` to correct structure: `{ user_id, display_name, avatar_key, to_email, is_pending, last_activity }[]`. tsc --noEmit passes. |
 | BUG-FIX-002 | Defer service client instantiation to prevent build-time crash | ✅ | Removed top-level `export const supabaseService = getSupabaseServiceClient()` from `lib/supabase/service.ts`. Service client now only instantiated inside function body at request time. tsc --noEmit passes. |
+| BUG-FIX-003 | Fix useSearchParams Suspense boundary — build-blocking error on /feed | ✅ | Removed `useSearchParams` from import in `app/(app)/layout.tsx`. Extracted all existing AppLayout logic into internal `AppShell` component. Exported `AppLayout` now only wraps `AppShell` in `<Suspense fallback={null}>`. Build completes successfully. |
 
 ### NODE RPCs
 | Task ID | Title | Status | Notes |
