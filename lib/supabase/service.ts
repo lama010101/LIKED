@@ -28,6 +28,3 @@ export function getSupabaseServiceClient() {
     }
   );
 }
-
-// Service client export - use with extreme caution
-export const supabaseService = getSupabaseServiceClient();
