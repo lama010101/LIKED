@@ -132,7 +132,7 @@ export async function dndAutoCreateFolder(
     if (trimmed.length === 0) {
       return { ok: false, error: "Folder name is required" };
     }
-    const folder = await createFolder({ ownerId, name: trimmed });
+    const folder = await createFolder({ name: trimmed, parentFolderId: null });
     for (const nodeId of nodeIds) {
       await addNodeToFolder(nodeId, folder.id, ownerId);
     }

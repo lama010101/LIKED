@@ -20,12 +20,14 @@ export interface ShareInput {
   sharerId: string;
   nodeId: string;
   targetUserId: string;
+  permission?: string;
 }
 
 export interface FolderShareInput {
   sharerId: string;
   folderId: string;
   targetUserIds: string[];
+  permission?: string;
 }
 
 /**
@@ -56,6 +58,7 @@ export async function directShare(input: ShareInput): Promise<string> {
     p_sharer_id: input.sharerId,
     p_node_id: input.nodeId,
     p_target_user_id: input.targetUserId,
+    p_permission: input.permission ?? 'view',
   }) as { data: string | null; error: any };
 
   if (error) {
@@ -163,10 +166,14 @@ export async function groupShare(
     p_sharer_id: sharerId,
     p_node_id: nodeId,
     p_group_id: groupId,
-  });
+  }) as { data: string | null; error: any };
 
   if (error) {
     throw new Error(`Group share failed: ${error.message}`);
+  }
+
+  if (!data) {
+    throw new Error(`Group share failed: no data returned`);
   }
 
   return data;
@@ -233,7 +240,7 @@ export async function createGroup(input: CreateGroupInput): Promise<Group> {
     p_owner_id: input.ownerId,
     p_name: input.name,
     p_member_ids: input.memberIds,
-  });
+  }) as { data: Group[] | null; error: any };
 
   if (error) {
     throw new Error(`Create group failed: ${error.message}`);
@@ -264,10 +271,15 @@ export async function shareFolder(input: FolderShareInput): Promise<string> {
     p_sharer_id: input.sharerId,
     p_folder_id: input.folderId,
     p_target_user_ids: input.targetUserIds,
-  });
+    p_permission: input.permission ?? 'view',
+  }) as { data: string | null; error: any };
 
   if (error) {
     throw new Error(`Folder share failed: ${error.message}`);
+  }
+
+  if (!data) {
+    throw new Error(`Folder share failed: no data returned`);
   }
 
   return data;
