@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -37,8 +37,6 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
-
-  console.log(`[proxy] ${pathname} user=${user?.id ?? "none"} err=${authError?.message ?? "none"}`);
 
   const isAuthRoute =
     pathname.startsWith("/login") || pathname.startsWith("/signup");

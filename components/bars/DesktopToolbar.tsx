@@ -19,6 +19,9 @@ interface DesktopToolbarProps {
   folderName?: string;
   onBackClick?: () => void;
   className?: string;
+  onProfileClick?: () => void;
+  userAvatarUrl?: string;
+  userDisplayName?: string;
 }
 
 const tabs = [
@@ -128,14 +131,18 @@ export default function DesktopToolbar({
   folderName,
   onBackClick,
   className,
+  onProfileClick,
+  userAvatarUrl,
+  userDisplayName,
 }: DesktopToolbarProps) {
+  const initials = userDisplayName ? userDisplayName.slice(0, 2).toUpperCase() : '';
   return (
     <div
       className={className}
       style={{
         display: 'flex',
         alignItems: 'center',
-        gap: 10,
+        gap: '10px',
         padding: '10px 18px',
         borderBottom: '1px solid var(--border-1)',
         background: 'var(--surface-2)',
@@ -144,17 +151,17 @@ export default function DesktopToolbar({
     >
       {/* Left: folder header or feed tabs */}
       {isInFolder ? (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           {onBackClick && (
             <button
               type="button"
               onClick={onBackClick}
               style={{
-                width: 30,
-                height: 30,
+                width: '30px',
+                height: '30px',
                 background: 'var(--surface-3)',
                 border: 'none',
-                borderRadius: 8,
+                borderRadius: '8px',
                 cursor: 'pointer',
                 color: 'var(--text-2)',
                 display: 'flex',
@@ -173,7 +180,7 @@ export default function DesktopToolbar({
           </span>
         </div>
       ) : (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
           {tabs.map((t) => {
             const isActive = tab === t.id;
             const activeBg =
@@ -191,7 +198,7 @@ export default function DesktopToolbar({
                 onClick={() => onTabChange(t.id)}
                 style={{
                   padding: '6px 14px',
-                  borderRadius: 8,
+                  borderRadius: '8px',
                   fontSize: 11,
                   fontWeight: isActive ? 700 : 500,
                   color: isActive ? activeColor : 'var(--text-3)',
@@ -218,7 +225,7 @@ export default function DesktopToolbar({
             );
           })}
           {tab === 'mine' && mineSubTab !== undefined && onMineSubTabChange && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 3, marginLeft: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '3px', marginLeft: '8px' }}>
               {subTabs.map((st) => {
                 const isActive = mineSubTab === st.id;
                 const activeColor =
@@ -231,7 +238,7 @@ export default function DesktopToolbar({
                     style={{
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: 6,
+                      gap: '6px',
                       padding: '5px 11px',
                       border: `1px solid ${isActive ? activeColor : 'var(--border-1)'}`,
                       background: isActive ? activeColor : 'var(--surface-1)',
@@ -257,17 +264,17 @@ export default function DesktopToolbar({
       <div style={{ flex: 1 }} />
 
       {/* Right: controls */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         {/* Search trigger */}
         <button
           type="button"
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 6,
+            gap: '6px',
             padding: '6px 11px',
             background: 'var(--surface-2)',
-            borderRadius: 8,
+            borderRadius: '8px',
             fontSize: 11,
             color: 'var(--text-3)',
             border: '1px solid var(--border-1)',
@@ -285,7 +292,7 @@ export default function DesktopToolbar({
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 5,
+            gap: '5px',
             padding: '6px 11px',
             background: 'var(--surface-2)',
             borderRadius: 'var(--r-md)',
@@ -303,10 +310,10 @@ export default function DesktopToolbar({
         <div
           style={{
             display: 'flex',
-            gap: 2,
-            padding: 2,
+            gap: '2px',
+            padding: '2px',
             background: 'var(--surface-2)',
-            borderRadius: 9,
+            borderRadius: '9px',
           }}
         >
           {viewModes.map(({ id, icon: Icon }) => {
@@ -317,9 +324,9 @@ export default function DesktopToolbar({
                 type="button"
                 onClick={() => onViewChange(id)}
                 style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: 7,
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '7px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -341,8 +348,8 @@ export default function DesktopToolbar({
           type="button"
           onClick={onNotificationClick}
           style={{
-            width: 32,
-            height: 32,
+            width: '32px',
+            height: '32px',
             background: 'var(--surface-2)',
             borderRadius: 'var(--r-md)',
             display: 'flex',
@@ -379,6 +386,33 @@ export default function DesktopToolbar({
             </span>
           )}
         </button>
+
+        {/* Avatar */}
+        {onProfileClick && (
+          <button
+            type="button"
+            onClick={onProfileClick}
+            aria-label="Profile"
+            style={{
+              width: 34,
+              height: 34,
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, var(--accent), var(--red))',
+              color: '#fff',
+              fontSize: 11,
+              fontWeight: 700,
+              border: '2px solid var(--surface-4)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              flexShrink: 0,
+              padding: 0,
+            }}
+          >
+            {initials}
+          </button>
+        )}
       </div>
     </div>
   );

@@ -36,6 +36,7 @@ export interface FilterState {
   searchQuery: string | null;
   viewMode: 'col' | 'mason' | 'list' | 'horiz' | 'free';
   zoom: number;
+  currentContextKey: string;
 }
 
 export const DEFAULT_FILTER_STATE: FilterState = {
@@ -51,6 +52,7 @@ export const DEFAULT_FILTER_STATE: FilterState = {
   searchQuery: null,
   viewMode: "col",
   zoom: 2,
+  currentContextKey: 'default',
 };
 
 interface FilterStore extends FilterState {
@@ -68,6 +70,8 @@ interface FilterStore extends FilterState {
   setSearch: (query: string | null) => void;
   setViewMode: (viewMode: FilterState['viewMode']) => void;
   setZoom: (zoom: number) => void;
+  hydrateFromStorage: (contextKey: string) => void;
+  setCurrentContextKey: (key: string) => void;
   clearFilters: () => void;
   resetFilters: () => void;
   clearAll: () => void;
@@ -99,29 +103,54 @@ export function _resetInitGuard(): void {
   initialized = false;
 }
 
+// Context key derivation — must match what the feed URL params produce
+type ContextKey = string; // e.g. 'default' | 'friend.<uuid>' | 'folder.<uuid>' | 'group.<uuid>'
+
+export const getContextKey = (searchParams?: URLSearchParams): ContextKey => {
+  if (!searchParams) return 'default';
+  const friend = searchParams.get('friend');
+  if (friend) return `friend.${friend}`;
+  const folder = searchParams.get('folder');
+  if (folder) return `folder.${folder}`;
+  const group = searchParams.get('group');
+  if (group) return `group.${group}`;
+  return 'default';
+};
+
 // Read persisted presentation state safely (client-only)
-const getStoredViewMode = (): FilterState['viewMode'] => {
+// During SSR, always return default to prevent hydration mismatch
+const getStoredViewMode = (contextKey: ContextKey): FilterState['viewMode'] => {
   if (typeof window === 'undefined') return DEFAULT_FILTER_STATE.viewMode;
   try {
-    const s = localStorage.getItem('liked.view');
+    const s = localStorage.getItem(`liked.view.${contextKey}`);
     if (s) return JSON.parse(s) as FilterState['viewMode'];
   } catch {}
   return DEFAULT_FILTER_STATE.viewMode;
 };
 
-const getStoredZoom = (): number => {
+const getStoredZoom = (contextKey: ContextKey): number => {
   if (typeof window === 'undefined') return DEFAULT_FILTER_STATE.zoom;
   try {
-    const s = localStorage.getItem('liked.zoom');
+    const s = localStorage.getItem(`liked.zoom.${contextKey}`);
     if (s) return JSON.parse(s) as number;
   } catch {}
   return DEFAULT_FILTER_STATE.zoom;
 };
 
+const saveViewMode = (contextKey: ContextKey, value: FilterState['viewMode']): void => {
+  if (typeof window === 'undefined') return;
+  try { localStorage.setItem(`liked.view.${contextKey}`, JSON.stringify(value)); } catch {}
+};
+
+const saveZoom = (contextKey: ContextKey, value: number): void => {
+  if (typeof window === 'undefined') return;
+  try { localStorage.setItem(`liked.zoom.${contextKey}`, JSON.stringify(value)); } catch {}
+};
+
 export const useFilterStore = create<FilterStore>((set, get) => ({
   ...DEFAULT_FILTER_STATE,
-  viewMode: getStoredViewMode(),
-  zoom: getStoredZoom(),
+  viewMode: DEFAULT_FILTER_STATE.viewMode,
+  zoom: DEFAULT_FILTER_STATE.zoom,
 
   // ── View ───────────────────────────────────────────────────────
   setView: (view) => set({ view }),
@@ -130,16 +159,14 @@ export const useFilterStore = create<FilterStore>((set, get) => ({
 
   // ── Presentation (shared reactive state, persisted to localStorage) ──
   setViewMode: (viewMode) => {
+    const contextKey = get().currentContextKey;
+    saveViewMode(contextKey, viewMode);
     set({ viewMode });
-    if (typeof window !== 'undefined') {
-      try { localStorage.setItem('liked.view', JSON.stringify(viewMode)); } catch {}
-    }
   },
   setZoom: (zoom) => {
+    const contextKey = get().currentContextKey;
+    saveZoom(contextKey, zoom);
     set({ zoom });
-    if (typeof window !== 'undefined') {
-      try { localStorage.setItem('liked.zoom', JSON.stringify(zoom)); } catch {}
-    }
   },
 
   // ── Context (mutually exclusive, normalized) ──────────────────
@@ -283,4 +310,14 @@ export const useFilterStore = create<FilterStore>((set, get) => ({
     if (s.groupId) return "group";
     return null;
   },
+
+  // ── Per-context storage hydration ───────────────────────────────
+  hydrateFromStorage: (contextKey: ContextKey) => {
+    set({
+      viewMode: getStoredViewMode(contextKey),
+      zoom: getStoredZoom(contextKey),
+    });
+  },
+
+  setCurrentContextKey: (key: ContextKey) => set({ currentContextKey: key }),
 }));

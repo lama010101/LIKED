@@ -9,10 +9,10 @@ import ProfileModal from '@/components/modals/ProfileModal';
 import DesktopSidebar from '@/components/sidebar/DesktopSidebar';
 import DndProvider from '@/lib/dnd/DndProvider';
 import SelectionOverlay from '@/components/selection/SelectionOverlay';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { useLocalStorage } from '@/lib/hooks/useLocalStorage';
 import { getTrashCount } from '@/app/lib/actions/trash';
-import { useFilterStore } from '@/lib/store/filterStore';
+import { useFilterStore, getContextKey } from '@/lib/store/filterStore';
 import { useFeedURLSync } from '@/lib/hooks/useFeedURLSync';
 import FeedTabs, { TabId } from '@/components/bars/FeedTabs';
 import MineSubTabs, { MineSubTab } from '@/components/bars/MineSubTabs';
@@ -133,6 +133,9 @@ function AppShell({ children }: { children: React.ReactNode }) {
   const isMobile = useIsMobile();
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const hydrateFromStorage = useFilterStore((s) => s.hydrateFromStorage);
+  const setCurrentContextKey = useFilterStore((s) => s.setCurrentContextKey);
 
   // Refresh the trash-icon badge count (PRD §20.1) whenever the route
   // changes, so restoring or leaving /trash reflects in the top bar.
@@ -156,6 +159,14 @@ function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
+
+  // Hydrate viewMode and zoom from per-context localStorage on mount and context change
+  useEffect(() => {
+    const sp = new URLSearchParams(searchParams.toString());
+    const key = getContextKey(sp);
+    setCurrentContextKey(key);
+    hydrateFromStorage(key);
+  }, [searchParams, hydrateFromStorage, setCurrentContextKey]);
 
   const handleThemeChange = (t: 'dark' | 'light') => {
     setThemeState(t);
@@ -223,6 +234,8 @@ function AppShell({ children }: { children: React.ReactNode }) {
         isInFolder={isInFolder}
         folderName={isInFolder ? 'Current Folder' : undefined}
         onBackClick={() => setFolderPath((p) => p.slice(0, -1))}
+        onProfileClick={() => setOpenProfile(true)}
+        userDisplayName="JS"
       />
 
       {/* Feed filter tabs — mobile only, hidden on desktop */}

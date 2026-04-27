@@ -620,8 +620,8 @@ body {
 
 /* ── FAB (mockup) ───────────────────────────────────────── */
 .fab {
-  position: absolute;
-  top: -28px;
+  position: fixed;
+  bottom: 20px;
   right: 20px;
   width: 56px;
   height: 56px;
@@ -633,7 +633,7 @@ body {
   background: var(--accent);
   box-shadow: var(--shadow-fab);
   cursor: pointer;
-  z-index: 22;
+  z-index: 60;
   transition: transform var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
   border: none;
 }
@@ -651,6 +651,17 @@ body {
 }
 .fab--open svg { transform: rotate(45deg); }
 
+@media (min-width: 1024px) {
+  .fab {
+    left: unset;
+    right: 18px;
+    bottom: 18px;
+    transform: none;
+  }
+  .fab:hover { transform: scale(1.05); }
+  .fab:active { transform: scale(0.95); }
+}
+
 .fab-scrim {
   position: absolute;
   inset: 0;
@@ -665,8 +676,8 @@ body {
 
 /* Speed dial */
 .speed-dial {
-  position: absolute;
-  bottom: calc(100% + 48px);
+  position: fixed;
+  bottom: 96px;
   right: 24px;
   display: flex;
   flex-direction: column-reverse;
@@ -676,6 +687,13 @@ body {
   pointer-events: none;
 }
 .speed-dial--open { pointer-events: all; }
+
+@media (min-width: 1024px) {
+  .speed-dial {
+    right: 18px;
+    bottom: 94px;
+  }
+}
 
 .speed-dial__item {
   display: flex;

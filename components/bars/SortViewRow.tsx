@@ -117,19 +117,19 @@ export default function SortViewRow({
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: '4px var(--space-md)',
-        marginBottom: 2,
+        marginBottom: '2px',
         flexShrink: 0,
       }}
     >
       {/* Left group: Sort + Zoom */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         {/* Sort button */}
         <button
           onClick={onSortClick}
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 5,
+            gap: '5px',
             padding: '6px 11px',
             background: 'var(--surface-2)',
             borderRadius: 'var(--r-md)',
@@ -147,23 +147,22 @@ export default function SortViewRow({
         </button>
 
         {/* Zoom stepper — only in col view */}
-        {view === 'col' && (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 2,
-              padding: 3,
-              background: 'var(--surface-2)',
-              borderRadius: 'var(--r-md)',
-              border: '1px solid var(--border-1)',
-            }}
-          >
+        <div
+          style={{
+            display: view === 'col' ? 'flex' : 'none',
+            alignItems: 'center',
+            gap: '2px',
+            padding: '3px',
+            background: 'var(--surface-2)',
+            borderRadius: 'var(--r-md)',
+            border: '1px solid var(--border-1)',
+          }}
+        >
             <button
               onClick={() => onZoomChange(Math.max(2, zoom - 1))}
               style={{
-                width: 26,
-                height: 26,
+                width: '26px',
+                height: '26px',
                 borderRadius: 'var(--r-sm)',
                 display: 'flex',
                 alignItems: 'center',
@@ -178,12 +177,11 @@ export default function SortViewRow({
               <ZoomOutIcon />
             </button>
             <span
-              suppressHydrationWarning
               style={{
                 fontSize: 'var(--text-sm)',
                 fontWeight: 700,
                 color: 'var(--text-2)',
-                minWidth: 36,
+                minWidth: '36px',
                 textAlign: 'center',
               }}
             >
@@ -192,8 +190,8 @@ export default function SortViewRow({
             <button
               onClick={() => onZoomChange(Math.min(6, zoom + 1))}
               style={{
-                width: 26,
-                height: 26,
+                width: '26px',
+                height: '26px',
                 borderRadius: 'var(--r-sm)',
                 display: 'flex',
                 alignItems: 'center',
@@ -208,17 +206,16 @@ export default function SortViewRow({
               <ZoomInIcon />
             </button>
           </div>
-        )}
       </div>
 
       {/* Right group: View toggle — matches desktop prototype .view-switcher */}
       <div
         style={{
           display: 'flex',
-          gap: 2,
-          padding: 2,
+          gap: '2px',
+          padding: '2px',
           background: 'var(--surface-2)',
-          borderRadius: 9,
+          borderRadius: '9px',
         }}
       >
         {viewModes.map(({ id, icon: Icon }) => {
@@ -228,9 +225,9 @@ export default function SortViewRow({
               key={id}
               onClick={() => onViewChange(id)}
               style={{
-                width: 28,
-                height: 28,
-                borderRadius: 7,
+                width: '28px',
+                height: '28px',
+                borderRadius: '7px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
