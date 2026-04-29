@@ -117,6 +117,7 @@ export function normalizeFilterState(state: Partial<FilterState>): FilterState {
     filterFriendIds: normalizeIdArray(state.filterFriendIds ?? []),
     filterFolderIds: normalizeIdArray(state.filterFolderIds ?? []),
     searchQuery: normalizeSearch(state.searchQuery ?? null),
+    currentContextKey: '',
   };
 }
 
