@@ -1,7 +1,7 @@
 'use client';
 
 interface FolderPathBarProps {
-  path: Array<{ id: string; name: string; count?: number }>;
+  path: Array<{ id: string; name: string; count?: number; colors?: string[] }>;
   totalCount?: number;
   onNavigate: (folderId: string) => void;
   onBack: () => void;
@@ -97,7 +97,7 @@ export default function FolderPathBar({
         </div>
       </button>
 
-      {/* Path strip */}
+      {/* Path strip — prototype style: Home first, then folder crumbs with icons + counts */}
       {visible && (
         <div
           className="hide-scrollbar"
@@ -110,59 +110,80 @@ export default function FolderPathBar({
             scrollbarWidth: 'none',
           }}
         >
-          {/* Back button */}
-          <button
-            type="button"
-            onClick={onBack}
-            aria-label="Back to parent"
-            style={{
-              width: 28,
-              height: 28,
-              borderRadius: 'var(--r-sm)',
-              background: 'var(--surface-3)',
-              border: '1px solid var(--border-1)',
-              color: 'var(--text-2)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              flexShrink: 0,
-              padding: 0,
-            }}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="m15 18-6-6 6-6" />
-            </svg>
-          </button>
-
-          {/* Feed root */}
+          {/* Home crumb */}
           <button
             type="button"
             onClick={() => onNavigate('root')}
+            className="path-crumb"
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: 6,
               padding: '4px 10px',
               borderRadius: 'var(--r-md)',
-              background: 'var(--surface-3)',
-              border: '1px solid var(--border-1)',
-              color: 'var(--text-2)',
+              background: path.length === 0 ? 'var(--accent-soft)' : 'var(--surface-3)',
+              border: `1px solid ${path.length === 0 ? 'color-mix(in srgb, var(--accent) 40%, transparent)' : 'var(--border-1)'}`,
+              color: path.length === 0 ? 'var(--accent)' : 'var(--text-2)',
               fontSize: 'var(--text-sm)',
-              fontWeight: 600,
+              fontWeight: path.length === 0 ? 800 : 600,
               cursor: 'pointer',
               flexShrink: 0,
               whiteSpace: 'nowrap',
             }}
           >
-            Feed
+            {/* Home icon */}
+            <span
+              style={{
+                width: 16,
+                height: 16,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+              </svg>
+            </span>
+            <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1.1 }}>
+              <span style={{ fontSize: 'var(--text-sm)', fontWeight: 'inherit' }}>Home</span>
+              <span
+                style={{
+                  fontSize: 'var(--text-xs)',
+                  fontWeight: 600,
+                  color: 'var(--text-3)',
+                  background: 'var(--surface-2)',
+                  padding: '1px 5px',
+                  borderRadius: 'var(--r-full)',
+                  border: '1px solid var(--border-1)',
+                  marginTop: 2,
+                }}
+              >
+                {totalCount}
+              </span>
+            </span>
           </button>
 
-          <span style={{ color: 'var(--text-3)', fontSize: 12, fontWeight: 600, flexShrink: 0 }}>›</span>
+          {/* Separator */}
+          {path.length > 0 && (
+            <span style={{ color: 'var(--text-3)', fontSize: 12, fontWeight: 600, flexShrink: 0 }}>›</span>
+          )}
 
-          {/* Path crumbs */}
+          {/* Folder crumbs */}
           {path.map((folder, index) => {
             const isLast = index === path.length - 1;
+            const folderColors = folder.colors ?? ['var(--accent)', 'var(--accent-light)', 'var(--surface-4)', 'var(--surface-3)'];
             return (
               <div key={folder.id} style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
                 <button
@@ -180,36 +201,46 @@ export default function FolderPathBar({
                     fontSize: 'var(--text-sm)',
                     fontWeight: isLast ? 800 : 600,
                     cursor: 'pointer',
+                    flexShrink: 0,
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  {/* Folder icon */}
+                  {/* Folder color icon — 4-color mini grid like prototype */}
                   <span
                     style={{
-                      width: 14,
-                      height: 14,
+                      width: 16,
+                      height: 16,
                       borderRadius: 3,
-                      background: 'linear-gradient(135deg, var(--accent), var(--accent-light, var(--accent)))',
-                      display: 'inline-block',
+                      overflow: 'hidden',
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 1fr',
+                      gridTemplateRows: '1fr 1fr',
                       flexShrink: 0,
                     }}
-                  />
-                  <span>{folder.name}</span>
-                  {folder.count !== undefined && (
-                    <span
-                      style={{
-                        fontSize: 'var(--text-xs)',
-                        fontWeight: 600,
-                        color: 'var(--text-3)',
-                        background: 'var(--surface-2)',
-                        padding: '1px 5px',
-                        borderRadius: 'var(--r-full)',
-                        border: '1px solid var(--border-1)',
-                      }}
-                    >
-                      {folder.count}
-                    </span>
-                  )}
+                  >
+                    {folderColors.slice(0, 4).map((c, i) => (
+                      <span key={i} style={{ background: c }} />
+                    ))}
+                  </span>
+                  <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1.1 }}>
+                    <span style={{ fontSize: 'var(--text-sm)', fontWeight: 'inherit' }}>{folder.name}</span>
+                    {folder.count !== undefined && (
+                      <span
+                        style={{
+                          fontSize: 'var(--text-xs)',
+                          fontWeight: 600,
+                          color: 'var(--text-3)',
+                          background: 'var(--surface-2)',
+                          padding: '1px 5px',
+                          borderRadius: 'var(--r-full)',
+                          border: '1px solid var(--border-1)',
+                          marginTop: 2,
+                        }}
+                      >
+                        {folder.count}
+                      </span>
+                    )}
+                  </span>
                 </button>
                 {!isLast && (
                   <span style={{ color: 'var(--text-3)', fontSize: 12, fontWeight: 600, flexShrink: 0 }}>›</span>

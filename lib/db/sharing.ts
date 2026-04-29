@@ -166,6 +166,7 @@ export async function groupShare(
     p_sharer_id: sharerId,
     p_node_id: nodeId,
     p_group_id: groupId,
+    p_permission: 'view',
   }) as { data: string | null; error: any };
 
   if (error) {
@@ -298,13 +299,10 @@ export async function unshareFolderOp(
   requestingUserId: string
 ): Promise<void> {
   const supabase = getSupabaseServiceClient();
-
-  const { error } = await supabase
-    .from("causes")
-    .delete()
-    .filter("metadata->>folder_share_op_id", "eq", folderShareOpId)
-    .eq("created_by", requestingUserId);
-
+  const { error } = await supabase.rpc("unshare_folder_op", {
+    p_folder_share_op_id: folderShareOpId,
+    p_requesting_user_id: requestingUserId,
+  });
   if (error) {
     throw new Error(`Folder unshare failed: ${error.message}`);
   }

@@ -9,11 +9,11 @@
 
 | Field | Value |
 |-------|-------|
-| **Last completed task** | FIX-02 — Restore middleware.ts at project root |
-| **Next task to execute** | FIX-03 |
+| **Last completed task** | UI-001 — Add sign-out button to ProfileModal |
+| **Next task to execute** | SPRINT-2-REVIEW |
 | **Current phase** | P9 — Search & Filters (UIX shell complete, audit-flagged blockers pending) |
 | **Phase gate passed** | ⚠️ Audit reveals P1/P3/P4 gates DID NOT hold — see AUDIT-01 |
-| **Last updated** | 2026-04-27 (Cascade) |
+| **Last updated** | 2026-04-29 (Cascade) |
 
 ---
 
@@ -126,6 +126,8 @@
 | BUG-FIX-003 | Fix useSearchParams Suspense boundary — build-blocking error on /feed | ✅ | Removed `useSearchParams` from import in `app/(app)/layout.tsx`. Extracted all existing AppLayout logic into internal `AppShell` component. Exported `AppLayout` now only wraps `AppShell` in `<Suspense fallback={null}>`. Build completes successfully. |
 | BUG-HYD-01 | Investigate hydration mismatch root cause in feed view components | ✅ | Investigation completed: filterStore.ts initializes viewMode and zoom at module level via localStorage reads. During SSR returns defaults; during hydration returns stored values. FeedGrid conditionally renders different component trees based on these values, causing React hydration errors. |
 | BUG-HYD-02 | Fix hydration mismatch + implement per-context view/zoom persistence | ✅ | **Hydration fix**: Removed module-level localStorage reads from filterStore.ts store initializer. Store now uses defaults during SSR. **Per-context persistence**: Added context-aware storage helpers (getContextKey, getStoredViewMode, getStoredZoom, saveViewMode, saveZoom). Added hydrateFromStorage and setCurrentContextKey actions to store. Updated setViewMode/setZoom to save per context using currentContextKey field. layout.tsx calls hydrateFromStorage on mount and context change. Removed suppressHydrationWarning from SortViewRow.tsx and DesktopToolbar.tsx view toggle elements. |
+| BUG-UI-001 | Fix duplicate top bar on tablet/mobile viewports | ✅ | **Bug**: DesktopToolbar root div had inline `style={{ display: 'flex' }}` which overrode Tailwind `hidden` class, causing DesktopToolbar to render on all viewports below `lg`. Combined with TopBar (mobile-only), this produced a duplicate top bar on tablet/mobile widths. **Fix**: Removed `display: 'flex'` from DesktopToolbar root inline style. Parent in layout.tsx already passes `className="hidden lg:flex"` — at `lg+`, `lg:flex` sets display; below `lg`, `hidden` correctly hides the component. One file, one line removed. |
+| UI-001 | Add sign-out button to ProfileModal | ✅ | Added sign-out functionality to ProfileModal component. Imported `signOut` from auth actions, added `signOutPending` state, created `handleSignOut` handler function, added sign-out button UI with red border styling at bottom of modal. Button calls existing `signOut` server action which clears session and redirects to `/login`. |
 
 ### NODE RPCs
 | Task ID | Title | Status | Notes |
@@ -146,28 +148,28 @@
 | FIX-02 | Restore middleware.ts at project root | ✅ | proxy.ts renamed; export corrected; console.log removed |
 | AUDIT-01 / C1 | Wide-open RLS on `edges` and `causes` | ⚠️ CRITICAL | INSERT/UPDATE/DELETE policies on `causes` and `edges` all use `true` with_check/using — any authenticated session can fabricate edges/causes, grant self visibility, or mass-delete. Defeats PRD §3 visibility invariant. **Claimed done in P3-T05 — actually not done.** |
 | AUDIT-01 / C2 | `middleware.ts` missing at project root | ⚠️ CRITICAL | Only `proxy.ts` exists at root exporting `proxy()`. Next.js requires `middleware.ts` with `export middleware`. Auth guard not registered at framework level. **Claimed done in CLEANUP-C — actually not done.** |
-| AUDIT-01 / C3 | Migration 027 `set_node_deleted` not applied to DB | ⚠️ CRITICAL | Function absent from `pg_proc`. `lib/db/nodes.ts::softDeleteNode` and `restoreNode` call the RPC → runtime error. Trash, restore, Undo flows broken. **Claimed done in NODE-001/NODE-002 — not reflected in DB.** |
-| AUDIT-01 / C4 | Migration 028 `rename_folder` not applied to DB | ⚠️ CRITICAL | Function absent. `lib/db/folders.ts::renameFolder` runtime-broken. **Claimed done in FOLDER-001/FOLDER-002 — not reflected in DB.** |
-| AUDIT-01 / C5 | `folders.color_hex` column missing | ⚠️ CRITICAL | Deployed `create_folder` (migration 029) references `folders.color_hex` on INSERT — column does not exist in live schema. Folder creation throws at runtime. **FOLDER-003 claimed ✅ but cannot succeed as deployed.** |
-| AUDIT-01 / C6 | Migration 012 (`folder_admins`, `group_admins`) not applied | ⚠️ CRITICAL | Both tables absent in live DB. **Claimed done in CLEANUP-A — not reflected in DB.** |
-| AUDIT-01 / C7 | `SharePickerModal` + `usePermissions` hook violate server/client boundary | ⚠️ CRITICAL | `"use client"` files import from `@/lib/db/sharing`, `@/lib/db/permissions` → service-role client throws in browser (env undefined). TAD §3.2/§4.3 violation + runtime failure on any share action. |
-| AUDIT-01 / C8 | `app/(app)/layout.tsx` ships hardcoded `userId="stub-user-id"`, `displayName="JS"`, `stubItems` friends | ⚠️ CRITICAL | Profile modal operates on fake user; friends bar shows 12 mock people. Layout not wired to real auth/data. |
-| AUDIT-01 / C9 | `FeedGrid.tsx` `STUB_ITEMS` fallback | ⚠️ CRITICAL | Real users with empty feeds see 10 fake demo cards (line 67, 165). Must remove the fallback. |
-| AUDIT-01 / C10 | Two overloads of `direct_share` / `group_share` coexist in DB | ⚠️ CRITICAL | Silent argument-type dispatch to wrong version. Drop obsolete overload(s). |
-| AUDIT-01 / H1 | `lib/db/nodes.ts::getNodeById` bypasses visibility | ⚠️ HIGH | Direct SELECT with only `deleted_at IS NULL` filter — no owner/edge check. Used by server actions. |
-| AUDIT-01 / H2 | `unshareFolderOp` does direct `.delete("causes")` from TS | ⚠️ HIGH | No `unshare_folder_op` RPC. High-impact cascade with only TS-side auth filter. |
-| AUDIT-01 / H3 | `createOrGetTag` non-atomic (tags + tag_translations from TS) | ⚠️ HIGH | Migration 026 created `create_tag_with_translation` RPC but it is not deployed and not used. |
+| AUDIT-01 / C3 | Migration 027 `set_node_deleted` not applied to DB | ✅ | Migration applied; set_node_deleted confirmed in pg_proc |
+| AUDIT-01 / C4 | Migration 028 `rename_folder` not applied to DB | ✅ | Migration applied; rename_folder confirmed in pg_proc |
+| AUDIT-01 / C5 | `folders.color_hex` column missing | ✅ | folders.color_hex added; migration 029 applied; stale 3-arg overload dropped |
+| AUDIT-01 / C6 | Migration 012 (`folder_admins`, `group_admins`) not applied | ✅ | Migration 012 applied; folder_admins and group_admins confirmed in information_schema |
+| AUDIT-01 / C7 | `SharePickerModal` + `usePermissions` hook violate server/client boundary | ✅ | sharing.ts server actions created; SharePickerModal + usePermissions rewired |
+| AUDIT-01 / C8 | `app/(app)/layout.tsx` ships hardcoded `userId="stub-user-id"`, `displayName="JS"`, `stubItems` friends | ✅ | layout.tsx wired to real auth; stub userId/displayName/friends replaced. Hotfix applied — bottomBarItems state moved before contextPills useMemo |
+| AUDIT-01 / C9 | `FeedGrid.tsx` `STUB_ITEMS` fallback | ✅ | STUB_ITEMS removed; empty feed shows empty state |
+| AUDIT-01 / C10 | Two overloads of `direct_share` / `group_share` coexist in DB | ✅ | Stale 3-arg overloads dropped; groupShare TS call updated to pass p_permission |
+| AUDIT-01 / H1 | `lib/db/nodes.ts::getNodeById` bypasses visibility | ✅ | getNodeById requires userId; enforces owner/edge visibility check |
+| AUDIT-01 / H2 | `unshareFolderOp` does direct `.delete("causes")` from TS | ✅ | Migration 031 applied; unshareFolderOp rewired to RPC |
+| AUDIT-01 / H3 | `createOrGetTag` non-atomic (tags + tag_translations from TS) | ✅ | Migration 026 applied; createOrGetTag routes new tags through create_tag_with_translation RPC |
 | AUDIT-01 / H4 | `create_node` / `create_node_with_metadata` are `SECURITY INVOKER` | ⚠️ HIGH | TAD §7 mandates DEFINER. |
 | AUDIT-01 / H5 | 4 folder writes bypass RPCs | ⚠️ HIGH | `addNodeToFolder`, `removeNodeFromFolder`, `deleteFolder`, `moveFolder` all direct PostgREST writes. P0-T03 explicitly required `add_node_to_folder` RPC. |
 | AUDIT-01 / H6 | Profile/avatar change duplication + non-atomic | ⚠️ HIGH | Parallel implementations in `lib/db/users.ts` and `app/lib/actions/profile.ts`; both split `users.update` + `activity_log.insert` across two statements. |
-| AUDIT-01 / H7 | `nodePreferences.setCustomOrder` non-atomic | ⚠️ HIGH | Delete-then-insert in two separate statements. |
+| AUDIT-01 / H7 | `nodePreferences.setCustomOrder` non-atomic | ✅ | Migration 032 applied; setCustomOrder rewired to atomic RPC |
 | AUDIT-01 / H8 | `cardDetail.ts::updateNodeTitle` + `incrementViewCount` direct writes | ⚠️ HIGH | Should be RPCs. |
-| AUDIT-01 / H9 | Duplicate RLS policies on `nodes`, `causes`, `edges` | ⚠️ HIGH | Each table has both `_own` and `_policy`/`_visible` covering identical logic. |
-| AUDIT-01 / H10 | Duplicate GIN/btree indexes | ⚠️ HIGH | `nodes.title`, `tag_translations.label`, `translations.title`, `user_node_preferences` each have two indexes on the same columns. |
-| AUDIT-01 / H11 | `lib/db/users.ts::createUserProfile` is a stub | ⚠️ HIGH | `throw new Error("Not implemented - P1-T03")`. Dead-but-present. |
+| AUDIT-01 / H9 | Duplicate RLS policies on `nodes`, `causes`, `edges` | ✅ | Migration 033 applied; 4 duplicate RLS policies dropped |
+| AUDIT-01 / H10 | Duplicate GIN/btree indexes | ✅ | Migration 034 applied; 5 duplicate indexes dropped |
+| AUDIT-01 / H11 | `lib/db/users.ts::createUserProfile` is a stub | ✅ | createUserProfile stub deleted — zero callers confirmed |
 | AUDIT-01 / H12 | `TagsStrip.tsx` uses `stubTags` | ⚠️ HIGH | P5-T05 `getVisibleTags` never implemented. |
 | AUDIT-01 / H13 | `AddCardSheet.tsx` uses `STUB_TAGS`/`STUB_FRIENDS` + fake preview fetch | ⚠️ HIGH | Pickers are decorative; preview is `setTimeout`. |
-| AUDIT-01 / H14 | `lib/hooks/useRealtime.ts` stub TODOs | ⚠️ HIGH | Either delete or hide behind feature flag until P10 starts. |
+| AUDIT-01 / H14 | `lib/hooks/useRealtime.ts` stub TODOs | ✅ | useRealtime.ts deleted — zero callers confirmed; will be recreated at P10 |
 | AUDIT-01 / M1 | `getFolderTree` N+1 edge queries | ⚠️ MEDIUM | Loop of per-cause edge fetches. Replace with single JOIN. |
 | AUDIT-01 / M2 | Deployed `create_folder` has no cycle check | ⚠️ MEDIUM | P4-T01 requirement. |
 | AUDIT-01 / M3 | Layout `tagLabelMap` / `tagColorMap` hardcoded | ⚠️ MEDIUM | Derive from real tag fetch. |

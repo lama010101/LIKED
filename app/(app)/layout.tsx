@@ -22,6 +22,9 @@ import ContextStrip, { ContextPill } from '@/components/bars/ContextStrip';
 import FabSpeedDial from '@/components/bars/FabSpeedDial';
 import FolderPathBar from '@/components/bars/FolderPathBar';
 import DesktopToolbar from '@/components/bars/DesktopToolbar';
+import { getSessionUser, getFriendBarAction, getGroupBarAction } from '@/app/lib/actions/session';
+import type { SessionUser } from '@/app/lib/actions/session';
+import type { FriendBarEntry, GroupBarEntry } from '@/lib/db/friends';
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(false);
@@ -47,14 +50,42 @@ interface BottomBarItem {
   hasNew?: boolean;
 }
 
-const stubItems: BottomBarItem[] = [
-  { id: 'me', type: 'me', displayName: 'Me', initial: 'JS', bg: 'linear-gradient(135deg,#f5a623,#ff6b6b)' },
-  { id: 'al', type: 'friend', displayName: 'Alice', initial: 'A', bg: 'linear-gradient(135deg,#4a9fd5,#1c6fa0)', hasNew: true },
-  { id: 'bo', type: 'friend', displayName: 'Bob', initial: 'B', bg: 'linear-gradient(135deg,#d54a9f,#a01c6f)', hasNew: true },
-  { id: 'ch', type: 'friend', displayName: 'Chiara', initial: 'C', bg: 'linear-gradient(135deg,#4ad58a,#1ca06f)' },
-  { id: 'di', type: 'friend', displayName: 'Diego', initial: 'D', bg: 'linear-gradient(135deg,#d5a44a,#a07a1c)' },
-  { id: 'g1', type: 'group', displayName: 'Music', initial: 'M', bg: 'linear-gradient(135deg,#3a5cd5,#1c3aa0)' },
-];
+function friendBarToBottomBarItems(
+  sessionUser: SessionUser,
+  friends: FriendBarEntry[],
+  groups: GroupBarEntry[]
+): BottomBarItem[] {
+  const initial = (name: string | null) =>
+    (name ?? '?').charAt(0).toUpperCase();
+
+  const meItem: BottomBarItem = {
+    id: sessionUser.id,
+    type: 'me',
+    displayName: sessionUser.display_name ?? 'Me',
+    initial: initial(sessionUser.display_name),
+    bg: 'linear-gradient(135deg,#f5a623,#ff6b6b)',
+  };
+
+  const friendItems: BottomBarItem[] = friends.map((f) => ({
+    id: f.user_id ?? f.to_email ?? Math.random().toString(),
+    type: 'friend',
+    displayName: f.display_name ?? f.to_email ?? 'Pending',
+    initial: initial(f.display_name ?? f.to_email),
+    bg: 'linear-gradient(135deg,#4a9fd5,#1c6fa0)',
+    hasNew: false,
+  }));
+
+  const groupItems: BottomBarItem[] = groups.map((g) => ({
+    id: g.id,
+    type: 'group',
+    displayName: g.name,
+    initial: initial(g.name),
+    bg: 'linear-gradient(135deg,#7b3ad5,#4a1ca0)',
+    memberCount: g.member_count,
+  }));
+
+  return [meItem, ...friendItems, ...groupItems];
+}
 
 function AppShell({ children }: { children: React.ReactNode }) {
   // P9-T03: Filter state from store (URL is source of truth via useFeedURLSync)
@@ -82,6 +113,29 @@ function AppShell({ children }: { children: React.ReactNode }) {
     t1: '#ef4444', t2: '#3b82f6', t3: '#22c55e', t4: '#f59e0b', t5: '#ec4899', t6: '#8b5cf6', t7: '#06b6d4',
   };
 
+  const [sessionUser, setSessionUser] = useState<SessionUser | null>(null);
+  const [bottomBarItems, setBottomBarItems] = useState<BottomBarItem[]>([]);
+  const profileDisplayName = sessionUser?.display_name ?? '';
+  const setProfileDisplayName = (name: string) =>
+    setSessionUser((prev) => prev ? { ...prev, display_name: name } : prev);
+
+  // Load session user, friend bar, and group bar on mount
+  useEffect(() => {
+    let cancelled = false;
+    getSessionUser().then((user) => {
+      if (cancelled || !user) return;
+      setSessionUser(user);
+      Promise.all([
+        getFriendBarAction(user.id),
+        getGroupBarAction(user.id),
+      ]).then(([friends, groups]) => {
+        if (cancelled) return;
+        setBottomBarItems(friendBarToBottomBarItems(user, friends, groups));
+      });
+    });
+    return () => { cancelled = true; };
+  }, []);
+
   // Build active-context pills for Context Strip (PRD §11.3g)
   const contextPills = useMemo<ContextPill[]>(() => {
     const pills: ContextPill[] = [];
@@ -89,7 +143,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
       pills.push({ id, type: 'tag', label: tagLabelMap[id] ?? id, color: tagColorMap[id] });
     });
     filterFriendIds.forEach((id) => {
-      const friend = stubItems.find((s) => s.id === id);
+      const friend = bottomBarItems.find((s) => s.id === id);
       pills.push({ id, type: 'friend', label: friend?.displayName ?? id, avatar: friend?.bg });
     });
     filterFolderIds.forEach((id) => {
@@ -99,7 +153,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
       pills.push({ id: 'search', type: 'search', label: `"${searchQuery}"` });
     }
     return pills;
-  }, [tagIds, filterFriendIds, filterFolderIds, searchQuery]);
+  }, [tagIds, filterFriendIds, filterFolderIds, searchQuery, bottomBarItems]);
 
   // Map store view to layout TabId
   const tab = filterView as TabId;
@@ -126,7 +180,6 @@ function AppShell({ children }: { children: React.ReactNode }) {
   const [openFolder, setOpenFolder] = useState(false);
   const [speedDialOpen, setSpeedDialOpen] = useState(false);
   const [openProfile, setOpenProfile] = useState(false);
-  const [profileDisplayName, setProfileDisplayName] = useState('JS');
   const [notificationCount] = useState(2);
   const [toast, setToast] = useState<{ kind: 'ok' | 'err'; message: string } | null>(null);
   const [trashCount, setTrashCount] = useState<number>(0);
@@ -148,6 +201,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
       cancelled = true;
     };
   }, [pathname, toast]);
+
 
   // Auto-hide toast after 2.2s
   useEffect(() => {
@@ -180,7 +234,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
       {/* DESKTOP SIDEBAR — hidden below lg */}
       <div className="hidden lg:flex" style={{ flexShrink: 0 }}>
-        <DesktopSidebar items={stubItems} displayName="JS" />
+        <DesktopSidebar items={bottomBarItems} displayName={profileDisplayName} />
       </div>
 
       {/* MAIN COLUMN */}
@@ -198,9 +252,9 @@ function AppShell({ children }: { children: React.ReactNode }) {
       <div className="lg:hidden">
         <TopBar
           notificationCount={notificationCount}
-          userId="stub-user-id"
-          avatarKey={null}
-          displayName="JS"
+          userId={sessionUser?.id ?? ''}
+          avatarKey={sessionUser?.avatar_key ?? null}
+          displayName={profileDisplayName}
           onNotificationClick={() => {}}
           onProfileClick={() => setOpenProfile(true)}
           onTrashClick={() => router.push('/trash')}
@@ -215,7 +269,11 @@ function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Tags Strip — collapsible, between TopBar and feed tabs (PRD §11.3f) */}
       {tagsStripOpen && (
-        <TagsStrip visible={tagsStripOpen} />
+        <TagsStrip 
+          visible={tagsStripOpen} 
+          userId={sessionUser?.id ?? ''} 
+          languageCode={sessionUser?.language_code || 'en'} 
+        />
       )}
 
       {/* Desktop Toolbar — unified toolbar for lg+ screens (PRD §11.8) */}
@@ -235,7 +293,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
         folderName={isInFolder ? 'Current Folder' : undefined}
         onBackClick={() => setFolderPath((p) => p.slice(0, -1))}
         onProfileClick={() => setOpenProfile(true)}
-        userDisplayName="JS"
+        userDisplayName={profileDisplayName}
       />
 
       {/* Feed filter tabs — mobile only, hidden on desktop */}
@@ -310,7 +368,12 @@ function AppShell({ children }: { children: React.ReactNode }) {
           {/* Folder Path Bar — always visible in bottom dock */}
           {friendsState !== 'expanded' && (
             <FolderPathBar
-              path={folderPath.map((id, i) => ({ id, name: `Folder ${i + 1}`, count: i === folderPath.length - 1 ? 12 : undefined }))}
+              path={folderPath.map((id, i) => ({
+                id,
+                name: `Folder ${i + 1}`,
+                count: i === folderPath.length - 1 ? 12 : undefined,
+                colors: ['#7c5cfc', '#9a7fff', '#f87171', '#34d399'],
+              }))}
               totalCount={12}
               onNavigate={(id) => {
                 if (id === 'root') setFolderPath([]);
@@ -327,7 +390,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
 
           {/* BottomBar */}
           <BottomBar
-          items={stubItems}
+          items={bottomBarItems}
           state={friendsState}
           onStateChange={setFriendsState}
           onAvatarClick={(id, type) => {
@@ -357,9 +420,9 @@ function AppShell({ children }: { children: React.ReactNode }) {
       <ProfileModal
         open={openProfile}
         onClose={() => setOpenProfile(false)}
-        userId="stub-user-id"
+        userId={sessionUser?.id ?? ''}
         displayName={profileDisplayName}
-        avatarKey={null}
+        avatarKey={sessionUser?.avatar_key ?? null}
         theme={theme}
         onThemeChange={handleThemeChange}
         onDisplayNameChange={(name) => setProfileDisplayName(name)}

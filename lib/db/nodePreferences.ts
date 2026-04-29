@@ -31,29 +31,14 @@ export async function setCustomOrder(
 ): Promise<void> {
   const supabase = getSupabaseServiceClient() as AnySupabase;
 
-  const { error: delErr } = await supabase
-    .from("user_node_preferences")
-    .delete()
-    .eq("user_id", userId)
-    .eq("scope_key", scopeKey);
-  if (delErr) {
-    throw new Error(`Failed to clear custom order: ${delErr.message}`);
-  }
+  const { error } = await supabase.rpc("set_custom_order", {
+    p_user_id: userId,
+    p_scope_key: scopeKey,
+    p_node_ids: orderedNodeIds,
+  });
 
-  if (orderedNodeIds.length === 0) return;
-
-  const rows = orderedNodeIds.map((nodeId, position) => ({
-    user_id: userId,
-    scope_key: scopeKey,
-    node_id: nodeId,
-    position,
-  }));
-
-  const { error: insErr } = await supabase
-    .from("user_node_preferences")
-    .insert(rows);
-  if (insErr) {
-    throw new Error(`Failed to persist custom order: ${insErr.message}`);
+  if (error) {
+    throw new Error(`Failed to persist custom order: ${error.message}`);
   }
 }
 

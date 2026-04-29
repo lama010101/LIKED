@@ -4,7 +4,15 @@ import { useRef, useCallback } from 'react';
 import BottomBarAvatar, { BottomBarAvatarItem } from './BottomBarAvatar';
 import { useDragPauseExpand } from '@/lib/dnd/useDragPauseExpand';
 
-type BottomBarItem = BottomBarAvatarItem;
+interface BottomBarItem {
+  id: string;
+  type: 'me' | 'friend' | 'group';
+  displayName: string;
+  initial: string;
+  bg: string;
+  hasNew?: boolean;
+  memberCount?: number;
+}
 
 interface BottomBarProps {
   items: BottomBarItem[];
@@ -164,9 +172,33 @@ export default function BottomBar({ items, onAvatarClick, state, onStateChange }
                     fontWeight: 700,
                     color: '#fff',
                     flexShrink: 0,
+                    position: 'relative',
                   }}
                 >
                   {item.initial}
+                  {item.type === 'group' && item.memberCount !== undefined && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        bottom: -2,
+                        right: -2,
+                        minWidth: 14,
+                        height: 14,
+                        borderRadius: 7,
+                        background: 'var(--surface-3)',
+                        border: '1px solid var(--border-1)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: 8,
+                        fontWeight: 700,
+                        color: 'var(--text-2)',
+                        padding: '0 3px',
+                      }}
+                    >
+                      {item.memberCount}
+                    </div>
+                  )}
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
                   <span style={{ fontSize: 'var(--text-md)', fontWeight: 600 }}>{item.displayName}</span>
@@ -287,20 +319,69 @@ export default function BottomBar({ items, onAvatarClick, state, onStateChange }
               </span>
             </div>
           </div>
+
+          {/* Fullscreen expand button — opens Friends & Groups sheet */}
+          <button
+            type="button"
+            aria-label="Open friends panel"
+            onClick={(e) => {
+              e.stopPropagation();
+              onStateChange('expanded');
+            }}
+            style={{
+              width: 26,
+              height: 26,
+              borderRadius: 'var(--r-md)',
+              background: 'var(--surface-3)',
+              border: '1px solid var(--border-1)',
+              color: 'var(--text-2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              flexShrink: 0,
+              padding: 0,
+              transition: 'background var(--transition-fast), border-color var(--transition-fast)',
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.background = 'var(--surface-2)';
+              (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border-2)';
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.background = 'var(--surface-3)';
+              (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border-1)';
+            }}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M8 3H5a2 2 0 0 0-2 2v3" />
+              <path d="M16 3h3a2 2 0 0 1 2 2v3" />
+              <path d="M8 21H5a2 2 0 0 1-2-2v-3" />
+              <path d="M16 21h3a2 2 0 0 0 2-2v-3" />
+            </svg>
+          </button>
         </div>
 
         {/* Friends strip */}
         <div
           className="liked-friends-strip"
           style={{
-            display: 'flex',
+            display: isHidden ? 'none' : 'flex',
             overflowX: 'auto',
             scrollbarWidth: 'none',
             padding: '0 6px 12px',
             gap: 0,
-            maxHeight: isHidden ? 0 : 90,
+            maxHeight: 90,
             overflowY: 'hidden',
-            transition: 'max-height var(--transition-base)',
           }}
         >
           {items.map((item) => (
