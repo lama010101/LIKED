@@ -37,6 +37,7 @@ function snapshot(state: FilterState): FilterState {
     searchQuery: state.searchQuery,
     viewMode: state.viewMode,
     zoom: state.zoom,
+    currentContextKey: state.currentContextKey,
   };
 }
 
@@ -113,6 +114,7 @@ export function useFeedURLSync(options?: UseFeedURLSyncOptions) {
     searchQuery,
     viewMode,
     zoom,
+    currentContextKey: '',
   }), [view, sort, mineSubTab, friendId, folderId, groupId, searchQuery, viewMode, zoom]);
 
   useEffect(() => {

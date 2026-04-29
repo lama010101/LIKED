@@ -127,6 +127,7 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
           searchQuery,
           viewMode,
           zoom,
+          currentContextKey: '',
         },
         userId,
         languageCode

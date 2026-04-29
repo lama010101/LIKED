@@ -6,6 +6,9 @@
 import { getSupabaseServiceClient } from "@/lib/supabase/service";
 import { Tag } from "@/lib/types/app";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnySupabase = any;
+
 export interface TagWithLabel extends Tag {
   label: string;
   language_code: string;
@@ -112,7 +115,7 @@ export async function createOrGetTag(
   // 2. Create new tag + translation atomically via RPC
   const color = await pickNextColor();
 
-  const { data: newTagId, error: rpcErr } = await supabase.rpc(
+  const { data: newTagId, error: rpcErr } = await (supabase as AnySupabase).rpc(
     "create_tag_with_translation",
     {
       p_color: color,
@@ -285,7 +288,7 @@ export async function getVisibleTags(
 ): Promise<TagWithLabel[]> {
   const supabase = getSupabaseServiceClient();
 
-  const { data, error } = await supabase.rpc("get_visible_tags", {
+  const { data, error } = await (supabase as AnySupabase).rpc("get_visible_tags", {
     p_user_id: userId,
     p_language_code: languageCode,
   }) as unknown as {
