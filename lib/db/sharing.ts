@@ -12,6 +12,10 @@
 
 import { getSupabaseServiceClient } from "@/lib/supabase/service";
 import type { Database } from "@/lib/types/database";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnySupabase = any;
+
 type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row'];
 
 export type Cause = Tables<"causes">;
@@ -299,7 +303,7 @@ export async function unshareFolderOp(
   requestingUserId: string
 ): Promise<void> {
   const supabase = getSupabaseServiceClient();
-  const { error } = await supabase.rpc("unshare_folder_op", {
+  const { error } = await (supabase as AnySupabase).rpc("unshare_folder_op", {
     p_folder_share_op_id: folderShareOpId,
     p_requesting_user_id: requestingUserId,
   });
