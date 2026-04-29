@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useCallback } from "react";
 import {
-  hasNodePermission,
-  hasFolderPermission,
-  getEffectiveNodePermission,
-  getEffectiveFolderPermission,
-  Permission,
-} from "@/lib/db/permissions";
+  hasNodePermissionAction,
+  hasFolderPermissionAction,
+  getEffectiveNodePermissionAction,
+  getEffectiveFolderPermissionAction,
+} from "@/app/lib/actions/sharing";
+import type { Permission } from "@/lib/types/app";
 
 /**
  * Hook to check node permission for current user
@@ -40,8 +40,8 @@ export function useNodePermission(
     setIsLoading(true);
     try {
       const [has, effective] = await Promise.all([
-        hasNodePermission(userId, nodeId, required),
-        getEffectiveNodePermission(userId, nodeId),
+        hasNodePermissionAction(userId, nodeId, required),
+        getEffectiveNodePermissionAction(userId, nodeId),
       ]);
       setHasPermission(has);
       setEffectivePermission(effective);
@@ -99,8 +99,8 @@ export function useFolderPermission(
     setIsLoading(true);
     try {
       const [has, effective] = await Promise.all([
-        hasFolderPermission(userId, folderId, required),
-        getEffectiveFolderPermission(userId, folderId),
+        hasFolderPermissionAction(userId, folderId, required),
+        getEffectiveFolderPermissionAction(userId, folderId),
       ]);
       setHasPermission(has);
       setEffectivePermission(effective);

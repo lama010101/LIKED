@@ -7,10 +7,11 @@ import { type FilterState } from "@/lib/store/filterStore";
 import FeedGrid from "./_components/FeedGrid";
 
 interface FeedPageProps {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 export default async function FeedPage({ searchParams }: FeedPageProps) {
+  const resolvedSearchParams = await searchParams;
   const supabase = await getSupabaseServerClient();
   const {
     data: { user },
@@ -21,7 +22,7 @@ export default async function FeedPage({ searchParams }: FeedPageProps) {
   }
 
   // P9-T06-FIX: Parse full filter state from URL (deterministic, normalized)
-  const filterState = parseURLToFilterState(searchParams);
+  const filterState = parseURLToFilterState(resolvedSearchParams);
 
   // P9-T06-FIX: Canonical feed path — buildFeedParams → getFeed → get_feed RPC
   const feedParams = buildFeedParams(filterState, user.id);

@@ -98,7 +98,15 @@ export function getAvatarUrl(
     // Return Supabase Storage public URL
     return `${storageBaseUrl}/object/public/${avatarKey}`;
   }
-  
+
   // Generate deterministic default avatar
   return generateDefaultAvatarSvg(userId, displayName);
+}
+
+/**
+ * Get Supabase Storage URL for a given bucket and key
+ * TAD §13.3 pattern
+ */
+export function getStorageUrl(bucket: 'avatars' | 'thumbnails', key: string): string {
+  return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${bucket}/${key}`;
 }

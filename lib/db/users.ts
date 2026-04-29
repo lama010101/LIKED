@@ -5,22 +5,6 @@
 import { getSupabaseServiceClient } from "@/lib/supabase/service";
 import { User } from "@/lib/types/app";
 
-export async function createUserProfile(input: {
-  id: string;
-  displayName: string;
-  languageCode?: string;
-}): Promise<User> {
-  const supabase = getSupabaseServiceClient();
-  
-  // TODO: Implement per P1-T03
-  // 1. Compute normalized_display_name (lowercase + trim + NFKC normalize)
-  // 2. Handle duplicate conflicts by appending suffix
-  // 3. Set origin_user_id = user.id
-  // 4. Set language_code (default 'en')
-  
-  throw new Error("Not implemented - P1-T03");
-}
-
 export async function getUserById(userId: string): Promise<User | null> {
   const supabase = getSupabaseServiceClient();
   

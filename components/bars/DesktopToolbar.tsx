@@ -140,7 +140,6 @@ export default function DesktopToolbar({
     <div
       className={className}
       style={{
-        display: 'flex',
         alignItems: 'center',
         gap: '10px',
         padding: '10px 18px',

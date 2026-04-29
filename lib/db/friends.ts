@@ -20,6 +20,13 @@ export interface FriendBarEntry {
   last_activity: string | null;
 }
 
+export interface GroupBarEntry {
+  id: string;
+  name: string;
+  owner_id: string;
+  member_count?: number;
+}
+
 /**
  * Returns all entries for the Friends & Groups Strip.
  * Uses the get_friend_bar Postgres function (04_FEED_SQL_SPEC §5.1).
@@ -117,4 +124,54 @@ export async function removeFriend(
   if (error) {
     throw new Error(`Failed to remove friend: ${error.message}`);
   }
+}
+
+/**
+ * Returns all groups the user is a member of for the Friends & Groups Strip.
+ * UX-002: Add Groups to BottomBar
+ */
+export async function getGroupBar(userId: string): Promise<GroupBarEntry[]> {
+  const supabase = getSupabaseServiceClient();
+
+  const { data, error } = await supabase
+    .from("groups")
+    .select(`
+      id,
+      name,
+      owner_id,
+      group_members!inner(user_id)
+    `)
+    .eq("group_members.user_id", userId)
+    .is("deleted_at", null)
+    .order("name", { ascending: true });
+
+  if (error) {
+    throw new Error(`Failed to fetch group bar: ${error.message}`);
+  }
+
+  // Count members for each group
+  const groups = (data ?? []) as any[];
+  const groupIds = groups.map(g => g.id);
+  
+  let memberCounts: Record<string, number> = {};
+  if (groupIds.length > 0) {
+    const { data: memberData } = await supabase
+      .from("group_members")
+      .select("group_id")
+      .in("group_id", groupIds);
+    
+    if (memberData) {
+      memberCounts = memberData.reduce((acc, m: any) => {
+        acc[m.group_id] = (acc[m.group_id] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+    }
+  }
+
+  return groups.map(g => ({
+    id: g.id,
+    name: g.name,
+    owner_id: g.owner_id,
+    member_count: memberCounts[g.id] || 0,
+  }));
 }

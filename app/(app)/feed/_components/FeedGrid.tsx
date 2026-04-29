@@ -64,18 +64,6 @@ interface FeedGridProps {
   folders?: Folder[];
 }
 
-const STUB_ITEMS: FeedItem[] = [
-  { id:'c-0', kind:'card', title:'Morning routine triggers', art:'linear-gradient(135deg,#1a8a7b,#0d3a3a)', tag:'Health', tagColor:'#7a9a2a', rating:9, dir:'received', source:'youtube.com', daysAgo:0 },
-  { id:'c-1', kind:'card', title:'In Rainbows — 20 years', art:'linear-gradient(135deg,#7a3ad5,#3a1c9e)', tag:'Music', tagColor:'#3a7bd5', rating:8, dir:'mine', sentTo:['al','bo'], source:'spotify.com', daysAgo:1 },
-  { id:'c-2', kind:'card', title:'BTFD — a retrospective', art:'linear-gradient(135deg,#4a9fd5,#1c4a9e)', tag:'Finance', tagColor:'#2a8a4a', rating:0, dir:'received', source:'substack.com', daysAgo:2 },
-  { id:'c-3', kind:'card', title:'Past Lives', art:'linear-gradient(135deg,#d54a9f,#6b1c4a)', tag:'Film', tagColor:'#c43a5a', rating:7.5, dir:'received', source:'vimeo.com', daysAgo:3 },
-  { id:'c-4', kind:'card', title:'Amalfi restaurants', art:'linear-gradient(135deg,#f5a623,#ff6b6b)', tag:'Food', tagColor:'#e05c3a', rating:8.5, dir:'mine', source:'nytimes.com', daysAgo:4 },
-  { id:'f-0', kind:'folder', title:'Favorites', art:'linear-gradient(135deg,#7a3ad5,#3a1c9e)', folderColor:'#e05c3a', folderCount:42 },
-  { id:'f-1', kind:'folder', title:'Travel', art:'linear-gradient(135deg,#4a9fd5,#1c4a9e)', folderColor:'#3a7bd5', folderCount:28 },
-  { id:'c-5', kind:'card', title:'Japanese jazz history', art:'linear-gradient(135deg,#1c3a4a,#40607a)', tag:'Music', tagColor:'#3a7bd5', rating:6, dir:'received', source:'youtube.com', daysAgo:5 },
-  { id:'c-6', kind:'card', title:'Obsidian plugin roundup', art:'linear-gradient(135deg,#2d4a1c,#0d2a1a)', tag:'Tech', tagColor:'#7b3ad5', rating:0, dir:'received', source:'substack.com', daysAgo:6 },
-  { id:'c-7', kind:'card', title:'Fermented foods 101', art:'linear-gradient(135deg,#4ad58a,#1c6a40)', tag:'Food', tagColor:'#e05c3a', rating:5.5, dir:'mine', source:'substack.com', daysAgo:7 },
-];
 
 /** Convert FeedNode[] (from get_feed RPC) to FeedItem[] for view components */
 function toFeedItems(nodes: FeedNode[]): FeedItem[] {
@@ -150,19 +138,22 @@ export default function FeedGrid({
     setActiveNode(null);
   }, []);
 
+  // Build nodeId→FeedNode lookup map for handleItemClick
+  const nodeByItemId = useMemo(() => {
+    return new Map(displayNodes.map((n) => [n.node_id, n]));
+  }, [displayNodes]);
+
   const handleItemClick = useCallback((item: FeedItem) => {
-    /* stub: no-op until real data wired in P2/P9 */
-  }, []);
+    const node = nodeByItemId.get(item.id);
+    if (node) handleOpen(node);
+  }, [nodeByItemId, handleOpen]);
 
   // Minimal folder strip — FOLDER-004 / FOLDER-005
   const activeFolderId = useFilterStore((s) => s.folderId);
 
   // Convert FeedNode[] → FeedItem[] for view components
   const feedItems = useMemo(() => {
-    if (displayNodes.length > 0) {
-      return toFeedItems(displayNodes);
-    }
-    return STUB_ITEMS;
+    return toFeedItems(displayNodes);
   }, [displayNodes]);
   const folderStrip = folders.length > 0 ? (
     <div style={{ display: "flex", gap: 8, overflowX: "auto", padding: "8px 14px", borderBottom: "1px solid var(--border-1)" }}>
@@ -269,6 +260,7 @@ export default function FeedGrid({
       <>
         {folderStrip}
         <ColView items={feedItems} zoom={zoom} scopeKey={scopeKey} onItemClick={handleItemClick} />
+        <CardDetailSheet node={activeNode} currentUserId={currentUserId} onClose={handleClose} />
       </>
     );
   }
@@ -279,6 +271,7 @@ export default function FeedGrid({
       <>
         {folderStrip}
         <MasonView items={feedItems} scopeKey={scopeKey} onItemClick={handleItemClick} />
+        <CardDetailSheet node={activeNode} currentUserId={currentUserId} onClose={handleClose} />
       </>
     );
   }
@@ -289,6 +282,7 @@ export default function FeedGrid({
       <>
         {folderStrip}
         <ListView items={feedItems} scopeKey={scopeKey} onItemClick={handleItemClick} />
+        <CardDetailSheet node={activeNode} currentUserId={currentUserId} onClose={handleClose} />
       </>
     );
   }
@@ -304,6 +298,7 @@ export default function FeedGrid({
           onItemClick={handleItemClick}
           folderContext={folderContext}
         />
+        <CardDetailSheet node={activeNode} currentUserId={currentUserId} onClose={handleClose} />
       </>
     );
   }

@@ -18,6 +18,9 @@ import {
   PermissionError,
 } from "./permissions";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnySupabase = any;
+
 /**
  * Create a new folder
  *
@@ -125,11 +128,9 @@ export async function deleteFolder(
     }
   }
 
-  // Soft delete: set deleted_at
-  const { error } = await supabase
-    .from("folders")
-    .update({ deleted_at: new Date().toISOString() })
-    .eq("id", folderId);
+  const { error } = await (supabase as AnySupabase).rpc("delete_folder", {
+    p_folder_id: folderId,
+  });
 
   if (error) {
     throw new Error(`Failed to delete folder: ${error.message}`);
@@ -251,16 +252,12 @@ export async function addNodeToFolder(
   // Verify user has contribute permission
   await assertFolderPermission(requestingUserId, folderId, "contribute");
 
-  const { error } = await supabase.from("folder_edges").insert({
-    node_id: nodeId,
-    folder_id: folderId,
+  const { error } = await (supabase as AnySupabase).rpc("add_node_to_folder", {
+    p_node_id: nodeId,
+    p_folder_id: folderId,
   });
 
   if (error) {
-    if (error.message.includes("unique constraint")) {
-      // Node already in folder, not an error
-      return;
-    }
     throw new Error(`Failed to add node to folder: ${error.message}`);
   }
 }
@@ -282,11 +279,10 @@ export async function removeNodeFromFolder(
   // Verify user has edit permission
   await assertFolderPermission(requestingUserId, folderId, "edit");
 
-  const { error } = await supabase
-    .from("folder_edges")
-    .delete()
-    .eq("node_id", nodeId)
-    .eq("folder_id", folderId);
+  const { error } = await (supabase as AnySupabase).rpc("remove_node_from_folder", {
+    p_node_id: nodeId,
+    p_folder_id: folderId,
+  });
 
   if (error) {
     throw new Error(`Failed to remove node from folder: ${error.message}`);
@@ -310,12 +306,10 @@ export async function moveFolder(
   // Verify user has edit permission
   await assertFolderPermission(requestingUserId, folderId, "edit");
 
-  const { error } = await supabase
-    .from("folders")
-    .update({
-      parent_folder_id: newParentFolderId,
-    })
-    .eq("id", folderId);
+  const { error } = await (supabase as AnySupabase).rpc("move_folder", {
+    p_folder_id: folderId,
+    p_new_parent_id: newParentFolderId,
+  });
 
   if (error) {
     throw new Error(`Failed to move folder: ${error.message}`);

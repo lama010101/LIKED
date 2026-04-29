@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { directShare, FolderShareInput, shareFolder } from "@/lib/db/sharing";
-import { hasNodePermission } from "@/lib/db/permissions";
+import { directShareAction, shareFolderAction, hasNodePermissionAction } from "@/app/lib/actions/sharing";
 import { Permission } from "@/lib/types/app";
 import {
   PermissionSelector,
@@ -10,6 +9,13 @@ import {
   FOLDER_PERMISSION_OPTIONS,
   getPermissionLabel,
 } from "@/components/ui/PermissionSelector";
+
+interface FolderShareInput {
+  sharerId: string;
+  folderId: string;
+  targetUserIds: string[];
+  permission?: string;
+}
 
 type ShareType = "node" | "folder";
 
@@ -69,14 +75,14 @@ export function SharePickerModal({
       if (shareType === "node") {
         // Share node to each selected user
         // First verify we have permission to share
-        const canShare = await hasNodePermission(currentUserId, itemId, "reshare");
+        const canShare = await hasNodePermissionAction(currentUserId, itemId, "reshare");
         if (!canShare) {
           throw new Error("You don't have permission to share this node");
         }
 
         // Share to each user
         for (const targetUserId of selectedUserIds) {
-          await directShare({
+          await directShareAction({
             sharerId: currentUserId,
             nodeId: itemId,
             targetUserId,
@@ -91,7 +97,7 @@ export function SharePickerModal({
           targetUserIds: selectedUserIds,
           permission,
         };
-        await shareFolder(folderShareInput);
+        await shareFolderAction(folderShareInput);
       }
 
       // Reset and close

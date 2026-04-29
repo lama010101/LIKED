@@ -15,11 +15,12 @@ import SelectionCloseButton from "@/components/selection/SelectionCloseButton";
 
 export interface BottomBarAvatarItem {
   id: string;
-  type: "me" | "friend" | "group";
+  type: 'me' | 'friend' | 'group';
   displayName: string;
   initial: string;
   bg: string;
   hasNew?: boolean;
+  memberCount?: number;
 }
 
 interface BottomBarAvatarProps {
@@ -113,46 +114,52 @@ export default function BottomBarAvatar({ item, onClick }: BottomBarAvatarProps)
         padding: "0 7px",
         cursor: dragSource && !selectionActive ? "grab" : "pointer",
         flexShrink: 0,
-        opacity: isDragging ? 0.4 : 1,
-        touchAction: "manipulation",
-        position: "relative",
+        userSelect: 'none',
+        opacity: isDragging ? 0.5 : 1,
+        transition: 'opacity 0.1s',
+        position: 'relative',
       }}
     >
-      {isSelected && selectionKind && (
-        <SelectionCloseButton
-          item={{ kind: selectionKind, id: item.id }}
-          label={item.displayName}
-          // Soft-delete for friends/groups is not yet wired; just deselect.
-          onTrash={async () => false}
-        />
-      )}
       <div
-        className={isSelected ? "liked-wobble" : undefined}
         style={{
-          width: 38,
-          height: 38,
-          borderRadius: item.type === "group" ? 10 : "50%",
+          width: 40,
+          height: 40,
+          borderRadius: item.type === 'group' ? 10 : '50%',
           background: item.bg,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: 12,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: 14,
           fontWeight: 700,
-          color: "#fff",
-          position: "relative",
-          outline: isSelected
-            ? "3px solid var(--accent)"
-            : activeRing
-              ? "3px solid var(--accent)"
-              : item.hasNew
-                ? "2px solid var(--accent)"
-                : undefined,
-          outlineOffset: isSelected ? 3 : activeRing ? 3 : item.hasNew ? 2 : undefined,
-          transform: activeRing ? "scale(1.08)" : undefined,
-          transition: "transform 0.12s, outline-offset 0.12s",
+          color: '#fff',
+          flexShrink: 0,
+          position: 'relative',
         }}
       >
         {item.initial}
+        {item.type === 'group' && item.memberCount !== undefined && (
+          <div
+            style={{
+              position: 'absolute',
+              bottom: -2,
+              right: -2,
+              minWidth: 16,
+              height: 16,
+              borderRadius: 8,
+              background: 'var(--surface-3)',
+              border: '1px solid var(--border-1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 9,
+              fontWeight: 700,
+              color: 'var(--text-2)',
+              padding: '0 4px',
+            }}
+          >
+            {item.memberCount}
+          </div>
+        )}
         {item.type === "me" && (
           <span
             style={{

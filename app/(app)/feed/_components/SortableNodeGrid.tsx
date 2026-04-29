@@ -80,10 +80,9 @@ function SortableCard({
       ref={setNodeRef}
       style={style}
       {...attributes}
-      {...listeners}
       className="break-inside-avoid mb-4"
     >
-      <NodeCardInner node={node} onClick={onClick} currentUserId={currentUserId} />
+      <NodeCardInner node={node} onClick={onClick} currentUserId={currentUserId} dragListeners={listeners} />
     </div>
   );
 }

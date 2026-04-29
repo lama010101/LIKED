@@ -620,9 +620,9 @@ body {
 
 /* ── FAB (mockup) ───────────────────────────────────────── */
 .fab {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
+  position: absolute;
+  bottom: calc(100% + 12px);
+  right: 24px;
   width: 56px;
   height: 56px;
   border-radius: var(--r-full);
@@ -655,7 +655,7 @@ body {
   .fab {
     left: unset;
     right: 18px;
-    bottom: 18px;
+    bottom: calc(100% + 12px);
     transform: none;
   }
   .fab:hover { transform: scale(1.05); }
@@ -676,8 +676,8 @@ body {
 
 /* Speed dial */
 .speed-dial {
-  position: fixed;
-  bottom: 96px;
+  position: absolute;
+  bottom: calc(100% + 48px);
   right: 24px;
   display: flex;
   flex-direction: column-reverse;
@@ -691,7 +691,7 @@ body {
 @media (min-width: 1024px) {
   .speed-dial {
     right: 18px;
-    bottom: 94px;
+    bottom: calc(100% + 48px);
   }
 }
 

@@ -109,44 +109,31 @@ export async function createOrGetTag(
     return existing.tags;
   }
 
-  // 2. Create new tag + translation
+  // 2. Create new tag + translation atomically via RPC
   const color = await pickNextColor();
 
-  const { data: newTag, error: tagErr } = await supabase
-    .from("tags")
-    .insert({ color_hex: color })
-    .select("id, color_hex, created_at")
-    .single() as unknown as { data: Tag | null; error: { message: string } | null };
+  const { data: newTagId, error: rpcErr } = await supabase.rpc(
+    "create_tag_with_translation",
+    {
+      p_color: color,
+      p_label: normalized,
+      p_lang: languageCode,
+    }
+  ) as unknown as { data: string | null; error: { message: string } | null };
 
-  if (tagErr || !newTag) {
-    throw new Error(`Failed to insert tag: ${tagErr?.message ?? "unknown"}`);
+  if (rpcErr || !newTagId) {
+    throw new Error(`Failed to create tag: ${rpcErr?.message ?? "unknown"}`);
   }
 
-  const { error: trErr } = await supabase
-    .from("tag_translations")
-    .insert({
-      tag_id: newTag.id,
-      language_code: languageCode,
-      label: normalized,
-    });
+  // Fetch the full tag row to return
+  const { data: newTag, error: fetchErr } = await supabase
+    .from("tags")
+    .select("id, color_hex, created_at")
+    .eq("id", newTagId)
+    .single() as unknown as { data: Tag | null; error: { message: string } | null };
 
-  if (trErr) {
-    // Race: another caller beat us to this (label, language). Re-lookup.
-    const { data: raced } = await supabase
-      .from("tag_translations")
-      .select("tags:tag_id (id, color_hex, created_at)")
-      .eq("language_code", languageCode)
-      .eq("label", normalized)
-      .maybeSingle() as unknown as {
-        data: { tags: Tag | null } | null;
-        error: { message: string } | null;
-      };
-    if (raced?.tags) {
-      // Best-effort cleanup of the orphan tag row we created.
-      await supabase.from("tags").delete().eq("id", newTag.id);
-      return raced.tags;
-    }
-    throw new Error(`Failed to insert tag translation: ${trErr.message}`);
+  if (fetchErr || !newTag) {
+    throw new Error(`Failed to fetch created tag: ${fetchErr?.message ?? "unknown"}`);
   }
 
   return newTag;
@@ -284,6 +271,39 @@ export async function getAllTags(
   }
 
   return (data ?? []).map((r) => resolveTagLabel(r, languageCode));
+}
+
+/**
+ * Return tags visible to the current user per PRD §11.3f:
+ *   Tags shown are only tags that exist on nodes currently visible to the current user
+ *   (i.e., nodes reachable via edges WHERE user_id = current_user AND deleted_at IS NULL)
+ * UX-001: Wire getVisibleTags RPC to TagsStrip
+ */
+export async function getVisibleTags(
+  userId: string,
+  languageCode: string
+): Promise<TagWithLabel[]> {
+  const supabase = getSupabaseServiceClient();
+
+  const { data, error } = await supabase.rpc("get_visible_tags", {
+    p_user_id: userId,
+    p_language_code: languageCode,
+  }) as unknown as {
+    data: { id: string; color_hex: string; label: string }[] | null;
+    error: { message: string } | null;
+  };
+
+  if (error) {
+    throw new Error(`Failed to fetch visible tags: ${error.message}`);
+  }
+
+  return (data ?? []).map((t) => ({
+    id: t.id,
+    color_hex: t.color_hex,
+    created_at: "", // Not returned by RPC, not needed for display
+    label: t.label,
+    language_code: languageCode,
+  }));
 }
 
 /**

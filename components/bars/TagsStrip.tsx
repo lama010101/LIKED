@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useFilterStore } from '@/lib/store/filterStore';
+import { getVisibleTags } from '@/lib/db/tags';
 
 interface TagChip {
   id: string;
@@ -9,33 +10,70 @@ interface TagChip {
   color: string;
 }
 
-/** Stub visible tags until getVisibleTags RPC is wired (P6-T01, PRD §11.3f). */
-const stubTags: TagChip[] = [
-  { id: 't1', label: 'Design', color: '#ef4444' },
-  { id: 't2', label: 'Music', color: '#3b82f6' },
-  { id: 't3', label: 'Work', color: '#22c55e' },
-  { id: 't4', label: 'Travel', color: '#f59e0b' },
-  { id: 't5', label: 'Food', color: '#ec4899' },
-  { id: 't6', label: 'Read later', color: '#8b5cf6' },
-  { id: 't7', label: 'Inspiration', color: '#06b6d4' },
-];
-
 interface TagsStripProps {
   visible?: boolean;
+  userId: string;
+  languageCode: string;
 }
 
-export default function TagsStrip({ visible = true }: TagsStripProps) {
+export default function TagsStrip({ visible = true, userId, languageCode }: TagsStripProps) {
   const [search, setSearch] = useState('');
+  const [tags, setTags] = useState<TagChip[]>([]);
+  const [loading, setLoading] = useState(true);
   const tagIds = useFilterStore((s) => s.tagIds);
   const toggleTagFilter = useFilterStore((s) => s.toggleTagFilter);
 
+  // Load visible tags on mount
+  useEffect(() => {
+    if (!userId) return;
+    let cancelled = false;
+    
+    getVisibleTags(userId, languageCode || 'en')
+      .then((visibleTags) => {
+        if (!cancelled) {
+          setTags(visibleTags.map((t) => ({
+            id: t.id,
+            label: t.label,
+            color: t.color_hex,
+          })));
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to load visible tags:', err);
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, languageCode]);
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return stubTags;
-    return stubTags.filter((t) => t.label.toLowerCase().includes(q));
-  }, [search]);
+    if (!q) return tags;
+    return tags.filter((t) => t.label.toLowerCase().includes(q));
+  }, [search, tags]);
 
   if (!visible) return null;
+
+  if (loading) {
+    return (
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 8,
+          padding: '8px var(--space-md)',
+          flexShrink: 0,
+        }}
+      >
+        <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-3)' }}>
+          Loading tags...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -131,7 +169,12 @@ export default function TagsStrip({ visible = true }: TagsStripProps) {
           paddingBottom: 2,
         }}
       >
-        {filtered.map((tag) => {
+        {filtered.length === 0 ? (
+          <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-3)' }}>
+            No tags found
+          </div>
+        ) : (
+          filtered.map((tag) => {
           const isActive = tagIds.includes(tag.id);
           return (
             <button
@@ -178,7 +221,8 @@ export default function TagsStrip({ visible = true }: TagsStripProps) {
               {tag.label}
             </button>
           );
-        })}
+        })
+      )}
       </div>
     </div>
   );

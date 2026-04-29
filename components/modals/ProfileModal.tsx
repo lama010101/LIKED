@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { updateUsername, uploadAvatar } from '@/app/lib/actions/profile';
+import { signOut } from '@/app/lib/actions/auth';
 
 // ── types ─────────────────────────────────────────────────────────────────
 
@@ -94,6 +95,9 @@ export default function ProfileModal({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [currentAvatarKey, setCurrentAvatarKey] = useState(avatarKey);
 
+  // Sign out
+  const [signOutPending, setSignOutPending] = useState(false);
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
 
   // Sync prop changes
@@ -154,6 +158,15 @@ export default function ProfileModal({
   };
 
   // ── Avatar upload ───────────────────────────────────────────────────────
+
+  const handleSignOut = async () => {
+    setSignOutPending(true);
+    try {
+      await signOut();
+    } catch {
+      setSignOutPending(false);
+    }
+  };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -459,6 +472,30 @@ export default function ProfileModal({
                 </div>
               </div>
             )}
+          </div>
+
+          <div style={{ height: 1, background: 'var(--border-1)', margin: '0 16px' }} />
+
+          {/* ── Sign out ───────────────────────────────────────────────── */}
+          <div style={{ padding: '16px 24px' }}>
+            <button
+              onClick={handleSignOut}
+              disabled={signOutPending}
+              style={{
+                width: '100%',
+                padding: '10px 0',
+                background: 'transparent',
+                border: '1px solid var(--red)',
+                borderRadius: 10,
+                color: 'var(--red)',
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: 'pointer',
+                opacity: signOutPending ? 0.7 : 1,
+              }}
+            >
+              {signOutPending ? 'Signing out…' : 'Sign out'}
+            </button>
           </div>
         </div>
       </div>
