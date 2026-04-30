@@ -488,6 +488,12 @@ function Body({
   const direction =
     node.origin_user_id === currentUserId ? "mine" : "received";
 
+  const thumbnailUrl = (() => {
+    const key = detail?.node.thumbnail_key ?? null;
+    if (!key) return null;
+    return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/thumbnails/${key}`;
+  })();
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       {/* Media */}
@@ -503,7 +509,7 @@ function Body({
             background: "var(--surface-3)",
           }}
         >
-          {embed.kind === "youtube" || embed.kind === "spotify" || embed.kind === "suno" ? (
+          {embed.kind === "youtube" || embed.kind === "spotify" ? (
             <iframe
               src={embed.src}
               title={node.title ?? "Media"}
@@ -516,36 +522,62 @@ function Body({
                 display: "block",
               }}
             />
-          ) : embed.kind === "generic" ? (
-            // Generic iframe fallback — many sites block framing, so we
-            // also render an "Open externally" CTA below.
-            <iframe
-              src={embed.src}
-              title={node.title ?? "Preview"}
-              sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-              referrerPolicy="no-referrer"
-              style={{
-                width: "100%",
-                height: "100%",
-                border: 0,
-                display: "block",
-                background: "var(--surface-4)",
-              }}
-            />
-          ) : (
+          ) : embed.kind === "suno" ? (
             <div
               style={{
                 width: "100%",
                 height: "100%",
                 display: "flex",
+                flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                color: "var(--text-3)",
-                fontSize: 24,
+                gap: 12,
+                background: thumbnailUrl
+                  ? `linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(${thumbnailUrl}) center/cover`
+                  : "linear-gradient(135deg, #1a1a2e, #16213e)",
+                padding: 24,
               }}
             >
-              ◇
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M9 18V5l12-2v13" />
+                <circle cx="6" cy="18" r="3" />
+                <circle cx="18" cy="16" r="3" />
+              </svg>
+              <span style={{ color: "rgba(255,255,255,0.8)", fontSize: 13, fontWeight: 600, textAlign: "center" }}>
+                {detail?.node.title ?? node.title ?? "Suno track"}
+              </span>
+              <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 11 }}>
+                Open to listen in Suno
+              </span>
             </div>
+          ) : embed.kind === "generic" ? (
+            thumbnailUrl ? (
+              <img
+                src={thumbnailUrl}
+                alt={detail?.node.title ?? node.title ?? "Preview"}
+                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+              />
+            ) : (
+              <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8, color: "var(--text-3)", fontSize: 13 }}>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <path d="M3 9h18" />
+                </svg>
+                <span>No preview available</span>
+              </div>
+            )
+          ) : (
+            thumbnailUrl ? (
+              <img
+                src={thumbnailUrl}
+                alt={detail?.node.title ?? node.title ?? "Preview"}
+                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+              />
+            ) : (
+              <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-3)", fontSize: 24 }}>
+                ◇
+              </div>
+            )
           )}
 
           {/* Fullscreen button */}
