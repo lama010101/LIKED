@@ -80,6 +80,7 @@ function toFeedItems(nodes: FeedNode[]): FeedItem[] {
       kind: 'card' as const,
       title: n.title ?? n.url ?? 'Untitled',
       art: `linear-gradient(135deg, hsl(${hue}, 40%, 35%), hsl(${(hue + 60) % 360}, 50%, 25%))`,
+      thumbnailKey: n.thumbnail_key ?? null,
       dir: n.direction === 'own' ? 'mine' : n.direction,
       source,
     };

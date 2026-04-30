@@ -3,6 +3,7 @@ export interface FeedItem {
   kind: 'card' | 'folder';
   title: string;
   art: string;
+  thumbnailKey?: string | null;
   tag?: string;
   tagColor?: string;
   rating?: number;
