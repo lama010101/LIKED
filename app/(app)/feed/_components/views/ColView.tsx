@@ -38,7 +38,7 @@ function ColTile({
   zoom: number;
   onClick: (item: FeedItem) => void;
 }) {
-  const showOverlays = zoom <= 3;
+  const showOverlays = true;
 
   return (
     <div
@@ -52,6 +52,21 @@ function ColTile({
         background: item.art,
       }}
     >
+      {/* Real thumbnail if available */}
+      {item.thumbnailKey && (
+        <img
+          src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/thumbnails/${item.thumbnailKey}`}
+          alt={item.title}
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+          }}
+          loading="lazy"
+        />
+      )}
       {item.kind === "folder" && (
         <div style={{ position: "absolute", inset: 0 }}>
           <FolderCollage item={item} size={999} />
@@ -68,8 +83,8 @@ function ColTile({
               left: 0,
               right: 0,
               padding: "4px 6px 6px",
-              fontSize: 10,
-              fontWeight: 600,
+              fontSize: 11,
+              fontWeight: 700,
               color: "#fff",
               background: "linear-gradient(to top, rgba(0,0,0,0.7), transparent)",
             }}
