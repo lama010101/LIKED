@@ -4,6 +4,38 @@ import { useEffect, useRef, useState, useCallback, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { createNodeAction } from '@/app/lib/actions/createNode';
 
+function extractYouTubeId(url: string): string | null {
+  try {
+    const u = new URL(url);
+    const host = u.hostname.replace(/^www\./, "").replace(/^m\./, "");
+    if (host === "youtube.com") {
+      const v = u.searchParams.get("v");
+      if (v) return v;
+      const m = u.pathname.match(/^\/(shorts|embed)\/([A-Za-z0-9_-]+)/);
+      if (m) return m[2];
+      return null;
+    }
+    if (host === "youtu.be") {
+      const id = u.pathname.slice(1).split("/")[0];
+      return id || null;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function isYouTubeUrl(url: string): boolean {
+  try {
+    const host = new URL(url).hostname
+      .replace(/^www\./, "")
+      .replace(/^m\./, "");
+    return host === "youtube.com" || host === "youtu.be";
+  } catch {
+    return false;
+  }
+}
+
 interface AddCardSheetProps {
   open: boolean;
   onClose: () => void;
@@ -64,6 +96,7 @@ export default function AddCardSheet({ open, onClose }: AddCardSheetProps) {
   const [selectedFriends, setSelectedFriends] = useState<Set<string>>(new Set());
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [urlWarning, setUrlWarning] = useState<string | null>(null);
   const [isSaving, startSaving] = useTransition();
   const [showSuccess, setShowSuccess] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -126,6 +159,18 @@ export default function AddCardSheet({ open, onClose }: AddCardSheetProps) {
   const handleInputChange = (value: string) => {
     setInput(value);
 
+    const trimmed = value.trim();
+    // YouTube URL validation
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      if (isYouTubeUrl(trimmed) && extractYouTubeId(trimmed) === null) {
+        setUrlWarning('Paste a specific YouTube video link, not the homepage.');
+      } else {
+        setUrlWarning(null);
+      }
+    } else {
+      setUrlWarning(null);
+    }
+
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
     }
@@ -181,6 +226,7 @@ export default function AddCardSheet({ open, onClose }: AddCardSheetProps) {
         setInput('');
         setSelectedType('auto');
         setSaveError(null);
+        setUrlWarning(null);
         onClose();
         router.refresh();
         setShowSuccess(true);
@@ -192,7 +238,7 @@ export default function AddCardSheet({ open, onClose }: AddCardSheetProps) {
   };
 
   const canSave =
-    input.trim() !== '' && !isSaving;
+    input.trim() !== '' && !isSaving && !urlWarning;
   const saveLabel = 'Save Card';
 
   return (
@@ -794,6 +840,20 @@ export default function AddCardSheet({ open, onClose }: AddCardSheetProps) {
               })}
             </div>
           </div>
+
+          {/* URL warning */}
+          {urlWarning && (
+            <div style={{
+              fontSize: 12,
+              color: 'var(--red, #ef4444)',
+              padding: '6px 10px',
+              background: 'rgba(239,68,68,0.08)',
+              borderRadius: 8,
+              marginBottom: 8,
+            }}>
+              ⚠ {urlWarning}
+            </div>
+          )}
 
           {/* Save error */}
           {saveError && (
