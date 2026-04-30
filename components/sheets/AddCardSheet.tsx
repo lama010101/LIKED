@@ -4,18 +4,18 @@ import { useEffect, useRef, useState, useCallback, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { createNodeAction } from '@/app/lib/actions/createNode';
 
+const YT_HOST_RE = /^(www\.|m\.)?(youtube\.com|youtu\.be)$/;
+const YT_VIDEO_RE = /^\/(shorts|embed)\/([A-Za-z0-9_-]+)/;
+
 function extractYouTubeId(url: string): string | null {
   try {
     const u = new URL(url);
-    const host = u.hostname.replace(/^www\./, "").replace(/^m\./, "");
-    if (host === "youtube.com") {
-      const v = u.searchParams.get("v");
-      if (v) return v;
-      const m = u.pathname.match(/^\/(shorts|embed)\/([A-Za-z0-9_-]+)/);
-      if (m) return m[2];
-      return null;
-    }
-    if (host === "youtu.be") {
+    if (!YT_HOST_RE.test(u.hostname)) return null;
+    const v = u.searchParams.get("v");
+    if (v) return v;
+    const m = u.pathname.match(YT_VIDEO_RE);
+    if (m) return m[2];
+    if (/youtu\.be/.test(u.hostname)) {
       const id = u.pathname.slice(1).split("/")[0];
       return id || null;
     }
@@ -27,10 +27,7 @@ function extractYouTubeId(url: string): string | null {
 
 function isYouTubeUrl(url: string): boolean {
   try {
-    const host = new URL(url).hostname
-      .replace(/^www\./, "")
-      .replace(/^m\./, "");
-    return host === "youtube.com" || host === "youtu.be";
+    return YT_HOST_RE.test(new URL(url).hostname);
   } catch {
     return false;
   }
