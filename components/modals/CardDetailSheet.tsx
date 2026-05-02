@@ -491,7 +491,8 @@ function Body({
   const thumbnailUrl = (() => {
     const key = detail?.node.thumbnail_key ?? null;
     if (!key) return null;
-    return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/thumbnails/${key}`;
+    const base = process.env["NEXT_PUBLIC_SUPABASE_URL"] ?? "";
+    return base + "/storage/v1/object/public/thumbnails/" + key;
   })();
 
   return (
