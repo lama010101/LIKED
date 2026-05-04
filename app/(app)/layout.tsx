@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState, Suspense } from 'react';
+import { useEffect, useMemo, useState, useRef, Suspense, useCallback } from 'react';
 import TopBar from '@/components/bars/TopBar';
 import BottomBar from '@/components/bars/BottomBar';
 import AddCardSheet from '@/components/sheets/AddCardSheet';
@@ -23,6 +23,7 @@ import FabSpeedDial from '@/components/bars/FabSpeedDial';
 import FolderPathBar from '@/components/bars/FolderPathBar';
 import DesktopToolbar from '@/components/bars/DesktopToolbar';
 import { getSessionUser, getFriendBarAction, getGroupBarAction } from '@/app/lib/actions/session';
+import { getUserFoldersAction } from '@/app/lib/actions/getFolders';
 import type { SessionUser } from '@/app/lib/actions/session';
 import type { FriendBarEntry, GroupBarEntry } from '@/lib/db/friends';
 
@@ -98,6 +99,8 @@ function AppShell({ children }: { children: React.ReactNode }) {
   const tagIds = useFilterStore((s) => s.tagIds);
   const filterFriendIds = useFilterStore((s) => s.filterFriendIds);
   const filterFolderIds = useFilterStore((s) => s.filterFolderIds);
+  const activeFolderId = useFilterStore((s) => s.folderId);
+  const clearFolderContext = useFilterStore((s) => s.clearContext);
   const searchQuery = useFilterStore((s) => s.searchQuery);
   const toggleTagFilter = useFilterStore((s) => s.toggleTagFilter);
   const toggleFriendFilter = useFilterStore((s) => s.toggleFriendFilter);
@@ -115,6 +118,8 @@ function AppShell({ children }: { children: React.ReactNode }) {
 
   const [sessionUser, setSessionUser] = useState<SessionUser | null>(null);
   const [bottomBarItems, setBottomBarItems] = useState<BottomBarItem[]>([]);
+  const [layoutFolders, setLayoutFolders] = useState<Array<{ id: string; name: string; color_hex: string; parent_folder_id: string | null }>>([]);
+  const folderStack = useFilterStore((s) => s.folderStack);
   const profileDisplayName = sessionUser?.display_name ?? '';
   const setProfileDisplayName = (name: string) =>
     setSessionUser((prev) => prev ? { ...prev, display_name: name } : prev);
@@ -135,6 +140,39 @@ function AppShell({ children }: { children: React.ReactNode }) {
     });
     return () => { cancelled = true; };
   }, []);
+
+  const refreshFolders = useCallback(() => {
+    getUserFoldersAction()
+      .then((f) => setLayoutFolders(f))
+      .catch((err) => console.error('[layout] getUserFoldersAction failed:', err));
+  }, []);
+
+  // Load folders on mount; refreshFolders can also be called post-creation
+  useEffect(() => {
+    refreshFolders();
+  }, [refreshFolders]);
+
+  // Rebuild full ancestry chain from layoutFolders on deep-link / page load
+  useEffect(() => {
+    if (!activeFolderId || layoutFolders.length === 0) return;
+    // Only rebuild if stack is empty or out of sync with activeFolderId
+    const currentStack = useFilterStore.getState().folderStack;
+    const topOfStack = currentStack[currentStack.length - 1];
+    if (topOfStack?.id === activeFolderId) return; // already correct
+
+    // Rebuild full ancestry chain from layoutFolders
+    const chain: Array<{ id: string; name: string; color_hex: string }> = [];
+    let currentId: string | null = activeFolderId;
+    while (currentId) {
+      const folder = layoutFolders.find(f => f.id === currentId);
+      if (!folder) break;
+      chain.unshift({ id: folder.id, name: folder.name, color_hex: folder.color_hex });
+      currentId = folder.parent_folder_id;
+    }
+    if (chain.length > 0) {
+      useFilterStore.getState().setFolderStack(chain);
+    }
+  }, [activeFolderId, layoutFolders]);
 
   // Build active-context pills for Context Strip (PRD §11.3g)
   const contextPills = useMemo<ContextPill[]>(() => {
@@ -229,6 +267,12 @@ function AppShell({ children }: { children: React.ReactNode }) {
 
   const isInFolder = folderPath.length > 0;
 
+  const breadcrumbPath = folderStack.map(f => ({
+    id: f.id,
+    name: f.name,
+    colors: [f.color_hex],
+  }));
+
   return (
     <DndProvider>
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
@@ -285,6 +329,8 @@ function AppShell({ children }: { children: React.ReactNode }) {
         onMineSubTabChange={setMineSubTab}
         view={view}
         onViewChange={setViewMode}
+        zoom={zoom}
+        onZoomChange={setZoom}
         sortLabel="Newest"
         onSortClick={() => setOpenFilter(true)}
         notificationCount={notificationCount}
@@ -336,6 +382,39 @@ function AppShell({ children }: { children: React.ReactNode }) {
         />
       </div>
 
+      {/* Folder Path Bar — above content */}
+      <div>
+        {friendsState !== 'expanded' && (
+          <FolderPathBar
+            path={breadcrumbPath}
+            totalCount={layoutFolders.length}
+            onNavigate={(id) => {
+              if (id === 'root') {
+                useFilterStore.getState().clearContext();
+              } else {
+                // Navigate to a specific crumb — truncate stack to that point
+                const idx = folderStack.findIndex(f => f.id === id);
+                if (idx >= 0) {
+                  useFilterStore.getState().setFolderStack(folderStack.slice(0, idx + 1));
+                  useFilterStore.getState().setContext({ folderId: id });
+                }
+              }
+            }}
+            onBack={() => {
+              if (folderStack.length <= 1) {
+                useFilterStore.getState().clearContext();
+              } else {
+                const next = folderStack.slice(0, -1);
+                useFilterStore.getState().setFolderStack(next);
+                useFilterStore.getState().setContext({ folderId: next[next.length - 1].id });
+              }
+            }}
+            visible={folderPathBarVisible}
+            onToggleVisibility={() => setFolderPathBarVisible(v => !v)}
+          />
+        )}
+      </div>
+
       {/* Main content area */}
       <div
         style={{
@@ -365,29 +444,6 @@ function AppShell({ children }: { children: React.ReactNode }) {
 
         {/* Bottom dock: folders + friends (PRD §11.8) */}
         <div className="bottom-dock lg:hidden">
-          {/* Folder Path Bar — always visible in bottom dock */}
-          {friendsState !== 'expanded' && (
-            <FolderPathBar
-              path={folderPath.map((id, i) => ({
-                id,
-                name: `Folder ${i + 1}`,
-                count: i === folderPath.length - 1 ? 12 : undefined,
-                colors: ['#7c5cfc', '#9a7fff', '#f87171', '#34d399'],
-              }))}
-              totalCount={12}
-              onNavigate={(id) => {
-                if (id === 'root') setFolderPath([]);
-                else {
-                  const idx = folderPath.indexOf(id);
-                  if (idx >= 0) setFolderPath(folderPath.slice(0, idx + 1));
-                }
-              }}
-              onBack={() => setFolderPath((p) => p.slice(0, -1))}
-              visible={folderPathBarVisible}
-              onToggleVisibility={() => setFolderPathBarVisible((v) => !v)}
-            />
-          )}
-
           {/* BottomBar */}
           <BottomBar
           items={bottomBarItems}
@@ -413,7 +469,12 @@ function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Add Folder Sheet — mobile only */}
       {isMobile && (
-        <AddFolderSheet open={openFolder} onClose={() => setOpenFolder(false)} />
+        <AddFolderSheet
+          open={openFolder}
+          onClose={() => setOpenFolder(false)}
+          parentFolderId={activeFolderId ?? null}
+          onFolderCreated={refreshFolders}
+        />
       )}
 
       {/* Profile Modal */}

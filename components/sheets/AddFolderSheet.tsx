@@ -1,12 +1,26 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createFolderAction } from '@/app/lib/actions/createFolder';
+
+function useIsDesktop(): boolean {
+  const [isDesktop, setIsDesktop] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
+    queueMicrotask(() => setIsDesktop(mq.matches));
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+  return isDesktop;
+}
 
 interface AddFolderSheetProps {
   open: boolean;
   onClose: () => void;
+  parentFolderId?: string | null;
+  onFolderCreated?: () => void;
 }
 
 const XIcon = () => (
@@ -16,7 +30,8 @@ const XIcon = () => (
   </svg>
 );
 
-export default function AddFolderSheet({ open, onClose }: AddFolderSheetProps) {
+export default function AddFolderSheet({ open, onClose, parentFolderId, onFolderCreated }: AddFolderSheetProps) {
+  const isDesktop = useIsDesktop();
   const [name, setName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSaving, startSaving] = useTransition();
@@ -38,8 +53,9 @@ export default function AddFolderSheet({ open, onClose }: AddFolderSheetProps) {
 
     setError(null);
     startSaving(async () => {
-      const result = await createFolderAction({ name: trimmedName });
+      const result = await createFolderAction({ name: trimmedName, parentFolderId: parentFolderId ?? null });
       if (result.ok) {
+        onFolderCreated?.();
         handleClose();
         router.refresh();
       } else {
@@ -64,6 +80,9 @@ export default function AddFolderSheet({ open, onClose }: AddFolderSheetProps) {
           opacity: open ? 1 : 0,
           pointerEvents: open ? 'auto' : 'none',
           transition: 'opacity 0.2s',
+          display: 'flex',
+          alignItems: isDesktop ? 'center' : 'flex-end',
+          justifyContent: 'center',
         }}
       />
 
@@ -74,30 +93,45 @@ export default function AddFolderSheet({ open, onClose }: AddFolderSheetProps) {
         aria-label="Add folder"
         style={{
           position: 'fixed',
-          bottom: open ? 0 : '-100%',
-          left: 0,
-          right: 0,
           zIndex: 51,
-          background: 'var(--surface-2)',
-          borderRadius: '18px 18px 0 0',
-          borderTop: '1px solid var(--border-2)',
+          background: 'var(--glass-bg)',
+          backdropFilter: 'var(--glass-blur)',
+          WebkitBackdropFilter: 'var(--glass-blur)',
           maxHeight: '90vh',
           overflowY: 'auto',
-          boxShadow: '0 -8px 32px rgba(0,0,0,0.25)',
-          transition: 'bottom 0.25s ease-out',
+          boxShadow: isDesktop ? '0 8px 32px rgba(0,0,0,0.25)' : '0 -8px 32px rgba(0,0,0,0.25)',
+          ...(isDesktop
+            ? {
+                width: 'min(480px, 90vw)',
+                borderRadius: '18px',
+                border: '1px solid var(--border-2)',
+                transform: open ? 'translateY(0) scale(1)' : 'translateY(20px) scale(0.95)',
+                transition: 'transform 0.2s ease-out, opacity 0.2s ease-out',
+                opacity: open ? 1 : 0,
+              }
+            : {
+                bottom: open ? 0 : '-100%',
+                left: 0,
+                right: 0,
+                borderRadius: '18px 18px 0 0',
+                borderTop: '1px solid var(--border-2)',
+                transition: 'bottom 0.25s ease-out',
+              }),
         }}
       >
-        {/* Drag handle */}
-        <div
-          style={{
-            width: 36,
-            height: 3,
-            borderRadius: 100,
-            background: 'var(--text-3)',
-            opacity: 0.35,
-            margin: '10px auto 0',
-          }}
-        />
+        {/* Drag handle (mobile only) */}
+        {!isDesktop && (
+          <div
+            style={{
+              width: 36,
+              height: 3,
+              borderRadius: 100,
+              background: 'var(--text-3)',
+              opacity: 0.35,
+              margin: '10px auto 0',
+            }}
+          />
+        )}
 
         {/* Content container */}
         <div style={{ padding: '16px 16px 0' }}>

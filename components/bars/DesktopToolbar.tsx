@@ -11,6 +11,8 @@ interface DesktopToolbarProps {
   onMineSubTabChange?: (subTab: MineSubTab) => void;
   view: ViewMode;
   onViewChange: (view: ViewMode) => void;
+  zoom?: number;
+  onZoomChange?: (zoom: number) => void;
   sortLabel?: string;
   onSortClick?: () => void;
   notificationCount?: number;
@@ -56,6 +58,23 @@ const BellIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
     <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
     <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+  </svg>
+);
+
+const ZoomOutIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="11" cy="11" r="8" />
+    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+    <line x1="8" y1="11" x2="14" y2="11" />
+  </svg>
+);
+
+const ZoomInIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="11" cy="11" r="8" />
+    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+    <line x1="11" y1="8" x2="11" y2="14" />
+    <line x1="8" y1="11" x2="14" y2="11" />
   </svg>
 );
 
@@ -123,6 +142,8 @@ export default function DesktopToolbar({
   onMineSubTabChange,
   view,
   onViewChange,
+  zoom,
+  onZoomChange,
   sortLabel = 'Newest',
   onSortClick,
   notificationCount = 0,
@@ -304,6 +325,71 @@ export default function DesktopToolbar({
           <SortIcon />
           <span>{sortLabel}</span>
         </button>
+
+        {/* Zoom stepper — only in col view */}
+        {view === 'col' && zoom !== undefined && onZoomChange && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '2px',
+              padding: '3px',
+              background: 'var(--surface-2)',
+              borderRadius: 'var(--r-md)',
+              border: '1px solid var(--border-1)',
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => onZoomChange(Math.max(2, zoom - 1))}
+              style={{
+                width: '26px',
+                height: '26px',
+                borderRadius: 'var(--r-sm)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                border: 'none',
+                background: 'transparent',
+                color: 'var(--text-2)',
+                transition: 'background var(--transition-fast)',
+              }}
+            >
+              <ZoomOutIcon />
+            </button>
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                color: 'var(--text-2)',
+                minWidth: '36px',
+                textAlign: 'center',
+              }}
+            >
+              {zoom} col
+            </span>
+            <button
+              type="button"
+              onClick={() => onZoomChange(Math.min(6, zoom + 1))}
+              style={{
+                width: '26px',
+                height: '26px',
+                borderRadius: 'var(--r-sm)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                border: 'none',
+                background: 'transparent',
+                color: 'var(--text-2)',
+                transition: 'background var(--transition-fast)',
+              }}
+            >
+              <ZoomInIcon />
+            </button>
+          </div>
+        )}
 
         {/* View switcher */}
         <div

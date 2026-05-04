@@ -19,7 +19,7 @@
  * - Use get_visible_nodes, search_nodes, or get_nodes_in_folder
  */
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import type { FeedNode } from "@/lib/hooks/useFeed";
 import type { FeedItem } from "@/lib/types/feed";
 import type { Folder } from "@/lib/types/app";
@@ -43,6 +43,70 @@ interface FolderContext {
 }
 
 type ViewMode = 'col' | 'mason' | 'list' | 'horiz' | 'free';
+
+function FolderTile({ folder, isActive, onClick }: {
+  folder: Folder;
+  isActive: boolean;
+  onClick: (folder: Folder) => void;
+}) {
+  const color = folder.color_hex || '#7c5cbf';
+  return (
+    <div
+      onClick={() => {
+        onClick(folder);
+      }}
+      style={{
+        aspectRatio: '1 / 1',
+        borderRadius: 10,
+        position: 'relative',
+        overflow: 'hidden',
+        cursor: 'pointer',
+        pointerEvents: 'auto',
+        background: `linear-gradient(135deg, ${color}cc, ${color}66)`,
+        boxShadow: isActive ? `0 0 0 3px #fff, 0 0 0 5px ${color}` : 'none',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'flex-end',
+        padding: '8px',
+      }}
+    >
+      {/* 2x2 color collage top area */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr',
+      }}>
+        {[`${color}dd`, `${color}99`, `${color}bb`, `${color}55`].map((bg, i) => (
+          <div key={i} style={{ background: bg }} />
+        ))}
+      </div>
+      {/* Folder icon overlay */}
+      <div style={{
+        position: 'absolute', top: 8, left: 8,
+        width: 24, height: 24, borderRadius: 6,
+        background: 'rgba(0,0,0,0.35)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+        </svg>
+      </div>
+      {/* Name + count overlay at bottom */}
+      <div style={{
+        position: 'relative', zIndex: 1,
+        background: 'linear-gradient(to top, rgba(0,0,0,0.72), transparent)',
+        margin: '-8px', padding: '20px 8px 8px',
+      }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: '#fff', lineHeight: 1.2, wordBreak: 'break-word' }}>
+          {folder.name}
+        </div>
+        <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.7)', marginTop: 2 }}>
+          {folder.node_count === 1 ? '1 item' : `${folder.node_count} items`}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 interface FeedGridProps {
   /** SSR-rendered nodes from server component (initial page load) */
@@ -118,18 +182,24 @@ export default function FeedGrid({
 
   const searchQuery = useFilterStore((s) => s.searchQuery);
 
-  // Use client-side data once useFeed has fetched; fall back to SSR nodes
-  const displayNodes = useMemo(() => {
-    if (clientNodes.length > 0) return clientNodes;
-    if (isLoading) return ssrNodes;
-    return ssrNodes;
-  }, [clientNodes, isLoading, ssrNodes]);
-
   // Reactive presentation state from shared Zustand store (layout.tsx ↔ FeedGrid)
   const view = useFilterStore((s) => s.viewMode);
   const zoom = useFilterStore((s) => s.zoom);
+  const activeFolderId = useFilterStore((s) => s.folderId);
 
   const [activeNode, setActiveNode] = useState<FeedNode | null>(null);
+  const [pendingFolderSwitch, setPendingFolderSwitch] = useState(false);
+
+  // Use client-side data once useFeed has fetched; fall back to SSR nodes
+  const displayNodes = useMemo(() => {
+    if (pendingFolderSwitch) return [];
+    if (isLoading) return [];
+    if (clientNodes.length > 0) return clientNodes;
+    // Only use SSR nodes at root (no folder context) and only on initial load
+    // Once clientNodes has been populated at least once, never fall back to SSR
+    if (activeFolderId) return clientNodes; // empty array — folder is genuinely empty
+    return ssrNodes;
+  }, [clientNodes, ssrNodes, pendingFolderSwitch, isLoading, activeFolderId]);
 
   const handleOpen = useCallback((node: FeedNode) => {
     setActiveNode(node);
@@ -150,45 +220,73 @@ export default function FeedGrid({
   }, [nodeByItemId, handleOpen]);
 
   // Minimal folder strip — FOLDER-004 / FOLDER-005
-  const activeFolderId = useFilterStore((s) => s.folderId);
+  const activeFolderObj = folders.find(f => f.id === activeFolderId) ?? null;
+
+  const handleFolderClick = useCallback((folder: Folder) => {
+    useFilterStore.getState().pushFolder({ id: folder.id, name: folder.name, color_hex: folder.color_hex });
+    setPendingFolderSwitch(true);
+    useFilterStore.getState().setContext({ folderId: folder.id });
+  }, []);
+
+  const handleNavigateBack = useCallback(() => {
+    const { folderStack } = useFilterStore.getState();
+    const next = folderStack.slice(0, -1);
+    setPendingFolderSwitch(true);
+    if (next.length === 0) {
+      useFilterStore.getState().clearContext();
+    } else {
+      useFilterStore.getState().setFolderStack(next);
+      useFilterStore.getState().setContext({ folderId: next[next.length - 1].id });
+    }
+  }, []);
+
+  const handleNavigateToRoot = useCallback(() => {
+    setPendingFolderSwitch(true);
+    useFilterStore.getState().clearContext();
+  }, []);
+
 
   // Convert FeedNode[] → FeedItem[] for view components
   const feedItems = useMemo(() => {
     return toFeedItems(displayNodes);
   }, [displayNodes]);
-  const folderStrip = folders.length > 0 ? (
-    <div style={{ display: "flex", gap: 8, overflowX: "auto", padding: "8px 14px", borderBottom: "1px solid var(--border-1)" }}>
-      {folders.map((f) => {
-        const isActive = activeFolderId === f.id;
-        return (
-          <div
-            key={f.id}
-            onClick={() => {
-              if (isActive) {
-                useFilterStore.getState().clearContext();
-              } else {
-                useFilterStore.getState().setContext({ folderId: f.id });
-              }
-            }}
-            style={{
-              flexShrink: 0,
-              padding: "6px 12px",
-              borderRadius: 8,
-              background: f.color_hex || "var(--surface-3)",
-              color: "#fff",
-              fontSize: 12,
-              fontWeight: 600,
-              whiteSpace: "nowrap",
-              cursor: "pointer",
-              boxShadow: isActive ? "0 0 0 2px #fff, 0 0 0 4px rgba(0,0,0,0.2)" : "none",
-            }}
-          >
-            {f.name}
-          </div>
-        );
-      })}
+
+  // Reset pendingFolderSwitch when clientNodes changes (new fetch completed)
+  useEffect(() => {
+    if (!isLoading) setPendingFolderSwitch(false);
+  }, [clientNodes, isLoading]);
+
+
+  const visibleFolders = useMemo(() => {
+    if (!activeFolderId) {
+      return folders.filter(f => f.parent_folder_id === null);
+    }
+    return folders.filter(f => f.parent_folder_id === activeFolderId);
+  }, [folders, activeFolderId]);
+
+  const folderGrid = visibleFolders.length > 0 ? (
+    <div style={{
+      display: 'grid',
+      gridTemplateColumns: `repeat(${zoom}, 1fr)`,
+      gap: 3,
+      padding: '4px 4px 0',
+      borderBottom: '1px solid var(--border-1)',
+      paddingBottom: 4,
+      pointerEvents: 'auto',
+      position: 'relative',
+      zIndex: 1,
+    }}>
+      {visibleFolders.map(f => (
+        <FolderTile
+          key={f.id}
+          folder={f}
+          isActive={activeFolderId === f.id}
+          onClick={handleFolderClick}
+        />
+      ))}
     </div>
   ) : null;
+
 
   // Search-specific empty state
   const emptyState = (
@@ -245,54 +343,54 @@ export default function FeedGrid({
   /* ── Free / canvas view ── */
   if (view === "free") {
     return (
-      <>
-        {folderStrip}
+      <div style={{ minHeight: '100%', position: 'relative' }}>
+        {folderGrid}
         {displayNodes.length === 0 ? emptyState : (
           <FreeGrid nodes={displayNodes} scopeKey={scopeKey} onCardClick={handleOpen} currentUserId={currentUserId} />
         )}
         <CardDetailSheet node={activeNode} currentUserId={currentUserId} onClose={handleClose} />
-      </>
+      </div>
     );
   }
 
   /* ── Col view ── */
   if (view === "col") {
     return (
-      <>
-        {folderStrip}
+      <div style={{ minHeight: '100%', position: 'relative' }}>
+        {folderGrid}
         <ColView items={feedItems} zoom={zoom} scopeKey={scopeKey} onItemClick={handleItemClick} />
         <CardDetailSheet node={activeNode} currentUserId={currentUserId} onClose={handleClose} />
-      </>
+      </div>
     );
   }
 
   /* ── Mason view ── */
   if (view === "mason") {
     return (
-      <>
-        {folderStrip}
+      <div style={{ minHeight: '100%', position: 'relative' }}>
+        {folderGrid}
         <MasonView items={feedItems} scopeKey={scopeKey} onItemClick={handleItemClick} />
         <CardDetailSheet node={activeNode} currentUserId={currentUserId} onClose={handleClose} />
-      </>
+      </div>
     );
   }
 
   /* ── List view ── */
   if (view === "list") {
     return (
-      <>
-        {folderStrip}
+      <div style={{ minHeight: '100%', position: 'relative' }}>
+        {folderGrid}
         <ListView items={feedItems} scopeKey={scopeKey} onItemClick={handleItemClick} />
         <CardDetailSheet node={activeNode} currentUserId={currentUserId} onClose={handleClose} />
-      </>
+      </div>
     );
   }
 
   /* ── Horiz view ── */
   if (view === "horiz") {
     return (
-      <>
-        {folderStrip}
+      <div style={{ minHeight: '100%', position: 'relative' }}>
+        {folderGrid}
         <HorizView
           items={feedItems}
           scopeKey={scopeKey}
@@ -300,14 +398,14 @@ export default function FeedGrid({
           folderContext={folderContext}
         />
         <CardDetailSheet node={activeNode} currentUserId={currentUserId} onClose={handleClose} />
-      </>
+      </div>
     );
   }
 
   /* ── Fallback masonry (legacy viewMode prop not passed) ── */
   return (
-    <>
-      {folderStrip}
+    <div style={{ minHeight: '100%', position: 'relative' }}>
+      {folderGrid}
       {displayNodes.length === 0 ? emptyState : (
         <SortableNodeGrid
           nodes={displayNodes}
@@ -317,6 +415,6 @@ export default function FeedGrid({
         />
       )}
       <CardDetailSheet node={activeNode} currentUserId={currentUserId} onClose={handleClose} />
-    </>
+    </div>
   );
 }

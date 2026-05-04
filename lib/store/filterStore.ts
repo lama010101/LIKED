@@ -37,6 +37,7 @@ export interface FilterState {
   viewMode: 'col' | 'mason' | 'list' | 'horiz' | 'free';
   zoom: number;
   currentContextKey: string;
+  folderStack: Array<{ id: string; name: string; color_hex: string }>;
 }
 
 export const DEFAULT_FILTER_STATE: FilterState = {
@@ -53,6 +54,7 @@ export const DEFAULT_FILTER_STATE: FilterState = {
   viewMode: "col",
   zoom: 2,
   currentContextKey: 'default',
+  folderStack: [],
 };
 
 interface FilterStore extends FilterState {
@@ -79,6 +81,10 @@ interface FilterStore extends FilterState {
   hasActiveFilters: () => boolean;
   activeFilterCount: () => number;
   activeContextType: () => "friend" | "folder" | "group" | null;
+  pushFolder: (folder: { id: string; name: string; color_hex: string }) => void;
+  popFolder: () => void;
+  clearFolderStack: () => void;
+  setFolderStack: (stack: Array<{ id: string; name: string; color_hex: string }>) => void;
 }
 
 // ── SSR hydration guard ──────────────────────────────────────────
@@ -202,7 +208,7 @@ export const useFilterStore = create<FilterStore>((set, get) => ({
     set(next);
   },
 
-  clearContext: () => set({ friendId: null, folderId: null, groupId: null }),
+  clearContext: () => set({ friendId: null, folderId: null, groupId: null, folderStack: [] }),
 
   // ── Multi-filters (AND logic, normalized on write) ────────────
   setTagFilters: (tagIds) => set({ tagIds: normalizeArray(tagIds).filter(isValidId) }),
@@ -320,4 +326,20 @@ export const useFilterStore = create<FilterStore>((set, get) => ({
   },
 
   setCurrentContextKey: (key: ContextKey) => set({ currentContextKey: key }),
+
+  pushFolder: (folder) => {
+    const { folderStack } = get();
+    const existingIdx = folderStack.findIndex(f => f.id === folder.id);
+    if (existingIdx >= 0) {
+      set({ folderStack: folderStack.slice(0, existingIdx + 1) });
+    } else {
+      set({ folderStack: [...folderStack, folder] });
+    }
+  },
+  popFolder: () => {
+    const { folderStack } = get();
+    set({ folderStack: folderStack.slice(0, -1) });
+  },
+  clearFolderStack: () => set({ folderStack: [] }),
+  setFolderStack: (stack) => set({ folderStack: stack }),
 }));
