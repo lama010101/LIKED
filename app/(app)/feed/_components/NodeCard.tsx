@@ -82,7 +82,14 @@ export default function NodeCard({ node, onClick, currentUserId, dragListeners }
     onClick(node);
   };
 
-  const title = node.title ?? (isTextCard ? "Text note" : "Untitled");
+  const title = (() => {
+    if (node.title) return node.title;
+    if (isTextCard) return "Text note";
+    if (node.url) {
+      try { return new URL(node.url).hostname.replace(/^www\./, ''); } catch { /* ignore */ }
+    }
+    return "Untitled";
+  })();
 
   const cardGradient = (() => {
     const hue = Math.abs(
@@ -123,7 +130,7 @@ export default function NodeCard({ node, onClick, currentUserId, dragListeners }
           isOver && isOtherNodeDragging && !selectionActive ? "scale(1.02)" : undefined,
         transition: "transform 0.12s, outline-offset 0.12s, box-shadow 0.15s",
       }}
-      className={`w-full text-left overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 cursor-pointer${isSelected ? " liked-wobble" : ""}${isTextCard ? " note-card" : " rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-px active:scale-[0.97] active:shadow-none transition-all duration-150"}`}
+      className={`w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 cursor-pointer${isSelected ? " liked-wobble" : ""}${isTextCard ? " note-card" : " rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-px active:scale-[0.97] active:shadow-none transition-all duration-150"}`}
     >
       {isTextCard ? (
         /* Text card — sticky-note style */
@@ -141,7 +148,13 @@ export default function NodeCard({ node, onClick, currentUserId, dragListeners }
           {/* Full-bleed thumbnail */}
           <div
             className="absolute inset-0 flex items-center justify-center"
-            style={{ background: node.thumbnail_key ? 'var(--surface-3)' : cardGradient }}
+            style={{
+              position: 'relative',
+              width: '100%',
+              height: '100%',
+              overflow: 'hidden',
+              background: node.thumbnail_key ? 'var(--surface-3)' : cardGradient,
+            }}
             {...(dragListeners ?? {})}
           >
             {node.thumbnail_key ? (

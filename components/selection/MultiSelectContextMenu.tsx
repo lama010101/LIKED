@@ -128,7 +128,9 @@ export default function MultiSelectContextMenu({
   const sheet = (
     <div
       style={{
-        background: "var(--surface-2)",
+        background: "var(--glass-bg)",
+        backdropFilter: "var(--glass-blur)",
+        WebkitBackdropFilter: "var(--glass-blur)",
         borderRadius: isMobile ? "16px 16px 0 0" : "12px 0 0 12px",
         boxShadow: "var(--shadow-lg)",
         border: "1px solid var(--border-1)",

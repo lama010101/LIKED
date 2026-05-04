@@ -18,7 +18,15 @@ export default function FolderPathBar({
   onToggleVisibility,
 }: FolderPathBarProps) {
   return (
-    <div style={{ flexShrink: 0 }}>
+    <div
+      style={{
+        flexShrink: '0',
+        backgroundColor: 'var(--glass-bg)',
+        backdropFilter: 'var(--glass-blur)',
+        WebkitBackdropFilter: 'var(--glass-blur)',
+        boxShadow: 'inset 0 1px 0 var(--glass-highlight), var(--glass-shadow)',
+      }}
+    >
       {/* Path handle (click to toggle visibility) */}
       <button
         type="button"

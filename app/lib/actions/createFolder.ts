@@ -10,6 +10,7 @@ export type CreateFolderResult =
 
 export interface CreateFolderInput {
   name: string;
+  parentFolderId?: string | null;
 }
 
 export async function createFolderAction(
@@ -32,11 +33,12 @@ export async function createFolderAction(
   }
 
   try {
-    const result = await createFolder({ name, parentFolderId: null });
+    const result = await createFolder({ name, parentFolderId: input.parentFolderId ?? null });
     revalidatePath("/feed");
     return { ok: true, folderId: result.id };
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Failed to create folder";
-    return { ok: false, error: message };
+    console.error('[createFolderAction]', err)
+    const message = err instanceof Error ? err.message : 'Failed to create folder'
+    return { ok: false, error: message }
   }
 }

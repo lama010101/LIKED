@@ -70,8 +70,11 @@ export default function BottomBar({ items, onAvatarClick, state, onStateChange }
             left: 0,
             right: 0,
             height: '70vh',
-            background: 'var(--surface-1)',
-            borderTop: '1px solid var(--border-1)',
+            background: 'var(--glass-bg)',
+            backdropFilter: 'var(--glass-blur)',
+            WebkitBackdropFilter: 'var(--glass-blur)',
+            borderTop: '1px solid var(--glass-border)',
+            boxShadow: 'inset 0 1px 0 var(--glass-highlight), var(--glass-shadow)',
             borderTopLeftRadius: 'var(--r-lg)',
             borderTopRightRadius: 'var(--r-lg)',
             zIndex: 'calc(var(--z-bars) + 5)',
@@ -210,7 +213,7 @@ export default function BottomBar({ items, onAvatarClick, state, onStateChange }
         </div>
       )}
 
-      {/* Bottom dock — flows within .bottom-area, no position:fixed */}
+      {/* Bottom dock — flows within .bottom-area, glassmorphic */}
       <div
         ref={autoExpandRef}
         onTouchStart={handleTouchStart}
@@ -219,6 +222,11 @@ export default function BottomBar({ items, onAvatarClick, state, onStateChange }
         style={{
           flexShrink: 0,
           transition: 'height 200ms ease',
+          background: 'var(--glass-bg)',
+          backdropFilter: 'var(--glass-blur)',
+          WebkitBackdropFilter: 'var(--glass-blur)',
+          borderTop: '1px solid var(--glass-border)',
+          boxShadow: 'inset 0 1px 0 var(--glass-highlight), var(--glass-shadow)',
         }}
       >
         <style>{`.liked-friends-strip::-webkit-scrollbar { display: none; }`}</style>

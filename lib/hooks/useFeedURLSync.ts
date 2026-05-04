@@ -38,6 +38,7 @@ function snapshot(state: FilterState): FilterState {
     viewMode: state.viewMode,
     zoom: state.zoom,
     currentContextKey: state.currentContextKey,
+    folderStack: [], // UI-only — never URL-synced
   };
 }
 
@@ -115,6 +116,7 @@ export function useFeedURLSync(options?: UseFeedURLSyncOptions) {
     viewMode,
     zoom,
     currentContextKey: '',
+    folderStack: [],
   }), [view, sort, mineSubTab, friendId, folderId, groupId, searchQuery, viewMode, zoom]);
 
   useEffect(() => {

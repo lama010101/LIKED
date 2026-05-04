@@ -51,21 +51,63 @@ export async function getUserFolders(): Promise<Folder[]> {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
   if (!user) return [];
 
+  // Step 1: fetch all folders owned by user
   const { data, error } = await supabase
-    .from("folders")
-    .select("id, name, owner_id, parent_folder_id, deleted_at, created_at")
-    .eq("owner_id", user.id)
-    .is("deleted_at", null)
-    .order("created_at", { ascending: false });
+    .from('folders')
+    .select('id, name, owner_id, parent_folder_id, is_project, color_hex, deleted_at, created_at')
+    .eq('owner_id', user.id)
+    .is('deleted_at', null)
+    .order('created_at', { ascending: false });
 
   if (error) {
     throw new Error(`Failed to fetch user folders: ${error.message}`);
   }
 
-  return (data ?? []) as unknown as Folder[];
+  const folders = (data ?? []) as Array<{
+    id: string;
+    name: string;
+    owner_id: string;
+    parent_folder_id: string | null;
+    is_project: boolean;
+    color_hex: string;
+    deleted_at: string | null;
+    created_at: string;
+  }>;
+
+  if (folders.length === 0) return [];
+
+  const folderIds = folders.map(f => f.id);
+
+  // Step 2: fetch card counts per folder from folder_edges
+  const { data: edgeCounts, error: edgeError } = await supabase
+    .from('folder_edges')
+    .select('folder_id')
+    .in('folder_id', folderIds);
+
+  if (edgeError) {
+    console.error('Failed to fetch folder edge counts:', edgeError.message);
+  }
+
+  // Build card count map
+  const cardCountMap: Record<string, number> = {};
+  for (const edge of edgeCounts ?? []) {
+    const fid = (edge as { folder_id: string }).folder_id;
+    cardCountMap[fid] = (cardCountMap[fid] ?? 0) + 1;
+  }
+
+  // Step 3: map folders with card counts + subfolder counts
+  const mapped: Folder[] = folders.map(f => ({
+    ...f,
+    node_count: cardCountMap[f.id] ?? 0,
+  }));
+
+  // Add subfolder counts to node_count
+  return mapped.map(folder => ({
+    ...folder,
+    node_count: folder.node_count + mapped.filter(f => f.parent_folder_id === folder.id).length,
+  }));
 }
 
 /**

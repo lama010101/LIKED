@@ -3,6 +3,20 @@
 import { useEffect, useRef, useState, useCallback, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { createNodeAction } from '@/app/lib/actions/createNode';
+import { useFilterStore } from '@/lib/store/filterStore';
+import { addNodeToFolderAction } from '@/app/lib/actions/addNodeToFolder';
+
+function useIsDesktop(): boolean {
+  const [isDesktop, setIsDesktop] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
+    queueMicrotask(() => setIsDesktop(mq.matches));
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+  return isDesktop;
+}
 
 const YT_HOST_RE = /^(www\.|m\.)?(youtube\.com|youtu\.be)$/;
 const YT_VIDEO_RE = /^\/(shorts|embed)\/([A-Za-z0-9_-]+)/;
@@ -85,6 +99,7 @@ const CheckIcon = () => (
 );
 
 export default function AddCardSheet({ open, onClose }: AddCardSheetProps) {
+  const isDesktop = useIsDesktop();
   const [input, setInput] = useState('');
   const [selectedType, setSelectedType] = useState<'auto' | 'link' | 'image' | 'note'>('auto');
   const [previewType, setPreviewType] = useState<'empty' | 'link' | 'note'>('empty');
@@ -99,6 +114,7 @@ export default function AddCardSheet({ open, onClose }: AddCardSheetProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const router = useRouter();
+  const activeFolderId = useFilterStore((s) => s.folderId);
 
   // Reset state when opened. Deferred via microtask to satisfy
   // react-hooks/set-state-in-effect.
@@ -219,6 +235,14 @@ export default function AddCardSheet({ open, onClose }: AddCardSheetProps) {
         textContent: (effectiveType === 'link' || effectiveType === 'image') ? null : trimmedInput,
       });
       if (result.ok) {
+        // Auto-assign to active folder if one is selected
+        if (activeFolderId) {
+          try {
+            await addNodeToFolderAction({ nodeId: result.nodeId, folderId: activeFolderId });
+          } catch {
+            // Non-fatal — card is saved, folder assignment failed silently
+          }
+        }
         // TODO P8-future: apply selectedTag + selectedFriends share ops here
         setInput('');
         setSelectedType('auto');
@@ -272,6 +296,9 @@ export default function AddCardSheet({ open, onClose }: AddCardSheetProps) {
           opacity: open ? 1 : 0,
           pointerEvents: open ? 'auto' : 'none',
           transition: 'opacity 0.2s',
+          display: 'flex',
+          alignItems: isDesktop ? 'center' : 'flex-end',
+          justifyContent: 'center',
         }}
       />
 
@@ -282,30 +309,45 @@ export default function AddCardSheet({ open, onClose }: AddCardSheetProps) {
         aria-label="Add card"
         style={{
           position: 'fixed',
-          bottom: open ? 0 : '-100%',
-          left: 0,
-          right: 0,
           zIndex: 51,
-          background: 'var(--surface-2)',
-          borderRadius: '18px 18px 0 0',
-          borderTop: '1px solid var(--border-2)',
+          background: 'var(--glass-bg)',
+          backdropFilter: 'var(--glass-blur)',
+          WebkitBackdropFilter: 'var(--glass-blur)',
           maxHeight: '90vh',
           overflowY: 'auto',
-          boxShadow: '0 -8px 32px rgba(0,0,0,0.25)',
-          transition: 'bottom 0.25s ease-out',
+          boxShadow: isDesktop ? '0 8px 32px rgba(0,0,0,0.25)' : '0 -8px 32px rgba(0,0,0,0.25)',
+          ...(isDesktop
+            ? {
+                width: 'min(480px, 90vw)',
+                borderRadius: '18px',
+                border: '1px solid var(--border-2)',
+                transform: open ? 'translateY(0) scale(1)' : 'translateY(20px) scale(0.95)',
+                transition: 'transform 0.2s ease-out, opacity 0.2s ease-out',
+                opacity: open ? 1 : 0,
+              }
+            : {
+                bottom: open ? 0 : '-100%',
+                left: 0,
+                right: 0,
+                borderRadius: '18px 18px 0 0',
+                borderTop: '1px solid var(--border-2)',
+                transition: 'bottom 0.25s ease-out',
+              }),
         }}
       >
-        {/* Drag handle */}
-        <div
-          style={{
-            width: 36,
-            height: 3,
-            borderRadius: 100,
-            background: 'var(--text-3)',
-            opacity: 0.35,
-            margin: '10px auto 0',
-          }}
-        />
+        {/* Drag handle (mobile only) */}
+        {!isDesktop && (
+          <div
+            style={{
+              width: 36,
+              height: 3,
+              borderRadius: 100,
+              background: 'var(--text-3)',
+              opacity: 0.35,
+              margin: '10px auto 0',
+            }}
+          />
+        )}
 
         {/* Content container */}
         <div style={{ padding: '16px 16px 0' }}>

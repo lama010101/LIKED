@@ -118,35 +118,51 @@ export function SharePickerModal({
     shareType === "node" ? NODE_PERMISSION_OPTIONS : FOLDER_PERMISSION_OPTIONS;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/40"
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'rgba(0,0,0,0.4)',
+        }}
         onClick={onClose}
       />
 
       {/* Modal */}
-      <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden">
+      <div
+        style={{
+          position: 'relative',
+          background: 'var(--glass-bg)',
+          backdropFilter: 'var(--glass-blur)',
+          WebkitBackdropFilter: 'var(--glass-blur)',
+          borderRadius: '16px',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
+          width: '100%',
+          maxWidth: '448px',
+          margin: '16px',
+          overflow: 'hidden',
+        }}
         {/* Header */}
-        <div className="px-5 py-4 border-b border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-900">
+        <div style={{ padding: '20px', borderBottom: '1px solid var(--border-1)' }}>
+          <h3 style={{ fontSize: 18, fontWeight: 600, color: 'var(--text-1)' }}>
             Share {shareType === "node" ? "Card" : "Project"}
           </h3>
-          <p className="text-sm text-gray-500 mt-1 truncate">{itemName}</p>
+          <p style={{ fontSize: 14, color: 'var(--text-3)', marginTop: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{itemName}</p>
         </div>
 
         {/* Body */}
-        <div className="px-5 py-4 space-y-4">
+        <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
           {/* Error */}
           {error && (
-            <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg">
+            <div style={{ padding: 12, background: 'rgba(220, 38, 38, 0.1)', color: 'var(--red, #dc2626)', fontSize: 14, borderRadius: 8 }}>
               {error}
             </div>
           )}
 
           {/* Permission selector */}
           <div>
-            <label className="text-sm font-medium text-gray-700 mb-2 block">
+            <label style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-1)', marginBottom: 8, display: 'block' }}>
               Permission level
             </label>
             <PermissionSelector
@@ -154,19 +170,19 @@ export function SharePickerModal({
               onChange={setPermission}
               options={permissionOptions}
             />
-            <p className="text-xs text-gray-500 mt-2">
+            <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 8 }}>
               Selected: {getPermissionLabel(permission)}
             </p>
           </div>
 
           {/* User selection */}
           <div>
-            <label className="text-sm font-medium text-gray-700 mb-2 block">
+            <label style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-1)', marginBottom: 8, display: 'block' }}>
               Share with ({selectedUserIds.length} selected)
             </label>
-            <div className="max-h-48 overflow-y-auto space-y-1 border border-gray-100 rounded-lg p-2">
+            <div style={{ maxHeight: 192, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4, border: '1px solid var(--border-1)', borderRadius: 8, padding: 8 }}>
               {availableUsers.length === 0 ? (
-                <p className="text-sm text-gray-500 text-center py-4">
+                <p style={{ fontSize: 14, color: 'var(--text-3)', textAlign: 'center', padding: 16 }}>
                   No users available to share with
                 </p>
               ) : (
@@ -177,25 +193,36 @@ export function SharePickerModal({
                       key={user.id}
                       type="button"
                       onClick={() => handleToggleUser(user.id)}
-                      className={[
-                        "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors",
-                        isSelected
-                          ? "bg-amber-50 hover:bg-amber-100"
-                          : "hover:bg-gray-50",
-                      ].join(" ")}
+                      style={{
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 12,
+                        padding: '8px 12px',
+                        borderRadius: 8,
+                        textAlign: 'left',
+                        transition: 'background-color 0.15s',
+                        background: isSelected ? 'rgba(245, 158, 11, 0.1)' : 'transparent',
+                      }}
                     >
                       {/* Checkbox */}
                       <div
-                        className={[
-                          "w-5 h-5 rounded border-2 flex items-center justify-center transition-colors",
-                          isSelected
-                            ? "bg-amber-500 border-amber-500"
-                            : "border-gray-300",
-                        ].join(" ")}
+                        style={{
+                          width: 20,
+                          height: 20,
+                          borderRadius: 4,
+                          border: '2px solid',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          transition: 'all 0.15s',
+                          background: isSelected ? 'var(--accent)' : 'transparent',
+                          borderColor: isSelected ? 'var(--accent)' : 'var(--border-1)',
+                        }}
                       >
                         {isSelected && (
                           <svg
-                            className="w-3.5 h-3.5 text-white"
+                            style={{ width: 14, height: 14, color: '#fff' }}
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
@@ -211,12 +238,12 @@ export function SharePickerModal({
                       </div>
 
                       {/* Avatar placeholder */}
-                      <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium text-gray-600">
+                      <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--surface-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 500, color: 'var(--text-2)' }}>
                         {user.display_name?.charAt(0).toUpperCase() ?? "?"}
                       </div>
 
                       {/* Name */}
-                      <span className="flex-1 text-sm font-medium text-gray-900">
+                      <span style={{ flex: 1, fontSize: 14, fontWeight: 500, color: 'var(--text-1)' }}>
                         {user.display_name ?? "Unknown"}
                       </span>
                     </button>
@@ -228,11 +255,21 @@ export function SharePickerModal({
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-4 bg-gray-50 flex gap-3">
+        <div style={{ padding: '20px', background: 'var(--surface-1)', display: 'flex', gap: 12 }}>
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+            style={{
+              flex: 1,
+              padding: '8px 16px',
+              fontSize: 14,
+              fontWeight: 500,
+              color: 'var(--text-1)',
+              background: 'var(--surface-2)',
+              border: '1px solid var(--border-1)',
+              borderRadius: 8,
+              cursor: 'pointer',
+            }}
           >
             Cancel
           </button>
@@ -240,12 +277,16 @@ export function SharePickerModal({
             type="button"
             onClick={handleShare}
             disabled={selectedUserIds.length === 0 || isSharing}
-            className={[
-              "flex-1 px-4 py-2 text-sm font-medium text-white rounded-lg",
-              selectedUserIds.length === 0 || isSharing
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-amber-500 hover:bg-amber-600",
-            ].join(" ")}
+            style={{
+              flex: 1,
+              padding: '8px 16px',
+              fontSize: 14,
+              fontWeight: 500,
+              color: '#fff',
+              borderRadius: 8,
+              background: selectedUserIds.length === 0 || isSharing ? 'var(--text-3)' : 'var(--accent)',
+              cursor: selectedUserIds.length === 0 || isSharing ? 'not-allowed' : 'pointer',
+            }}
           >
             {isSharing
               ? "Sharing..."

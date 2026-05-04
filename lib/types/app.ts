@@ -82,6 +82,7 @@ export interface Folder {
   color_hex: string;
   deleted_at: string | null;
   created_at: string;
+  node_count: number;
 }
 
 // Tag types

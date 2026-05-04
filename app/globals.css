@@ -47,6 +47,13 @@
   --shadow-fab: 0 8px 24px var(--accent-glow), 0 2px 8px rgba(0,0,0,0.12);
   --shadow-scrim: rgba(0,0,0,0.35);
 
+  /* Glassmorphism */
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.18);
+  --glass-highlight: rgba(255, 255, 255, 0.10);
+  --glass-shadow: 0 -8px 32px rgba(0, 0, 0, 0.08);
+  --glass-blur: blur(24px) saturate(1.3);
+
   /* Z-index (PRD §24) */
   --z-bars: 10;
   --z-top-bar: 20;
@@ -209,6 +216,10 @@ body {
   --accent-soft: rgba(124,92,252,0.12);
   --accent-glow: rgba(124,92,252,0.25);
   --accent-ink: #fff;
+  --glass-bg: rgba(255, 255, 255, 0.55);
+  --glass-border: rgba(255, 255, 255, 0.65);
+  --glass-highlight: rgba(255, 255, 255, 0.45);
+  --glass-shadow: 0 -8px 32px rgba(0, 0, 0, 0.06);
   --shadow-lg: 0 12px 40px rgba(0,0,0,0.10), 0 4px 12px rgba(0,0,0,0.04);
   --shadow-md: 0 4px 12px rgba(0,0,0,0.06), 0 2px 6px rgba(0,0,0,0.04);
   --shadow-sm: 0 1px 2px rgba(0,0,0,0.04), 0 1px 4px rgba(0,0,0,0.02);
@@ -252,6 +263,10 @@ body {
   padding: 4px var(--space-md) 6px;
   gap: 3px;
   flex-shrink: 0;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid var(--glass-border);
 }
 .feed-tab {
   flex: 1;
@@ -303,6 +318,10 @@ body {
   padding: 0 var(--space-md) 4px;
   flex-shrink: 0;
   animation: subtab-slide 0.18s ease-out;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid var(--glass-border);
 }
 .subtab {
   display: inline-flex;
@@ -620,8 +639,8 @@ body {
 
 /* ── FAB (mockup) ───────────────────────────────────────── */
 .fab {
-  position: absolute;
-  bottom: calc(100% + 12px);
+  position: fixed;
+  bottom: 96px;
   right: 24px;
   width: 56px;
   height: 56px;
@@ -655,7 +674,7 @@ body {
   .fab {
     left: unset;
     right: 18px;
-    bottom: calc(100% + 12px);
+    bottom: 96px;
     transform: none;
   }
   .fab:hover { transform: scale(1.05); }
@@ -663,7 +682,7 @@ body {
 }
 
 .fab-scrim {
-  position: absolute;
+  position: fixed;
   inset: 0;
   background: var(--shadow-scrim);
   z-index: 20;
@@ -676,8 +695,8 @@ body {
 
 /* Speed dial */
 .speed-dial {
-  position: absolute;
-  bottom: calc(100% + 48px);
+  position: fixed;
+  bottom: 160px;
   right: 24px;
   display: flex;
   flex-direction: column-reverse;
@@ -691,7 +710,7 @@ body {
 @media (min-width: 1024px) {
   .speed-dial {
     right: 18px;
-    bottom: calc(100% + 48px);
+    bottom: 160px;
   }
 }
 
@@ -753,9 +772,6 @@ body {
 /* ── Bottom dock (mockup) ───────────────────────────────── */
 .bottom-dock {
   flex-shrink: 0;
-  background: var(--surface-1);
-  border-top: 1px solid var(--border-1);
-  box-shadow: 0 -1px 0 var(--border-1), 0 -8px 24px rgba(0,0,0,0.04);
 }
 
 /* ── Bottom area (mockup) ───────────────────────────────── */

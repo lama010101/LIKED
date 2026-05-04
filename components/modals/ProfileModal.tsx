@@ -242,7 +242,9 @@ export default function ProfileModal({
           style={{
             width: '100%',
             maxWidth: 420,
-            background: 'var(--surface-2)',
+            background: 'var(--glass-bg)',
+            backdropFilter: 'var(--glass-blur)',
+            WebkitBackdropFilter: 'var(--glass-blur)',
             borderRadius: '20px 20px 0 0',
             padding: '8px 0 32px',
             boxShadow: 'var(--shadow-lg)',
