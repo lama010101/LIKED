@@ -102,8 +102,25 @@ function ListRow({ item, onClick, currentUserId, onCardShare, onCardMoveToFolder
             borderRadius: 8,
             flexShrink: 0,
             background: item.art,
+            position: "relative",
           }}
-        />
+        >
+          {/* Direction badge - mine vs received */}
+          {item.dir && (
+            <div
+              style={{
+                position: "absolute",
+                top: 2,
+                left: 2,
+                width: 9,
+                height: 9,
+                borderRadius: "50%",
+                border: "1.5px solid rgba(0,0,0,0.3)",
+                background: item.dir === "mine" ? "var(--accent)" : "#60c5f1",
+              }}
+            />
+          )}
+        </div>
       )}
 
       {/* Meta column */}

@@ -387,6 +387,10 @@ export default function FeedGrid({
   // Minimal folder strip — FOLDER-004 / FOLDER-005
   const activeFolderObj = localFolders.find(f => f.id === activeFolderId) ?? null;
 
+  // P9-T01 TODO: Folder filter chips do not exist yet. When implemented, add onClick handler:
+  // toggleFolderFilter(folderId) from filterStore, show active state with accent border.
+  // Current folder tiles are for navigation (context), not multi-filter.
+
   const handleFolderClick = useCallback((folder: Folder) => {
     useFilterStore.getState().pushFolder({ id: folder.id, name: folder.name, color_hex: folder.color_hex });
     setPendingFolderSwitch(true);

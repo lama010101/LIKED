@@ -164,3 +164,39 @@ export async function incrementViewCount(nodeId: string): Promise<void> {
   const supabase = getSupabaseServiceClient();
   await supabase.rpc("increment_view_count", { p_node_id: nodeId });
 }
+
+/**
+ * Return friend ratings for a node (P8-T02, PRD §18.3).
+ * Includes ratings by the current user and their friends (mutual friend_invites).
+ */
+export async function getFriendRatingsForNode(
+  nodeId: string,
+  userId: string
+): Promise<Array<{ userId: string; displayName: string; avatarKey: string | null; score: number; updatedAt: string }>> {
+  const supabase = getSupabaseServiceClient();
+
+  type RatingRow = {
+    user_id: string;
+    display_name: string;
+    avatar_key: string | null;
+    score: number;
+    updated_at: string;
+  };
+
+  const { data, error } = await supabase.rpc("get_node_friend_ratings", {
+    p_node_id: nodeId,
+    p_user_id: userId,
+  }) as unknown as { data: RatingRow[] | null; error: { message: string } | null };
+
+  if (error) {
+    throw new Error(`Failed to fetch friend ratings: ${error.message}`);
+  }
+
+  return (data ?? []).map((row: RatingRow) => ({
+    userId: row.user_id,
+    displayName: row.display_name,
+    avatarKey: row.avatar_key,
+    score: Number(row.score),
+    updatedAt: row.updated_at,
+  }));
+}

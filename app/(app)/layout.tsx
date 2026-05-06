@@ -112,6 +112,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
   const toggleFolderFilter = useFilterStore((s) => s.toggleFolderFilter);
   const setSearch = useFilterStore((s) => s.setSearch);
   const clearFilters = useFilterStore((s) => s.clearFilters);
+  const clearAll = useFilterStore((s) => s.clearAll);
 
   // Stub tag label lookup for Context Strip (until real tag data is wired)
   const tagLabelMap: Record<string, string> = {
@@ -467,13 +468,19 @@ function AppShell({ children }: { children: React.ReactNode }) {
           currentUserId={sessionUser?.id}
           onRefresh={refreshFriends}
           onAvatarClick={(id, type) => {
-            // Clicking Me navigates to home feed with "Mine" view
+            // Clicking Me clears all filters and returns to personal feed
             if (type === 'me') {
+              clearAll();
               setFolderPath([]);
-              router.push('/feed?view=mine');
+              router.push('/feed?view=all');
               return;
             }
-            // Friends/groups: future implementation (friend feed view)
+            // Friends: toggle friend filter (AND logic per PRD §16)
+            if (type === 'friend') {
+              toggleFriendFilter(id);
+              return;
+            }
+            // Groups: future implementation (group feed view)
           }}
         />
       </div>
