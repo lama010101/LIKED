@@ -1,11 +1,10 @@
 /**
  * Feed state management with Zustand
  * P9-T03: Context and sort state moved to filterStore.
- * This store retains only: viewMode (UI preference) and customOrders (drag-reorder).
+ * This store retains only: customOrders (drag-reorder).
  */
 
 import { create } from "zustand";
-import { FeedView } from "@/lib/types/app";
 import { useFilterStore } from "@/lib/store/filterStore";
 
 const CUSTOM_ORDER_STORAGE_KEY = "liked.customOrder";
@@ -37,10 +36,6 @@ function writeCustomOrders(map: CustomOrderMap): void {
 }
 
 interface FeedStore {
-  // View mode (masonry | icon | list | horizontal | canvas) — UI preference, NOT a filter
-  viewMode: FeedView;
-  setViewMode: (mode: FeedView) => void;
-
   // Custom sort order per scope (P7-T02).
   // scopeKey is opaque — e.g. "feed:all", "folder:<uuid>", "group:<uuid>".
   customOrders: CustomOrderMap;
@@ -54,9 +49,6 @@ interface FeedStore {
 }
 
 export const useFeedStore = create<FeedStore>((set, get) => ({
-  viewMode: "masonry",
-  setViewMode: (viewMode) => set({ viewMode }),
-
   customOrders: readCustomOrders(),
   getCustomOrder: (scopeKey) => get().customOrders[scopeKey] ?? [],
   setCustomOrder: (scopeKey, orderedNodeIds) => {

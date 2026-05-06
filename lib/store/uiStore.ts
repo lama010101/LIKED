@@ -46,6 +46,15 @@ interface UIStore {
     draggedItemType: "node" | "folder" | "friend" | "group" | "tag" | null;
   }) => void;
   clearDragState: () => void;
+
+  // Auto-create prompt state (P7-T02)
+  autoCreatePrompt: {
+    type: 'folder' | 'group' | null;
+    pendingIds: string[];
+    position: { x: number; y: number } | null;
+  } | null;
+  setAutoCreatePrompt: (prompt: UIStore['autoCreatePrompt']) => void;
+  clearAutoCreatePrompt: () => void;
 }
 
 export const useUIStore = create<UIStore>()(
@@ -87,6 +96,11 @@ export const useUIStore = create<UIStore>()(
       setDragState: (dragState) => set(dragState),
       clearDragState: () =>
         set({ isDragging: false, draggedItemId: null, draggedItemType: null }),
+
+      // Auto-create prompt (P7-T02)
+      autoCreatePrompt: null,
+      setAutoCreatePrompt: (autoCreatePrompt) => set({ autoCreatePrompt }),
+      clearAutoCreatePrompt: () => set({ autoCreatePrompt: null }),
     }),
     {
       name: "liked-ui-store",

@@ -91,12 +91,9 @@ export function useFeedURLSync(options?: UseFeedURLSyncOptions) {
   const folderId = useFilterStore((s) => s.folderId);
   const groupId = useFilterStore((s) => s.groupId);
   const searchQuery = useFilterStore((s) => s.searchQuery);
-
-  // Arrays accessed via getState to avoid INVARIANT 1 violation
-  // Not reactive but acceptable with deep equality check in effect
-  const tagIds = useFilterStore.getState().tagIds;
-  const filterFriendIds = useFilterStore.getState().filterFriendIds;
-  const filterFolderIds = useFilterStore.getState().filterFolderIds;
+  const tagIds = useFilterStore((s) => s.tagIds);
+  const filterFriendIds = useFilterStore((s) => s.filterFriendIds);
+  const filterFolderIds = useFilterStore((s) => s.filterFolderIds);
 
   // Presentation state (viewMode, zoom) read for snapshot completeness
   const viewMode = useFilterStore((s) => s.viewMode);
@@ -117,7 +114,7 @@ export function useFeedURLSync(options?: UseFeedURLSyncOptions) {
     zoom,
     currentContextKey: '',
     folderStack: [],
-  }), [view, sort, mineSubTab, friendId, folderId, groupId, searchQuery, viewMode, zoom]);
+  }), [view, sort, mineSubTab, friendId, folderId, groupId, tagIds, filterFriendIds, filterFolderIds, searchQuery, viewMode, zoom]);
 
   useEffect(() => {
     if (isHydrating.current) return;

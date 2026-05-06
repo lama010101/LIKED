@@ -5,6 +5,10 @@ import { useRouter } from 'next/navigation';
 import { createNodeAction } from '@/app/lib/actions/createNode';
 import { useFilterStore } from '@/lib/store/filterStore';
 import { addNodeToFolderAction } from '@/app/lib/actions/addNodeToFolder';
+import { getTagsAction } from '@/app/lib/actions/getTags';
+import { applyTagToNodeAction } from '@/app/lib/actions/applyTagToNode';
+import { getUserFoldersAction } from '@/app/lib/actions/getFolders';
+import { supabaseBrowser } from '@/lib/supabase/client';
 
 function useIsDesktop(): boolean {
   const [isDesktop, setIsDesktop] = useState(false);
@@ -50,11 +54,9 @@ function isYouTubeUrl(url: string): boolean {
 interface AddCardSheetProps {
   open: boolean;
   onClose: () => void;
+  userId: string;
+  languageCode: string;
 }
-
-const STUB_TAGS = [
-  'Music', 'Film', 'Food', 'Travel', 'Tech', 'Finance', 'Health', 'Design', 'Books', 'Games', 'Art'
-];
 
 const CARD_TYPES = [
   { id: 'auto', label: 'Auto', icon: <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v4"/><path d="M12 18v4"/><path d="M4.93 4.93l2.83 2.83"/><path d="M16.24 16.24l2.83 2.83"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="M4.93 19.07l2.83-2.83"/><path d="M16.24 7.76l2.83-2.83"/></svg> },
@@ -63,27 +65,22 @@ const CARD_TYPES = [
   { id: 'note', label: 'Note', icon: <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> },
 ];
 
-const STUB_FRIENDS = [
-  { id: 'al', name: 'Alice', initial: 'A', bg: 'linear-gradient(135deg,#4a9fd5,#1c6fa0)' },
-  { id: 'bo', name: 'Bob', initial: 'B', bg: 'linear-gradient(135deg,#d54a9f,#a01c6f)' },
-  { id: 'ch', name: 'Chiara', initial: 'C', bg: 'linear-gradient(135deg,#4ad58a,#1ca06f)' },
-  { id: 'di', name: 'Diego', initial: 'D', bg: 'linear-gradient(135deg,#d5a44a,#a07a1c)' },
-  { id: 'el', name: 'Elena', initial: 'E', bg: 'linear-gradient(135deg,#7b3ad5,#4a1ca0)' },
-  { id: 'fa', name: 'Fabio', initial: 'F', bg: 'linear-gradient(135deg,#d53a3a,#a01c1c)' },
-  { id: 'gi', name: 'Giulia', initial: 'G', bg: 'linear-gradient(135deg,#3ad5c5,#1c9fa0)' },
-  { id: 'hu', name: 'Hugo', initial: 'H', bg: 'linear-gradient(135deg,#a0d53a,#6fa01c)' },
-  { id: 'ir', name: 'Iris', initial: 'I', bg: 'linear-gradient(135deg,#d5953a,#a06a1c)' },
-  { id: 'je', name: 'Jean', initial: 'J', bg: 'linear-gradient(135deg,#3a50d5,#1c30a0)' },
+// Avatar color palette for deterministic background colors
+const AVATAR_PALETTE = [
+  '#ef4444', '#f97316', '#f59e0b', '#84cc16', '#22c55e',
+  '#10b981', '#14b8a6', '#06b6d4', '#0ea5e9', '#3b82f6',
+  '#6366f1', '#8b5cf6', '#a855f7', '#d946ef', '#ec4899',
+  '#f43f5e', '#78716c', '#6b7280', '#71717a', '#64748b',
 ];
 
-const STUB_FOLDERS = [
-  { id: 'f1', name: 'Work', colors: ['#7c5cfc', '#9a7fff', '#f87171', '#34d399'] },
-  { id: 'f2', name: 'Personal', colors: ['#f87171', '#fbbf24', '#34d399', '#60c5f1'] },
-  { id: 'f3', name: 'Recipes', colors: ['#f59e0b', '#ef4444', '#f97316', '#eab308'] },
-  { id: 'f4', name: 'Travel', colors: ['#06b6d4', '#0ea5e9', '#3b82f6', '#6366f1'] },
-  { id: 'f5', name: 'Books', colors: ['#8b5cf6', '#a78bfa', '#c084fc', '#e879f9'] },
-  { id: 'f6', name: 'Design', colors: ['#ec4899', '#f472b6', '#fb7185', '#fda4af'] },
-];
+function getAvatarColor(userId: string): string {
+  let hash = 0;
+  for (let i = 0; i < userId.length; i++) {
+    hash = userId.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % AVATAR_PALETTE.length;
+  return AVATAR_PALETTE[index];
+}
 
 const XIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -98,7 +95,7 @@ const CheckIcon = () => (
   </svg>
 );
 
-export default function AddCardSheet({ open, onClose }: AddCardSheetProps) {
+export default function AddCardSheet({ open, onClose, userId, languageCode }: AddCardSheetProps) {
   const isDesktop = useIsDesktop();
   const [input, setInput] = useState('');
   const [selectedType, setSelectedType] = useState<'auto' | 'link' | 'image' | 'note'>('auto');
@@ -115,6 +112,9 @@ export default function AddCardSheet({ open, onClose }: AddCardSheetProps) {
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const router = useRouter();
   const activeFolderId = useFilterStore((s) => s.folderId);
+  const [availableTags, setAvailableTags] = useState<{ id: string; label: string; color: string }[]>([]);
+  const [availableFriends, setAvailableFriends] = useState<{ id: string; name: string; avatarKey: string | null }[]>([]);
+  const [availableFolders, setAvailableFolders] = useState<{ id: string; name: string; colorHex: string }[]>([]);
 
   // Reset state when opened. Deferred via microtask to satisfy
   // react-hooks/set-state-in-effect.
@@ -145,6 +145,42 @@ export default function AddCardSheet({ open, onClose }: AddCardSheetProps) {
     document.addEventListener('keydown', handleKey);
     return () => document.removeEventListener('keydown', handleKey);
   }, [open, onClose]);
+
+  // Load tags, friends, and folders on mount
+  useEffect(() => {
+    if (!userId) return;
+    let cancelled = false;
+
+    // Load tags
+    getTagsAction(userId, languageCode || 'en')
+      .then((tags) => {
+        if (!cancelled) setAvailableTags(tags.map(t => ({ id: t.id, label: t.label, color: t.color_hex })));
+      })
+      .catch((err) => console.error('Failed to load tags:', err));
+
+    // Load friends
+    supabaseBrowser.rpc('get_friend_bar', { p_user_id: userId })
+      .then(({ data, error }) => {
+        if (!cancelled && !error && data) {
+          const nonPending = (data as any[]).filter((f: any) => !f.is_pending);
+          setAvailableFriends(nonPending.map((f: any) => ({
+            id: f.user_id,
+            name: f.display_name,
+            avatarKey: f.avatar_key,
+          })));
+        }
+      })
+      .catch((err) => console.error('Failed to load friends:', err));
+
+    // Load folders
+    getUserFoldersAction()
+      .then((folders) => {
+        if (!cancelled) setAvailableFolders(folders.map(f => ({ id: f.id, name: f.name, colorHex: f.color_hex })));
+      })
+      .catch((err) => console.error('Failed to load folders:', err));
+
+    return () => { cancelled = true; };
+  }, [userId, languageCode]);
 
   // Update preview based on input and selected type
   const updatePreview = useCallback(() => {
@@ -235,15 +271,24 @@ export default function AddCardSheet({ open, onClose }: AddCardSheetProps) {
         textContent: (effectiveType === 'link' || effectiveType === 'image') ? null : trimmedInput,
       });
       if (result.ok) {
-        // Auto-assign to active folder if one is selected
-        if (activeFolderId) {
+        // Auto-assign to active folder if one is selected, otherwise use selectedFolder
+        const folderIdToAssign = activeFolderId || selectedFolder;
+        if (folderIdToAssign) {
           try {
-            await addNodeToFolderAction({ nodeId: result.nodeId, folderId: activeFolderId });
+            await addNodeToFolderAction({ nodeId: result.nodeId, folderId: folderIdToAssign });
           } catch {
             // Non-fatal — card is saved, folder assignment failed silently
           }
         }
-        // TODO P8-future: apply selectedTag + selectedFriends share ops here
+        // Apply selected tag if any
+        if (selectedTag) {
+          try {
+            await applyTagToNodeAction(selectedTag, result.nodeId);
+          } catch {
+            // Non-fatal — card is saved, tag assignment failed silently
+          }
+        }
+        // TODO P8-future: apply selectedFriends share ops here
         setInput('');
         setSelectedType('auto');
         setSaveError(null);
@@ -621,12 +666,12 @@ export default function AddCardSheet({ open, onClose }: AddCardSheetProps) {
                 paddingBottom: 2,
               }}
             >
-              {STUB_TAGS.map((tag) => {
-                const isActive = selectedTag === tag;
+              {availableTags.map((tag) => {
+                const isActive = selectedTag === tag.id;
                 return (
                   <button
-                    key={tag}
-                    onClick={() => toggleTag(tag)}
+                    key={tag.id}
+                    onClick={() => toggleTag(tag.id)}
                     style={{
                       padding: '5px 14px',
                       borderRadius: 'var(--r-full)',
@@ -634,14 +679,14 @@ export default function AddCardSheet({ open, onClose }: AddCardSheetProps) {
                       fontWeight: 600,
                       cursor: 'pointer',
                       flexShrink: 0,
-                      background: isActive ? 'var(--accent)' : 'var(--surface-3)',
-                      border: '2px solid ' + (isActive ? 'var(--accent)' : 'transparent'),
+                      background: isActive ? tag.color : 'var(--surface-3)',
+                      border: '2px solid ' + (isActive ? tag.color : 'transparent'),
                       color: isActive ? '#fff' : 'var(--text-2)',
                       opacity: isActive ? 1 : 0.7,
                       transition: 'opacity var(--transition-fast)',
                     }}
                   >
-                    {tag}
+                    {tag.label}
                   </button>
                 );
               })}
@@ -683,7 +728,7 @@ export default function AddCardSheet({ open, onClose }: AddCardSheetProps) {
                 gap: 10,
               }}
             >
-              {STUB_FOLDERS.map((folder) => {
+              {availableFolders.map((folder) => {
                 const isSelected = selectedFolder === folder.id;
                 return (
                   <button
@@ -705,19 +750,12 @@ export default function AddCardSheet({ open, onClose }: AddCardSheetProps) {
                         width: 80,
                         height: 68,
                         borderRadius: 'var(--r-md)',
-                        overflow: 'hidden',
-                        display: 'grid',
-                        gridTemplateColumns: '1fr 1fr',
-                        gridTemplateRows: '1fr 1fr',
-                        gap: 1,
+                        background: folder.colorHex,
                         border: isSelected ? '2px solid var(--accent)' : '2px solid transparent',
                         transition: 'border-color var(--transition-fast)',
                         position: 'relative',
                       }}
                     >
-                      {folder.colors.map((c, i) => (
-                        <span key={i} style={{ background: c }} />
-                      ))}
                       {isSelected && (
                         <div
                           style={{
@@ -808,7 +846,7 @@ export default function AddCardSheet({ open, onClose }: AddCardSheetProps) {
                 scrollbarWidth: 'none',
               }}
             >
-              {STUB_FRIENDS.map((friend) => {
+              {availableFriends.map((friend) => {
                 const isSelected = selectedFriends.has(friend.id);
                 return (
                   <button
@@ -830,7 +868,9 @@ export default function AddCardSheet({ open, onClose }: AddCardSheetProps) {
                         width: 40,
                         height: 40,
                         borderRadius: '50%',
-                        background: friend.bg,
+                        background: friend.avatarKey
+                          ? `url(${supabaseBrowser.storage.from('avatars').getPublicUrl(friend.avatarKey).data.publicUrl}) center/cover`
+                          : getAvatarColor(friend.id),
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -841,7 +881,7 @@ export default function AddCardSheet({ open, onClose }: AddCardSheetProps) {
                         border: isSelected ? '2px solid var(--accent)' : 'none',
                       }}
                     >
-                      {friend.initial}
+                      {!friend.avatarKey && friend.name.charAt(0).toUpperCase()}
                       {isSelected && (
                         <div
                           style={{

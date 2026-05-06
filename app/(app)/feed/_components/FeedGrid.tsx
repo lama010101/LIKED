@@ -20,6 +20,7 @@
  */
 
 import { useState, useCallback, useMemo, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import type { FeedNode } from "@/lib/hooks/useFeed";
 import type { FeedItem } from "@/lib/types/feed";
 import type { Folder } from "@/lib/types/app";
@@ -34,6 +35,7 @@ import MasonView from "./views/MasonView";
 import ListView from "./views/ListView";
 import HorizView from "./views/HorizView";
 import SortableNodeGrid from "./SortableNodeGrid";
+import DroppableFolderChip from "@/components/dnd/DroppableFolderChip";
 
 interface FolderContext {
   id: string;
@@ -44,12 +46,61 @@ interface FolderContext {
 
 type ViewMode = 'col' | 'mason' | 'list' | 'horiz' | 'free';
 
-function FolderTile({ folder, isActive, onClick }: {
+function FolderTile({ folder, isActive, onClick, currentUserId, onFolderDelete }: {
   folder: Folder;
   isActive: boolean;
   onClick: (folder: Folder) => void;
+  currentUserId: string;
+  onFolderDelete?: (folderId: string) => void;
 }) {
   const color = folder.color_hex || '#7c5cbf';
+  const supabaseUrl = process.env['NEXT_PUBLIC_SUPABASE_URL'];
+  const hasThumbnails = folder.thumbnails && folder.thumbnails.length > 0;
+  const [menuOpen, setMenuOpen] = useState(false);
+  const isOwned = folder.owner_id === currentUserId;
+
+  const handleFolderDelete = async () => {
+    setMenuOpen(false);
+    const res = await fetch(`/api/folders/${folder.id}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    });
+    if (res.ok) {
+      onFolderDelete?.(folder.id);
+    } else {
+      const body = await res.json().catch(() => ({}));
+      console.error('Folder delete failed', res.status, body);
+    }
+  };
+
+  // Escape key closes menu
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenuOpen(false);
+    };
+    if (menuOpen) {
+      window.addEventListener('keydown', handleEscape);
+      return () => window.removeEventListener('keydown', handleEscape);
+    }
+  }, [menuOpen]);
+
+  const showToast = (message: string) => {
+    const existing = document.getElementById('temp-toast');
+    if (existing) existing.remove();
+
+    const toast = document.createElement('div');
+    toast.id = 'temp-toast';
+    toast.style.cssText = 'position: fixed; bottom: 96px; left: 50%; transform: translateX(-50%); background: #111; color: #fff; padding: 12px 20px; border-radius: 12px; font-size: 13px; font-weight: 600; z-index: 60; pointer-events: none;';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+      toast.style.transition = 'opacity 0.3s ease';
+      toast.style.opacity = '0';
+      setTimeout(() => toast.remove(), 300);
+    }, 2000);
+  };
+
   return (
     <div
       onClick={() => {
@@ -70,15 +121,50 @@ function FolderTile({ folder, isActive, onClick }: {
         padding: '8px',
       }}
     >
-      {/* 2x2 color collage top area */}
-      <div style={{
-        position: 'absolute', inset: 0,
-        display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr',
-      }}>
-        {[`${color}dd`, `${color}99`, `${color}bb`, `${color}55`].map((bg, i) => (
-          <div key={i} style={{ background: bg }} />
-        ))}
-      </div>
+      {/* 2x2 thumbnail collage or fallback color collage */}
+      {hasThumbnails ? (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gridTemplateRows: '1fr 1fr',
+            gap: '1px',
+          }}
+        >
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="w-1/2 h-1/2 overflow-hidden">
+              {folder.thumbnails[i] ? (
+                <img
+                  src={supabaseUrl + '/storage/v1/object/public/thumbnails/' + folder.thumbnails[i]}
+                  alt=""
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div
+                  className="w-full h-full"
+                  style={{ background: color + '55' }}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gridTemplateRows: '1fr 1fr',
+          }}
+        >
+          {[`${color}dd`, `${color}99`, `${color}bb`, `${color}55`].map((bg, i) => (
+            <div key={i} style={{ background: bg }} />
+          ))}
+        </div>
+      )}
       {/* Folder icon overlay */}
       <div style={{
         position: 'absolute', top: 8, left: 8,
@@ -90,6 +176,81 @@ function FolderTile({ folder, isActive, onClick }: {
           <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
         </svg>
       </div>
+
+      {/* Menu button (top-right) - only show if owned */}
+      {isOwned && (
+        <span
+          role="button"
+          aria-label="Folder menu"
+          onClick={(e) => {
+            e.stopPropagation();
+            setMenuOpen(true);
+          }}
+          onPointerDown={(e) => e.stopPropagation()}
+          style={{
+            position: 'absolute',
+            top: 8,
+            right: 8,
+            width: 28,
+            height: 28,
+            borderRadius: 9999,
+            background: 'rgba(0,0,0,0.35)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 4,
+            cursor: 'pointer',
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff" aria-hidden="true">
+            <circle cx="12" cy="6" r="2" />
+            <circle cx="12" cy="12" r="2" />
+            <circle cx="12" cy="18" r="2" />
+          </svg>
+        </span>
+      )}
+
+      {/* Menu popover */}
+      {menuOpen && (
+        <>
+          {/* Full-screen overlay */}
+          <div
+            className="fixed inset-0 z-40"
+            onClick={() => setMenuOpen(false)}
+          />
+          {/* Popover */}
+          <div
+            className="absolute top-8 right-2 z-50 bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-2 min-w-[180px]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="w-full text-left px-3 py-2.5 rounded-xl text-sm flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-800 dark:text-gray-100"
+              onClick={() => {
+                setMenuOpen(false);
+                showToast('Coming soon');
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                <path d="m15 5 4 4" />
+              </svg>
+              Rename
+            </button>
+            <button
+              className="w-full text-left px-3 py-2.5 rounded-xl text-sm flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 text-red-500"
+              onClick={handleFolderDelete}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 6h18" />
+                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+              </svg>
+              Delete
+            </button>
+          </div>
+        </>
+      )}
       {/* Name + count overlay at bottom */}
       <div style={{
         position: 'relative', zIndex: 1,
@@ -165,6 +326,10 @@ export default function FeedGrid({
   nextCursor: ssrNextCursor,
   folders = [],
 }: FeedGridProps) {
+  const router = useRouter();
+
+  const [localFolders, setLocalFolders] = useState(folders);
+
   // P9-T06-FIX: SSR hydration — initialize store from server-parsed state
   useFeedURLSync({ initialFilterState });
 
@@ -220,7 +385,7 @@ export default function FeedGrid({
   }, [nodeByItemId, handleOpen]);
 
   // Minimal folder strip — FOLDER-004 / FOLDER-005
-  const activeFolderObj = folders.find(f => f.id === activeFolderId) ?? null;
+  const activeFolderObj = localFolders.find(f => f.id === activeFolderId) ?? null;
 
   const handleFolderClick = useCallback((folder: Folder) => {
     useFilterStore.getState().pushFolder({ id: folder.id, name: folder.name, color_hex: folder.color_hex });
@@ -245,6 +410,66 @@ export default function FeedGrid({
     useFilterStore.getState().clearContext();
   }, []);
 
+  // Card menu callbacks
+  const handleShare = useCallback((node: FeedNode) => {
+    showToast('Coming soon — use drag to share');
+  }, []);
+
+  const handleMoveToFolder = useCallback((node: FeedNode) => {
+    showToast('Coming soon — use drag to move');
+  }, []);
+
+  const handleAddTag = useCallback((node: FeedNode) => {
+    showToast('Coming soon — use Tag Mode via FAB');
+  }, []);
+
+  const handleDelete = useCallback((nodeId: string) => {
+    // Optimistic removal from local state
+    // Note: Since we use useFeed hook which manages its own state,
+    // we'll trigger a refresh to sync with server
+    router.refresh();
+  }, [router]);
+
+  // Wrapper callbacks for view components that work with FeedItem
+  const handleShareItem = useCallback((item: FeedItem) => {
+    const node = nodeByItemId.get(item.id);
+    if (node) handleShare(node);
+  }, [nodeByItemId, handleShare]);
+
+  const handleMoveToFolderItem = useCallback((item: FeedItem) => {
+    const node = nodeByItemId.get(item.id);
+    if (node) handleMoveToFolder(node);
+  }, [nodeByItemId, handleMoveToFolder]);
+
+  const handleAddTagItem = useCallback((item: FeedItem) => {
+    const node = nodeByItemId.get(item.id);
+    if (node) handleAddTag(node);
+  }, [nodeByItemId, handleAddTag]);
+
+
+  const handleFolderDelete = useCallback((folderId: string) => {
+    setLocalFolders(prev => prev.filter(f => f.id !== folderId));
+    router.refresh();
+  }, [router]);
+
+  // Simple toast utility
+  const showToast = useCallback((message: string) => {
+    const existing = document.getElementById('temp-toast');
+    if (existing) existing.remove();
+
+    const toast = document.createElement('div');
+    toast.id = 'temp-toast';
+    toast.style.cssText = 'position: fixed; bottom: 96px; left: 50%; transform: translateX(-50%); background: #111; color: #fff; padding: 12px 20px; border-radius: 12px; font-size: 13px; font-weight: 600; z-index: 60; pointer-events: none;';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+      toast.style.transition = 'opacity 0.3s ease';
+      toast.style.opacity = '0';
+      setTimeout(() => toast.remove(), 300);
+    }, 2000);
+  }, []);
+
 
   // Convert FeedNode[] → FeedItem[] for view components
   const feedItems = useMemo(() => {
@@ -259,10 +484,10 @@ export default function FeedGrid({
 
   const visibleFolders = useMemo(() => {
     if (!activeFolderId) {
-      return folders.filter(f => f.parent_folder_id === null);
+      return localFolders.filter(f => f.parent_folder_id === null);
     }
-    return folders.filter(f => f.parent_folder_id === activeFolderId);
-  }, [folders, activeFolderId]);
+    return localFolders.filter(f => f.parent_folder_id === activeFolderId);
+  }, [localFolders, activeFolderId]);
 
   const folderGrid = visibleFolders.length > 0 ? (
     <div style={{
@@ -277,12 +502,15 @@ export default function FeedGrid({
       zIndex: 1,
     }}>
       {visibleFolders.map(f => (
-        <FolderTile
-          key={f.id}
-          folder={f}
-          isActive={activeFolderId === f.id}
-          onClick={handleFolderClick}
-        />
+        <DroppableFolderChip key={f.id} folderId={f.id}>
+          <FolderTile
+            folder={f}
+            isActive={activeFolderId === f.id}
+            onClick={handleFolderClick}
+            currentUserId={currentUserId}
+            onFolderDelete={handleFolderDelete}
+          />
+        </DroppableFolderChip>
       ))}
     </div>
   ) : null;
@@ -334,6 +562,10 @@ export default function FeedGrid({
           onFilterClick={onFolderFilterClick ?? (() => {})}
           onCardClick={handleOpen}
           currentUserId={currentUserId}
+          onShare={handleShare}
+          onMoveToFolder={handleMoveToFolder}
+          onAddTag={handleAddTag}
+          onDelete={handleDelete}
         />
         <CardDetailSheet node={activeNode} currentUserId={currentUserId} onClose={handleClose} />
       </>
@@ -346,7 +578,7 @@ export default function FeedGrid({
       <div style={{ minHeight: '100%', position: 'relative' }}>
         {folderGrid}
         {displayNodes.length === 0 ? emptyState : (
-          <FreeGrid nodes={displayNodes} scopeKey={scopeKey} onCardClick={handleOpen} currentUserId={currentUserId} />
+          <FreeGrid nodes={displayNodes} scopeKey={scopeKey} onCardClick={handleOpen} currentUserId={currentUserId} onShare={handleShare} onMoveToFolder={handleMoveToFolder} onAddTag={handleAddTag} onDelete={handleDelete} />
         )}
         <CardDetailSheet node={activeNode} currentUserId={currentUserId} onClose={handleClose} />
       </div>
@@ -358,7 +590,7 @@ export default function FeedGrid({
     return (
       <div style={{ minHeight: '100%', position: 'relative' }}>
         {folderGrid}
-        <ColView items={feedItems} zoom={zoom} scopeKey={scopeKey} onItemClick={handleItemClick} />
+        <ColView items={feedItems} zoom={zoom} scopeKey={scopeKey} onItemClick={handleItemClick} currentUserId={currentUserId} onCardShare={handleShareItem} onCardMoveToFolder={handleMoveToFolderItem} onCardAddTag={handleAddTagItem} onCardDelete={handleDelete} />
         <CardDetailSheet node={activeNode} currentUserId={currentUserId} onClose={handleClose} />
       </div>
     );
@@ -369,7 +601,7 @@ export default function FeedGrid({
     return (
       <div style={{ minHeight: '100%', position: 'relative' }}>
         {folderGrid}
-        <MasonView items={feedItems} scopeKey={scopeKey} onItemClick={handleItemClick} />
+        <MasonView items={feedItems} scopeKey={scopeKey} onItemClick={handleItemClick} currentUserId={currentUserId} onCardShare={handleShareItem} onCardMoveToFolder={handleMoveToFolderItem} onCardAddTag={handleAddTagItem} onCardDelete={handleDelete} />
         <CardDetailSheet node={activeNode} currentUserId={currentUserId} onClose={handleClose} />
       </div>
     );
@@ -380,7 +612,7 @@ export default function FeedGrid({
     return (
       <div style={{ minHeight: '100%', position: 'relative' }}>
         {folderGrid}
-        <ListView items={feedItems} scopeKey={scopeKey} onItemClick={handleItemClick} />
+        <ListView items={feedItems} scopeKey={scopeKey} onItemClick={handleItemClick} currentUserId={currentUserId} onCardShare={handleShareItem} onCardMoveToFolder={handleMoveToFolderItem} onCardAddTag={handleAddTagItem} onCardDelete={handleDelete} />
         <CardDetailSheet node={activeNode} currentUserId={currentUserId} onClose={handleClose} />
       </div>
     );
@@ -396,6 +628,11 @@ export default function FeedGrid({
           scopeKey={scopeKey}
           onItemClick={handleItemClick}
           folderContext={folderContext}
+          currentUserId={currentUserId}
+          onCardShare={handleShareItem}
+          onCardMoveToFolder={handleMoveToFolderItem}
+          onCardAddTag={handleAddTagItem}
+          onCardDelete={handleDelete}
         />
         <CardDetailSheet node={activeNode} currentUserId={currentUserId} onClose={handleClose} />
       </div>
@@ -412,6 +649,10 @@ export default function FeedGrid({
           scopeKey={scopeKey}
           onCardClick={handleOpen}
           currentUserId={currentUserId}
+          onShare={handleShare}
+          onMoveToFolder={handleMoveToFolder}
+          onAddTag={handleAddTag}
+          onDelete={handleDelete}
         />
       )}
       <CardDetailSheet node={activeNode} currentUserId={currentUserId} onClose={handleClose} />

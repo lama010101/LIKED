@@ -147,25 +147,13 @@ export async function updateNodeTitle(
 ): Promise<void> {
   const supabase = getSupabaseServiceClient();
 
-  const { data: node, error: fetchErr } = await supabase
-    .from("nodes")
-    .select("owner_id")
-    .eq("id", nodeId)
-    .maybeSingle();
-  if (fetchErr) throw new Error(`Failed to fetch node: ${fetchErr.message}`);
-  if (!node) throw new Error("Node not found");
-  if (node.owner_id !== userId) {
-    throw new Error("Only the owner can edit the title");
-  }
+  const { error } = await supabase.rpc("update_node_title", {
+    p_user_id: userId,
+    p_node_id: nodeId,
+    p_title: title,
+  });
 
-  const trimmed = title.trim().slice(0, 512);
-  if (trimmed.length === 0) throw new Error("Title cannot be empty");
-
-  const { error: updateErr } = await supabase
-    .from("nodes")
-    .update({ title: trimmed })
-    .eq("id", nodeId);
-  if (updateErr) throw new Error(`Failed to update title: ${updateErr.message}`);
+  if (error) throw new Error(error.message);
 }
 
 /**
@@ -174,24 +162,5 @@ export async function updateNodeTitle(
  */
 export async function incrementViewCount(nodeId: string): Promise<void> {
   const supabase = getSupabaseServiceClient();
-  // Ensure a cache row exists, then bump. We avoid an RPC for this simple
-  // increment by doing an UPSERT — insert with view_count=1 on first view,
-  // otherwise update the existing row.
-  const { data: existing } = await supabase
-    .from("nodes_sort_cache")
-    .select("view_count")
-    .eq("node_id", nodeId)
-    .maybeSingle();
-
-  if (!existing) {
-    await (supabase as AnySupabase)
-      .from("nodes_sort_cache")
-      .insert({ node_id: nodeId, view_count: 1, share_count: 0 });
-    return;
-  }
-
-  await (supabase as AnySupabase)
-    .from("nodes_sort_cache")
-    .update({ view_count: (existing.view_count ?? 0) + 1 })
-    .eq("node_id", nodeId);
+  await supabase.rpc("increment_view_count", { p_node_id: nodeId });
 }

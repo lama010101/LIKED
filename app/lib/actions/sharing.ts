@@ -8,59 +8,67 @@ import {
   getEffectiveFolderPermission,
 } from "@/lib/db/permissions";
 import type { Permission } from "@/lib/types/app";
+import { getSupabaseServerClient } from "@/lib/supabase/server";
+
+async function getActorId(): Promise<string> {
+  const supabase = await getSupabaseServerClient();
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error || !user) throw new Error("UNAUTHORIZED");
+  return user.id;
+}
 
 export async function directShareAction(input: {
-  sharerId: string;
   nodeId: string;
   targetUserId: string;
   permission?: string;
 }): Promise<string> {
-  return directShare(input);
+  const actorId = await getActorId();
+  return directShare({ sharerId: actorId, ...input });
 }
 
 export async function shareFolderAction(input: {
-  sharerId: string;
   folderId: string;
   targetUserIds: string[];
   permission?: string;
 }): Promise<string> {
-  return shareFolder(input);
+  const actorId = await getActorId();
+  return shareFolder({ sharerId: actorId, ...input });
 }
 
 export async function groupShareAction(
-  sharerId: string,
   nodeId: string,
   groupId: string
 ): Promise<string> {
-  return groupShare(sharerId, nodeId, groupId);
+  const actorId = await getActorId();
+  return groupShare(actorId, nodeId, groupId);
 }
 
 export async function hasNodePermissionAction(
-  userId: string,
   nodeId: string,
   required: Permission
 ): Promise<boolean> {
-  return hasNodePermission(userId, nodeId, required);
+  const actorId = await getActorId();
+  return hasNodePermission(actorId, nodeId, required);
 }
 
 export async function hasFolderPermissionAction(
-  userId: string,
   folderId: string,
   required: Permission
 ): Promise<boolean> {
-  return hasFolderPermission(userId, folderId, required);
+  const actorId = await getActorId();
+  return hasFolderPermission(actorId, folderId, required);
 }
 
 export async function getEffectiveNodePermissionAction(
-  userId: string,
   nodeId: string
 ): Promise<Permission | null> {
-  return getEffectiveNodePermission(userId, nodeId);
+  const actorId = await getActorId();
+  return getEffectiveNodePermission(actorId, nodeId);
 }
 
 export async function getEffectiveFolderPermissionAction(
-  userId: string,
   folderId: string
 ): Promise<Permission | null> {
-  return getEffectiveFolderPermission(userId, folderId);
+  const actorId = await getActorId();
+  return getEffectiveFolderPermission(actorId, folderId);
 }

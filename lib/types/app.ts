@@ -3,7 +3,7 @@
  */
 
 // Feed types
-export type FeedView = "masonry" | "icon" | "list" | "horizontal" | "canvas";
+export type ViewMode = "col" | "mason" | "list" | "horiz" | "free";
 export type FeedState = "all" | "mine" | "received";
 export type SortOption = "newest" | "oldest" | "most_shared" | "highest_rated" | "custom";
 
@@ -83,6 +83,7 @@ export interface Folder {
   deleted_at: string | null;
   created_at: string;
   node_count: number;
+  thumbnails: string[]; // Thumbnail keys of up to 4 child nodes for 2×2 collage
 }
 
 // Tag types

@@ -1,8 +1,9 @@
 'use client';
 
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useState } from 'react';
 import BottomBarAvatar, { BottomBarAvatarItem } from './BottomBarAvatar';
 import { useDragPauseExpand } from '@/lib/dnd/useDragPauseExpand';
+import { useRouter } from 'next/navigation';
 
 interface BottomBarItem {
   id: string;
@@ -20,10 +21,18 @@ interface BottomBarProps {
   /** 3-state model per PRD §11.4 */
   state: 'hidden' | 'strip' | 'expanded';
   onStateChange: (state: 'hidden' | 'strip' | 'expanded') => void;
+  currentUserId?: string;
+  onRefresh?: () => void;
 }
 
-export default function BottomBar({ items, onAvatarClick, state, onStateChange }: BottomBarProps) {
+export default function BottomBar({ items, onAvatarClick, state, onStateChange, currentUserId, onRefresh }: BottomBarProps) {
   const touchStartY = useRef<number | null>(null);
+  const router = useRouter();
+  const [inviteSheetOpen, setInviteSheetOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteError, setInviteError] = useState<string | null>(null);
+  const [inviteSuccess, setInviteSuccess] = useState(false);
+  const [isSendingInvite, setIsSendingInvite] = useState(false);
   const autoExpandRef = useDragPauseExpand<HTMLDivElement>({
     isCollapsed: state === 'hidden',
     onExpand: () => onStateChange('strip'),
@@ -56,6 +65,42 @@ export default function BottomBar({ items, onAvatarClick, state, onStateChange }
   const isExpanded = state === 'expanded';
   const friendCount = items.filter((i) => i.type === 'friend').length;
   const groupCount = items.filter((i) => i.type === 'group').length;
+
+  const handleSendInvite = async () => {
+    if (!currentUserId) return;
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(inviteEmail)) {
+      setInviteError('Enter a valid email address');
+      return;
+    }
+    
+    setInviteError(null);
+    setIsSendingInvite(true);
+    
+    try {
+      const { sendFriendInviteAction } = await import('@/app/lib/actions/friends');
+      const result = await sendFriendInviteAction(currentUserId, inviteEmail);
+      
+      if (result.error === 'ALREADY_SENT') {
+        setInviteError('Invite already sent to this email');
+      } else if (result.error === 'INVALID_EMAIL') {
+        setInviteError('Enter a valid email address');
+      } else {
+        setInviteSuccess(true);
+        setInviteEmail('');
+        setTimeout(() => {
+          setInviteSheetOpen(false);
+          setInviteSuccess(false);
+          if (onRefresh) onRefresh();
+        }, 1500);
+      }
+    } catch (err) {
+      setInviteError('Failed to send invite');
+    } finally {
+      setIsSendingInvite(false);
+    }
+  };
 
   return (
     <div className="lg:hidden">
@@ -393,9 +438,115 @@ export default function BottomBar({ items, onAvatarClick, state, onStateChange }
           }}
         >
           {items.map((item) => (
-            <BottomBarAvatar key={item.id} item={item} onClick={onAvatarClick} />
+            <BottomBarAvatar 
+              key={item.id} 
+              item={item} 
+              onClick={onAvatarClick} 
+              currentUserId={currentUserId}
+              onRefresh={onRefresh}
+            />
           ))}
+          {/* + Invite chip */}
+          <button
+            type="button"
+            onClick={() => setInviteSheetOpen(true)}
+            className="rounded-full border border-dashed border-gray-500 text-gray-400 text-xs px-3 py-1 whitespace-nowrap"
+            style={{
+              margin: '0 7px',
+              cursor: 'pointer',
+            }}
+          >
+            + Invite
+          </button>
         </div>
+
+        {/* Invite sheet */}
+        {inviteSheetOpen && (
+          <div
+            style={{
+              position: 'fixed',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: 160,
+              background: 'var(--glass-bg)',
+              backdropFilter: 'var(--glass-blur)',
+              WebkitBackdropFilter: 'var(--glass-blur)',
+              borderTop: '1px solid var(--glass-border)',
+              borderTopLeftRadius: 'var(--r-lg)',
+              borderTopRightRadius: 'var(--r-lg)',
+              padding: '16px',
+              zIndex: 'calc(var(--z-bars) + 10)',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)' }}>Invite a friend</span>
+              <button
+                type="button"
+                onClick={() => setInviteSheetOpen(false)}
+                style={{
+                  width: 24,
+                  height: 24,
+                  borderRadius: 'var(--r-md)',
+                  background: 'var(--surface-3)',
+                  border: '1px solid var(--border-1)',
+                  color: 'var(--text-2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  padding: 0,
+                }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 6 6 18" /><path d="m6 6 12 12" />
+                </svg>
+              </button>
+            </div>
+            <input
+              type="email"
+              placeholder="Enter email address"
+              value={inviteEmail}
+              onChange={(e) => setInviteEmail(e.target.value)}
+              disabled={isSendingInvite || inviteSuccess}
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                borderRadius: 'var(--r-md)',
+                background: 'var(--surface-2)',
+                border: '1px solid var(--border-1)',
+                color: 'var(--text-1)',
+                fontSize: 14,
+                marginBottom: 8,
+              }}
+            />
+            {inviteError && (
+              <div style={{ fontSize: 12, color: 'var(--red, #dc2626)', marginBottom: 8 }}>{inviteError}</div>
+            )}
+            {inviteSuccess && (
+              <div style={{ fontSize: 12, color: 'var(--green, #22c55e)', marginBottom: 8 }}>Invite sent!</div>
+            )}
+            <button
+              type="button"
+              onClick={handleSendInvite}
+              disabled={isSendingInvite || inviteSuccess}
+              style={{
+                width: '100%',
+                padding: '10px',
+                borderRadius: 'var(--r-md)',
+                background: 'var(--accent)',
+                border: 'none',
+                color: '#fff',
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: isSendingInvite || inviteSuccess ? 'not-allowed' : 'pointer',
+                opacity: isSendingInvite || inviteSuccess ? 0.6 : 1,
+              }}
+            >
+              {isSendingInvite ? 'Sending...' : 'Send invite'}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

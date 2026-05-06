@@ -53,6 +53,8 @@ export async function getUserFolders(): Promise<Folder[]> {
   } = await supabase.auth.getUser();
   if (!user) return [];
 
+  console.log('[getUserFolders] user_id:', user.id);
+
   // Step 1: fetch all folders owned by user
   const { data, error } = await supabase
     .from('folders')
@@ -97,10 +99,36 @@ export async function getUserFolders(): Promise<Folder[]> {
     cardCountMap[fid] = (cardCountMap[fid] ?? 0) + 1;
   }
 
-  // Step 3: map folders with card counts + subfolder counts
+  // Step 3: fetch thumbnail keys for child nodes (up to 4 per folder)
+  const { data: nodeThumbnails, error: thumbError } = await supabase
+    .from('folder_edges')
+    .select('folder_id, nodes!inner(thumbnail_key)')
+    .in('folder_id', folderIds)
+    .not('nodes.thumbnail_key', 'is', null);
+
+  if (thumbError) {
+    console.error('Failed to fetch folder thumbnails:', thumbError.message);
+  }
+
+  // Build thumbnail map (up to 4 per folder)
+  const thumbnailMap: Record<string, string[]> = {};
+  for (const item of nodeThumbnails ?? []) {
+    const edge = item as { folder_id: string; nodes: { thumbnail_key: string } };
+    const fid = edge.folder_id;
+    const thumbKey = edge.nodes.thumbnail_key;
+    if (!thumbnailMap[fid]) {
+      thumbnailMap[fid] = [];
+    }
+    if (thumbnailMap[fid].length < 4) {
+      thumbnailMap[fid].push(thumbKey);
+    }
+  }
+
+  // Step 4: map folders with card counts + thumbnails + subfolder counts
   const mapped: Folder[] = folders.map(f => ({
     ...f,
     node_count: cardCountMap[f.id] ?? 0,
+    thumbnails: thumbnailMap[f.id] ?? [],
   }));
 
   // Add subfolder counts to node_count
@@ -202,36 +230,39 @@ export async function getFolderTree(userId: string): Promise<Folder[]> {
   }
 
   // Get folder IDs shared with user via causes metadata
-  // First get all causes with folder_id that have edges for this user
-  const { data: sharedCauses, error: causesError } = await supabase
-    .from("causes")
-    .select("id, metadata->>folder_id")
-    .not("metadata->>folder_id", "is", null)
-    .eq("cause_type", "direct_share");
+  // Use two parallel queries to avoid N+1 pattern
+  const [userEdgesResult, sharedCausesResult] = await Promise.all([
+    // Query 1: all cause_ids where user has an edge
+    supabase
+      .from("edges")
+      .select("cause_id")
+      .eq("user_id", userId),
+    // Query 2: all direct_share causes with a folder_id
+    supabase
+      .from("causes")
+      .select("id, metadata")
+      .eq("cause_type", "direct_share")
+      .not("metadata->>folder_id", "is", null)
+  ]);
+
+  const { data: userEdges, error: edgesError } = userEdgesResult;
+  const { data: sharedCauses, error: causesError } = sharedCausesResult;
+
+  if (edgesError) {
+    throw new Error(`Failed to fetch user edges: ${edgesError.message}`);
+  }
 
   if (causesError) {
     throw new Error(`Failed to fetch shared causes: ${causesError.message}`);
   }
 
-  // Filter to only include causes where user has an edge
+  // Join in memory — O(N) but 2 queries total, not N+1
+  const userCauseIds = new Set((userEdges ?? []).map(e => e.cause_id));
   const folderIdsWithAccess: string[] = [];
   for (const cause of sharedCauses ?? []) {
-    const folderId = cause.folder_id as string | null;
-    const causeId = cause.id as string;
-    if (!folderId) continue;
-
-    // Check if user has an edge for any node in this folder share
-    const { data: hasEdge } = await supabase
-      .from("edges")
-      .select("id")
-      .eq("user_id", userId)
-      .eq("cause_id", causeId)
-      .limit(1)
-      .maybeSingle();
-
-    if (hasEdge) {
-      folderIdsWithAccess.push(folderId);
-    }
+    if (!userCauseIds.has(cause.id)) continue;
+    const folderId = (cause.metadata as Record<string, string> | null)?.folder_id;
+    if (folderId) folderIdsWithAccess.push(folderId);
   }
 
   // Remove duplicates

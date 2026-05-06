@@ -12,6 +12,7 @@ import { sourceId, targetId, DragSource, DropTarget } from "@/lib/dnd/types";
 import { useLongPress } from "@/lib/hooks/useLongPress";
 import { useSelectionStore, SelectionKind } from "@/lib/store/selectionStore";
 import SelectionCloseButton from "@/components/selection/SelectionCloseButton";
+import { useRouter } from "next/navigation";
 
 export interface BottomBarAvatarItem {
   id: string;
@@ -21,16 +22,24 @@ export interface BottomBarAvatarItem {
   bg: string;
   hasNew?: boolean;
   memberCount?: number;
+  is_pending?: boolean;
+  user_id?: string;
+  currentUserId?: string;
+  onRefresh?: () => void;
 }
 
 interface BottomBarAvatarProps {
   item: BottomBarAvatarItem;
   onClick: (id: string, type: "me" | "friend" | "group") => void;
+  currentUserId?: string;
+  onRefresh?: () => void;
 }
 
-export default function BottomBarAvatar({ item, onClick }: BottomBarAvatarProps) {
+export default function BottomBarAvatar({ item, onClick, currentUserId, onRefresh }: BottomBarAvatarProps) {
   // Disable DnD during SSR to prevent hydration mismatch
   const [isMounted, setIsMounted] = useState(false);
+  const [popoverOpen, setPopoverOpen] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     setIsMounted(true);
@@ -58,10 +67,11 @@ export default function BottomBarAvatar({ item, onClick }: BottomBarAvatarProps)
 
   const longPressRef = useLongPress(
     useCallback(() => {
-      if (!selectionKind) return;
-      activate({ kind: selectionKind, id: item.id });
-    }, [activate, selectionKind, item.id]),
-    { delayMs: 500, disabled: !selectionKind }
+      // Only show popover for friends, not for groups or me
+      if (item.type !== 'friend' || item.is_pending) return;
+      setPopoverOpen(true);
+    }, [item.type, item.is_pending]),
+    { delayMs: 500, disabled: item.type !== 'friend' || item.is_pending }
   );
 
   const {
@@ -93,6 +103,9 @@ export default function BottomBarAvatar({ item, onClick }: BottomBarAvatarProps)
   const activeRing = isOver && dropTarget;
 
   const handleClick = () => {
+    // Pending invites are not tappable
+    if (item.is_pending) return;
+    
     if (selectionActive && selectionKind) {
       toggle({ kind: selectionKind, id: item.id });
       return;
@@ -100,7 +113,47 @@ export default function BottomBarAvatar({ item, onClick }: BottomBarAvatarProps)
     onClick(item.id, item.type);
   };
 
+  const handleViewFeed = () => {
+    setPopoverOpen(false);
+    onClick(item.id, item.type);
+  };
+
+  const handleRemoveFriend = async () => {
+    setPopoverOpen(false);
+    if (!currentUserId || !item.user_id) return;
+    const { removeFriendAction } = await import('@/app/lib/actions/friends');
+    await removeFriendAction(currentUserId, item.user_id);
+    if (onRefresh) onRefresh();
+  };
+
+  const handleBlock = async () => {
+    setPopoverOpen(false);
+    if (!currentUserId || !item.user_id) return;
+    const confirmed = window.confirm(`Block ${item.displayName}? They will be removed from your friends and will no longer be able to share content with you.`);
+    if (!confirmed) return;
+    const { blockUserAction } = await import('@/app/lib/actions/friends');
+    await blockUserAction(currentUserId, item.user_id);
+    if (onRefresh) onRefresh();
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      setPopoverOpen(false);
+    }
+  };
+
+  useEffect(() => {
+    if (popoverOpen) {
+      const handleEscape = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') setPopoverOpen(false);
+      };
+      window.addEventListener('keydown', handleEscape);
+      return () => window.removeEventListener('keydown', handleEscape);
+    }
+  }, [popoverOpen]);
+
   return (
+    <>
     <div
       ref={setRef}
       {...(dragSource && !selectionActive && isMounted ? attributes : {})}
@@ -134,9 +187,26 @@ export default function BottomBarAvatar({ item, onClick }: BottomBarAvatarProps)
           color: '#fff',
           flexShrink: 0,
           position: 'relative',
+          opacity: item.is_pending ? 0.5 : 1,
         }}
+        title={item.is_pending ? 'Invite sent — awaiting signup' : undefined}
       >
         {item.initial}
+        {item.is_pending && (
+          <div
+            style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+            }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+          </div>
+        )}
         {item.type === 'group' && item.memberCount !== undefined && (
           <div
             style={{
@@ -189,5 +259,46 @@ export default function BottomBarAvatar({ item, onClick }: BottomBarAvatarProps)
         {item.displayName}
       </span>
     </div>
+
+    {popoverOpen && item.type === 'friend' && !item.is_pending && (
+      <>
+        {/* Full-screen overlay */}
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => setPopoverOpen(false)}
+        />
+        {/* Popover card */}
+        <div
+          className="fixed z-50 bg-gray-900 rounded-xl shadow-xl p-2 min-w-[160px]"
+          style={{
+            bottom: '100%',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            marginBottom: 8,
+          }}
+          onKeyDown={handleKeyDown}
+        >
+          <button
+            className="w-full text-left px-3 py-2 rounded-lg text-sm text-white hover:bg-gray-800"
+            onClick={handleViewFeed}
+          >
+            View {item.displayName}'s feed
+          </button>
+          <button
+            className="w-full text-left px-3 py-2 rounded-lg text-sm text-red-400 hover:bg-gray-800"
+            onClick={handleRemoveFriend}
+          >
+            Remove friend
+          </button>
+          <button
+            className="w-full text-left px-3 py-2 rounded-lg text-sm text-red-600 font-semibold hover:bg-gray-800"
+            onClick={handleBlock}
+          >
+            Block {item.displayName}
+          </button>
+        </div>
+      </>
+    )}
+  </>
   );
 }
