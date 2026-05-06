@@ -34,6 +34,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import type { FeedNode } from "@/lib/hooks/useFeed";
 import { useFeedStore } from "@/lib/store/feedStore";
+import { useFilterStore } from "@/lib/store/filterStore";
 import { dndReorderFeed } from "@/app/lib/actions/dnd";
 import NodeCardInner from "./NodeCard";
 
@@ -42,6 +43,10 @@ interface SortableNodeGridProps {
   scopeKey: string;
   onCardClick: (node: FeedNode) => void;
   currentUserId: string;
+  onShare?: (node: FeedNode) => void;
+  onMoveToFolder?: (node: FeedNode) => void;
+  onAddTag?: (node: FeedNode) => void;
+  onDelete?: (nodeId: string) => void;
 }
 
 /**
@@ -54,10 +59,18 @@ function SortableCard({
   node,
   onClick,
   currentUserId,
+  onShare,
+  onMoveToFolder,
+  onAddTag,
+  onDelete,
 }: {
   node: FeedNode;
   onClick: (node: FeedNode) => void;
   currentUserId: string;
+  onShare?: (node: FeedNode) => void;
+  onMoveToFolder?: (node: FeedNode) => void;
+  onAddTag?: (node: FeedNode) => void;
+  onDelete?: (nodeId: string) => void;
 }) {
   const {
     attributes,
@@ -82,7 +95,7 @@ function SortableCard({
       {...attributes}
       className="break-inside-avoid mb-4"
     >
-      <NodeCardInner node={node} onClick={onClick} currentUserId={currentUserId} dragListeners={listeners} />
+      <NodeCardInner node={node} onClick={onClick} currentUserId={currentUserId} dragListeners={listeners} onShare={onShare} onMoveToFolder={onMoveToFolder} onAddTag={onAddTag} onDelete={onDelete} />
     </div>
   );
 }
@@ -92,8 +105,13 @@ export default function SortableNodeGrid({
   scopeKey,
   onCardClick,
   currentUserId,
+  onShare,
+  onMoveToFolder,
+  onAddTag,
+  onDelete,
 }: SortableNodeGridProps) {
   const setCustomOrder = useFeedStore((s) => s.setCustomOrder);
+  const setSort = useFilterStore((s) => s.setSort);
   // Get customOrder via getState to avoid INVARIANT 1 violation (method selector)
   const storedOrder = useMemo(() => useFeedStore.getState().customOrders[scopeKey] ?? [], [scopeKey]);
 
@@ -142,6 +160,7 @@ export default function SortableNodeGrid({
     setIds(next);
     // Flip sort → 'custom', cache to localStorage, persist to server.
     setCustomOrder(scopeKey, next);
+    setSort('custom');
     await dndReorderFeed(scopeKey, next);
   };
 
@@ -152,7 +171,7 @@ export default function SortableNodeGrid({
           {ids.map((id) => {
             const node = nodeById.get(id);
             if (!node) return null;
-            return <SortableCard key={id} node={node} onClick={onCardClick} currentUserId={currentUserId} />;
+            return <SortableCard key={id} node={node} onClick={onCardClick} currentUserId={currentUserId} onShare={onShare} onMoveToFolder={onMoveToFolder} onAddTag={onAddTag} onDelete={onDelete} />;
           })}
         </div>
       </SortableContext>

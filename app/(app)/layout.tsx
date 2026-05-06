@@ -49,6 +49,9 @@ interface BottomBarItem {
   initial: string;
   bg: string;
   hasNew?: boolean;
+  memberCount?: number;
+  is_pending?: boolean;
+  user_id?: string;
 }
 
 function friendBarToBottomBarItems(
@@ -74,6 +77,8 @@ function friendBarToBottomBarItems(
     initial: initial(f.display_name ?? f.to_email),
     bg: 'linear-gradient(135deg,#4a9fd5,#1c6fa0)',
     hasNew: false,
+    is_pending: f.is_pending,
+    user_id: f.user_id ?? undefined,
   }));
 
   const groupItems: BottomBarItem[] = groups.map((g) => ({
@@ -146,6 +151,16 @@ function AppShell({ children }: { children: React.ReactNode }) {
       .then((f) => setLayoutFolders(f))
       .catch((err) => console.error('[layout] getUserFoldersAction failed:', err));
   }, []);
+
+  const refreshFriends = useCallback(() => {
+    if (!sessionUser) return;
+    Promise.all([
+      getFriendBarAction(sessionUser.id),
+      getGroupBarAction(sessionUser.id),
+    ]).then(([friends, groups]) => {
+      setBottomBarItems(friendBarToBottomBarItems(sessionUser, friends, groups));
+    }).catch((err) => console.error('[layout] refreshFriends failed:', err));
+  }, [sessionUser]);
 
   // Load folders on mount; refreshFolders can also be called post-creation
   useEffect(() => {
@@ -449,6 +464,8 @@ function AppShell({ children }: { children: React.ReactNode }) {
           items={bottomBarItems}
           state={friendsState}
           onStateChange={setFriendsState}
+          currentUserId={sessionUser?.id}
+          onRefresh={refreshFriends}
           onAvatarClick={(id, type) => {
             // Clicking Me navigates to home feed with "Mine" view
             if (type === 'me') {
@@ -465,7 +482,12 @@ function AppShell({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* Add Card Sheet */}
-      <AddCardSheet open={openAdd} onClose={() => setOpenAdd(false)} />
+      <AddCardSheet 
+        open={openAdd} 
+        onClose={() => setOpenAdd(false)} 
+        userId={sessionUser?.id ?? ''} 
+        languageCode={sessionUser?.language_code || 'en'} 
+      />
 
       {/* Add Folder Sheet — mobile only */}
       {isMobile && (

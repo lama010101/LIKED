@@ -3,6 +3,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { getSupabaseServiceClient } from "@/lib/supabase/service";
+import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { getFriendBar, FriendBarEntry, getGroupBar, GroupBarEntry } from "@/lib/db/friends";
 
 export interface SessionUser {
@@ -42,10 +43,16 @@ export async function getSessionUser(): Promise<SessionUser | null> {
   return data as SessionUser;
 }
 
-export async function getFriendBarAction(userId: string): Promise<FriendBarEntry[]> {
-  return getFriendBar(userId);
+export async function getFriendBarAction(): Promise<FriendBarEntry[]> {
+  const supabase = await getSupabaseServerClient();
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error || !user) return [];
+  return getFriendBar(user.id);
 }
 
-export async function getGroupBarAction(userId: string): Promise<GroupBarEntry[]> {
-  return getGroupBar(userId);
+export async function getGroupBarAction(): Promise<GroupBarEntry[]> {
+  const supabase = await getSupabaseServerClient();
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error || !user) return [];
+  return getGroupBar(user.id);
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { useDraggable, useDroppable, useDndContext } from "@dnd-kit/core";
 import type { FeedNode } from "@/lib/hooks/useFeed";
 import { sourceId, targetId } from "@/lib/dnd/types";
@@ -9,12 +9,17 @@ import { useSelectionStore } from "@/lib/store/selectionStore";
 import SelectionCloseButton from "@/components/selection/SelectionCloseButton";
 import { trashNode } from "@/app/lib/actions/selection";
 import { getStorageUrl } from "@/lib/utils/avatar";
+import { useRouter } from "next/navigation";
 
 interface NodeCardProps {
   node: FeedNode;
   onClick: (node: FeedNode) => void;
   currentUserId: string;
   dragListeners?: Record<string, any>;
+  onShare?: (node: FeedNode) => void;
+  onMoveToFolder?: (node: FeedNode) => void;
+  onAddTag?: (node: FeedNode) => void;
+  onDelete?: (nodeId: string) => void;
 }
 
 function formatDate(iso: string): string {
@@ -22,12 +27,17 @@ function formatDate(iso: string): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
-export default function NodeCard({ node, onClick, currentUserId, dragListeners }: NodeCardProps) {
+export default function NodeCard({ node, onClick, currentUserId, dragListeners, onShare, onMoveToFolder, onAddTag, onDelete }: NodeCardProps) {
   const isTextCard = !node.url && !!node.text_content;
+  const router = useRouter();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   // P9-T01: Direction badge — amber for mine, blue for received (PRD §11.3)
   const isMine = node.direction === 'own' || node.direction === 'sent';
   const badgeColor = isMine ? 'var(--accent)' : 'var(--tab-received)';
+
+  // Ownership check for menu button
+  const isOwned = node.owner_id === currentUserId;
 
   // Multi-select (P7-T03)
   const selectionActive = useSelectionStore((s) => s.isActive);
@@ -81,6 +91,31 @@ export default function NodeCard({ node, onClick, currentUserId, dragListeners }
     }
     onClick(node);
   };
+
+  const handleDelete = async () => {
+    setMenuOpen(false);
+    const res = await fetch(`/api/nodes/${node.node_id}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    });
+    if (res.ok) {
+      onDelete?.(node.node_id);
+    } else {
+      const body = await res.json().catch(() => ({}));
+      console.error('Delete failed', res.status, body);
+    }
+  };
+
+  // Escape key closes menu
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenuOpen(false);
+    };
+    if (menuOpen) {
+      window.addEventListener('keydown', handleEscape);
+      return () => window.removeEventListener('keydown', handleEscape);
+    }
+  }, [menuOpen]);
 
   const title = (() => {
     if (node.title) return node.title;
@@ -233,37 +268,108 @@ export default function NodeCard({ node, onClick, currentUserId, dragListeners }
             )}
           </div>
 
-          {/* Menu button (top-right) */}
-          <span
-            role="button"
-            aria-label="Card menu"
-            onClick={(e) => {
-              e.stopPropagation();
-              // TODO: open card menu (P9)
-            }}
-            onPointerDown={(e) => e.stopPropagation()}
-            style={{
-              position: 'absolute',
-              top: 8,
-              right: 8,
-              width: 28,
-              height: 28,
-              borderRadius: 9999,
-              background: 'rgba(0,0,0,0.35)',
-              backdropFilter: 'blur(8px)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              zIndex: 4,
-              cursor: 'pointer',
-            }}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff" aria-hidden="true">
-              <circle cx="12" cy="6" r="2" />
-              <circle cx="12" cy="12" r="2" />
-              <circle cx="12" cy="18" r="2" />
-            </svg>
-          </span>
+          {/* Menu button (top-right) - only show if owned */}
+          {isOwned && (
+            <span
+              role="button"
+              aria-label="Card menu"
+              onClick={(e) => {
+                e.stopPropagation();
+                setMenuOpen(true);
+              }}
+              onPointerDown={(e) => e.stopPropagation()}
+              style={{
+                position: 'absolute',
+                top: 8,
+                right: 8,
+                width: 28,
+                height: 28,
+                borderRadius: 9999,
+                background: 'rgba(0,0,0,0.35)',
+                backdropFilter: 'blur(8px)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 4,
+                cursor: 'pointer',
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff" aria-hidden="true">
+                <circle cx="12" cy="6" r="2" />
+                <circle cx="12" cy="12" r="2" />
+                <circle cx="12" cy="18" r="2" />
+              </svg>
+            </span>
+          )}
+
+          {/* Menu popover */}
+          {menuOpen && (
+            <>
+              {/* Full-screen overlay */}
+              <div
+                className="fixed inset-0 z-40"
+                onClick={() => setMenuOpen(false)}
+              />
+              {/* Popover */}
+              <div
+                className="absolute top-8 right-2 z-50 bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-2 min-w-[180px]"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  className="w-full text-left px-3 py-2.5 rounded-xl text-sm flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-800 dark:text-gray-100"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    onShare?.(node);
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+                    <polyline points="16 6 12 2 8 6" />
+                    <line x1="12" y1="2" x2="12" y2="15" />
+                  </svg>
+                  Share with...
+                </button>
+                <button
+                  className="w-full text-left px-3 py-2.5 rounded-xl text-sm flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-800 dark:text-gray-100"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    onMoveToFolder?.(node);
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                    <line x1="12" y1="11" x2="12" y2="17" />
+                    <line x1="9" y1="14" x2="15" y2="14" />
+                  </svg>
+                  Move to folder
+                </button>
+                <button
+                  className="w-full text-left px-3 py-2.5 rounded-xl text-sm flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-800 dark:text-gray-100"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    onAddTag?.(node);
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z" />
+                    <path d="M7 7h.01" />
+                  </svg>
+                  Add tag
+                </button>
+                <button
+                  className="w-full text-left px-3 py-2.5 rounded-xl text-sm flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 text-red-500"
+                  onClick={handleDelete}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 6h18" />
+                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                  </svg>
+                  Delete
+                </button>
+              </div>
+            </>
+          )}
 
           {/* Direction dot (bottom-right) */}
           <span

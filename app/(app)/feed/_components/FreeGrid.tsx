@@ -18,9 +18,13 @@ interface FreeGridProps {
   scopeKey: string;
   onCardClick: (node: FeedNode) => void;
   currentUserId: string;
+  onShare?: (node: FeedNode) => void;
+  onMoveToFolder?: (node: FeedNode) => void;
+  onAddTag?: (node: FeedNode) => void;
+  onDelete?: (nodeId: string) => void;
 }
 
-export default function FreeGrid({ nodes, scopeKey, onCardClick, currentUserId }: FreeGridProps) {
+export default function FreeGrid({ nodes, scopeKey, onCardClick, currentUserId, onShare, onMoveToFolder, onAddTag, onDelete }: FreeGridProps) {
   const [sizes, setSizes] = useState<Record<string, Record<string, CardSize>>>({});
 
   const getSize = useCallback(
@@ -64,6 +68,10 @@ export default function FreeGrid({ nodes, scopeKey, onCardClick, currentUserId }
           onResize={(size) => setSize(node.node_id, size)}
           onClick={onCardClick}
           currentUserId={currentUserId}
+          onShare={onShare}
+          onMoveToFolder={onMoveToFolder}
+          onAddTag={onAddTag}
+          onDelete={onDelete}
         />
       ))}
     </div>
@@ -79,6 +87,10 @@ interface ResizableCardProps {
   onResize: (size: CardSize) => void;
   onClick: (node: FeedNode) => void;
   currentUserId: string;
+  onShare?: (node: FeedNode) => void;
+  onMoveToFolder?: (node: FeedNode) => void;
+  onAddTag?: (node: FeedNode) => void;
+  onDelete?: (nodeId: string) => void;
 }
 
 function ResizableCard({
@@ -90,6 +102,10 @@ function ResizableCard({
   onResize,
   onClick,
   currentUserId,
+  onShare,
+  onMoveToFolder,
+  onAddTag,
+  onDelete,
 }: ResizableCardProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const dragState = useRef<{
@@ -151,7 +167,7 @@ function ResizableCard({
       }}
     >
       <div style={{ height: "100%", overflow: "hidden", borderRadius: 12 }}>
-        <NodeCard node={node} onClick={onClick} currentUserId={currentUserId} />
+        <NodeCard node={node} onClick={onClick} currentUserId={currentUserId} onShare={onShare} onMoveToFolder={onMoveToFolder} onAddTag={onAddTag} onDelete={onDelete} />
       </div>
 
       {/* Resize handle — bottom-right corner */}

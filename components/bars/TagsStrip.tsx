@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useFilterStore } from '@/lib/store/filterStore';
 import { getVisibleTags } from '@/lib/db/tags';
+import DroppableTagChip from '@/components/dnd/DroppableTagChip';
 
 interface TagChip {
   id: string;
@@ -177,49 +178,50 @@ export default function TagsStrip({ visible = true, userId, languageCode }: Tags
           filtered.map((tag) => {
           const isActive = tagIds.includes(tag.id);
           return (
-            <button
-              key={tag.id}
-              type="button"
-              onClick={() => toggleTagFilter(tag.id)}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 5,
-                padding: '4px 10px',
-                borderRadius: 'var(--r-full)',
-                fontSize: 'var(--text-sm)',
-                fontWeight: 700,
-                whiteSpace: 'nowrap',
-                flexShrink: 0,
-                cursor: 'pointer',
-                border: isActive
-                  ? `2px solid ${tag.color}`
-                  : '1px solid var(--border-1)',
-                background: isActive
-                  ? `${tag.color}18`
-                  : 'var(--surface-1)',
-                color: isActive ? tag.color : 'var(--text-2)',
-                transition: 'all var(--transition-fast)',
-              }}
-            >
-              {isActive && (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke={tag.color}
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  style={{ flexShrink: 0 }}
-                >
-                  <path d="M20 6 9 17l-5-5" />
-                </svg>
-              )}
-              {tag.label}
-            </button>
+            <DroppableTagChip key={tag.id} tagId={tag.id}>
+              <button
+                type="button"
+                onClick={() => toggleTagFilter(tag.id)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 5,
+                  padding: '4px 10px',
+                  borderRadius: 'var(--r-full)',
+                  fontSize: 'var(--text-sm)',
+                  fontWeight: 700,
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
+                  cursor: 'pointer',
+                  border: isActive
+                    ? `2px solid ${tag.color}`
+                    : '1px solid var(--border-1)',
+                  background: isActive
+                    ? `${tag.color}18`
+                    : 'var(--surface-1)',
+                  color: isActive ? tag.color : 'var(--text-2)',
+                  transition: 'all var(--transition-fast)',
+                }}
+              >
+                {isActive && (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke={tag.color}
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    style={{ flexShrink: 0 }}
+                  >
+                    <path d="M20 6 9 17l-5-5" />
+                  </svg>
+                )}
+                {tag.label}
+              </button>
+            </DroppableTagChip>
           );
         })
       )}

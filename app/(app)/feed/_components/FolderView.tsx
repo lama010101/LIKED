@@ -13,6 +13,10 @@ interface FolderViewProps {
   onFilterClick: () => void;
   onCardClick: (node: FeedNode) => void;
   currentUserId: string;
+  onShare?: (node: FeedNode) => void;
+  onMoveToFolder?: (node: FeedNode) => void;
+  onAddTag?: (node: FeedNode) => void;
+  onDelete?: (nodeId: string) => void;
 }
 
 export default function FolderView({
@@ -24,6 +28,10 @@ export default function FolderView({
   onFilterClick,
   onCardClick,
   currentUserId,
+  onShare,
+  onMoveToFolder,
+  onAddTag,
+  onDelete,
 }: FolderViewProps) {
   const [layout, setLayout] = useState<"grid" | "list">("grid");
 
@@ -203,7 +211,7 @@ export default function FolderView({
             }}
           >
             {nodes.map((node) => (
-              <NodeCard key={node.node_id} node={node} onClick={onCardClick} currentUserId={currentUserId} />
+              <NodeCard key={node.node_id} node={node} onClick={onCardClick} currentUserId={currentUserId} onShare={onShare} onMoveToFolder={onMoveToFolder} onAddTag={onAddTag} onDelete={onDelete} />
             ))}
           </div>
         )}
@@ -211,7 +219,7 @@ export default function FolderView({
         {layout === "list" && nodes.length > 0 && (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {nodes.map((node) => (
-              <NodeCard key={node.node_id} node={node} onClick={onCardClick} currentUserId={currentUserId} />
+              <NodeCard key={node.node_id} node={node} onClick={onCardClick} currentUserId={currentUserId} onShare={onShare} onMoveToFolder={onMoveToFolder} onAddTag={onAddTag} onDelete={onDelete} />
             ))}
           </div>
         )}

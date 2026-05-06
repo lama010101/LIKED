@@ -5,6 +5,7 @@
 
 import { getSupabaseServiceClient } from "@/lib/supabase/service";
 import { rpc } from "@/lib/db/rpc";
+import { getVisibleNodeById } from "@/lib/db/visibility";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnySupabase = ReturnType<typeof getSupabaseServiceClient> & { rpc: (...a: any[]) => any };
@@ -146,41 +147,14 @@ export async function createNode(
 }
 
 /**
- * Fetch a single node by ID, enforcing visibility:
- * - User must be the node owner, OR
- * - User must have at least one active edge for this node
- * Returns null if not found, deleted, or not visible to userId.
+ * Fetch a single node by ID, enforcing visibility.
+ * Delegates to getVisibleNodeById which includes block check.
  */
 export async function getNodeById(
-  nodeId: string,
-  userId: string
+  userId: string,
+  nodeId: string
 ): Promise<Node | null> {
-  const supabase = getSupabaseServiceClient();
-
-  // 1. Fetch the node (must exist and not be deleted)
-  const { data: node, error: nodeErr } = await supabase
-    .from("nodes")
-    .select("id, url, text_content, title, thumbnail_key, owner_id, language_code, origin_user_id, origin_created_at, deleted_at, created_at")
-    .eq("id", nodeId)
-    .is("deleted_at", null)
-    .maybeSingle();
-
-  if (nodeErr || !node) return null;
-
-  // 2. Visibility check: owner or edge
-  if (node.owner_id === userId) return node as Node;
-
-  const { data: edge, error: edgeErr } = await supabase
-    .from("edges")
-    .select("id")
-    .eq("node_id", nodeId)
-    .eq("user_id", userId)
-    .limit(1)
-    .maybeSingle();
-
-  if (edgeErr || !edge) return null;
-
-  return node as Node;
+  return getVisibleNodeById(userId, nodeId);
 }
 
 /**
