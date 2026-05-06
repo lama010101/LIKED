@@ -11,9 +11,11 @@ import {
   incrementViewCount,
   updateNodeTitle,
   type CardDetail,
+  getFriendRatingsForNode,
 } from "@/lib/db/cardDetail";
 import { upsertRating } from "@/lib/db/ratings";
 import { softDeleteNode } from "@/lib/db/nodes";
+import { addTagToNode, removeTagFromNode } from "@/lib/db/tags";
 
 async function requireUserId(): Promise<string> {
   const supabase = await getSupabaseServerClient();
@@ -91,6 +93,57 @@ export async function trashCardAction(
     return {
       ok: false,
       error: e instanceof Error ? e.message : "Trash failed",
+    };
+  }
+}
+
+export async function addTagToNodeAction(
+  nodeId: string,
+  tagId: string
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  try {
+    const userId = await requireUserId();
+    await addTagToNode(tagId, nodeId);
+    revalidatePath("/feed");
+    return { ok: true };
+  } catch (e) {
+    return {
+      ok: false,
+      error: e instanceof Error ? e.message : "Add tag failed",
+    };
+  }
+}
+
+export async function removeTagFromNodeAction(
+  nodeId: string,
+  tagId: string
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  try {
+    const userId = await requireUserId();
+    await removeTagFromNode(tagId, nodeId);
+    revalidatePath("/feed");
+    return { ok: true };
+  } catch (e) {
+    return {
+      ok: false,
+      error: e instanceof Error ? e.message : "Remove tag failed",
+    };
+  }
+}
+
+export async function getFriendRatingsAction(
+  nodeId: string
+): Promise<
+  { ok: true; ratings: Array<{ userId: string; displayName: string; avatarKey: string | null; score: number; updatedAt: string }> } | { ok: false; error: string }
+> {
+  try {
+    const userId = await requireUserId();
+    const ratings = await getFriendRatingsForNode(nodeId, userId);
+    return { ok: true, ratings };
+  } catch (e) {
+    return {
+      ok: false,
+      error: e instanceof Error ? e.message : "Failed to load friend ratings",
     };
   }
 }

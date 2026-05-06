@@ -38,7 +38,11 @@ import {
   rateCardAction,
   trashCardAction,
   updateNodeTitleAction,
+  addTagToNodeAction,
+  removeTagFromNodeAction,
+  getFriendRatingsAction,
 } from "@/app/lib/actions/cardDetail";
+import { getTagsAction } from "@/app/lib/actions/getTags";
 
 interface CardDetailSheetProps {
   node: FeedNode | null;
@@ -48,7 +52,7 @@ interface CardDetailSheetProps {
   languageCode?: string;
 }
 
-type EmbedKind = "youtube" | "spotify" | "suno" | "generic" | "none";
+type EmbedKind = "youtube" | "vimeo" | "spotify" | "suno" | "audio" | "video" | "generic" | "none";
 
 function detectEmbed(url: string | null): {
   kind: EmbedKind;
@@ -59,6 +63,18 @@ function detectEmbed(url: string | null): {
   try {
     const u = new URL(url);
     const host = u.hostname.replace(/^www\./, "");
+    const pathname = u.pathname.toLowerCase();
+    const ext = pathname.split(".").pop() ?? "";
+
+    // Audio files
+    if (["mp3", "ogg", "wav", "m4a"].includes(ext)) {
+      return { kind: "audio", src: url, platform: "Audio" };
+    }
+
+    // Video files
+    if (["mp4", "webm", "mov"].includes(ext)) {
+      return { kind: "video", src: url, platform: "Video" };
+    }
 
     // YouTube
     if (host === "youtube.com" || host === "m.youtube.com") {
@@ -86,6 +102,18 @@ function detectEmbed(url: string | null): {
           kind: "youtube",
           src: `https://www.youtube.com/embed/${id}`,
           platform: "YouTube",
+        };
+      }
+    }
+
+    // Vimeo
+    if (host === "vimeo.com") {
+      const m = u.pathname.match(/^\/(\d+)/);
+      if (m) {
+        return {
+          kind: "vimeo",
+          src: `https://player.vimeo.com/video/${m[1]}?autoplay=0&title=0&byline=0&portrait=0`,
+          platform: "Vimeo",
         };
       }
     }
@@ -164,6 +192,14 @@ export default function CardDetailSheet({
   // Title inline edit state
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft] = useState("");
+
+  // Tag picker state
+  const [tagPickerOpen, setTagPickerOpen] = useState(false);
+  const [availableTags, setAvailableTags] = useState<Array<{ id: string; label: string; color_hex: string }>>([]);
+
+  // Friend ratings state
+  const [friendRatings, setFriendRatings] = useState<Array<{ userId: string; displayName: string; avatarKey: string | null; score: number; updatedAt: string }>>([]);
+  const [friendRatingsLoading, setFriendRatingsLoading] = useState(false);
 
   const embed = useMemo(
     () => detectEmbed(node?.url ?? null),
@@ -291,6 +327,63 @@ export default function CardDetailSheet({
       el.requestFullscreen().catch(() => {});
     }
   };
+
+  const handleRemoveTag = (tagId: string) => {
+    if (!nodeId) return;
+    startTransition(async () => {
+      const result = await removeTagFromNodeAction(nodeId, tagId);
+      if (result.ok) {
+        setDetail((prev) =>
+          prev ? { ...prev, tags: prev.tags.filter((t) => t.id !== tagId) } : prev
+        );
+        setToast("Tag removed");
+      } else {
+        setToast(result.error);
+      }
+    });
+  };
+
+  const handleAddTag = (tagId: string) => {
+    if (!nodeId) return;
+    startTransition(async () => {
+      const result = await addTagToNodeAction(nodeId, tagId);
+      if (result.ok) {
+        setTagPickerOpen(false);
+        // Refetch detail to get updated tags
+        fetchCardDetail(nodeId, languageCode).then((res) => {
+          if (res.ok) {
+            setDetail(res.detail);
+          }
+        });
+        setToast("Tag added");
+      } else {
+        setToast(result.error);
+      }
+    });
+  };
+
+  const handleOpenTagPicker = async () => {
+    const tags = await getTagsAction(languageCode);
+    setAvailableTags(tags);
+    setTagPickerOpen(true);
+  };
+
+  // Load friend ratings when node changes
+  useEffect(() => {
+    if (!nodeId) {
+      setFriendRatings([]);
+      return;
+    }
+    setFriendRatingsLoading(true);
+    getFriendRatingsAction(nodeId).then((res) => {
+      if (res.ok) {
+        setFriendRatings(res.ratings);
+      } else {
+        setFriendRatings([]);
+      }
+      setFriendRatingsLoading(false);
+    });
+  }, [nodeId]);
 
   // Container style: side panel on desktop, bottom sheet on mobile
   const containerStyle: CSSProperties = isDesktop
@@ -420,6 +513,14 @@ export default function CardDetailSheet({
               onTrash={handleTrash}
               onShareClick={onShareClick}
               currentUserId={currentUserId}
+              onRemoveTag={handleRemoveTag}
+              onOpenTagPicker={handleOpenTagPicker}
+              onAddTag={handleAddTag}
+              tagPickerOpen={tagPickerOpen}
+              setTagPickerOpen={setTagPickerOpen}
+              availableTags={availableTags}
+              friendRatings={friendRatings}
+              friendRatingsLoading={friendRatingsLoading}
             />
           )}
         </div>
@@ -468,6 +569,14 @@ interface BodyProps {
   onTrash: () => void;
   onShareClick?: (nodeId: string) => void;
   currentUserId: string;
+  onRemoveTag: (tagId: string) => void;
+  onOpenTagPicker: () => void;
+  onAddTag: (tagId: string) => void;
+  tagPickerOpen: boolean;
+  setTagPickerOpen: (b: boolean) => void;
+  availableTags: Array<{ id: string; label: string; color_hex: string }>;
+  friendRatings: Array<{ userId: string; displayName: string; avatarKey: string | null; score: number; updatedAt: string }>;
+  friendRatingsLoading: boolean;
 }
 
 function Body({
@@ -486,11 +595,20 @@ function Body({
   onTrash,
   onShareClick,
   currentUserId,
+  onRemoveTag,
+  onOpenTagPicker,
+  onAddTag,
+  tagPickerOpen,
+  setTagPickerOpen,
+  availableTags,
+  friendRatings,
+  friendRatingsLoading,
 }: BodyProps) {
   const { node, tags, sortCache, sharedWith, isOwner, yourRating } = detail;
   const isTextCard = !node.url && !!node.text_content;
   const direction =
     node.origin_user_id === currentUserId ? "mine" : "received";
+  const canEdit = isOwner;
 
   const thumbnailUrl = (() => {
     const key = detail?.node.thumbnail_key ?? null;
@@ -514,7 +632,7 @@ function Body({
             background: "var(--surface-3)",
           }}
         >
-          {embed.kind === "youtube" || embed.kind === "spotify" ? (
+          {embed.kind === "youtube" || embed.kind === "spotify" || embed.kind === "vimeo" ? (
             <iframe
               src={embed.src}
               title={node.title ?? "Media"}
@@ -527,6 +645,34 @@ function Body({
                 display: "block",
               }}
             />
+          ) : embed.kind === "audio" ? (
+            <div
+              style={{
+                width: "100%",
+                height: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "var(--surface-3)",
+                padding: 16,
+              }}
+            >
+              <audio
+                controls
+                src={embed.src}
+                style={{ width: "100%", borderRadius: 8 }}
+              >
+                Your browser does not support audio playback.
+              </audio>
+            </div>
+          ) : embed.kind === "video" ? (
+            <video
+              controls
+              src={embed.src}
+              style={{ width: "100%", height: "100%", borderRadius: 12, background: "#000" }}
+            >
+              Your browser does not support video playback.
+            </video>
           ) : embed.kind === "suno" ? (
             <div
               style={{
@@ -772,13 +918,148 @@ function Body({
         />
       </div>
 
+      {/* Friend ratings */}
+      <div>
+        <div
+          style={{
+            fontSize: 11,
+            color: "var(--text-3)",
+            fontWeight: 600,
+            marginBottom: 8,
+          }}
+        >
+          Friends rated this
+        </div>
+        {friendRatingsLoading ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  height: 32,
+                }}
+              >
+                <div
+                  style={{
+                    width: 24,
+                    height: 24,
+                    borderRadius: "50%",
+                    background: "var(--surface-3)",
+                  }}
+                />
+                <div
+                  style={{
+                    flex: 1,
+                    height: 16,
+                    borderRadius: 4,
+                    background: "var(--surface-3)",
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+        ) : friendRatings.length === 0 ? (
+          <div
+            style={{
+              fontSize: 12,
+              color: "var(--text-3)",
+            }}
+          >
+            No friends have rated this yet
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {friendRatings.slice(0, 5).map((rating) => {
+              const avatarUrl = rating.avatarKey
+                ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/avatars/${rating.avatarKey}`
+                : null;
+              return (
+                <div
+                  key={rating.userId}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                  }}
+                >
+                  {avatarUrl ? (
+                    <img
+                      src={avatarUrl}
+                      alt={rating.displayName}
+                      style={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: "50%",
+                        objectFit: "cover",
+                      }}
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: "50%",
+                        background: "var(--surface-3)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: 10,
+                        color: "var(--text-3)",
+                      }}
+                    >
+                      {rating.displayName.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <span
+                    style={{
+                      flex: 1,
+                      fontSize: 12,
+                      color: "var(--text-2)",
+                      fontWeight: 500,
+                    }}
+                  >
+                    {rating.displayName}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 12,
+                      color: "var(--text-1)",
+                      fontWeight: 600,
+                    }}
+                  >
+                    {rating.score.toFixed(1)}
+                  </span>
+                </div>
+              );
+            })}
+            {friendRatings.length > 5 && (
+              <div
+                style={{
+                  fontSize: 11,
+                  color: "var(--text-3)",
+                  fontWeight: 500,
+                }}
+              >
+                +{friendRatings.length - 5} more
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
       {/* Tag chips */}
-      {tags.length > 0 && (
+      <div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
           {tags.map((tag) => (
-            <span
+            <div
               key={tag.id}
               style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 4,
                 padding: "4px 10px",
                 borderRadius: 999,
                 fontSize: 11,
@@ -788,9 +1069,132 @@ function Body({
                 border: `1px solid ${tag.color_hex}55`,
               }}
             >
-              {tag.label}
-            </span>
+              <span>{tag.label}</span>
+              {canEdit && (
+                <button
+                  type="button"
+                  onClick={() => onRemoveTag(tag.id)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: tag.color_hex,
+                    cursor: "pointer",
+                    padding: 0,
+                    fontSize: 14,
+                    lineHeight: 1,
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                  aria-label={`Remove ${tag.label}`}
+                >
+                  ×
+                </button>
+              )}
+            </div>
           ))}
+        </div>
+        {canEdit && (
+          <button
+            type="button"
+            onClick={onOpenTagPicker}
+            style={{
+              marginTop: 8,
+              padding: "6px 12px",
+              fontSize: 11,
+              fontWeight: 600,
+              color: "var(--text-2)",
+              background: "var(--surface-3)",
+              border: "1px solid var(--border-1)",
+              borderRadius: 8,
+              cursor: "pointer",
+            }}
+          >
+            + Add tag
+          </button>
+        )}
+      </div>
+
+      {/* Tag picker popover */}
+      {tagPickerOpen && canEdit && (
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0,0,0,0.3)",
+            zIndex: 100,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 16,
+          }}
+          onClick={() => setTagPickerOpen(false)}
+        >
+          <div
+            style={{
+              background: "var(--glass-bg)",
+              backdropFilter: "var(--glass-blur)",
+              borderRadius: 12,
+              padding: 16,
+              maxWidth: "100%",
+              width: 320,
+              maxHeight: "50vh",
+              overflowY: "auto",
+              border: "1px solid var(--border-2)",
+              boxShadow: "var(--shadow-lg)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              style={{
+                fontSize: 13,
+                fontWeight: 700,
+                color: "var(--text-1)",
+                marginBottom: 12,
+              }}
+            >
+              Add tag
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {availableTags
+                .filter((t) => !tags.some((nt) => nt.id === t.id))
+                .map((tag) => (
+                  <button
+                    key={tag.id}
+                    type="button"
+                    onClick={() => onAddTag(tag.id)}
+                    style={{
+                      padding: "8px 12px",
+                      borderRadius: 8,
+                      fontSize: 12,
+                      fontWeight: 600,
+                      color: tag.color_hex,
+                      background: tag.color_hex + "22",
+                      border: `1px solid ${tag.color_hex}55`,
+                      cursor: "pointer",
+                      textAlign: "left",
+                    }}
+                  >
+                    {tag.label}
+                  </button>
+                ))}
+              {availableTags.filter((t) => !tags.some((nt) => nt.id === t.id))
+                .length === 0 && (
+                <div
+                  style={{
+                    fontSize: 12,
+                    color: "var(--text-3)",
+                    textAlign: "center",
+                    padding: 8,
+                  }}
+                >
+                  No more tags available
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
 

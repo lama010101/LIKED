@@ -137,6 +137,22 @@ function HorizTile({ item, onClick, currentUserId, onCardShare, onCardMoveToFold
         </div>
       )}
 
+      {/* Direction badge - mine vs received */}
+      {item.dir && (
+        <div
+          style={{
+            position: "absolute",
+            top: 4,
+            right: 4,
+            width: 9,
+            height: 9,
+            borderRadius: "50%",
+            border: "1.5px solid rgba(0,0,0,0.3)",
+            background: item.dir === "mine" ? "var(--accent)" : "#60c5f1",
+          }}
+        />
+      )}
+
       {/* Sent indicator */}
       {item.sentTo && item.sentTo.length > 0 && (
         <div

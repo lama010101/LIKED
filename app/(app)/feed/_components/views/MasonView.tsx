@@ -82,6 +82,21 @@ function MasonCard({ item, onClick, currentUserId, onCardShare, onCardMoveToFold
         ) : (
           <div style={{ width: "100%", height: "100%", background: item.art }} />
         )}
+        {/* Direction badge - mine vs received */}
+        {item.dir && (
+          <div
+            style={{
+              position: "absolute",
+              top: 6,
+              left: 6,
+              width: 9,
+              height: 9,
+              borderRadius: "50%",
+              border: "1.5px solid rgba(0,0,0,0.3)",
+              background: item.dir === "mine" ? "var(--accent)" : "#60c5f1",
+            }}
+          />
+        )}
       </div>
 
       {/* Meta area */}
