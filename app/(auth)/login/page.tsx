@@ -238,7 +238,7 @@ export default function LoginPage() {
           className="text-center text-sm"
           style={{ color: "var(--text-2)" }}
         >
-          Don't have an account?{" "}
+          Don&apos;t have an account?{" "}
           <a
             href="/signup"
             className="font-semibold hover:underline"

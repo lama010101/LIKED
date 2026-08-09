@@ -40,8 +40,8 @@ export function useNodePermission(
     setIsLoading(true);
     try {
       const [has, effective] = await Promise.all([
-        hasNodePermissionAction(userId, nodeId, required),
-        getEffectiveNodePermissionAction(userId, nodeId),
+        hasNodePermissionAction(nodeId, required),
+        getEffectiveNodePermissionAction(nodeId),
       ]);
       setHasPermission(has);
       setEffectivePermission(effective);
@@ -99,8 +99,8 @@ export function useFolderPermission(
     setIsLoading(true);
     try {
       const [has, effective] = await Promise.all([
-        hasFolderPermissionAction(userId, folderId, required),
-        getEffectiveFolderPermissionAction(userId, folderId),
+        hasFolderPermissionAction(folderId, required),
+        getEffectiveFolderPermissionAction(folderId),
       ]);
       setHasPermission(has);
       setEffectivePermission(effective);

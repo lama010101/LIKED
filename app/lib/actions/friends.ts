@@ -68,8 +68,8 @@ export async function sendFriendInviteAction(
   try {
     await sendFriendInvite(actorId, toEmail);
     return {};
-  } catch (error: any) {
-    if (error.message?.includes("duplicate") || error.message?.includes("unique")) {
+  } catch (error: unknown) {
+    if (error instanceof Error && (error.message.includes("duplicate") || error.message.includes("unique"))) {
       return { error: "ALREADY_SENT" };
     }
     throw error;

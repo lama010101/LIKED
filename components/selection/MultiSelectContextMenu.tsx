@@ -115,10 +115,10 @@ export default function MultiSelectContextMenu({
     }
   }, [isActive]);
 
-  if (!isActive || itemsCount === 0) return null;
-
   const ctx = useMemo(() => ({ activeFolderId }), [activeFolderId]);
   const applicable = ACTIONS.filter((a) => a.applies(items, ctx));
+
+  if (!isActive || itemsCount === 0) return null;
 
   const handleCancel = () => {
     onAction("cancel", items);

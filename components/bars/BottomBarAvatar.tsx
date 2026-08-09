@@ -122,7 +122,7 @@ export default function BottomBarAvatar({ item, onClick, currentUserId, onRefres
     setPopoverOpen(false);
     if (!currentUserId || !item.user_id) return;
     const { removeFriendAction } = await import('@/app/lib/actions/friends');
-    await removeFriendAction(currentUserId, item.user_id);
+    await removeFriendAction(item.user_id);
     if (onRefresh) onRefresh();
   };
 
@@ -132,7 +132,7 @@ export default function BottomBarAvatar({ item, onClick, currentUserId, onRefres
     const confirmed = window.confirm(`Block ${item.displayName}? They will be removed from your friends and will no longer be able to share content with you.`);
     if (!confirmed) return;
     const { blockUserAction } = await import('@/app/lib/actions/friends');
-    await blockUserAction(currentUserId, item.user_id);
+    await blockUserAction(item.user_id);
     if (onRefresh) onRefresh();
   };
 
@@ -282,7 +282,7 @@ export default function BottomBarAvatar({ item, onClick, currentUserId, onRefres
             className="w-full text-left px-3 py-2 rounded-lg text-sm text-white hover:bg-gray-800"
             onClick={handleViewFeed}
           >
-            View {item.displayName}'s feed
+            View {item.displayName}&apos;s feed
           </button>
           <button
             className="w-full text-left px-3 py-2 rounded-lg text-sm text-red-400 hover:bg-gray-800"

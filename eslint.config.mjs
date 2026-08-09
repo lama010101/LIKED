@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Non-source scripts and edge functions:
+    "scripts/**",
+    "supabase/functions/**",
+    "temp_*.js",
   ]),
 ]);
 

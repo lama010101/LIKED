@@ -4,6 +4,7 @@ export interface FeedItem {
   title: string;
   art: string;
   thumbnailKey?: string | null;
+  ownerId?: string;
   tag?: string;
   tagColor?: string;
   rating?: number;

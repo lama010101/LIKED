@@ -2,6 +2,7 @@
 
 import { useCallback, useState, useEffect } from "react";
 import { useDraggable, useDroppable, useDndContext } from "@dnd-kit/core";
+import type { DraggableSyntheticListeners } from "@dnd-kit/core";
 import type { FeedNode } from "@/lib/hooks/useFeed";
 import { sourceId, targetId } from "@/lib/dnd/types";
 import { useLongPress } from "@/lib/hooks/useLongPress";
@@ -15,7 +16,7 @@ interface NodeCardProps {
   node: FeedNode;
   onClick: (node: FeedNode) => void;
   currentUserId: string;
-  dragListeners?: Record<string, any>;
+  dragListeners?: DraggableSyntheticListeners;
   onShare?: (node: FeedNode) => void;
   onMoveToFolder?: (node: FeedNode) => void;
   onAddTag?: (node: FeedNode) => void;
