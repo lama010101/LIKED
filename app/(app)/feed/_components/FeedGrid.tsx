@@ -306,6 +306,7 @@ function toFeedItems(nodes: FeedNode[]): FeedItem[] {
       title: n.title ?? n.url ?? 'Untitled',
       art: `linear-gradient(135deg, hsl(${hue}, 40%, 35%), hsl(${(hue + 60) % 360}, 50%, 25%))`,
       thumbnailKey: n.thumbnail_key ?? null,
+      ownerId: n.owner_id,
       dir: n.direction === 'own' ? 'mine' : n.direction,
       source,
     };
@@ -414,6 +415,24 @@ export default function FeedGrid({
     useFilterStore.getState().clearContext();
   }, []);
 
+  // Simple toast utility
+  const showToast = useCallback((message: string) => {
+    const existing = document.getElementById('temp-toast');
+    if (existing) existing.remove();
+
+    const toast = document.createElement('div');
+    toast.id = 'temp-toast';
+    toast.style.cssText = 'position: fixed; bottom: 96px; left: 50%; transform: translateX(-50%); background: #111; color: #fff; padding: 12px 20px; border-radius: 12px; font-size: 13px; font-weight: 600; z-index: 60; pointer-events: none;';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+      toast.style.transition = 'opacity 0.3s ease';
+      toast.style.opacity = '0';
+      setTimeout(() => toast.remove(), 300);
+    }, 2000);
+  }, []);
+
   // Card menu callbacks
   const handleShare = useCallback((node: FeedNode) => {
     showToast('Coming soon — use drag to share');
@@ -456,25 +475,6 @@ export default function FeedGrid({
     router.refresh();
   }, [router]);
 
-  // Simple toast utility
-  const showToast = useCallback((message: string) => {
-    const existing = document.getElementById('temp-toast');
-    if (existing) existing.remove();
-
-    const toast = document.createElement('div');
-    toast.id = 'temp-toast';
-    toast.style.cssText = 'position: fixed; bottom: 96px; left: 50%; transform: translateX(-50%); background: #111; color: #fff; padding: 12px 20px; border-radius: 12px; font-size: 13px; font-weight: 600; z-index: 60; pointer-events: none;';
-    toast.textContent = message;
-    document.body.appendChild(toast);
-
-    setTimeout(() => {
-      toast.style.transition = 'opacity 0.3s ease';
-      toast.style.opacity = '0';
-      setTimeout(() => toast.remove(), 300);
-    }, 2000);
-  }, []);
-
-
   // Convert FeedNode[] → FeedItem[] for view components
   const feedItems = useMemo(() => {
     return toFeedItems(displayNodes);
@@ -482,7 +482,7 @@ export default function FeedGrid({
 
   // Reset pendingFolderSwitch when clientNodes changes (new fetch completed)
   useEffect(() => {
-    if (!isLoading) setPendingFolderSwitch(false);
+    if (!isLoading) queueMicrotask(() => setPendingFolderSwitch(false));
   }, [clientNodes, isLoading]);
 
 

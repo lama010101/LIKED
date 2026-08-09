@@ -28,11 +28,12 @@ import type { SessionUser } from '@/app/lib/actions/session';
 import type { FriendBarEntry, GroupBarEntry } from '@/lib/db/friends';
 
 function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== 'undefined' && window.matchMedia('(max-width: 1023px)').matches
+  );
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(max-width: 1023px)');
-    setIsMobile(mediaQuery.matches);
 
     const handleChange = (e: MediaQueryListEvent) => setIsMobile(e.matches);
     mediaQuery.addEventListener('change', handleChange);
@@ -137,8 +138,8 @@ function AppShell({ children }: { children: React.ReactNode }) {
       if (cancelled || !user) return;
       setSessionUser(user);
       Promise.all([
-        getFriendBarAction(user.id),
-        getGroupBarAction(user.id),
+        getFriendBarAction(),
+        getGroupBarAction(),
       ]).then(([friends, groups]) => {
         if (cancelled) return;
         setBottomBarItems(friendBarToBottomBarItems(user, friends, groups));
@@ -156,8 +157,8 @@ function AppShell({ children }: { children: React.ReactNode }) {
   const refreshFriends = useCallback(() => {
     if (!sessionUser) return;
     Promise.all([
-      getFriendBarAction(sessionUser.id),
-      getGroupBarAction(sessionUser.id),
+      getFriendBarAction(),
+      getGroupBarAction(),
     ]).then(([friends, groups]) => {
       setBottomBarItems(friendBarToBottomBarItems(sessionUser, friends, groups));
     }).catch((err) => console.error('[layout] refreshFriends failed:', err));

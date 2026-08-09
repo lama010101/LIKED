@@ -200,7 +200,20 @@ export interface Database {
           folder_id?: string | null
           created_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "folder_edges_folder_id_fkey"
+            columns: ["folder_id"]
+            referencedRelation: "folders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "folder_edges_node_id_fkey"
+            columns: ["node_id"]
+            referencedRelation: "nodes"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       friend_invites: {
         Row: {
@@ -248,6 +261,8 @@ export interface Database {
           name: string
           owner_id: string
           parent_folder_id: string | null
+          is_project: boolean
+          color_hex: string
           deleted_at: string | null
           created_at: string
         }
@@ -255,6 +270,8 @@ export interface Database {
           name: string
           owner_id: string
           parent_folder_id: string | null
+          is_project: boolean
+          color_hex: string
           deleted_at: string | null
         }
         Update: {
@@ -262,6 +279,8 @@ export interface Database {
           name?: string | null
           owner_id?: string | null
           parent_folder_id?: string | null
+          is_project?: boolean | null
+          color_hex?: string | null
           deleted_at?: string | null
           created_at?: string | null
         }
@@ -646,7 +665,7 @@ export interface Database {
         Args: {
           p_owner_id: string
           p_name: string
-          p_member_ids: any[]
+          p_member_ids: string[]
         }
         Returns: unknown
       }
@@ -808,9 +827,54 @@ export interface Database {
         }
         Returns: unknown
       }
+      update_node_title: {
+        Args: {
+          p_user_id: string
+          p_node_id: string
+          p_title: string
+        }
+        Returns: unknown
+      }
+      update_display_name: {
+        Args: {
+          p_user_id: string
+          p_display_name: string
+        }
+        Returns: {
+          error_code: string | null
+        }[]
+      }
+      update_avatar_key: {
+        Args: {
+          p_user_id: string
+          p_avatar_key: string
+        }
+        Returns: {
+          error_code: string | null
+        }[]
+      }
+      increment_view_count: {
+        Args: {
+          p_node_id: string
+        }
+        Returns: unknown
+      }
+      get_node_friend_ratings: {
+        Args: {
+          p_node_id: string
+          p_user_id: string
+        }
+        Returns: {
+          user_id: string
+          display_name: string
+          avatar_key: string | null
+          score: number
+          updated_at: string
+        }[]
+      }
     }
-    Views: {}
-    Enums: {}
-    CompositeTypes: {}
+    Views: Record<string, never>
+    Enums: Record<string, never>
+    CompositeTypes: Record<string, never>
   }
 }

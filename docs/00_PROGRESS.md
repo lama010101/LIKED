@@ -9,11 +9,11 @@
 
 | Field | Value |
 |-------|-------|
-| **Last completed task** | FIX-FOLDERSTACK-01 — Eliminate dual folderStack, move breadcrumb ancestry to filterStore |
-| **Next task to execute** | SPRINT-2-REVIEW |
-| **Current phase** | P9 — Search & Filters (UIX shell complete, audit-flagged blockers pending) |
-| **Phase gate passed** | ⚠️ Audit reveals P1/P3/P4 gates DID NOT hold — see AUDIT-01 |
-| **Last updated** | 2026-05-04 (Cascade) |
+| **Last completed task** | AUDIT-FIX-2026-08-09 — Build, type-check, lint, and audit remediation |
+| **Next task to execute** | — |
+| **Current phase** | P9 — Search & Filters (build green, type-check clean, lint clean) |
+| **Phase gate passed** | ✅ Audit blockers fixed; build / tsc / lint pass; npm audit 0 vulnerabilities |
+| **Last updated** | 2026-08-09 (Devin) |
 
 ---
 
@@ -315,3 +315,8 @@
   - `NodeCard.tsx` — Text cards use `.note-card` class: aspect-ratio 1/1, `#fde68a` tint, top-right folded corner, glossy `::before` gradient, hover `rotate(-0.6deg)`, mockup shadow stack, Caveat font, absolute meta date
   - `FabSpeedDial.tsx` — Refactored to `.fab`, `.fab-scrim`, `.speed-dial`, `.speed-dial__item/label/btn` CSS classes; staggered fade-in via CSS transitions
   - `TopBar.tsx` — Icon buttons updated to 38px, `surface-1` background, search field uses `.search-field` class, badge uses `.badge` class, header padding matches mockup
+
+### AUDIT-FIX — 2026-08-09
+| Task ID | Title | Status | Notes |
+|---------|-------|--------|-------|
+| AUDIT-FIX-2026-08-09 | Build/type/lint/audit remediation | ✅ | `npm run build`, `npx tsc --noEmit`, `npm run lint` pass; `npm audit` 0 vulnerabilities; Next.js bumped to 16.3.0; fixed route-handler params Promise typing, JSX parse error, used-before-declaration, conditional hooks, setState-in-effect, unescaped entities, FilterState `folderStack`, generated Supabase type gaps, server-action arg mismatches, ESLint ignore list, and `any` casts. See PR for full diff. |

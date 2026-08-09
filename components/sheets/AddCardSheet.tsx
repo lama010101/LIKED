@@ -152,20 +152,20 @@ export default function AddCardSheet({ open, onClose, userId, languageCode }: Ad
     let cancelled = false;
 
     // Load tags
-    getTagsAction(userId, languageCode || 'en')
+    getTagsAction(languageCode || 'en')
       .then((tags) => {
         if (!cancelled) setAvailableTags(tags.map(t => ({ id: t.id, label: t.label, color: t.color_hex })));
       })
       .catch((err) => console.error('Failed to load tags:', err));
 
     // Load friends
-    supabaseBrowser.rpc('get_friend_bar', { p_user_id: userId })
+    Promise.resolve(supabaseBrowser.rpc('get_friend_bar', { p_user_id: userId }))
       .then(({ data, error }) => {
         if (!cancelled && !error && data) {
-          const nonPending = (data as any[]).filter((f: any) => !f.is_pending);
-          setAvailableFriends(nonPending.map((f: any) => ({
-            id: f.user_id,
-            name: f.display_name,
+          const nonPending = data.filter((f) => !f.is_pending && f.user_id);
+          setAvailableFriends(nonPending.map((f) => ({
+            id: f.user_id as string,
+            name: f.display_name ?? 'Unknown',
             avatarKey: f.avatar_key,
           })));
         }
@@ -446,7 +446,7 @@ export default function AddCardSheet({ open, onClose, userId, languageCode }: Ad
               return (
                 <button
                   key={type.id}
-                  onClick={() => setSelectedType(type.id as any)}
+                  onClick={() => setSelectedType(type.id as typeof selectedType)}
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',

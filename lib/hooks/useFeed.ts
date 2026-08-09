@@ -128,6 +128,7 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
           viewMode,
           zoom,
           currentContextKey: '',
+          folderStack: [],
         },
         userId,
         languageCode
@@ -163,16 +164,14 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
       try {
         const limit = FEED_INITIAL_LOAD;
 
-        let data: FeedNode[];
-
-        const res = await Promise.resolve((supabaseBrowser.rpc as any)("get_feed", {
+        const res = await Promise.resolve(supabaseBrowser.rpc("get_feed", {
           ...feedParams,
-          p_cursor_created_at: null,
-          p_cursor_node_id: null,
+          p_cursor_created_at: undefined,
+          p_cursor_node_id: undefined,
           p_limit: limit,
         }));
         if (res.error) throw res.error;
-        data = (res.data ?? []) as unknown as FeedNode[];
+        const data = (res.data ?? []) as unknown as FeedNode[];
 
         if (!cancelled) {
           setNodes(data);
@@ -219,7 +218,7 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
 
     try {
       // Standard cursor-based pagination
-      const res = await Promise.resolve((supabaseBrowser.rpc as any)("get_feed", {
+      const res = await Promise.resolve(supabaseBrowser.rpc("get_feed", {
         ...feedParams,
         p_cursor_created_at: cursor.createdAt,
         p_cursor_node_id: cursor.nodeId,

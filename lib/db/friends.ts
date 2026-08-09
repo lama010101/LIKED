@@ -150,18 +150,18 @@ export async function getGroupBar(userId: string): Promise<GroupBarEntry[]> {
   }
 
   // Count members for each group
-  const groups = (data ?? []) as any[];
+  const groups = (data ?? []) as Array<{ id: string; name: string; owner_id: string }>;
   const groupIds = groups.map(g => g.id);
-  
+
   let memberCounts: Record<string, number> = {};
   if (groupIds.length > 0) {
     const { data: memberData } = await supabase
       .from("group_members")
       .select("group_id")
       .in("group_id", groupIds);
-    
+
     if (memberData) {
-      memberCounts = memberData.reduce((acc, m: any) => {
+      memberCounts = (memberData as Array<{ group_id: string }>).reduce((acc, m) => {
         acc[m.group_id] = (acc[m.group_id] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);

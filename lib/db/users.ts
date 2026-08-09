@@ -28,7 +28,7 @@ export async function updateDisplayName(
     throw new Error("Username must be between 3 and 32 characters.");
   }
 
-  const { data, error } = await (supabase as any).rpc("update_display_name", {
+  const { data, error } = await supabase.rpc("update_display_name", {
     p_user_id: userId,
     p_display_name: trimmed,
   });
@@ -48,7 +48,7 @@ export async function updateAvatar(
 ): Promise<void> {
   const supabase = getSupabaseServiceClient();
 
-  const { data, error } = await (supabase as any).rpc("update_avatar_key", {
+  const { data, error } = await supabase.rpc("update_avatar_key", {
     p_user_id: userId,
     p_avatar_key: avatarKey,
   });

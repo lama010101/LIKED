@@ -65,7 +65,7 @@ function ColTile({
     }
   };
   const showOverlays = true;
-  const isOwned = currentUserId && (item as any).owner_id === currentUserId;
+  const isOwned = currentUserId && item.ownerId === currentUserId;
 
   // Escape key closes menu
   useEffect(() => {

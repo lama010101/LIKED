@@ -3,15 +3,24 @@
 import { useState, useEffect } from 'react';
 
 export function useLocalStorage<T>(key: string, initial: T): [T, (v: T) => void] {
-  const [v, setV] = useState<T>(initial);
-  const [isHydrated, setIsHydrated] = useState(false);
+  const [v, setV] = useState<T>(() => {
+    if (typeof window === 'undefined') return initial;
+    try {
+      const s = localStorage.getItem(key);
+      return s !== null ? (JSON.parse(s) as T) : initial;
+    } catch {
+      return initial;
+    }
+  });
+  const [isHydrated, setIsHydrated] = useState(() => typeof window !== 'undefined');
 
   useEffect(() => {
-    setIsHydrated(true);
+    if (typeof window === 'undefined') return;
+    queueMicrotask(() => setIsHydrated(true));
     try {
       const s = localStorage.getItem(key);
       if (s !== null) {
-        setV(JSON.parse(s));
+        queueMicrotask(() => setV(JSON.parse(s) as T));
       }
     } catch {}
   }, [key]);

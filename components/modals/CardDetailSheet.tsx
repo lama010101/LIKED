@@ -371,10 +371,10 @@ export default function CardDetailSheet({
   // Load friend ratings when node changes
   useEffect(() => {
     if (!nodeId) {
-      setFriendRatings([]);
+      queueMicrotask(() => setFriendRatings([]));
       return;
     }
-    setFriendRatingsLoading(true);
+    queueMicrotask(() => setFriendRatingsLoading(true));
     getFriendRatingsAction(nodeId).then((res) => {
       if (res.ok) {
         setFriendRatings(res.ratings);

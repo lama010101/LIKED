@@ -1,11 +1,12 @@
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = await getSupabaseServerClient();
     const {
       data: { user },
@@ -15,7 +16,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const folderId = params.id;
+    const folderId = id;
 
     // Verify ownership before delete
     const { data: folder, error: fetchError } = await supabase
