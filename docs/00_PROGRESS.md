@@ -320,3 +320,17 @@
 | Task ID | Title | Status | Notes |
 |---------|-------|--------|-------|
 | AUDIT-FIX-2026-08-09 | Build/type/lint/audit remediation | ✅ | `npm run build`, `npx tsc --noEmit`, `npm run lint` pass; `npm audit` 0 vulnerabilities; Next.js bumped to 16.3.0; fixed route-handler params Promise typing, JSX parse error, used-before-declaration, conditional hooks, setState-in-effect, unescaped entities, FilterState `folderStack`, generated Supabase type gaps, server-action arg mismatches, ESLint ignore list, and `any` casts. See PR for full diff. |
+
+### ROADMAP — 2026-08-09
+| Task ID | Title | Status | Notes |
+|---------|-------|--------|-------|
+| ROADMAP | Implementation roadmap for remaining specs and errors | ✅ | `docs/ROADMAP.md` created; PR #3 opened and rebased onto `devin/20260809-audit-fixes`. |
+| 0-T01 | Supabase project / migration gap | ⏳ Blocked | Authenticated `/feed` 500s because the project behind `NEXT_PUBLIC_SUPABASE_URL` is missing the LIKED schema and `get_feed`. Needs correct DB connection string for `gzvixlvkwjsrtmtybtkf`. |
+| 1-T01 | ESLint warnings (70) | ⏳ In Progress | All warnings are in scope: unused variables, missing hook deps, `<img>` usage, custom fonts. |
+| 1-T02 | Audit H4/H5 write-authority gaps | ⏳ Not started | `create_node` / `create_node_with_metadata` still `SECURITY INVOKER`; folder writes (`addNodeToFolder`, `removeNodeFromFolder`, `deleteFolder`, `moveFolder`) need DB RPCs. |
+| 1-T03 | Next.js `proxy` migration | ⏳ Not started | `middleware.ts` is deprecated; migrate to `proxy` convention. |
+| 1-T04 | `dotenv` version hygiene | ⏳ Not started | `package.json` pins `^17.4.2` which does not exist; needs correction to a real version. |
+| P10 | Realtime & Notifications | ⏳ Not started | Phase 10 per `02_BUILD_PLAN.md`. |
+| P11 | Advanced Views & Multilingual | ⏳ Not started | Phase 11 per `02_BUILD_PLAN.md`. |
+| P12 | Admin & Permissions | ⏳ Not started | Phase 12 per `02_BUILD_PLAN.md`. |
+| P13 | Chat | ⏳ Deferred | Phase 13 per PRD §28; start only after P1–P12 gates pass. |
