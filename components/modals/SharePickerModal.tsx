@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/PermissionSelector";
 
 interface FolderShareInput {
-  sharerId: string;
   folderId: string;
   targetUserIds: string[];
   permission?: string;
@@ -75,7 +74,7 @@ export function SharePickerModal({
       if (shareType === "node") {
         // Share node to each selected user
         // First verify we have permission to share
-        const canShare = await hasNodePermissionAction(currentUserId, itemId, "reshare");
+        const canShare = await hasNodePermissionAction(itemId, "reshare");
         if (!canShare) {
           throw new Error("You don't have permission to share this node");
         }
@@ -83,7 +82,6 @@ export function SharePickerModal({
         // Share to each user
         for (const targetUserId of selectedUserIds) {
           await directShareAction({
-            sharerId: currentUserId,
             nodeId: itemId,
             targetUserId,
             permission,
@@ -92,7 +90,6 @@ export function SharePickerModal({
       } else {
         // Share folder
         const folderShareInput: FolderShareInput = {
-          sharerId: currentUserId,
           folderId: itemId,
           targetUserIds: selectedUserIds,
           permission,
@@ -142,7 +139,7 @@ export function SharePickerModal({
           maxWidth: '448px',
           margin: '16px',
           overflow: 'hidden',
-        }}
+        }}>
         {/* Header */}
         <div style={{ padding: '20px', borderBottom: '1px solid var(--border-1)' }}>
           <h3 style={{ fontSize: 18, fontWeight: 600, color: 'var(--text-1)' }}>

@@ -128,6 +128,7 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
           viewMode,
           zoom,
           currentContextKey: '',
+          folderStack: [],
         },
         userId,
         languageCode
