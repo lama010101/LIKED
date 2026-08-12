@@ -118,6 +118,7 @@ export function normalizeFilterState(state: Partial<FilterState>): FilterState {
     filterFolderIds: normalizeIdArray(state.filterFolderIds ?? []),
     searchQuery: normalizeSearch(state.searchQuery ?? null),
     currentContextKey: '',
+    folderStack: state.folderStack ?? DEFAULT_FILTER_STATE.folderStack,
   };
 }
 

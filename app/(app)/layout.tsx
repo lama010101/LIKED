@@ -137,8 +137,8 @@ function AppShell({ children }: { children: React.ReactNode }) {
       if (cancelled || !user) return;
       setSessionUser(user);
       Promise.all([
-        getFriendBarAction(user.id),
-        getGroupBarAction(user.id),
+        getFriendBarAction(),
+        getGroupBarAction(),
       ]).then(([friends, groups]) => {
         if (cancelled) return;
         setBottomBarItems(friendBarToBottomBarItems(user, friends, groups));
@@ -156,8 +156,8 @@ function AppShell({ children }: { children: React.ReactNode }) {
   const refreshFriends = useCallback(() => {
     if (!sessionUser) return;
     Promise.all([
-      getFriendBarAction(sessionUser.id),
-      getGroupBarAction(sessionUser.id),
+      getFriendBarAction(),
+      getGroupBarAction(),
     ]).then(([friends, groups]) => {
       setBottomBarItems(friendBarToBottomBarItems(sessionUser, friends, groups));
     }).catch((err) => console.error('[layout] refreshFriends failed:', err));

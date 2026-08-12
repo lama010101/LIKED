@@ -248,6 +248,8 @@ export interface Database {
           name: string
           owner_id: string
           parent_folder_id: string | null
+          is_project: boolean
+          color_hex: string
           deleted_at: string | null
           created_at: string
         }
@@ -255,6 +257,8 @@ export interface Database {
           name: string
           owner_id: string
           parent_folder_id: string | null
+          is_project?: boolean | null
+          color_hex?: string | null
           deleted_at: string | null
         }
         Update: {
@@ -262,6 +266,8 @@ export interface Database {
           name?: string | null
           owner_id?: string | null
           parent_folder_id?: string | null
+          is_project?: boolean | null
+          color_hex?: string | null
           deleted_at?: string | null
           created_at?: string | null
         }
@@ -805,6 +811,27 @@ export interface Database {
           p_user_id: string
           p_node_id: string
           p_score: number
+        }
+        Returns: unknown
+      }
+      update_node_title: {
+        Args: {
+          p_user_id: string
+          p_node_id: string
+          p_title: string
+        }
+        Returns: unknown
+      }
+      increment_view_count: {
+        Args: {
+          p_node_id: string
+        }
+        Returns: unknown
+      }
+      get_node_friend_ratings: {
+        Args: {
+          p_node_id: string
+          p_user_id: string
         }
         Returns: unknown
       }

@@ -80,7 +80,7 @@ export default function BottomBar({ items, onAvatarClick, state, onStateChange, 
     
     try {
       const { sendFriendInviteAction } = await import('@/app/lib/actions/friends');
-      const result = await sendFriendInviteAction(currentUserId, inviteEmail);
+      const result = await sendFriendInviteAction(inviteEmail);
       
       if (result.error === 'ALREADY_SENT') {
         setInviteError('Invite already sent to this email');

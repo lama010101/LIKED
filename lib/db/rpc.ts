@@ -6,7 +6,7 @@ export async function rpc<T>(
 ): Promise<T> {
   const supabase = await getSupabaseServerClient()
 
-  const { data, error } = await supabase.rpc(fn as never, params)
+  const { data, error } = await supabase.rpc(fn as any, params)
 
   if (error) {
     throw new Error(`[RPC:${fn}] ${error.message}`)
