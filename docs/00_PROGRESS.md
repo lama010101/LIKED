@@ -9,10 +9,10 @@
 
 | Field | Value |
 |-------|-------|
-|| **Last completed task** | Merge all open PRs |
-|| **Next task to execute** | Verify build / type-check / lint / npm audit after merges |
-|| **Current phase** | P9 — Search & Filters (post-merge verification) |
-|| **Phase gate passed** | ⏳ In Progress — fixes from PRs #1 and #4 applied; verification pending |
+|| **Last completed task** | Merge all open PRs (#1–#6) + verification |
+|| **Next task to execute** | — |
+|| **Current phase** | P9 — Search & Filters (build green, type-check clean, lint warnings only) |
+|| **Phase gate passed** | ✅ Build / type-check / lint pass; npm audit 0 vulnerabilities |
 || **Last updated** | 2026-08-12 (Devin) |
 
 ---
@@ -245,8 +245,8 @@
 | Task ID | Title | Status | Notes |
 |---------|-------|--------|-------|
 | FIX-TS-03-AUDIT | Audit codebase and update 00_PROGRESS.md | ✅ | Main branch audit run 2026-08-12: `npx tsc --noEmit` fails with parse errors in `components/modals/SharePickerModal.tsx`; `npm run lint` reports 289 problems (194 errors, 95 warnings); `npm audit` reports 8 vulnerabilities. |
-| FIX-TS-03-B1 | SharePickerModal / route handler TypeScript errors | ⏳ Not started | Parse errors in `components/modals/SharePickerModal.tsx` (missing closing brace) and Next.js 16 route handler `params` Promise typing. Candidate fix exists on `devin/1786496448-chrome-extension-atomic-plan`. |
-| FIX-TS-03-B2 | Lint errors and npm audit vulnerabilities | ⏳ Not started | `require()` imports in `scripts/`, unused variables, `<img>` usage, explicit `any`, plus 8 npm audit issues (Next.js, PostCSS, sharp, etc.). |
+| FIX-TS-03-B1 | SharePickerModal / route handler TypeScript errors | ✅ | Fixed by merging PR #4 (`devin/1786496448-chrome-extension-atomic-plan`): corrected Next.js 16 `params` Promise typing in `app/api/folders/[id]/route.ts` and `app/api/nodes/[id]/route.ts`, and fixed JSX parse error in `components/modals/SharePickerModal.tsx`. |
+| FIX-TS-03-B2 | Lint errors and npm audit vulnerabilities | ✅ | Fixed by merging PR #1 (`devin/20260809-audit-fixes`): bumped Next.js to 16.3.0 (`npm audit` 0 vulnerabilities) and resolved build-blocking lint errors. Remaining output is warnings only (70 unused-var / hook-deps / `<img>` warnings). |
 
 ### PHASES 10–13
 | Phase | Status |
