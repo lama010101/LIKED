@@ -112,8 +112,8 @@ export async function getUserFolders(): Promise<Folder[]> {
 
   // Build thumbnail map (up to 4 per folder)
   const thumbnailMap: Record<string, string[]> = {};
-  for (const item of nodeThumbnails ?? []) {
-    const edge = item as { folder_id: string; nodes: { thumbnail_key: string } };
+  for (const item of (nodeThumbnails ?? []) as unknown as Array<{ folder_id: string; nodes: { thumbnail_key: string } }>) {
+    const edge = item;
     const fid = edge.folder_id;
     const thumbKey = edge.nodes.thumbnail_key;
     if (!thumbnailMap[fid]) {
