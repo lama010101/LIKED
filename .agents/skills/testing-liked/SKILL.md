@@ -1,37 +1,44 @@
 ---
-name: LIKED Next.js E2E smoke test
-description: How to build, start, and run Playwright/CDP smoke tests for the LIKED Next.js app against the local dev server.
+name: testing-liked
+description: End-to-end smoke testing guidance for the LIKED Next.js app, including environment checks, login/workaround notes, and component isolation.
 ---
 
-# LIKED Next.js E2E smoke test
+# LIKED End-to-End Smoke Testing
 
-## Devin secrets needed
-- `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` — used by the app for auth and feed.
-- `SUPABASE_SERVICE_ROLE_KEY` / `SUPABASE_DB_CONNECTION` — only needed if you must set up or verify the Supabase project schema for authenticated tests.
+## Overview
 
-## Setup
-1. Checkout the branch under test (`devin/YYYYMMDD-audit-fixes`, etc.).
-2. Install JS deps and run static checks:
-   - `npx tsc --noEmit`
-   - `npm run lint` (expect 0 errors; warnings are common)
-   - `npm run build`
-3. Start the dev server: `npm run dev` (default port `3000`).
-4. If using Playwright and the browser cache is stale for the installed `playwright` version, run `npx playwright install chromium`.
+LIKED is a Next.js 15/16 + Supabase app. Authenticated smoke tests need a Supabase project that contains the LIKED schema (`public.users`, `public.get_feed` RPC, etc.) and a valid anon key.
 
-## Testing the unauthenticated golden path
-- `/login` should render the auth card with the `liked.` wordmark, email/password inputs, and **Sign In** / **Continue with Google** buttons.
-- `/signup` should render the same card with `displayName` input and **Sign Up** button.
-- `/feed` while unauthenticated should redirect to `/login` (per `middleware.ts` and `app/(app)/feed/page.tsx`).
-- Collect `pageerror` + `console` `error` events and any network response `>= 500`; fail if any appear.
+## Devin Secrets Needed
 
-## Testing the authenticated feed shell
-- The feed page requires a valid user session and the Supabase project must contain the LIKED schema, especially the `public.get_feed(...)` RPC.
-- If the configured Supabase project does not have `get_feed`, `/feed` will 500 after login and the feed UI cannot be exercised.
-- To get a session, either:
-  - use the `/signup` UI (works only when email confirmation is disabled); or
-  - use the Supabase admin API with `SUPABASE_SERVICE_ROLE_KEY` to create a confirmed user, then sign in through `/login`.
-- Once authenticated, exercise `TopBar` search, `FeedTabs`/`MineSubTabs`, `SortViewRow` view toggles, the `FabSpeedDial` **Add Card** sheet, and `BottomBar` interactions.
+- `NEXT_PUBLIC_SUPABASE_URL_DEV`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY` (for admin setup if needed)
+- `SUPABASE_DB_CONNECTION_DEV` (for seeding)
 
-## Common blockers
-- `get_feed` missing from the connected Supabase project → feed route 500s; cannot test feed shell or FAB/view-mode interactions.
-- Chrome for Testing infobar in Playwright headful screenshots; for PR-comment screenshots prefer a headless capture or crop the banner.
+## Steps
+
+1. `npm install` — expect an `EBADENGINE` warning for `eslint-visitor-keys` on Node `v20.18.x`; install still succeeds.
+2. `npm run build` — must exit `0`.
+3. Start dev server on the standard port: `npm run dev`.
+4. Smoke-test pages:
+   - `http://localhost:3000/login` — expect centered auth form.
+   - `http://localhost:3000/signup` — expect centered signup form.
+   - `http://localhost:3000/feed` unauthenticated — expect `307` redirect to `/login`.
+5. Dynamic route handlers (Next.js 16 `params` Promise):
+   - `curl -X DELETE http://localhost:3000/api/folders/test-id` → `401` (not 500).
+   - `curl -X DELETE http://localhost:3000/api/nodes/test-id` → `401` (not 500).
+6. If real auth cannot be created because the Supabase project is empty or credentials mismatch, isolate components:
+   - Create temporary `app/test-add-card/page.tsx` rendering `<AddCardSheet open userId="" ... />`.
+   - Create temporary `app/test-share/page.tsx` rendering `<SharePickerModal isOpen shareType="node" ... />`.
+   - Delete the temporary routes after screenshots.
+
+## Common Issues
+
+- `Invalid API key` or `Database error querying schema` during login usually means the configured `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` point to a project without the LIKED schema or with mismatched credentials. Verify the URL matches the key's `ref` claim.
+- Direct `auth.users` insertion via the DB connection is unlikely to work for GoTrue sign-in; prefer the Admin API or Supabase Dashboard.
+- The `middleware` deprecation warning from Next.js 16 is non-fatal.
+
+## Annotations
+
+Use `annotate_recording` for setup, test start, and pass/fail assertions. Maximize Chrome before recording.
