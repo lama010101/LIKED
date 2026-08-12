@@ -9,11 +9,11 @@
 
 | Field | Value |
 |-------|-------|
-| **Last completed task** | FIX-FOLDERSTACK-01 — Eliminate dual folderStack, move breadcrumb ancestry to filterStore |
-| **Next task to execute** | SPRINT-2-REVIEW |
-| **Current phase** | P9 — Search & Filters (UIX shell complete, audit-flagged blockers pending) |
-| **Phase gate passed** | ⚠️ Audit reveals P1/P3/P4 gates DID NOT hold — see AUDIT-01 |
-| **Last updated** | 2026-05-04 (Cascade) |
+| **Last completed task** | FIX-TS-03-AUDIT — Codebase audit and 00_PROGRESS.md update |
+| **Next task to execute** | FIX-TS-03-IMPL — Resolve TypeScript build errors and lint/audit issues |
+| **Current phase** | P9 — Search & Filters (TypeScript/lint remediation needed) |
+| **Phase gate passed** | ❌ Build / type-check / lint fail; npm audit has 8 vulnerabilities — see FIX-TS-03 |
+| **Last updated** | 2026-08-12 (Devin) |
 
 ---
 
@@ -240,6 +240,13 @@
 | AUDIT-01 / M5 | `proxy.ts:41` `console.log` | ⚠️ MEDIUM | Remove when renaming to `middleware.ts`. |
 | AUDIT-01 / M6 | `supabase_migrations.schema_migrations` empty | ⚠️ MEDIUM | Switch to `supabase db push` or manually record applied versions. |
 | AUDIT-01 / M7 | 00_PROGRESS.md line 159 claim "permissions.ts unused" is stale | ⚠️ MEDIUM | Imported by `folders.ts`, `sharing.ts`, `usePermissions.ts`, `SharePickerModal.tsx`. |
+
+### FIX-TS-03 — TypeScript Build Remediation
+| Task ID | Title | Status | Notes |
+|---------|-------|--------|-------|
+| FIX-TS-03-AUDIT | Audit codebase and update 00_PROGRESS.md | ✅ | Main branch audit run 2026-08-12: `npx tsc --noEmit` fails with parse errors in `components/modals/SharePickerModal.tsx`; `npm run lint` reports 289 problems (194 errors, 95 warnings); `npm audit` reports 8 vulnerabilities. |
+| FIX-TS-03-B1 | SharePickerModal / route handler TypeScript errors | ⏳ Not started | Parse errors in `components/modals/SharePickerModal.tsx` (missing closing brace) and Next.js 16 route handler `params` Promise typing. Candidate fix exists on `devin/1786496448-chrome-extension-atomic-plan`. |
+| FIX-TS-03-B2 | Lint errors and npm audit vulnerabilities | ⏳ Not started | `require()` imports in `scripts/`, unused variables, `<img>` usage, explicit `any`, plus 8 npm audit issues (Next.js, PostCSS, sharp, etc.). |
 
 ### PHASES 10–13
 | Phase | Status |
