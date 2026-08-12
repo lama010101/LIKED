@@ -1,700 +1,310 @@
 # LIKED — Chrome Extension Atomic Implementation Plan
 
-**Version:** 1.0  
+**Version:** 2.0  
 **Status:** PROPOSED / READY FOR EXECUTION  
-**Companion to:** `01_PRD.md`, `03_TECHNICAL_ARCHITECTURE.md`, `04_FEED_SQL_SPEC.md`, `02_BUILD_PLAN.md`  
-**Scope:** Implement the *LIKED Chrome Extension* PRD as a thin import client over the existing LIKED backend.
+**Companion to:** `docs/01_PRD.md`, `docs/03_TECHNICAL_ARCHITECTURE.md`, `docs/04_FEED_SQL_SPEC.md`, `docs/06_CHROME_EXTENSION_PRD.md`
 
 ---
 
-## Authority & Constraints
+## Authority & Invariants
 
-This plan is subordinate to the existing LIKED architecture. These invariants are non-negotiable for every task:
+This plan is subordinate to the existing LIKED architecture and to `docs/06_CHROME_EXTENSION_PRD.md`. These invariants are non-negotiable for every task:
 
 * **Visibility = `edges` only.** The extension never computes, stores, or hints at feed visibility.
 * **Feed = `get_feed()` only.** The extension implements no feed, sort, filter, dedup, or pagination logic.
-* **Writes = `cause` → `node` → `edge` in one transaction.** The extension never writes `causes`, `edges`, `folder_edges`, or `tag_edges` directly.
+* **Writes = `cause` → `node` → `edge` in one transaction.** The extension never writes `causes`, `edges`, `folder_edges`, `tag_edges`, or `node_notes` directly.
 * **Nodes = content source of truth.** The extension sends only `url` + optional user metadata; canonical metadata extraction stays on the backend.
 * **No database credentials in the extension.** All persistence goes through authenticated HTTPS API calls.
+* **Manifest V3, minimal permissions.** Target `activeTab` + `storage`. No `history`, `tabs`, `webRequest`, or `cookies` unless explicitly justified.
 
 ---
 
 ## Deliverables
 
-1. A new `import_url` Postgres RPC that performs the complete extension import in one atomic transaction.
-2. Three new Next.js API routes:
-   * `POST /api/import` — the only import mutation path.
-   * `GET /api/extension/folders` — the folder picker data.
-   * `GET /api/extension/tags` — the tag picker data.
-3. A Chrome Extension (Manifest V3) under `extension/`:
-   * `manifest.json`
-   * `popup/` (HTML / TS / CSS)
-   * `background/service-worker.ts`
-   * `auth/session.ts`
-   * `api/liked-client.ts`
-4. A web-app auth relay page at `app/extension/auth/page.tsx`.
-5. Updated environment variables and build scripts.
+### A. Updated PRD
 
----
+Saved as `docs/06_CHROME_EXTENSION_PRD.md`. New or expanded sections:
 
-## Recommended Extension Architecture
+* Product Direction, Core Value Proposition, Product Philosophy
+* Extension Core Workflow (YouTube focus)
+* Save UX, Collections, Tags, Personal Notes
+* Search & Rediscovery, Creator Workflow
+* AI-Assisted Organization, Library UI
+* Extension ↔ Web App Relationship
+* MVP Priority P0/P1/P2
+* Duplicate Handling, Generic Web Content
+* Data Model & Sources of Truth, API Contract, Security, Non-Goals, Open Questions
 
-```
-extension/
-├── src/
-│   ├── popup/
-│   │   ├── popup.html
-│   │   ├── popup.ts
-│   │   └── popup.css
-│   ├── background/
-│   │   └── service-worker.ts
-│   ├── auth/
-│   │   └── session.ts
-│   ├── api/
-│   │   └── liked-client.ts
-│   └── types/
-│       └── index.ts
-├── dist/                         # built JS + manifest + icons
-├── public/
-│   └── icons/                    # 16, 32, 48, 128 PNG
-├── manifest.json                 # points at dist/ files
-├── package.json
-├── tsconfig.json
-└── README.md
-```
+### B. Updated Implementation Plan
 
-The extension is a pure client of the LIKED Next.js app. It stores only an auth token and the current-tab preview; it has no local LIKED state.
+This document. It preserves the atomic implementation approach from v1.0 but updates priorities, schema, API, extension UI, and testing to match the v2.0 product direction.
 
----
+### C. Database Changes
 
-## Phase 0 — Backend Import Authority (Database)
+1. **`nodes.source_type` TEXT nullable**  
+   Distinguish content kinds: `youtube`, `webpage`, `text`, etc. Keeps `nodes` generic and extensible.
 
-### EXT-0.1 — Register the Chrome Extension as an external source
+2. **`nodes.source_meta` JSONB nullable**  
+   Source-specific metadata: `video_id`, `channel_id`, `channel_name`, `site_name`, `published_at`. Avoids per-source columns.
 
-**Goal:** Give the import system a registered `external_sources` identity for the extension.
+3. **New `node_notes` table** for personal notes:
 
-**Files to touch:**
-* `supabase/migrations/043_extension_import.sql`
-
-**Change:**
-```sql
-INSERT INTO external_sources (name, base_url)
-VALUES ('chrome_extension', 'chrome-extension://')
-ON CONFLICT (name) DO UPDATE SET base_url = EXCLUDED.base_url;
-```
-
-**Acceptance:**
-- [ ] `SELECT id FROM external_sources WHERE name = 'chrome_extension'` returns a stable UUID.
-- [ ] Migration is idempotent (runs safely on an already-seeded DB).
-
----
-
-### EXT-0.2 — Extend `create_node_with_metadata` with optional cause metadata
-
-**Goal:** Allow the extension import to write `cause.metadata = { url, source: 'chrome_extension' }` while keeping the existing web creation path unchanged.
-
-**Files to touch:**
-* `supabase/migrations/043_extension_import.sql`
-* `lib/db/nodes.ts` (only to confirm call signature is unchanged)
-
-**Change:**
-Recreate `create_node_with_metadata` with one new optional parameter at the end:
-
-```sql
-CREATE OR REPLACE FUNCTION create_node_with_metadata(
-  p_owner_id UUID,
-  p_url TEXT,
-  p_text_content TEXT,
-  p_title TEXT,
-  p_thumbnail_key TEXT,
-  p_language_code TEXT,
-  p_tag_labels TEXT[],
-  p_cause_metadata JSONB DEFAULT NULL
-)
-```
-
-Inside the function, replace the existing cause insert with:
-
-```sql
-INSERT INTO causes (cause_type, created_by, metadata)
-VALUES (
-  'import',
-  p_owner_id,
-  COALESCE(
-    p_cause_metadata,
-    jsonb_build_object('node_id', v_node_id)
-  )
-)
-```
-
-**Acceptance:**
-- [ ] `npm run lint` and `npx tsc --noEmit` pass.
-- [ ] Existing `AddCardSheet` URL + text creation still works and produces `causes.metadata = { node_id: ... }`.
-- [ ] The new `p_cause_metadata` parameter is accepted when supplied, without changing the return table.
-
----
-
-### EXT-0.3 — Create the `import_url` atomic import RPC
-
-**Goal:** One transaction that does everything the extension import needs: dedup, node creation, cause + edge creation, folder/tag/description writes, and external-source provenance.
-
-**Files to touch:**
-* `supabase/migrations/043_extension_import.sql`
-
-**Suggested signature:**
-
-```sql
-CREATE OR REPLACE FUNCTION import_url(
-  p_user_id UUID,
-  p_url TEXT,
-  p_folder_id UUID DEFAULT NULL,
-  p_tag_ids UUID[] DEFAULT NULL,
-  p_new_tag_labels TEXT[] DEFAULT NULL,
-  p_description TEXT DEFAULT NULL,
-  p_language_code TEXT DEFAULT 'en',
-  p_title TEXT DEFAULT NULL,
-  p_thumbnail_key TEXT DEFAULT NULL,
-  p_external_source_name TEXT DEFAULT 'chrome_extension',
-  p_external_id TEXT DEFAULT NULL
-)
-RETURNS TABLE (
-  node_id UUID,
-  already_exists BOOLEAN
-)
-LANGUAGE plpgsql
-SECURITY DEFINER
-```
-
-**Behavior:**
-
-1. **URL validation** — `p_url` must start with `http://` or `https://`.
-2. **Deduplication** — check `nodes` for an existing active node (`deleted_at IS NULL`) with the same `owner_id = p_user_id` and `url = p_url`. If found:
-   * `already_exists` = true.
-   * Return the existing `node_id`.
-   * Do **not** create a new cause, node, or edge.
-   * Do **not** re-apply folder/tag/description in MVP (the popup will show the "Already saved" state).
-3. **External source resolution** — resolve `external_sources.id` from `p_external_source_name`; default to `'chrome_extension'`.
-4. **Node creation** — call `create_node_with_metadata` with:
-   * `p_owner_id := p_user_id`
-   * `p_url := p_url`
-   * `p_text_content := NULL`
-   * `p_title := p_title` (fallback to `p_url` if NULL)
-   * `p_thumbnail_key := p_thumbnail_key`
-   * `p_language_code := p_language_code`
-   * `p_tag_labels := COALESCE(p_new_tag_labels, '{}')`
-   * `p_cause_metadata := jsonb_build_object('url', p_url, 'source', p_external_source_name)`
-5. **Folder assignment** — if `p_folder_id` is not NULL and `has_folder_permission(p_user_id, p_folder_id, 'contribute')` is true, call `add_node_to_folder(v_node_id, p_folder_id)`.
-6. **Existing-tag assignment** — for each `tag_id` in `p_tag_ids` that exists in `tags`, insert into `tag_edges` (`ON CONFLICT DO NOTHING`).
-7. **Description / translation** — insert or update one `translations` row for `(v_node_id, p_language_code)` with `title = p_title` and `description = p_description` (skip if `p_description` is NULL or whitespace-only).
-8. **External provenance** — insert `external_items_map` row:
-   * `external_source_id` from step 3.
-   * `external_id := COALESCE(p_external_id, p_user_id || ':' || p_url)`.
-   * `node_id := v_node_id`.
-   * `ON CONFLICT DO NOTHING`.
-9. Return `node_id` and `already_exists = false`.
-
-**Acceptance:**
-- [ ] A fresh URL import returns a new `node_id` and `already_exists = false`.
-- [ ] A duplicate URL import for the same user returns the existing `node_id` and `already_exists = true`.
-- [ ] After a successful import, the DB contains exactly one `causes` row (`cause_type = 'import'`), one `edges` row (`direction = 'sent'`, `depth = 0`), optional `folder_edges`, optional `tag_edges`, and one `external_items_map` row.
-- [ ] The function is granted to `authenticated` and `service_role`.
-
----
-
-## Phase 1 — Backend API Routes
-
-### EXT-1.1 — Create token-aware Supabase helper
-
-**Goal:** The API routes need to resolve a user from the `Authorization: Bearer <access_token>` header sent by the extension.
-
-**Files to touch:**
-* `lib/supabase/server.ts` (or new `lib/supabase/token.ts`)
-
-**Change:**
-Add a small helper:
-
-```ts
-export async function getSupabaseServerClientFromToken(accessToken: string) {
-  const supabase = createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: { getAll: () => [], setAll: () => {} },
-      auth: { autoRefreshToken: false, detectSessionInUrl: false }
-    }
-  );
-  const { data, error } = await supabase.auth.getUser(accessToken);
-  if (error || !data.user) throw new Error('Invalid token');
-  return { supabase, user: data.user };
-}
-```
-
-**Acceptance:**
-- [ ] Calling the helper with a valid access token returns the LIKED user.
-- [ ] Calling it with an invalid/expired token throws.
-
----
-
-### EXT-1.2 — Implement `POST /api/import`
-
-**Goal:** The extension's sole mutation endpoint. It is an orchestrator: validate, extract metadata, call `import_url`.
-
-**Files to touch:**
-* `app/api/import/route.ts`
-* `lib/db/import.ts` (optional thin wrapper around `import_url` RPC)
-
-**Request contract:**
-```ts
-interface ImportRequest {
-  url: string;
-  folderId?: string;
-  tagIds?: string[];
-  newTagLabels?: string[];      // only if UI supports creating tags
-  description?: string;
-  clientMetadata?: {
-    pageTitle?: string;
-    pageDescription?: string;
-    faviconUrl?: string;
-  };
-}
-```
-
-**Response contract:**
-```ts
-interface ImportResponse {
-  success: true;
-  nodeId: string;
-  alreadyExists: boolean;
-}
-
-interface ImportError {
-  success: false;
-  code: 'unauthenticated' | 'invalid' | 'network' | 'server';
-  message: string;
-}
-```
-
-**Behavior:**
-1. Set CORS headers (`Access-Control-Allow-Origin: *` for MVP; credentials are not used because auth is header-based).
-2. Extract `Authorization: Bearer <token>`; 401 if missing/invalid.
-3. Read and validate body (`url` required, valid HTTP/HTTPS URL).
-4. Fetch the user's `language_code` from `users`.
-5. Invoke the `extract-node-metadata` Edge Function with:
-   * `url`
-   * `user_language_code`
-   * `client_title`, `client_description`, `favicon_url` as optional fallbacks.
-   * 10-second timeout; on failure, continue with `clientMetadata` fallbacks.
-6. Determine final values:
-   * `title` = Edge Function `title` → `clientMetadata.pageTitle` → `url`.
-   * `thumbnailKey` = Edge Function `thumbnail_key` → null.
-   * `languageCode` = Edge Function `language_code` → user `language_code` → `'en'`.
-   * `description` = user `description` (the user's note) → Edge Function `description` → null.
-7. Call `import_url` RPC with all fields.
-8. Return `{ success: true, nodeId, alreadyExists }`.
-
-**Errors:**
-* 401 `unauthenticated`
-* 400 `invalid` (bad URL or missing required field)
-* 503 `network` (backend unreachable / Edge Function unreachable)
-* 500 `server` (RPC failure)
-
-**Acceptance:**
-- [ ] `curl` with a valid token and URL returns `success: true` and a `nodeId`.
-- [ ] The created node appears in the user's feed via `get_feed()`.
-- [ ] Folder and tags are reflected on the node.
-- [ ] Duplicate import returns `alreadyExists: true`.
-
----
-
-### EXT-1.3 — Implement `GET /api/extension/folders`
-
-**Goal:** Provide the popup folder picker with the user's folder hierarchy.
-
-**Files to touch:**
-* `app/api/extension/folders/route.ts`
-* `lib/db/folders.ts` (add `getUserFoldersByUserId` if needed)
-
-**Change:**
-* Authenticate via token helper.
-* Call `getUserFolders()` or a new `getUserFoldersByUserId(userId)` wrapper.
-* Return a flat array with `id`, `name`, `parent_folder_id`, `color_hex`.
-
-**Acceptance:**
-- [ ] Returns only folders the authenticated user owns or has access to.
-- [ ] Includes `parent_folder_id` so the popup can render a tree.
-- [ ] CORS headers present.
-
----
-
-### EXT-1.4 — Implement `GET /api/extension/tags`
-
-**Goal:** Provide the popup tag picker with canonical LIKED tags.
-
-**Files to touch:**
-* `app/api/extension/tags/route.ts`
-* `lib/db/tags.ts` (`getVisibleTags` or `getAllTags`)
-
-**Change:**
-* Authenticate via token helper.
-* Use `getVisibleTags(userId, languageCode)` (or `getAllTags`) to fetch tags.
-* Return `{ id, label, color_hex }[]`.
-
-**Acceptance:**
-- [ ] Returns tags in the user's language with the deterministic fallback chain.
-- [ ] CORS headers present.
-
----
-
-## Phase 2 — Extension Authentication
-
-### EXT-2.1 — Add extension manifest and permissions
-
-**Goal:** Minimum viable Manifest V3 with only the permissions required by the PRD.
-
-**Files to touch:**
-* `extension/manifest.json`
-
-**Minimal manifest:**
-```json
-{
-  "manifest_version": 3,
-  "name": "LIKED",
-  "version": "0.1.0",
-  "description": "Save the current page to LIKED.",
-  "permissions": ["activeTab", "storage"],
-  "action": {
-    "default_popup": "dist/popup.html",
-    "default_icon": {
-      "16": "public/icons/icon16.png",
-      "32": "public/icons/icon32.png"
-    }
-  },
-  "icons": {
-    "16": "public/icons/icon16.png",
-    "32": "public/icons/icon32.png",
-    "48": "public/icons/icon48.png",
-    "128": "public/icons/icon128.png"
-  },
-  "background": {
-    "service_worker": "dist/service-worker.js"
-  },
-  "externally_connectable": {
-    "matches": ["https://<LIKED_HOST>/*"]
-  },
-  "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'"
-  }
-}
-```
-
-Replace `<LIKED_HOST>` with the deployed domain (`liked.app` or `localhost:3000` for dev).
-
-**Acceptance:**
-- [ ] Chrome loads the unpacked extension without warnings.
-- [ ] Only `activeTab` and `storage` are requested.
-- [ ] No `history`, `tabs`, `webRequest`, or `cookies` permissions are declared.
-
----
-
-### EXT-2.2 — Build the web-app auth relay page
-
-**Goal:** After the user signs in on the LIKED website, send the Supabase session back to the extension and close the tab.
-
-**Files to touch:**
-* `app/extension/auth/page.tsx` (or `app/(app)/extension/auth/page.tsx` if protected by middleware)
-* `.env.local` (add `NEXT_PUBLIC_EXTENSION_ID`)
-
-**Behavior:**
-1. Use `getSupabaseServerClient()` to get the current user and session.
-2. If unauthenticated, render a "Sign in to LIKED" link/button pointing to `/login?redirect=/extension/auth`.
-3. If authenticated, render a tiny script that calls:
-   ```js
-   chrome.runtime.sendMessage(
-     process.env.NEXT_PUBLIC_EXTENSION_ID,
-     { type: 'LIKED_SESSION', accessToken, refreshToken, expiresIn }
-   );
-   setTimeout(() => window.close(), 250);
    ```
-4. The page must be served over HTTPS.
+   id            UUID PRIMARY KEY DEFAULT gen_random_uuid()
+   node_id       UUID NOT NULL REFERENCES nodes(id) ON DELETE CASCADE
+   user_id       UUID NOT NULL REFERENCES users(id)
+   note_text     TEXT NOT NULL
+   created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+   UNIQUE(node_id, user_id)
+   ```
 
-**Acceptance:**
-- [ ] Visiting `/extension/auth` while signed in sends the session to the extension.
-- [ ] The tab closes automatically.
-- [ ] The `NEXT_PUBLIC_EXTENSION_ID` is configurable per environment.
+4. **Extend `create_node_with_metadata` RPC** with optional parameters:
+   * `p_source_type TEXT`
+   * `p_source_meta JSONB`
+   * `p_description TEXT`
+   * `p_external_id TEXT`
+   * Insert a `translations` row for `(node_id, p_language_code)` when `p_description` is supplied or when a translation title should be pre-seeded.
 
----
+5. **New `import_url` RPC** — the single import authority for the extension:
+   * Validate URL.
+   * Canonicalize YouTube URLs to a bare `watch?v=VIDEO_ID` form for deduplication.
+   * Check for existing active node by `(owner_id, canonical_url)`.
+   * Resolve `external_sources.id` for `chrome_extension`.
+   * Call `create_node_with_metadata` to create `cause` (type `import`), `node`, `edge` (depth 0, direction `sent`), `nodes_sort_cache`, and auto-tags from suggested labels.
+   * Add `folder_edges` when `p_folder_id` is provided and the user has `contribute` permission.
+   * Add `tag_edges` for existing `tag_ids` and create new tags for `new_tag_labels` using the existing deterministic tag process.
+   * Insert `node_notes` when a personal note is provided.
+   * Insert `external_items_map` provenance row.
+   * Return `{ node_id UUID, already_exists BOOLEAN }`.
 
-### EXT-2.3 — Implement extension auth/session module
+6. **Update `get_feed` and `search_nodes`** to include:
+   * `node_notes.note_text` in keyword search (owner-only notes).
+   * `nodes.source_meta->>'channel_name'` in keyword search for channel search.
+   * Optional `has_note` / `source_meta` output columns for card rendering.
 
-**Goal:** Store and refresh the Supabase session inside the extension.
+7. **Seed `external_sources`** with a stable `chrome_extension` row (idempotent).
 
-**Files to touch:**
-* `extension/src/auth/session.ts`
-* `extension/src/background/service-worker.ts`
+8. **Indexes** as required for `node_notes`, `source_meta` search, and any new generated columns.
 
-**Change:**
-* Use `chrome.storage.local` as a custom storage backend for `@supabase/supabase-js`.
-* Create a lightweight `getSupabaseExtensionClient()` that uses the anon key and `chrome.storage.local`.
-* In the service worker, listen for external messages:
-  ```ts
-  chrome.runtime.onMessageExternal.addListener((request, sender, sendResponse) => {
-    if (request.type === 'LIKED_SESSION') {
-      // store accessToken, refreshToken, expiresIn
-      chrome.storage.local.set({ session: request });
-    }
-  });
-  ```
-* Expose helpers: `getSession()`, `isAuthenticated()`, `signOut()`.
-* `signIn()` opens `https://<LIKED_HOST>/extension/auth` in a new tab.
+9. **Regenerate `lib/types/database.ts`** after migrations are applied.
 
-**Acceptance:**
-- [ ] Signing in via the web app stores tokens in `chrome.storage.local`.
-- [ ] The popup can read the session without re-authenticating on every open.
-- [ ] `signOut` clears storage.
+### D. Chrome Extension Changes
 
----
+* `extension/manifest.json` — Manifest V3, permissions `activeTab` and `storage`, icons, action popup, background service worker, `externally_connectable` to the LIKED host.
+* `extension/src/background/service-worker.ts` — listen for `chrome.runtime.onMessageExternal` auth messages, store session in `chrome.storage.local`; no history monitoring, no background sync, no feed polling.
+* `extension/src/auth/session.ts` — Supabase client backed by `chrome.storage.local`; helpers `getSession`, `isAuthenticated`, `signOut`, `signIn`.
+* `extension/src/api/liked-client.ts` — typed `fetch` wrapper for `/api/import`, `/api/extension/folders`, `/api/extension/tags`; bearer token auth; error normalization.
+* `extension/src/popup/popup.html`, `popup.ts`, `popup.css` — popup UI:
+  * unauthenticated sign-in CTA
+  * authenticated active tab preview (title, URL, favicon)
+  * quick save → “Saved ✓”
+  * expanded optional collection picker, tag chips, note textarea
+  * duplicate state with “Open in LIKED”
+  * error states from PRD §21
+* `extension/public/icons/` — 16, 32, 48, 128 PNG icons.
+* `extension/package.json`, `tsconfig.json` — extension build; root `package.json` scripts `build:extension` and `dev:extension`.
+* `extension/README.md` — build and load instructions.
 
-## Phase 3 — Extension Popup UI
+### E. API Changes
 
-### EXT-3.1 — Implement the popup UI
+* `POST /api/import` — extension mutation orchestrator:
+  * Bearer token authentication.
+  * Validate URL.
+  * Call `extract-node-metadata` Edge Function with client metadata fallbacks; 10-second timeout.
+  * Merge Edge Function output and client metadata.
+  * Call `import_url` RPC.
+  * Return `{ success, nodeId, alreadyExists }` or typed error.
 
-**Goal:** Match the PRD wireframe: title preview, folder picker, description, tag picker, save button.
+* `GET /api/extension/folders` — folder picker data:
+  * Bearer token authentication.
+  * Return `{ id, name, parentFolderId, colorHex, isProject }[]`.
 
-**Files to touch:**
-* `extension/src/popup/popup.html`
-* `extension/src/popup/popup.ts`
-* `extension/src/popup/popup.css`
+* `GET /api/extension/tags` — tag picker data:
+  * Bearer token authentication.
+  * Return `{ id, label, colorHex }[]` in the user's language.
 
-**Behavior:**
-1. On open:
-   * If not authenticated, render the sign-in CTA and a **Sign in** button.
-   * If authenticated, query `chrome.tabs.query({ active: true, currentWindow: true })` and read `tab.url`, `tab.title`, `tab.favIconUrl`.
-   * Validate `url` (HTTP/HTTPS only). If invalid, show "This page cannot be saved."
-   * Populate the title field with `tab.title` (displayed as a preview, not canonical).
-   * Fetch `/api/extension/folders` and `/api/extension/tags`.
-2. Folder picker: flat list rendered as a tree using `parent_folder_id`. Default = no folder.
-3. Tag picker: multi-select chips from `/api/extension/tags`. For MVP, existing tags only. New-tag creation can be deferred or implemented by sending labels to `newTagLabels`.
-4. Description: multiline textarea, optional, plain text only. Trim whitespace; treat whitespace-only as empty.
-5. **Save to LIKED** button:
-   * POST `/api/import` with the payload.
-   * Show loading state.
-   * On success with `alreadyExists: false`: show ✓ Saved, then auto-close after ~1.5s.
-   * On success with `alreadyExists: true`: show "Already saved" with an **Open in LIKED** button linking to `https://<LIKED_HOST>/feed?node=<nodeId>`.
-   * On error: show the mapped error UI (Sign in / Try again / Cannot be saved / Server error).
+* `app/extension/auth/page.tsx` — web auth relay:
+  * If unauthenticated, show sign-in link to `/login?redirect=/extension/auth`.
+  * If authenticated, send `LIKED_SESSION` message to the extension and close the tab.
 
-**Acceptance:**
-- [ ] Popup opens instantly and shows the active tab title and URL.
-- [ ] Folder and tag data load and render correctly.
-- [ ] Save succeeds and the popup closes.
-- [ ] Duplicate URLs show the "Already saved" state.
-- [ ] Errors show the messages defined in PRD §22.
+* CORS headers on all extension routes to allow `chrome-extension://` origin.
 
----
+### F. UI Changes
 
-### EXT-3.2 — Implement `liked-client.ts`
+**Web app library:**
 
-**Goal:** All extension API calls in one typed client.
+* `components/cards/NodeCard.tsx` — show note indicator, source/channel subtitle, collection chips, tag chips.
+* `components/modals/CardDetailSheet.tsx` — display personal note, source metadata, channel, “Open on YouTube” primary CTA.
+* `components/sheets/AddCardSheet.tsx` — add optional note textarea, source preview, source-type badge.
+* `components/feed/FeedContainer.tsx` / `FeedGrid.tsx` — grid/list view toggle, sort by date/title/channel/source.
+* `app/(app)/feed/page.tsx` — accept and pass source filters if implemented.
+* `lib/hooks/useFeed.ts` — consume optional `source_meta` / `has_note` from `get_feed` output for card rendering.
 
-**Files to touch:**
-* `extension/src/api/liked-client.ts`
+**Extension popup:**
 
-**Change:**
-```ts
-export class LikedClient {
-  constructor(baseUrl: string, getToken: () => Promise<string | null>) {}
-  async importPage(payload: ImportRequest): Promise<ImportResult> {}
-  async getFolders(): Promise<Folder[]> {}
-  async getTags(): Promise<Tag[]> {}
-}
-```
+* As described in D.
 
-**Requirements:**
-* Every request uses `Authorization: Bearer <token>`.
-* Use `fetch` with HTTPS only.
-* Validate response JSON and surface typed errors.
-* 401 triggers an unauthenticated error state in the popup.
+### G. Testing Plan
 
-**Acceptance:**
-- [ ] All API calls share the same base URL and token logic.
-- [ ] Errors are normalized to `{ code, message }`.
+| Test Area | Scope | Method |
+|---|---|---|
+| Unit | URL parsing, YouTube ID extraction, `source_type` detection | Jest/Vitest in `extension/` and `lib/` |
+| Integration | `import_url` duplicate detection, folder/tag/note writes | Supabase local test DB + migration |
+| API | `/api/import`, `/api/extension/folders`, `/api/extension/tags` | `curl`/Playwright against local dev server |
+| Extension | Popup render, auth flow, save flow, duplicate state, offline error | Manual Chrome load-unpacked + Playwright extension automation |
+| Metadata extraction | YouTube oEmbed/page parse, generic Open Graph, fallbacks | Edge Function unit tests with fixtures |
+| Duplicate save | Same YouTube ID via different URL variants; same user vs different users | RPC integration tests |
+| Authentication | Token expiry, invalid token, sign-out | API + extension tests |
+| Search | Keyword search in title, tags, notes, channel | `get_feed` / `search_nodes` integration |
+| Offline / error | Network failure, invalid URL, 5xx | Extension manual + API mocks |
+| Security | Manifest permissions, no DB secrets in bundle, HTTPS only | Static audit + Chrome policy check |
 
----
+### H. Open Questions
 
-### EXT-3.3 — Implement the service worker
-
-**Goal:** Handle external auth messages and keep the popup lightweight.
-
-**Files to touch:**
-* `extension/src/background/service-worker.ts`
-
-**Change:**
-* Listen for `chrome.runtime.onMessageExternal` (auth relay).
-* Listen for `chrome.runtime.onInstalled` to set default icon state.
-* No browsing history monitoring, no background sync, no feed polling.
-
-**Acceptance:**
-- [ ] The service worker stores the session from the web app.
-- [ ] It does not request or use `tabs`, `webRequest`, or `history`.
+1. Should the popup permit creating a new collection directly, or only select existing collections in P0?
+2. On duplicate, should the backend automatically merge new collection/tag/note choices, or only return `alreadyExists` and let the user open the web app?
+3. Should the canonical YouTube URL be displayed in the popup, or should the original URL be preserved in `nodes.url` while a separate `canonical_url` is used for deduplication?
+4. Should `node_notes` support multiple notes per node per user, or exactly one note per node per user?
+5. Should AI-suggested tags/summary be fetched from `extract-node-metadata` in P0 as optional hints, or hidden until P2?
 
 ---
 
-## Phase 4 — Build, Assets, and Configuration
+## Phased Execution
 
-### EXT-4.1 — Add extension build tooling
+### Phase 0 — Schema & Import Authority
 
-**Goal:** Compile TypeScript and bundle popup/service worker into `extension/dist/`.
+**Goal:** the database can support the v2.0 capture loop.
 
-**Files to touch:**
-* `extension/package.json`
-* `extension/tsconfig.json`
-* Root `package.json` (add `build:extension` and `dev:extension`)
+| Task | Files | Acceptance |
+|---|---|---|
+| 0.1 Add `nodes.source_type` and `nodes.source_meta` | `supabase/migrations/044_extension_metadata.sql` | Columns exist, nullable, indexed for search where needed |
+| 0.2 Create `node_notes` table | `supabase/migrations/044_extension_metadata.sql` | Table, FK, unique `(node_id, user_id)`, indexes |
+| 0.3 Extend `create_node_with_metadata` | `supabase/migrations/045_extend_create_node.sql` | Accepts new params, inserts `translations` row when description supplied, returns same columns |
+| 0.4 Create `import_url` RPC | `supabase/migrations/046_import_url_rpc.sql` | Atomic, deduplicates, returns `already_exists`, creates cause/node/edge/folder/tag/note/external provenance |
+| 0.5 Seed `chrome_extension` external source | `supabase/migrations/046_import_url_rpc.sql` or seed script | `SELECT id FROM external_sources WHERE name = 'chrome_extension'` returns stable UUID |
+| 0.6 Update `get_feed` / `search_nodes` for notes and channel | `supabase/migrations/047_search_notes_channel.sql` | Keyword search includes `node_notes` and `source_meta` channel; output includes `has_note`/`source_meta` if needed |
+| 0.7 Regenerate `lib/types/database.ts` | `lib/types/database.ts` | Matches migrated schema; `npm run build` / `npx tsc --noEmit` pass |
 
-**Recommended tools:** `esbuild` for bundling, `@types/chrome` for types.
+### Phase 1 — Edge Function Enhancements
 
-**Build outputs:**
-* `extension/dist/popup.js`
-* `extension/dist/service-worker.js`
-* `extension/dist/popup.html`
-* `extension/dist/popup.css`
+**Goal:** `extract-node-metadata` returns the metadata required for the v2.0 contract.
 
-**Acceptance:**
-- [ ] `npm run build:extension` completes with no errors.
-- [ ] The generated `dist/` folder can be loaded as an unpacked extension in Chrome.
+| Task | Files | Acceptance |
+|---|---|---|
+| 1.1 Detect source type | `supabase/functions/extract-node-metadata/index.ts` | Returns `source_type: 'youtube' \| 'webpage' \| 'text'` |
+| 1.2 Extract YouTube metadata | same | Returns `video_id`, `channel_name`, `channel_id` when available |
+| 1.3 Return canonical URL and external ID | same | Returns `canonical_url` and `external_id` (video ID or normalized URL) |
+| 1.4 Return `source_meta` | same | Returns JSON object with channel/source metadata |
+| 1.5 Keep existing contract | same | `title`, `description`, `thumbnail_key`, `language_code`, `suggested_tags`, `og_data` still returned |
 
----
+### Phase 2 — API Routes
 
-### EXT-4.2 — Add extension icons and assets
+**Goal:** the extension has authenticated HTTPS endpoints.
 
-**Goal:** Provide the icon set required by Manifest V3.
+| Task | Files | Acceptance |
+|---|---|---|
+| 2.1 Token-aware Supabase helper | `lib/supabase/server.ts` or `lib/supabase/token.ts` | Returns user from `Authorization: Bearer <token>` header |
+| 2.2 `POST /api/import` | `app/api/import/route.ts`, optional `lib/db/import.ts` | Returns `{ success, nodeId, alreadyExists }` or typed error; CORS headers |
+| 2.3 `GET /api/extension/folders` | `app/api/extension/folders/route.ts` | Returns folder tree with parent/color/project |
+| 2.4 `GET /api/extension/tags` | `app/api/extension/tags/route.ts` | Returns tags in user language |
+| 2.5 Auth relay page | `app/extension/auth/page.tsx` | Sends session to extension and closes tab |
+| 2.6 CORS & OPTIONS | all `app/api/extension/*` and `app/api/import/route.ts` | Extension calls succeed without CORS errors |
 
-**Files to touch:**
-* `extension/public/icons/icon16.png`
-* `extension/public/icons/icon32.png`
-* `extension/public/icons/icon48.png`
-* `extension/public/icons/icon128.png`
+### Phase 3 — Web App Library UI
 
-**Acceptance:**
-- [ ] All four icon sizes are present and referenced by `manifest.json`.
+**Goal:** users can see, search, and manage captured content.
 
----
+| Task | Files | Acceptance |
+|---|---|---|
+| 3.1 NodeCard note/source indicators | `components/cards/NodeCard.tsx` | Shows note indicator, channel/source subtitle, collection/tag chips |
+| 3.2 Card detail note/source display | `components/modals/CardDetailSheet.tsx` | Shows personal note, source metadata, “Open on YouTube” CTA |
+| 3.3 AddCardSheet note field | `components/sheets/AddCardSheet.tsx` | Optional note textarea, source preview |
+| 3.4 Feed grid/list toggle and sort | `components/feed/FeedContainer.tsx`, `FeedGrid.tsx`, `lib/store/filterStore.ts` | Toggle works, sort options include date/title/channel/source |
+| 3.5 Feed data shape | `lib/hooks/useFeed.ts`, `lib/db/search.ts` | Handles optional `source_meta` / `has_note` from `get_feed` |
 
-### EXT-4.3 — Document environment variables
+### Phase 4 — Chrome Extension
 
-**Goal:** Make the extension configurable per environment.
+**Goal:** browser capture surface works end-to-end.
 
-**Files to touch:**
-* `.env.local` / `.env.example`
-* `extension/README.md`
+| Task | Files | Acceptance |
+|---|---|---|
+| 4.1 Manifest and icons | `extension/manifest.json`, `extension/public/icons/*` | Loads unpacked without warnings |
+| 4.2 Auth/session module | `extension/src/auth/session.ts` | Sign in/out, session persistence in `chrome.storage.local` |
+| 4.3 Service worker | `extension/src/background/service-worker.ts` | Receives `LIKED_SESSION`, no extra permissions |
+| 4.4 API client | `extension/src/api/liked-client.ts` | All endpoints use bearer token, HTTPS, typed errors |
+| 4.5 Popup HTML/CSS/TS | `extension/src/popup/*` | Quick save, expanded collection/tag/note, duplicate/error states |
+| 4.6 Build tooling | `extension/package.json`, `extension/tsconfig.json`, root `package.json` | `npm run build:extension` outputs `extension/dist/` |
+| 4.7 README | `extension/README.md` | New developer can build and load the extension |
 
-**Variables:**
-```
-NEXT_PUBLIC_LIKED_API_URL=https://<LIKED_HOST>
-NEXT_PUBLIC_SUPABASE_URL=<...>
-NEXT_PUBLIC_SUPABASE_ANON_KEY=<...>
-NEXT_PUBLIC_EXTENSION_ID=<chrome-extension-id>
-```
+### Phase 5 — Security, CORS & Build
 
-The extension build should inline `NEXT_PUBLIC_LIKED_API_URL` and `NEXT_PUBLIC_SUPABASE_*` values at build time.
+**Goal:** extension can be loaded and reaches the backend safely.
 
-**Acceptance:**
-- [ ] A new developer can build and load the extension by following `extension/README.md`.
+| Task | Files | Acceptance |
+|---|---|---|
+| 5.1 Manifest audit | `extension/manifest.json` | Only `activeTab` + `storage`; no `history`/`tabs`/`webRequest`/`cookies` |
+| 5.2 CORS on routes | see Phase 2 | `chrome-extension://` origin can call all endpoints |
+| 5.3 Environment variables | `.env.local`, `.env.example` | `NEXT_PUBLIC_LIKED_API_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_EXTENSION_ID` documented |
+| 5.4 No DB secrets in bundle | audit | No `SUPABASE_SERVICE_ROLE_KEY` in extension source or build output |
 
----
+### Phase 6 — QA & Deployment
 
-## Phase 5 — Integration, Validation & Security
+**Goal:** prove the full loop.
 
-### EXT-5.1 — CORS and environment wiring
-
-**Goal:** Allow the extension to call the Next.js API routes from its `chrome-extension://` origin.
-
-**Files to touch:**
-* All `app/api/extension/*` routes and `app/api/import/route.ts`
-
-**Change:**
-* Add CORS headers to every extension route:
-  ```ts
-  const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'authorization, content-type, x-client-info'
-  };
-  ```
-* Handle `OPTIONS` preflight.
-
-**Acceptance:**
-- [ ] The extension popup can call `/api/import`, `/api/extension/folders`, and `/api/extension/tags` without CORS errors.
-- [ ] Credentials are not sent as cookies; only the `Authorization` header is used.
-
----
-
-### EXT-5.2 — Security review checklist
-
-**Goal:** Ensure the extension follows PRD §24 and Chrome security requirements.
-
-**Checklist:**
-- [ ] Manifest permissions are limited to `activeTab` and `storage`.
-- [ ] No Supabase service-role key, database credentials, or `NEXT_PUBLIC_` keys that are not safe for extension bundles.
-- [ ] All API calls use HTTPS.
-- [ ] URLs are validated before submission.
-- [ ] The popup uses a strict CSP and avoids inline scripts.
-- [ ] No browsing history is collected, stored, or transmitted.
-- [ ] The extension only accesses the active tab when the user opens the popup.
-
-**Acceptance:**
-- [ ] Manifest passes Chrome Web Store automated policy checks (no broad host permissions, no `tabs`/`history`/`webRequest`).
+| Task | Method | Acceptance |
+|---|---|---|
+| 6.1 Save a YouTube video from extension | Manual / Playwright | Appears in `/feed` with correct title, thumbnail, channel, collections, tags, note |
+| 6.2 Search by note/tag/channel | Web app search | Finds the saved item |
+| 6.3 Duplicate save with variant URL | Click extension on `youtu.be/ID` and `youtube.com/watch?v=ID` | Second save returns `alreadyExists` |
+| 6.4 Unauthenticated flow | Sign out, open popup | Shows sign-in CTA |
+| 6.5 Build & typecheck | `npm run build`, `npx tsc --noEmit`, `npm run lint` | All pass |
+| 6.6 Security review checklist | `docs/06_CHROME_EXTENSION_PRD.md` §19 | Manifest passes Chrome policy audit |
 
 ---
 
-### EXT-5.3 — End-to-end validation
+## Priority Matrix
 
-**Goal:** Prove the full flow works against a real LIKED environment.
+| Feature | P0 | P1 | P2 |
+|---|---|---|---|
+| YouTube save | ✅ | | |
+| Generic web save | | ✅ | |
+| Automatic metadata capture | ✅ | | |
+| Collections | ✅ | | |
+| Multiple collections per item | ✅ | | |
+| Tags | ✅ | | |
+| Personal notes | ✅ | | |
+| Keyword search | ✅ | | |
+| Channel search | ✅* | | |
+| Open original URL | ✅ | | |
+| Grid/list toggle | ✅ | | |
+| Sort by title/channel/source | | ✅ | |
+| AI tagging / summary | | | ✅ |
+| Transcript indexing | | | ✅ |
+| Semantic search | | | ✅ |
+| Natural-language queries | | | ✅ |
 
-**Manual test script:**
-1. Build the extension and load it unpacked in Chrome.
-2. Open the LIKED web app, sign in, then open `/extension/auth`.
-3. Confirm the extension popup no longer shows the sign-in CTA.
-4. Visit `https://example.com` and click the LIKED extension icon.
-5. Select a folder, add a description, pick one or two tags, and click **Save to LIKED**.
-6. Open `https://<LIKED_HOST>/feed` and verify the node appears with:
-   * Correct title (from metadata extraction).
-   * Folder membership.
-   * Tag chips.
-   * Description in the card detail.
-7. Click the extension icon on the same page again and confirm "Already saved".
-8. Sign out and confirm the popup returns to the sign-in CTA.
-
-**Acceptance:**
-- [ ] All steps pass without errors.
-- [ ] The feed still uses `get_feed()` exclusively; the extension did not manipulate feed state.
-
----
-
-## Phase Gates
-
-| Gate | Condition | Verification |
-|------|-----------|--------------|
-| **G0** | `import_url` RPC exists, is atomic, and returns `already_exists` | Run RPC in Supabase SQL Editor with duplicate and non-duplicate URLs |
-| **G1** | `/api/import`, `/api/extension/folders`, `/api/extension/tags` return correct data | `curl` each endpoint with a valid access token |
-| **G2** | Extension loads, signs in, and reads active tab | Manual Chrome extension load test |
-| **G3** | Full save flow end-to-end | Save a page from extension and see it in `/feed` |
-| **G4** | Security review passes | Manifest audit + no DB secrets in extension bundle |
+*Channel search depends on `source_meta` availability; if it adds P0 risk, move to P1.
 
 ---
 
-## Future Enhancements (out of scope for MVP)
+## Risks & Mitigations
 
-* Context menu "Save to LIKED" (PRD §39 — OPTIONAL).
-* Keyboard shortcut `Ctrl/Cmd + Shift + L` (PRD §40 — OPTIONAL).
-* New tag creation in the popup (PRD §16 — optional, requires `newTagLabels` support).
-* Offline queue (PRD §23 — explicitly deferred).
-* "Save all tabs" (PRD §38 — explicitly out of scope).
+| Risk | Mitigation |
+|---|---|
+| YouTube page / oEmbed changes break metadata extraction | Use YouTube oEmbed as primary, page Open Graph as fallback; unit tests with fixtures |
+| `get_feed` output changes affect existing cards | Add `source_meta` and `has_note` as new optional output columns; do not rename existing columns |
+| Personal notes conflated with page descriptions | Use dedicated `node_notes` for user notes; `translations.description` for page metadata |
+| Duplicate import races | Handle `unique_violation` inside `import_url`; never pre-check in the extension |
+| Chrome Web Store policy rejects permissions | Keep manifest to `activeTab` + `storage`; document any additional permission with architectural justification |
+| AI features leak into P0 scope | Gate all AI work behind explicit P2 tasks; P0 extension never calls AI endpoints |
 
 ---
 
 ## Notes for the Executor
 
-* Do **not** implement a feed, sharing, groups, or search in the extension.
-* Do **not** let the extension create `causes`, `edges`, `folder_edges`, or `tag_edges` directly.
-* All folder/tag data comes from the existing LIKED DB via the new `/api/extension/*` routes.
-* The canonical metadata extraction pipeline (`extract-node-metadata` Edge Function) remains the source of truth for node title, description, thumbnail, language, and suggested tags.
-* When in doubt, the extension only submits user intent: *"Import this URL with these optional attributes."*
+* Do **not** implement a feed, search engine, sharing, groups, or friend management in the extension.
+* Do **not** let the extension create `causes`, `edges`, `folder_edges`, `tag_edges`, or `node_notes` directly.
+* All folder, tag, and note writes must be inside the `import_url` transaction.
+* The canonical metadata extraction pipeline (`extract-node-metadata` Edge Function) remains the source of truth for node title, description, thumbnail, language, suggested tags, and source metadata.
+* When in doubt, the extension only submits user intent: **“Import this URL with these optional attributes.”**
+* Preserve working functionality of the existing web app `AddCardSheet` and feed.
