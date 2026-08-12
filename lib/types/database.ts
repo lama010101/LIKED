@@ -270,8 +270,8 @@ export interface Database {
           name: string
           owner_id: string
           parent_folder_id: string | null
-          is_project: boolean
-          color_hex: string
+          is_project?: boolean | null
+          color_hex?: string | null
           deleted_at: string | null
         }
         Update: {

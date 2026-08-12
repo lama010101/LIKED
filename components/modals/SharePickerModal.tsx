@@ -139,8 +139,7 @@ export function SharePickerModal({
           maxWidth: '448px',
           margin: '16px',
           overflow: 'hidden',
-        }}
-      >
+        }}>
         {/* Header */}
         <div style={{ padding: '20px', borderBottom: '1px solid var(--border-1)' }}>
           <h3 style={{ fontSize: 18, fontWeight: 600, color: 'var(--text-1)' }}>
