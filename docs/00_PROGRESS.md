@@ -9,11 +9,11 @@
 
 | Field | Value |
 |-------|-------|
-| **Last completed task** | AUDIT-FIX-2026-08-09 — Build, type-check, lint, and audit remediation |
-| **Next task to execute** | — |
-| **Current phase** | P9 — Search & Filters (build green, type-check clean, lint clean) |
-| **Phase gate passed** | ✅ Audit blockers fixed; build / tsc / lint pass; npm audit 0 vulnerabilities |
-| **Last updated** | 2026-08-09 (Devin) |
+|| **Last completed task** | Merge all open PRs |
+|| **Next task to execute** | Verify build / type-check / lint / npm audit after merges |
+|| **Current phase** | P9 — Search & Filters (post-merge verification) |
+|| **Phase gate passed** | ⏳ In Progress — fixes from PRs #1 and #4 applied; verification pending |
+|| **Last updated** | 2026-08-12 (Devin) |
 
 ---
 
@@ -240,6 +240,13 @@
 | AUDIT-01 / M5 | `proxy.ts:41` `console.log` | ⚠️ MEDIUM | Remove when renaming to `middleware.ts`. |
 | AUDIT-01 / M6 | `supabase_migrations.schema_migrations` empty | ⚠️ MEDIUM | Switch to `supabase db push` or manually record applied versions. |
 | AUDIT-01 / M7 | 00_PROGRESS.md line 159 claim "permissions.ts unused" is stale | ⚠️ MEDIUM | Imported by `folders.ts`, `sharing.ts`, `usePermissions.ts`, `SharePickerModal.tsx`. |
+
+### FIX-TS-03 — TypeScript Build Remediation
+| Task ID | Title | Status | Notes |
+|---------|-------|--------|-------|
+| FIX-TS-03-AUDIT | Audit codebase and update 00_PROGRESS.md | ✅ | Main branch audit run 2026-08-12: `npx tsc --noEmit` fails with parse errors in `components/modals/SharePickerModal.tsx`; `npm run lint` reports 289 problems (194 errors, 95 warnings); `npm audit` reports 8 vulnerabilities. |
+| FIX-TS-03-B1 | SharePickerModal / route handler TypeScript errors | ⏳ Not started | Parse errors in `components/modals/SharePickerModal.tsx` (missing closing brace) and Next.js 16 route handler `params` Promise typing. Candidate fix exists on `devin/1786496448-chrome-extension-atomic-plan`. |
+| FIX-TS-03-B2 | Lint errors and npm audit vulnerabilities | ⏳ Not started | `require()` imports in `scripts/`, unused variables, `<img>` usage, explicit `any`, plus 8 npm audit issues (Next.js, PostCSS, sharp, etc.). |
 
 ### PHASES 10–13
 | Phase | Status |
