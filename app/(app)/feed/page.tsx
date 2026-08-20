@@ -1,9 +1,8 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { getFeed, type FeedNode } from "@/lib/db/feed";
+import { getFeed } from "@/lib/db/feed";
 import { getUserFolders } from "@/lib/db/folders";
 import { parseURLToFilterState, buildFeedParams } from "@/lib/utils/feedParams";
-import { type FilterState } from "@/lib/store/filterStore";
 import FeedGrid from "./_components/FeedGrid";
 
 interface FeedPageProps {

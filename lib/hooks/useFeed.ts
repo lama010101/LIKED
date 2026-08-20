@@ -18,7 +18,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { useFilterStore, type FilterState } from "@/lib/store/filterStore";
+import { useFilterStore } from "@/lib/store/filterStore";
 import { buildFeedParams } from "@/lib/utils/feedParams";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { PAGINATION, DEFAULT_LANGUAGE } from "@/lib/constants";
@@ -78,15 +78,6 @@ interface UseFeedResult {
 const FEED_INITIAL_LOAD = 30;
 const FEED_PAGE_SIZE = PAGINATION.defaultPageSize;
 
-// ── Context key builder for custom sort ────────────────────────
-
-function buildContextKey(state: FilterState): string {
-  if (state.folderId) return `folder:${state.folderId}`;
-  if (state.friendId) return `friend:${state.friendId}`;
-  if (state.groupId) return `group:${state.groupId}`;
-  return "personal";
-}
-
 // ── Hook ────────────────────────────────────────────────────────
 
 export function useFeed(options: UseFeedOptions): UseFeedResult {
@@ -133,7 +124,7 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
         userId,
         languageCode
       ),
-    [view, sort, mineSubTab, friendId, folderId, groupId, searchQuery, userId, languageCode, viewMode, zoom]
+    [view, sort, mineSubTab, friendId, folderId, groupId, searchQuery, userId, languageCode, viewMode, zoom, tagIds, filterFriendIds, filterFolderIds]
   );
 
   const [nodes, setNodes] = useState<FeedNode[]>([]);
@@ -203,7 +194,7 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
     return () => {
       cancelled = true;
     };
-  }, [feedParams, refreshTick]);
+  }, [feedParams, refreshTick, userId]);
 
   // Load more (next page via cursor)
   const loadMore = useCallback(async () => {
@@ -240,7 +231,7 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
     } finally {
       isLoadingMoreRef.current = false;
     }
-  }, [userId, languageCode, hasMore, nodes.length]);
+  }, [userId, hasMore, feedParams]);
 
   const refresh = useCallback(() => {
     setRefreshTick((t) => t + 1);

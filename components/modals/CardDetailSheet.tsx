@@ -31,6 +31,7 @@ import {
   useState,
   useTransition,
 } from "react";
+import Image from "next/image";
 import type { FeedNode } from "@/lib/hooks/useFeed";
 import type { CardDetail } from "@/lib/db/cardDetail";
 import {
@@ -703,10 +704,12 @@ function Body({
             </div>
           ) : embed.kind === "generic" ? (
             thumbnailUrl ? (
-              <img
+              <Image
                 src={thumbnailUrl}
                 alt={detail?.node.title ?? node.title ?? "Preview"}
-                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                fill
+                sizes="100%"
+                style={{ objectFit: "cover", display: "block" }}
               />
             ) : (
               <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8, color: "var(--text-3)", fontSize: 13 }}>
@@ -719,10 +722,12 @@ function Body({
             )
           ) : (
             thumbnailUrl ? (
-              <img
+              <Image
                 src={thumbnailUrl}
                 alt={detail?.node.title ?? node.title ?? "Preview"}
-                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                fill
+                sizes="100%"
+                style={{ objectFit: "cover", display: "block" }}
               />
             ) : (
               <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-3)", fontSize: 24 }}>
@@ -986,12 +991,12 @@ function Body({
                   }}
                 >
                   {avatarUrl ? (
-                    <img
+                    <Image
                       src={avatarUrl}
                       alt={rating.displayName}
+                      width={24}
+                      height={24}
                       style={{
-                        width: 24,
-                        height: 24,
                         borderRadius: "50%",
                         objectFit: "cover",
                       }}

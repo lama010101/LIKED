@@ -14,14 +14,6 @@ function getEmailPrefix(email: string): string {
   return email.split("@")[0] || "user";
 }
 
-function normalizeDisplayName(name: string): string {
-  return name
-    .trim()
-    .toLowerCase()
-    .normalize("NFKC")
-    .slice(0, 32);
-}
-
 export default function SignupPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");

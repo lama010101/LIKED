@@ -18,7 +18,7 @@ export async function getSupabaseServerClient() {
             cookiesToSet.forEach(({ name, value, options }) => {
               cookieStore.set(name, value, options);
             });
-          } catch (error) {
+          } catch {
             // This can happen in Server Components where cookies can't be modified
             // The middleware will handle session refreshing
           }

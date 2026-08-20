@@ -1,10 +1,22 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Fraunces, Caveat } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
   variable: "--font-sans",
   subsets: ["latin"],
+});
+
+const fraunces = Fraunces({
+  variable: "--font-serif",
+  subsets: ["latin"],
+  weight: ["600", "700"],
+});
+
+const caveat = Caveat({
+  variable: "--font-hand",
+  subsets: ["latin"],
+  weight: ["500", "700"],
 });
 
 export const metadata: Metadata = {
@@ -20,13 +32,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} h-full antialiased`}
+      className={`${inter.variable} ${fraunces.variable} ${caveat.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Caveat:wght@500;700&display=swap" rel="stylesheet" />
-      </head>
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
         {children}
       </body>

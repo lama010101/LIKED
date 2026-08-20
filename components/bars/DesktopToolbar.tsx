@@ -22,7 +22,6 @@ interface DesktopToolbarProps {
   onBackClick?: () => void;
   className?: string;
   onProfileClick?: () => void;
-  userAvatarUrl?: string;
   userDisplayName?: string;
 }
 
@@ -153,7 +152,6 @@ export default function DesktopToolbar({
   onBackClick,
   className,
   onProfileClick,
-  userAvatarUrl,
   userDisplayName,
 }: DesktopToolbarProps) {
   const initials = userDisplayName ? userDisplayName.slice(0, 2).toUpperCase() : '';

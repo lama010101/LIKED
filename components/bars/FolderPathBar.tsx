@@ -13,7 +13,6 @@ export default function FolderPathBar({
   path,
   totalCount = 0,
   onNavigate,
-  onBack,
   visible,
   onToggleVisibility,
 }: FolderPathBarProps) {

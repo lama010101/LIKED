@@ -2,14 +2,6 @@
 
 export type ViewMode = 'col' | 'mason' | 'list' | 'horiz' | 'free';
 
-const sortOptions = [
-  { id: 'newest', label: 'Newest' },
-  { id: 'oldest', label: 'Oldest' },
-  { id: 'rating', label: 'Rating' },
-  { id: 'most-shared', label: 'Most Shared' },
-  { id: 'custom', label: 'Custom' },
-];
-
 const viewModes: { id: ViewMode; icon: React.FC }[] = [
   {
     id: 'col',

@@ -24,7 +24,6 @@ interface SharePickerModalProps {
   shareType: ShareType;
   itemId: string; // nodeId or folderId
   itemName: string;
-  currentUserId: string;
   availableUsers: { id: string; display_name: string | null; avatar_key: string | null }[];
   onShareComplete?: () => void;
 }
@@ -47,7 +46,6 @@ export function SharePickerModal({
   shareType,
   itemId,
   itemName,
-  currentUserId,
   availableUsers,
   onShareComplete,
 }: SharePickerModalProps) {

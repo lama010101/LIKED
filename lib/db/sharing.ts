@@ -95,7 +95,7 @@ export async function unshare(
 ): Promise<void> {
   const supabase = getSupabaseServiceClient();
 
-  const { data, error } = await supabase.rpc("unshare", {
+  const { error } = await supabase.rpc("unshare", {
     p_cause_id: causeId,
     p_requesting_user_id: requestingUserId,
   });
@@ -202,7 +202,7 @@ export async function groupUnshare(
 ): Promise<void> {
   const supabase = getSupabaseServiceClient();
 
-  const { data, error } = await supabase.rpc("group_unshare", {
+  const { error } = await supabase.rpc("group_unshare", {
     p_sharer_id: sharerId,
     p_node_id: nodeId,
     p_group_id: groupId,

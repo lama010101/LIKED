@@ -18,7 +18,6 @@
 
 import { useEffect, useRef, useMemo } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { useShallow } from "zustand/react/shallow";
 import { useFilterStore, initializeFilterStore, type FilterState } from "@/lib/store/filterStore";
 import { parseURLToFilterState, serializeFilterStateToURL, isEqualFilterState, normalizeFilterState } from "@/lib/utils/feedParams";
 

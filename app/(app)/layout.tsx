@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState, useRef, Suspense, useCallback } from 'react';
+import { useEffect, useMemo, useState, Suspense, useCallback } from 'react';
 import TopBar from '@/components/bars/TopBar';
 import BottomBar from '@/components/bars/BottomBar';
 import AddCardSheet from '@/components/sheets/AddCardSheet';
@@ -16,7 +16,7 @@ import { useFilterStore, getContextKey } from '@/lib/store/filterStore';
 import { useFeedURLSync } from '@/lib/hooks/useFeedURLSync';
 import FeedTabs, { TabId } from '@/components/bars/FeedTabs';
 import MineSubTabs, { MineSubTab } from '@/components/bars/MineSubTabs';
-import SortViewRow, { ViewMode } from '@/components/bars/SortViewRow';
+import SortViewRow from '@/components/bars/SortViewRow';
 import TagsStrip from '@/components/bars/TagsStrip';
 import ContextStrip, { ContextPill } from '@/components/bars/ContextStrip';
 import FabSpeedDial from '@/components/bars/FabSpeedDial';
@@ -98,7 +98,6 @@ function AppShell({ children }: { children: React.ReactNode }) {
   // P9-T03: Filter state from store (URL is source of truth via useFeedURLSync)
   useFeedURLSync();
   const filterView = useFilterStore((s) => s.view);
-  const filterSort = useFilterStore((s) => s.sort);
   const setFilterView = useFilterStore((s) => s.setView);
   const setMineSubTabStore = useFilterStore((s) => s.setMineSubTab);
   const mineSubTabStore = useFilterStore((s) => s.mineSubTab);
@@ -106,7 +105,6 @@ function AppShell({ children }: { children: React.ReactNode }) {
   const filterFriendIds = useFilterStore((s) => s.filterFriendIds);
   const filterFolderIds = useFilterStore((s) => s.filterFolderIds);
   const activeFolderId = useFilterStore((s) => s.folderId);
-  const clearFolderContext = useFilterStore((s) => s.clearContext);
   const searchQuery = useFilterStore((s) => s.searchQuery);
   const toggleTagFilter = useFilterStore((s) => s.toggleTagFilter);
   const toggleFriendFilter = useFilterStore((s) => s.toggleFriendFilter);
@@ -116,12 +114,12 @@ function AppShell({ children }: { children: React.ReactNode }) {
   const clearAll = useFilterStore((s) => s.clearAll);
 
   // Stub tag label lookup for Context Strip (until real tag data is wired)
-  const tagLabelMap: Record<string, string> = {
+  const tagLabelMap = useMemo<Record<string, string>>(() => ({
     t1: 'Design', t2: 'Music', t3: 'Work', t4: 'Travel', t5: 'Food', t6: 'Read later', t7: 'Inspiration',
-  };
-  const tagColorMap: Record<string, string> = {
+  }), []);
+  const tagColorMap = useMemo<Record<string, string>>(() => ({
     t1: '#ef4444', t2: '#3b82f6', t3: '#22c55e', t4: '#f59e0b', t5: '#ec4899', t6: '#8b5cf6', t7: '#06b6d4',
-  };
+  }), []);
 
   const [sessionUser, setSessionUser] = useState<SessionUser | null>(null);
   const [bottomBarItems, setBottomBarItems] = useState<BottomBarItem[]>([]);
@@ -208,7 +206,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
       pills.push({ id: 'search', type: 'search', label: `"${searchQuery}"` });
     }
     return pills;
-  }, [tagIds, filterFriendIds, filterFolderIds, searchQuery, bottomBarItems]);
+  }, [tagIds, filterFriendIds, filterFolderIds, searchQuery, bottomBarItems, tagLabelMap, tagColorMap]);
 
   // Map store view to layout TabId
   const tab = filterView as TabId;
@@ -230,7 +228,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
   const [friendsState, setFriendsState] = useLocalStorage<'hidden' | 'strip' | 'expanded'>('liked.friendsStripState', 'strip');
   const [tagsStripOpen, setTagsStripOpen] = useState(false);
   const [folderPathBarVisible, setFolderPathBarVisible] = useState(true);
-  const [openFilter, setOpenFilter] = useState(false);
+  const [, setOpenFilter] = useState(false);
   const [openAdd, setOpenAdd] = useState(false);
   const [openFolder, setOpenFolder] = useState(false);
   const [speedDialOpen, setSpeedDialOpen] = useState(false);
