@@ -23,6 +23,8 @@ import MultiSelectContextMenu, {
 } from "./MultiSelectContextMenu";
 import UndoToast from "./UndoToast";
 import { trashNodes, restoreTrashedNode } from "@/app/lib/actions/selection";
+import { grantFolderAdminAction, grantGroupAdminAction } from "@/app/lib/actions/admin";
+import { useFilterStore } from "@/lib/store/filterStore";
 
 interface SelectionOverlayProps {
   isMobile: boolean;
@@ -38,6 +40,7 @@ export default function SelectionOverlay({
 }: SelectionOverlayProps) {
   const isActive = useSelectionStore((s) => s.isActive);
   const clear = useSelectionStore((s) => s.clear);
+  const activeGroupId = useFilterStore((s) => s.groupId);
 
   // Escape → exit multi-select (§17.4).
   useEffect(() => {
@@ -84,6 +87,52 @@ export default function SelectionOverlay({
     }
 
     // All other actions require picker UI not yet wired.
+    if (actionId === "giveAdmin") {
+      const friends = items.filter((i) => i.kind === "friend");
+      if (friends.length === 0) {
+        onToast?.("Select a friend to grant admin rights", "err");
+        clear();
+        return;
+      }
+      clear();
+      const friendIds = friends.map((f) => f.id);
+      if (activeFolderId) {
+        // Grant folder admin to each selected friend
+        const results = await Promise.all(
+          friendIds.map((fid) => grantFolderAdminAction(activeFolderId, fid))
+        );
+        const failed = results.filter((r) => !r.ok);
+        if (failed.length > 0) {
+          onToast?.(failed[0].error, "err");
+        } else {
+          onToast?.(
+            friendIds.length === 1
+              ? "Admin rights granted"
+              : `${friendIds.length} admins granted`,
+            "ok"
+          );
+        }
+      } else if (activeGroupId) {
+        const results = await Promise.all(
+          friendIds.map((fid) => grantGroupAdminAction(activeGroupId, fid))
+        );
+        const failed = results.filter((r) => !r.ok);
+        if (failed.length > 0) {
+          onToast?.(failed[0].error, "err");
+        } else {
+          onToast?.(
+            friendIds.length === 1
+              ? "Admin rights granted"
+              : `${friendIds.length} admins granted`,
+            "ok"
+          );
+        }
+      } else {
+        onToast?.("Select a folder or group first to grant admin rights", "err");
+      }
+      return;
+    }
+
     onToast?.(`"${labelForAction(actionId)}" coming soon`, "err");
     clear();
   };

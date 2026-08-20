@@ -838,6 +838,48 @@ export interface Database {
         }
         Returns: void
       }
+      grant_folder_admin: {
+        Args: {
+          p_folder_id: string
+          p_target_user_id: string
+        }
+        Returns: void
+      }
+      grant_group_admin: {
+        Args: {
+          p_group_id: string
+          p_target_user_id: string
+        }
+        Returns: void
+      }
+      revoke_folder_admin: {
+        Args: {
+          p_folder_id: string
+          p_target_user_id: string
+        }
+        Returns: void
+      }
+      revoke_group_admin: {
+        Args: {
+          p_group_id: string
+          p_target_user_id: string
+        }
+        Returns: void
+      }
+      is_folder_admin: {
+        Args: {
+          p_folder_id: string
+          p_user_id: string
+        }
+        Returns: boolean
+      }
+      is_group_admin: {
+        Args: {
+          p_group_id: string
+          p_user_id: string
+        }
+        Returns: boolean
+      }
       update_node_title: {
         Args: {
           p_user_id: string
