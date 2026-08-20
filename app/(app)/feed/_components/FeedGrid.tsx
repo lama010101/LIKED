@@ -558,7 +558,7 @@ export default function FeedGrid({
       <div style={{ minHeight: '100%', position: 'relative' }}>
         {folderGrid}
         {displayNodes.length === 0 ? emptyState : (
-          <FreeGrid nodes={displayNodes} scopeKey={scopeKey} onCardClick={handleOpen} currentUserId={currentUserId} onShare={handleShare} onMoveToFolder={handleMoveToFolder} onAddTag={handleAddTag} onDelete={handleDelete} />
+          <FreeGrid nodes={displayNodes} scopeKey={scopeKey} onCardClick={handleOpen} currentUserId={currentUserId} activeFolderId={activeFolderId} onShare={handleShare} onMoveToFolder={handleMoveToFolder} onAddTag={handleAddTag} onDelete={handleDelete} />
         )}
         <CardDetailSheet node={activeNode} currentUserId={currentUserId} onClose={handleClose} />
       </div>

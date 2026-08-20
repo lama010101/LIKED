@@ -9,9 +9,9 @@
 
 | Field | Value |
 |-------|-------|
-|| **Last completed task** | P10 — Realtime & Notifications |
-|| **Next task to execute** | P11 — Advanced Views & Multilingual |
-|| **Current phase** | P10 complete; P11 next |
+|| **Last completed task** | P11 — Advanced Views & Multilingual |
+|| **Next task to execute** | P12 — Admin & Permissions |
+|| **Current phase** | P11 complete; P12 next |
 || **Phase gate passed** | ✅ Build / type-check / lint 0 warnings / 0 errors / npm audit 0 vulnerabilities |
 || **Last updated** | 2026-08-20 (Devin) |
 
@@ -338,7 +338,7 @@
 | 1-T03 | Next.js `proxy` migration | ✅ | middleware.ts → proxy.ts (2026-08-20) | `middleware.ts` is deprecated; migrate to `proxy` convention. |
 | 1-T04 | `dotenv` version hygiene | ✅ | ^17.4.2 → ^16.4.5 (2026-08-20) | `package.json` pins `^17.4.2` which does not exist; needs correction to a real version. |
 | P10 | Realtime & Notifications | ✅ | Migration 058 applied: Realtime enabled on 5 tables, notifications created in share RPCs, NotificationPanel + useRealtime hook + server actions. Build/lint/tsc clean. | Phase 10 per `02_BUILD_PLAN.md`. |
-| P11 | Advanced Views & Multilingual | ⏳ Not started | Phase 11 per `02_BUILD_PLAN.md`. |
+| P11 | Advanced Views & Multilingual | ✅ Complete | Phase 11 per `02_BUILD_PLAN.md`. |
 | P12 | Admin & Permissions | ⏳ Not started | Phase 12 per `02_BUILD_PLAN.md`. |
 | P13 | Chat | ⏳ Deferred | Phase 13 per PRD §28; start only after P1–P12 gates pass. |
 
@@ -364,4 +364,12 @@
 | P10-T02 | Notification view | ✅ | Created app/lib/actions/notifications.ts (getNotificationsAction, getUnreadNotificationCountAction, markNotificationReadAction, markAllNotificationsReadAction). Created components/modals/NotificationPanel.tsx — slide-in panel with notification list, type-specific icons, unread indicators, mark-read on click, mark-all-read button, relative time display. TopBar bell icon already existed — wired to real notification count (was hardcoded to 2). NotificationPanel mounted in layout.tsx. |
 | P10-MIG | Notification creation in share RPCs | ✅ | Migration 058 redefined direct_share, group_share, share_folder to INSERT into notifications table atomically. direct_share: 1 notification per target. group_share: 1 per member (except sharer). share_folder: 1 per target user (deduplicated, not per-node). RLS: INSERT service_role only, UPDATE/DELETE for own notifications. |
 | **P10 Gate** | | ✅ | Realtime subscriptions clean up on unmount; notification bell wired to real count; share RPCs create notifications; build/lint/tsc all clean. |
+
+
+### P11 — Advanced Views & Multilingual (2026-08-20)
+| Task ID | Title | Status | Notes |
+|---------|-------|--------|-------|
+| P11-T01 | Infinite canvas polish | ✅ | Migration 060: card_positions table + RLS + upsert_card_position RPC + Realtime enabled. FreeGrid rewritten as true infinite canvas: free card positioning (drag anywhere), pan (drag background), auto-arrange button, resize handles, positions persist to DB per user per folder context, debounced save (500ms). Realtime sync via card_positions in supabase_realtime publication. No pinch-to-zoom (PRD §39). |
+| P11-T02 | Multilingual support | ✅ | Language selector added to ProfileModal (en/fr/th). updateLanguage server action in profile.ts. Migration 059: 10 seed translations (5 French, 5 Thai) for 5 seed nodes. Fallback chain verified: get_feed already implements §33.3 (user lang → node lang → nodes.title) and §33.4 (user lang → English → tag_id suffix). Tag labels already use resolveTagLabel fallback in tags.ts. Search already queries translations in user's language via get_feed RPC. No runtime translation API calls. |
+| **P11 Gate** | | ✅ | Canvas positions persist and survive refresh; no pinch-to-zoom; multilingual fallback chain verified with French and Thai; no runtime translation; build/lint/tsc all clean. |
 

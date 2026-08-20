@@ -3,6 +3,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { updateDisplayName, updateAvatar } from "@/lib/db/users";
+import { getSupabaseServerClient } from "@/lib/supabase/server";
 
 // ── helpers ───────────────────────────────────────────────────────────────
 
@@ -112,6 +113,45 @@ export async function uploadAvatar(
     return { ok: true, avatarKey };
   } catch (err) {
     await supabase.storage.from("avatars").remove([avatarKey]);
+    return { ok: false, error: (err as Error).message };
+  }
+}
+
+// ── updateLanguage ─────────────────────────────────────────────────────────
+
+export type UpdateLanguageResult =
+  | { ok: true }
+  | { ok: false; error: string };
+
+const SUPPORTED_LANGUAGES = ['en', 'fr', 'th'] as const;
+
+export async function updateLanguage(
+  languageCode: string
+): Promise<UpdateLanguageResult> {
+  let userId: string;
+  try {
+    userId = await getSessionUserId();
+  } catch {
+    return { ok: false, error: "Not authenticated." };
+  }
+
+  const lang = languageCode.trim().toLowerCase();
+  if (!SUPPORTED_LANGUAGES.includes(lang as typeof SUPPORTED_LANGUAGES[number])) {
+    return { ok: false, error: `Unsupported language. Supported: ${SUPPORTED_LANGUAGES.join(', ')}` };
+  }
+
+  try {
+    const supabase = await getSupabaseServerClient();
+    const { error } = await supabase
+      .from('users')
+      .update({ language_code: lang })
+      .eq('id', userId);
+
+    if (error) {
+      return { ok: false, error: error.message };
+    }
+    return { ok: true };
+  } catch (err) {
     return { ok: false, error: (err as Error).message };
   }
 }
