@@ -9,6 +9,8 @@
 -- 4. Add top-level EXCEPTION WHEN OTHERS THEN RAISE block to create_group
 --
 -- All functions perform multi-table writes and require atomicity.
+-- This version preserves the 4-param signatures (with p_permission)
+-- and the share_count increment logic from migration 044.
 --
 -- Ref: LIKED / FIX-AUDIT-03
 
@@ -18,9 +20,10 @@
 CREATE OR REPLACE FUNCTION direct_share(
   p_sharer_id UUID,
   p_node_id UUID,
-  p_target_user_id UUID
+  p_target_user_id UUID,
+  p_permission TEXT DEFAULT 'view'
 )
-RETURNS UUID  -- Returns the created cause_id
+RETURNS UUID
 LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
@@ -28,7 +31,13 @@ DECLARE
   v_cause_id UUID;
   v_now TIMESTAMPTZ := now();
 BEGIN
-  -- Step 1: INSERT into causes
+  -- Validate permission value for nodes
+  IF p_permission NOT IN ('view', 'comment', 'edit', 'reshare') THEN
+    RAISE EXCEPTION 'Invalid permission for node share: %. Must be view, comment, edit, or reshare', p_permission
+      USING ERRCODE = 'P0001';
+  END IF;
+
+  -- Step 1: INSERT into causes with permission in metadata
   INSERT INTO causes (
     id,
     cause_type,
@@ -41,13 +50,14 @@ BEGIN
     p_sharer_id,
     jsonb_build_object(
       'node_id', p_node_id,
-      'target_user_id', p_target_user_id
+      'target_user_id', p_target_user_id,
+      'permission', p_permission
     ),
     v_now
   )
   RETURNING id INTO v_cause_id;
 
-  -- Step 2: INSERT received edge for target user
+  -- Step 2: INSERT received edge with permission
   INSERT INTO edges (
     id,
     node_id,
@@ -56,6 +66,7 @@ BEGIN
     sender_id,
     direction,
     depth,
+    permission,
     created_at
   ) VALUES (
     gen_random_uuid(),
@@ -65,6 +76,7 @@ BEGIN
     p_sharer_id,
     'received',
     1,
+    p_permission,
     v_now
   );
 
@@ -77,6 +89,7 @@ BEGIN
     sender_id,
     direction,
     depth,
+    permission,
     created_at
   ) VALUES (
     gen_random_uuid(),
@@ -86,10 +99,15 @@ BEGIN
     p_sharer_id,
     'sent',
     1,
+    p_permission,
     v_now
   );
 
-  -- Return the cause_id for reference
+  -- Step 4: Increment share_count
+  INSERT INTO nodes_sort_cache (node_id, share_count)
+  VALUES (p_node_id, 1)
+  ON CONFLICT (node_id) DO UPDATE SET share_count = nodes_sort_cache.share_count + 1;
+
   RETURN v_cause_id;
 
 EXCEPTION WHEN OTHERS THEN
@@ -103,9 +121,10 @@ $$;
 CREATE OR REPLACE FUNCTION group_share(
   p_sharer_id UUID,
   p_node_id UUID,
-  p_group_id UUID
+  p_group_id UUID,
+  p_permission TEXT DEFAULT 'view'
 )
-RETURNS UUID  -- Returns the created cause_id
+RETURNS UUID
 LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
@@ -114,7 +133,13 @@ DECLARE
   v_member_id UUID;
   v_now TIMESTAMPTZ := now();
 BEGIN
-  -- Step 1: INSERT into causes
+  -- Validate permission for node shares
+  IF p_permission NOT IN ('view', 'comment', 'edit', 'reshare') THEN
+    RAISE EXCEPTION 'Invalid permission for group share: %. Must be view, comment, edit, or reshare', p_permission
+      USING ERRCODE = 'P0001';
+  END IF;
+
+  -- Step 1: INSERT into causes with permission
   INSERT INTO causes (
     id,
     cause_type,
@@ -127,7 +152,8 @@ BEGIN
     p_sharer_id,
     jsonb_build_object(
       'node_id', p_node_id,
-      'group_id', p_group_id
+      'group_id', p_group_id,
+      'permission', p_permission
     ),
     v_now
   )
@@ -144,7 +170,7 @@ BEGIN
     v_now
   );
 
-  -- Step 3: For each member, INSERT edge
+  -- Step 3: For each member, INSERT edge with permission
   FOR v_member_id IN
     SELECT user_id FROM group_members WHERE group_id = p_group_id
   LOOP
@@ -156,6 +182,7 @@ BEGIN
       sender_id,
       direction,
       depth,
+      permission,
       created_at
     ) VALUES (
       gen_random_uuid(),
@@ -165,9 +192,15 @@ BEGIN
       p_sharer_id,
       'received',
       1,
+      p_permission,
       v_now
     );
   END LOOP;
+
+  -- Step 4: Increment share_count (one increment per node per group share event)
+  INSERT INTO nodes_sort_cache (node_id, share_count)
+  VALUES (p_node_id, 1)
+  ON CONFLICT (node_id) DO UPDATE SET share_count = nodes_sort_cache.share_count + 1;
 
   RETURN v_cause_id;
 
@@ -192,13 +225,13 @@ DECLARE
   v_cause_id UUID;
 BEGIN
   -- Step 1: DELETE from group_nodes
-  DELETE FROM group_nodes 
-  WHERE node_id = p_node_id 
+  DELETE FROM group_nodes
+  WHERE node_id = p_node_id
     AND group_id = p_group_id;
 
   -- Step 2: DELETE from causes (cascades to edges)
   -- Find and delete the matching cause
-  DELETE FROM causes 
+  DELETE FROM causes
   WHERE cause_type = 'group_share'
     AND created_by = p_sharer_id
     AND metadata->>'node_id' = p_node_id::text
@@ -283,7 +316,7 @@ BEGIN
 
   -- Return the created group
   RETURN QUERY
-  SELECT 
+  SELECT
     g.id,
     g.name,
     g.owner_id,
@@ -300,10 +333,10 @@ $$;
 -- ============================================================
 -- Grant execute permissions
 -- ============================================================
-GRANT EXECUTE ON FUNCTION direct_share(UUID, UUID, UUID) TO authenticated;
-GRANT EXECUTE ON FUNCTION direct_share(UUID, UUID, UUID) TO service_role;
-GRANT EXECUTE ON FUNCTION group_share(UUID, UUID, UUID) TO authenticated;
-GRANT EXECUTE ON FUNCTION group_share(UUID, UUID, UUID) TO service_role;
+GRANT EXECUTE ON FUNCTION direct_share(UUID, UUID, UUID, TEXT) TO authenticated;
+GRANT EXECUTE ON FUNCTION direct_share(UUID, UUID, UUID, TEXT) TO service_role;
+GRANT EXECUTE ON FUNCTION group_share(UUID, UUID, UUID, TEXT) TO authenticated;
+GRANT EXECUTE ON FUNCTION group_share(UUID, UUID, UUID, TEXT) TO service_role;
 GRANT EXECUTE ON FUNCTION group_unshare(UUID, UUID, UUID) TO authenticated;
 GRANT EXECUTE ON FUNCTION group_unshare(UUID, UUID, UUID) TO service_role;
 GRANT EXECUTE ON FUNCTION create_group(UUID, TEXT, UUID[]) TO authenticated;
