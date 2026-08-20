@@ -51,6 +51,19 @@ export default function YouTubeActivityPage() {
 
   const lastFetchRef = useRef<number>(0);
 
+  // Auth guard: redirect to /login if not authenticated
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data: { session } } = await supabaseBrowser.auth.getSession();
+      if (cancelled) return;
+      if (!session) {
+        router.replace("/login");
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [router]);
+
   // Check connection status
   useEffect(() => {
     let cancelled = false;
