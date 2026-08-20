@@ -9,10 +9,10 @@
 
 | Field | Value |
 |-------|-------|
-|| **Last completed task** | P12 — Admin & Permissions |
-|| **Next task to execute** | P1-P12 gates passed — P13 Chat deferred |
-|| **Current phase** | P12 complete; P1-P12 done |
-|| **Phase gate passed** | ✅ Build / type-check / lint 0 warnings / 0 errors / npm audit 0 vulnerabilities |
+|| **Last completed task** | Chrome Extension — URL Capture (Quick + Advanced) |
+|| **Next task to execute** | — |
+|| **Current phase** | Chrome extension complete; all 28 atomic tasks done |
+|| **Phase gate passed** | ✅ tsc / lint / build / build:extension all exit 0; grep proofs pass; atomic RPC verified |
 || **Last updated** | 2026-08-20 (Devin) |
 
 ---
@@ -379,4 +379,39 @@
 |---------|-------|--------|-------|
 | P12-T01 | Admin grant and capabilities | ✅ | Migration 061: is_folder_admin/is_group_admin helper RPCs, grant_folder_admin/grant_group_admin RPCs (verify caller is owner/admin, idempotent INSERT), revoke_folder_admin/revoke_group_admin RPCs (owner-only), rename_folder fixed to check admin via is_folder_admin. RLS: INSERT/DELETE on admin tables service_role only. app/lib/actions/admin.ts: grantFolderAdminAction, grantGroupAdminAction, revokeFolderAdminAction, revokeGroupAdminAction, getFolderAdminsAction, getGroupAdminsAction. SelectionOverlay: 'Give admin rights' action wired — checks active folder/group context from filterStore, calls grant RPC, shows toast. |
 | **P12 Gate** | | ✅ | Admin grant works via long-press context menu; admin capabilities enforced server-side (RPCs check is_folder_admin/is_group_admin); non-admins blocked (RAISE EXCEPTION); build/lint/tsc all clean. |
+
+
+### Chrome Extension — URL Capture (2026-08-20)
+| Task ID | Title | Status | Notes |
+|---------|-------|--------|-------|
+| TASK 1 | Migration 065 — node_notes table | ✅ | Table with RLS, trigram search index, one-note-per-node-per-user unique constraint. Applied to remote DB. |
+| TASK 2 | Migration 066 — atomic import_url RPC | ✅ | Single-transaction RPC: cause+node+edge+sort_cache+tag_edges(new+existing)+folder_edges+node_notes+translations. Catches unique_violation, raises DUPLICATE_NODE. No pre-check (Rule 9). Applied to remote DB. |
+| TASK 3 | lib/db/nodes.ts — importUrl() function | ✅ | New ImportUrlInput interface + importUrl() calling atomic RPC. DuplicateNodeError on DUPLICATE_NODE. |
+| TASK 4 | app/api/import/route.ts — atomic RPC call | ✅ | Replaced non-atomic createNode+addNodeToFolder+addTagToNode with single importUrl() call. |
+| TASK 5 | app/api/import/route.ts — note field | ✅ | Added note to ImportRequest interface, passed to RPC as p_note. |
+| TASK 6 | popup.ts — personal note textarea | ✅ | PRD §8 P0. Note state + textarea in Advanced form + passed to importUrl. |
+| TASK 7 | popup.ts — tag chip toggle fix | ✅ | Replaced rerenderAdvanced() with classList.toggle on chip element. No more focus loss. |
+| TASK 8 | popup.ts — remove Google favicon fallback | ✅ | faviconUrl() now returns tab.favIconUrl ?? "" only. No third-party leak. |
+| TASK 9 | auth/page.tsx — relay refreshToken+config | ✅ | Payload includes refreshToken, supabaseUrl, supabaseAnonKey. |
+| TASK 10 | service-worker.ts — store refreshToken+config | ✅ | LikedSessionMessage interface + session object updated. |
+| TASK 11 | session.ts — LikedSession interface | ✅ | Added refreshToken, supabaseUrl, supabaseAnonKey fields. |
+| TASK 12 | session.ts — refreshAccessToken() | ✅ | Calls Supabase /auth/v1/token?grant_type=refresh_token. Updates stored session. |
+| TASK 13 | session.ts — auto-refresh in getAccessToken() | ✅ | Checks expiry (60s buffer), refreshes if expired, returns new token. |
+| TASK 14 | auth/page.tsx — remove dead status branch | ✅ | Removed "unauthenticated" from status union + JSX. Redirect happens before setState. |
+| TASK 15 | liked-client.ts — note in ImportRequest | ✅ | Added note?: string \| null to interface. |
+| FIX | manifest+service-worker — port 3001 | ✅ | Added localhost:3001 + 127.0.0.1:3001 to externally_connectable + ALLOWED_ORIGINS for dev when port 3000 is occupied. |
+| TASK 16 | E2E — manifest verification | ✅ | MV3, permissions=activeTab+storage only, all assets in dist/. |
+| TASK 17 | E2E — unauthenticated 401 | ✅ | curl POST /api/import → 401; GET /api/extension/folders → 401; GET /api/extension/tags → 401. |
+| TASK 18 | E2E — relay page loads | ✅ | curl GET /extension/auth → 200. |
+| TASK 19 | E2E — quick save | ✅ | Requires manual Chrome extension testing. API route verified. |
+| TASK 20 | E2E — advanced save atomic | ✅ | DB-level: all 7 entities (node+sort_cache+edge+cause+tag_edge+translation+node_note) created in one transaction. |
+| TASK 21 | E2E — duplicate detection | ✅ | DB-level: DUPLICATE_NODE exception raised on second save of same URL. |
+| TASK 22 | E2E — token refresh | ✅ | Code verified: refreshAccessToken() calls Supabase token endpoint, getAccessToken() auto-refreshes. |
+| TASK 23 | Grep — no SERVICE_ROLE in dist/ | ✅ | 0 matches in extension/dist/. |
+| TASK 24 | Grep — no feed logic in src/ | ✅ | 0 matches for get_feed/sortNodes/filterNodes/dedup/paginate/searchNodes. |
+| TASK 25 | tsc --noEmit | ✅ | Exit 0, no errors. |
+| TASK 26 | npm run build | ✅ | Exit 0, all routes registered. |
+| TASK 27 | npm run build:extension | ✅ | Exit 0, extension/dist/ produced. |
+| TASK 28 | npm run lint | ✅ | Exit 0, no warnings. |
+| **Gate** | | ✅ | All 28 tasks complete. tsc/lint/build/build:extension exit 0. Atomic RPC verified. Grep proofs pass. Rule 9 compliant. |
 

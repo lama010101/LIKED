@@ -10,12 +10,18 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // Read ?redirect= from the URL so the extension auth relay flow can
+  // bounce here, collect the sign-in, then return to /extension/auth.
+  const redirectTo = typeof window !== "undefined"
+    ? new URLSearchParams(window.location.search).get("redirect")
+    : null;
+
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
-    const result = await signIn(email, password);
+    const result = await signIn(email, password, redirectTo);
 
     if (result?.error) {
       setError(result.error);
@@ -27,10 +33,15 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
 
+    // Pass the redirect target through the OAuth callback as `next`.
+    const callbackUrl = redirectTo
+      ? `${window.location.origin}/callback?next=${encodeURIComponent(redirectTo)}`
+      : `${window.location.origin}/callback`;
+
     const { error } = await supabaseBrowser.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/callback`,
+        redirectTo: callbackUrl,
       },
     });
 
