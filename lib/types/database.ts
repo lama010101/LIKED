@@ -827,6 +827,17 @@ export interface Database {
         }
         Returns: unknown
       }
+      upsert_card_position: {
+        Args: {
+          p_node_id: string
+          p_folder_id: string | null
+          p_pos_x: number
+          p_pos_y: number
+          p_width: number
+          p_height: number
+        }
+        Returns: void
+      }
       update_node_title: {
         Args: {
           p_user_id: string

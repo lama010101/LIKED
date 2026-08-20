@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import Image from 'next/image';
-import { updateUsername, uploadAvatar } from '@/app/lib/actions/profile';
+import { updateUsername, uploadAvatar, updateLanguage } from '@/app/lib/actions/profile';
 import { signOut } from '@/app/lib/actions/auth';
 
 // ── types ─────────────────────────────────────────────────────────────────
@@ -13,12 +13,15 @@ export interface ProfileModalProps {
   userId: string;
   displayName: string;
   avatarKey: string | null;
+  languageCode: string;
   theme: 'dark' | 'light';
   onThemeChange: (t: 'dark' | 'light') => void;
   /** Called when display name is successfully updated so parent can refresh */
   onDisplayNameChange?: (newName: string) => void;
   /** Called when avatar is successfully updated so parent can refresh */
   onAvatarChange?: (newKey: string) => void;
+  /** Called when language is successfully updated so parent can refresh */
+  onLanguageChange?: (newLang: string) => void;
 }
 
 // ── helpers ────────────────────────────────────────────────────────────────
@@ -76,10 +79,12 @@ export default function ProfileModal({
   userId,
   displayName,
   avatarKey,
+  languageCode,
   theme,
   onThemeChange,
   onDisplayNameChange,
   onAvatarChange,
+  onLanguageChange,
 }: ProfileModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -99,6 +104,11 @@ export default function ProfileModal({
   // Sign out
   const [signOutPending, setSignOutPending] = useState(false);
 
+  // Language
+  const [selectedLang, setSelectedLang] = useState(languageCode);
+  const [langPending, setLangPending] = useState(false);
+  const [langError, setLangError] = useState<string | null>(null);
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
 
   // Sync prop changes
@@ -109,6 +119,10 @@ export default function ProfileModal({
   useEffect(() => {
     setCurrentAvatarKey(avatarKey);
   }, [avatarKey]);
+
+  useEffect(() => {
+    setSelectedLang(languageCode);
+  }, [languageCode]);
 
   // Dismiss on Escape
   useEffect(() => {
@@ -166,6 +180,29 @@ export default function ProfileModal({
       await signOut();
     } catch {
       setSignOutPending(false);
+    }
+  };
+
+  // ── Language change ─────────────────────────────────────────────────────
+
+  const handleLanguageChange = async (lang: string) => {
+    if (lang === selectedLang) return;
+    setSelectedLang(lang);
+    setLangError(null);
+    setLangPending(true);
+    try {
+      const result = await updateLanguage(lang);
+      if (!result.ok) {
+        setLangError(result.error);
+        setSelectedLang(languageCode);
+      } else {
+        onLanguageChange?.(lang);
+      }
+    } catch {
+      setLangError('Failed to update language.');
+      setSelectedLang(languageCode);
+    } finally {
+      setLangPending(false);
     }
   };
 
@@ -476,6 +513,53 @@ export default function ProfileModal({
                   </button>
                 </div>
               </div>
+            )}
+          </div>
+
+          <div style={{ height: 1, background: 'var(--border-1)', margin: '0 16px' }} />
+
+          {/* ── Language selector ─────────────────────────────────────── */}
+          <div style={{ padding: '16px 24px' }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              marginBottom: 10,
+            }}>
+              <span style={{ fontSize: 13, color: 'var(--text-2)', fontWeight: 500 }}>
+                Language
+              </span>
+              {langPending && (
+                <span style={{ fontSize: 11, color: 'var(--text-3)' }}>Saving…</span>
+              )}
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {[
+                { code: 'en', label: 'English' },
+                { code: 'fr', label: 'Français' },
+                { code: 'th', label: 'ภาษาไทย' },
+              ].map((lang) => (
+                <button
+                  key={lang.code}
+                  onClick={() => handleLanguageChange(lang.code)}
+                  disabled={langPending}
+                  style={{
+                    flex: 1, padding: '8px 0',
+                    background: selectedLang === lang.code ? 'var(--accent)' : 'var(--surface-3)',
+                    color: selectedLang === lang.code ? 'var(--accent-ink)' : 'var(--text-2)',
+                    border: `1px solid ${selectedLang === lang.code ? 'var(--accent)' : 'var(--border-1)'}`,
+                    borderRadius: 10,
+                    fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                    opacity: langPending ? 0.6 : 1,
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  {lang.label}
+                </button>
+              ))}
+            </div>
+            {langError && (
+              <span style={{ fontSize: 11, color: 'var(--red)', display: 'block', marginTop: 6 }}>
+                {langError}
+              </span>
             )}
           </div>
 

@@ -560,9 +560,11 @@ function AppShell({ children }: { children: React.ReactNode }) {
         userId={sessionUser?.id ?? ''}
         displayName={profileDisplayName}
         avatarKey={sessionUser?.avatar_key ?? null}
+        languageCode={sessionUser?.language_code ?? 'en'}
         theme={theme}
         onThemeChange={handleThemeChange}
         onDisplayNameChange={(name) => setProfileDisplayName(name)}
+        onLanguageChange={(lang) => setSessionUser((prev) => prev ? { ...prev, language_code: lang } : prev)}
       />
 
       {/* Notification Panel (P10-T02) */}
