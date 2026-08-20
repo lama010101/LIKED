@@ -24,6 +24,7 @@ import FolderPathBar from '@/components/bars/FolderPathBar';
 import DesktopToolbar from '@/components/bars/DesktopToolbar';
 import { getSessionUser, getFriendBarAction, getGroupBarAction } from '@/app/lib/actions/session';
 import { getUserFoldersAction } from '@/app/lib/actions/getFolders';
+import { getTagsAction } from '@/app/lib/actions/getTags';
 import type { SessionUser } from '@/app/lib/actions/session';
 import type { FriendBarEntry, GroupBarEntry } from '@/lib/db/friends';
 
@@ -113,13 +114,9 @@ function AppShell({ children }: { children: React.ReactNode }) {
   const clearFilters = useFilterStore((s) => s.clearFilters);
   const clearAll = useFilterStore((s) => s.clearAll);
 
-  // Stub tag label lookup for Context Strip (until real tag data is wired)
-  const tagLabelMap = useMemo<Record<string, string>>(() => ({
-    t1: 'Design', t2: 'Music', t3: 'Work', t4: 'Travel', t5: 'Food', t6: 'Read later', t7: 'Inspiration',
-  }), []);
-  const tagColorMap = useMemo<Record<string, string>>(() => ({
-    t1: '#ef4444', t2: '#3b82f6', t3: '#22c55e', t4: '#f59e0b', t5: '#ec4899', t6: '#8b5cf6', t7: '#06b6d4',
-  }), []);
+  // Tag label/color lookup for Context Strip — populated from real tag data
+  const [tagLabelMap, setTagLabelMap] = useState<Record<string, string>>({});
+  const [tagColorMap, setTagColorMap] = useState<Record<string, string>>({});
 
   const [sessionUser, setSessionUser] = useState<SessionUser | null>(null);
   const [bottomBarItems, setBottomBarItems] = useState<BottomBarItem[]>([]);
@@ -138,9 +135,20 @@ function AppShell({ children }: { children: React.ReactNode }) {
       Promise.all([
         getFriendBarAction(),
         getGroupBarAction(),
-      ]).then(([friends, groups]) => {
+        getTagsAction('en'),
+      ]).then(([friends, groups, tags]) => {
         if (cancelled) return;
         setBottomBarItems(friendBarToBottomBarItems(user, friends, groups));
+        if (tags) {
+          const labels: Record<string, string> = {};
+          const colors: Record<string, string> = {};
+          tags.forEach((t) => {
+            labels[t.id] = t.label;
+            colors[t.id] = t.color_hex;
+          });
+          setTagLabelMap(labels);
+          setTagColorMap(colors);
+        }
       });
     });
     return () => { cancelled = true; };
@@ -200,13 +208,14 @@ function AppShell({ children }: { children: React.ReactNode }) {
       pills.push({ id, type: 'friend', label: friend?.displayName ?? id, avatar: friend?.bg });
     });
     filterFolderIds.forEach((id) => {
-      pills.push({ id, type: 'folder', label: 'Folder' });
+      const folder = layoutFolders.find((f) => f.id === id);
+      pills.push({ id, type: 'folder', label: folder?.name ?? 'Folder' });
     });
     if (searchQuery) {
       pills.push({ id: 'search', type: 'search', label: `"${searchQuery}"` });
     }
     return pills;
-  }, [tagIds, filterFriendIds, filterFolderIds, searchQuery, bottomBarItems, tagLabelMap, tagColorMap]);
+  }, [tagIds, filterFriendIds, filterFolderIds, searchQuery, bottomBarItems, tagLabelMap, tagColorMap, layoutFolders]);
 
   // Map store view to layout TabId
   const tab = filterView as TabId;
