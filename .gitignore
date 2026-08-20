@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+extension/node_modules
 /.pnp
 .pnp.*
 .yarn/*
@@ -51,3 +52,5 @@ build.log
 
 # supabase temp
 supabase/.temp/
+
+.vercel

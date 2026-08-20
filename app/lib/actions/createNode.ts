@@ -5,8 +5,8 @@
  *
  * Flow:
  *   1. Authenticate the caller.
- *   2. Invoke the `extract-node-metadata` Edge Function using the user's
- *      JWT-scoped server client so the function can identify the caller
+ *   2. Invoke the `extract-node-metadata` Edge Function via the shared
+ *      `extractNodeMetadata` helper so the function can identify the caller
  *      for rate-limit + activity_log purposes (§15.1 #4).
  *   3. Pass the metadata into `createNode`, which fires the
  *      `create_node_with_metadata` RPC — a single Postgres transaction
@@ -23,6 +23,7 @@ import {
   DuplicateNodeError,
   type NodeMetadata,
 } from "@/lib/db/nodes";
+import { extractNodeMetadata } from "@/lib/edge/extract-metadata";
 
 export type CreateNodeResult =
   | { ok: true; nodeId: string }
@@ -33,9 +34,6 @@ export interface CreateNodeInput {
   textContent?: string | null;
   languageCode?: string | null;
 }
-
-const EDGE_FUNCTION_NAME = "extract-node-metadata";
-const EDGE_FUNCTION_TIMEOUT_MS = 10_000;
 
 function isValidUrl(s: string): boolean {
   try {
@@ -51,8 +49,9 @@ export async function createNodeAction(
 ): Promise<CreateNodeResult> {
   const supabase = await getSupabaseServerClient();
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
+  const user = session?.user;
   if (!user) {
     return { ok: false, error: "Not authenticated", code: "invalid" };
   }
@@ -70,47 +69,13 @@ export async function createNodeAction(
   // profile language preference isn't exposed in the user row yet.
   const userLang = (input.languageCode ?? "en").slice(0, 8);
 
-  // 2. Invoke Edge Function (never throws — wrap in try/catch + timeout).
-  let metadata: NodeMetadata | undefined;
-  try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), EDGE_FUNCTION_TIMEOUT_MS);
-    try {
-      const { data, error } = await supabase.functions.invoke(
-        EDGE_FUNCTION_NAME,
-        {
-          body: {
-            url,
-            text_content: text,
-            user_language_code: userLang,
-          },
-        }
-      );
-      if (!error && data && typeof data === "object") {
-        // Edge Function contract (§15.1):
-        //   { title, thumbnail_key?, language_code, suggested_tags[], ... }
-        const d = data as Record<string, unknown>;
-        metadata = {
-          title: typeof d.title === "string" ? d.title : null,
-          thumbnailKey:
-            typeof d.thumbnail_key === "string" ? d.thumbnail_key : null,
-          languageCode:
-            typeof d.language_code === "string" ? d.language_code : userLang,
-          suggestedTags: Array.isArray(d.suggested_tags)
-            ? (d.suggested_tags as unknown[]).filter(
-                (t): t is string => typeof t === "string"
-              )
-            : [],
-        };
-      }
-    } finally {
-      clearTimeout(timer);
-    }
-  } catch {
-    // Edge Function failure → fall through with metadata undefined so
-    // createNode applies defaults (PRD §15.1 #3).
-    metadata = undefined;
-  }
+  // 2. Invoke Edge Function (never throws — returns undefined on failure).
+  const metadata: NodeMetadata | undefined = await extractNodeMetadata({
+    url,
+    textContent: text,
+    languageCode: userLang,
+    accessToken: session?.access_token ?? null,
+  });
 
   // 3. Persist — single transaction via RPC.
   try {

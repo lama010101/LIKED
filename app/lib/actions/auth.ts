@@ -4,7 +4,11 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-export async function signIn(email: string, password: string): Promise<{ error: string } | never> {
+export async function signIn(
+  email: string,
+  password: string,
+  redirectTo?: string | null
+): Promise<{ error: string } | never> {
   const cookieStore = await cookies();
 
   const supabase = createServerClient(
@@ -30,7 +34,12 @@ export async function signIn(email: string, password: string): Promise<{ error: 
     return { error: error.message };
   }
 
-  redirect("/feed");
+  // Only allow relative paths to prevent open redirect attacks.
+  // Must start with "/" but not "//" (protocol-relative URL).
+  const safe = redirectTo && redirectTo.startsWith("/") && !redirectTo.startsWith("//")
+    ? redirectTo
+    : "/feed";
+  redirect(safe);
 }
 
 export async function signOut() {

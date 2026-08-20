@@ -23,6 +23,9 @@ const eslintConfig = defineConfig([
     // Non-source scripts and edge functions:
     "scripts/**",
     "supabase/functions/**",
+    // Chrome extension build output (lint the source in extension/src instead):
+    "extension/dist/**",
+    "extension/node_modules/**",
     "temp_*.js",
   ]),
 ]);

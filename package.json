@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "build:extension": "npm --prefix extension run build",
+    "dev:extension": "npm --prefix extension run dev"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

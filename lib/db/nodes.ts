@@ -56,6 +56,12 @@ export interface NodeMetadata {
   thumbnailKey?: string | null;
   languageCode?: string | null;
   suggestedTags?: string[];
+  /**
+   * Optional user-supplied description (Chrome extension advanced save).
+   * Persisted into `translations.description` for (node_id, language_code).
+   * NOT a personal note — this is the page-metadata description slot.
+   */
+  description?: string | null;
 }
 
 /**
@@ -120,6 +126,7 @@ export async function createNode(
   const tagLabels = (metadata?.suggestedTags ?? [])
     .map((t) => t.trim())
     .filter((t) => t.length > 0);
+  const finalDescription = metadata?.description?.trim() || null;
 
   // 4. Atomic transaction (nodes + sort_cache + tags + tag_edges)
   const { data, error } = await (supabase as AnySupabase).rpc(
@@ -132,6 +139,7 @@ export async function createNode(
       p_thumbnail_key: finalThumb,
       p_language_code: finalLang,
       p_tag_labels: tagLabels,
+      p_description: finalDescription,
     }
   );
 
@@ -141,6 +149,68 @@ export async function createNode(
 
   if (!data || data.length === 0) {
     throw new Error("Node creation returned no data");
+  }
+
+  return data[0] as Node;
+}
+
+/**
+ * Input for the atomic import_url RPC (Chrome extension saves).
+ *
+ * Unlike createNode, this performs ALL writes in a single Postgres
+ * transaction: node + sort_cache + cause + edge + new tag edges +
+ * existing tag edges + folder edge + node_notes + translations.
+ * No partial writes (Rule 9 compliance).
+ */
+export interface ImportUrlInput {
+  url: string;
+  title: string | null;
+  thumbnailKey: string | null;
+  languageCode: string;
+  description: string | null;
+  newTagLabels: string[];
+  existingTagIds: string[];
+  folderId: string | null;
+  note: string | null;
+}
+
+/**
+ * Atomically import a URL via the import_url RPC.
+ *
+ * This is the ONLY function for Chrome extension saves. It replaces
+ * the non-atomic createNode + addNodeToFolder + addTagToNode pattern.
+ *
+ * On duplicate (url, owner_id): throws DuplicateNodeError.
+ * The RPC raises 'DUPLICATE_NODE' which we detect in the error message.
+ */
+export async function importUrl(
+  userId: string,
+  input: ImportUrlInput
+): Promise<Node> {
+  const supabase = getSupabaseServiceClient();
+
+  const { data, error } = await (supabase as AnySupabase).rpc("import_url", {
+    p_owner_id: userId,
+    p_url: input.url,
+    p_title: input.title,
+    p_thumbnail_key: input.thumbnailKey,
+    p_language_code: input.languageCode,
+    p_description: input.description,
+    p_new_tag_labels: input.newTagLabels.length > 0 ? input.newTagLabels : null,
+    p_existing_tag_ids: input.existingTagIds.length > 0 ? input.existingTagIds : null,
+    p_folder_id: input.folderId,
+    p_note: input.note,
+  });
+
+  if (error) {
+    if (error.message?.includes("DUPLICATE_NODE")) {
+      throw new DuplicateNodeError(input.url, userId);
+    }
+    throw new Error(`Failed to import URL: ${error.message}`);
+  }
+
+  if (!data || data.length === 0) {
+    throw new Error("Import URL returned no data");
   }
 
   return data[0] as Node;
