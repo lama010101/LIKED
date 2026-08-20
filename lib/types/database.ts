@@ -304,6 +304,27 @@ export interface Database {
         }
         Relationships: []
       }
+      youtube_connections: {
+        Row: {
+          user_id: string
+          google_account_email: string
+          connected_at: string
+          revoked_at: string | null
+        }
+        Insert: {
+          user_id: string
+          google_account_email: string
+          connected_at?: string
+          revoked_at?: string | null
+        }
+        Update: {
+          user_id?: string | null
+          google_account_email?: string | null
+          connected_at?: string | null
+          revoked_at?: string | null
+        }
+        Relationships: []
+      }
       group_members: {
         Row: {
           group_id: string
