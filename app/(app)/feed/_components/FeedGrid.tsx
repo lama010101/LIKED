@@ -20,6 +20,7 @@
  */
 
 import { useState, useCallback, useMemo, useEffect } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import type { FeedNode } from "@/lib/hooks/useFeed";
 import type { FeedItem } from "@/lib/types/feed";
@@ -43,8 +44,6 @@ interface FolderContext {
   color: string;
   breadcrumb: string[];
 }
-
-type ViewMode = 'col' | 'mason' | 'list' | 'horiz' | 'free';
 
 function FolderTile({ folder, isActive, onClick, currentUserId, onFolderDelete }: {
   folder: Folder;
@@ -134,11 +133,13 @@ function FolderTile({ folder, isActive, onClick, currentUserId, onFolderDelete }
           }}
         >
           {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="w-1/2 h-1/2 overflow-hidden">
+            <div key={i} className="w-1/2 h-1/2 overflow-hidden" style={{ position: 'relative' }}>
               {folder.thumbnails[i] ? (
-                <img
+                <Image
                   src={supabaseUrl + '/storage/v1/object/public/thumbnails/' + folder.thumbnails[i]}
                   alt=""
+                  fill
+                  sizes="50px"
                   className="w-full h-full object-cover"
                 />
               ) : (
@@ -323,8 +324,6 @@ export default function FeedGrid({
   onFolderFilterClick,
   languageCode = 'en',
   initialFilterState,
-  totalCount: ssrTotalCount,
-  nextCursor: ssrNextCursor,
   folders = [],
 }: FeedGridProps) {
   const router = useRouter();
@@ -340,9 +339,6 @@ export default function FeedGrid({
     nodes: clientNodes,
     isLoading,
     error: feedError,
-    hasMore,
-    totalCount,
-    loadMore,
     refresh,
   } = useFeed({ userId: currentUserId, languageCode });
 
@@ -385,9 +381,6 @@ export default function FeedGrid({
     if (node) handleOpen(node);
   }, [nodeByItemId, handleOpen]);
 
-  // Minimal folder strip — FOLDER-004 / FOLDER-005
-  const activeFolderObj = localFolders.find(f => f.id === activeFolderId) ?? null;
-
   // P9-T01 TODO: Folder filter chips do not exist yet. When implemented, add onClick handler:
   // toggleFolderFilter(folderId) from filterStore, show active state with accent border.
   // Current folder tiles are for navigation (context), not multi-filter.
@@ -396,23 +389,6 @@ export default function FeedGrid({
     useFilterStore.getState().pushFolder({ id: folder.id, name: folder.name, color_hex: folder.color_hex });
     setPendingFolderSwitch(true);
     useFilterStore.getState().setContext({ folderId: folder.id });
-  }, []);
-
-  const handleNavigateBack = useCallback(() => {
-    const { folderStack } = useFilterStore.getState();
-    const next = folderStack.slice(0, -1);
-    setPendingFolderSwitch(true);
-    if (next.length === 0) {
-      useFilterStore.getState().clearContext();
-    } else {
-      useFilterStore.getState().setFolderStack(next);
-      useFilterStore.getState().setContext({ folderId: next[next.length - 1].id });
-    }
-  }, []);
-
-  const handleNavigateToRoot = useCallback(() => {
-    setPendingFolderSwitch(true);
-    useFilterStore.getState().clearContext();
   }, []);
 
   // Simple toast utility
@@ -434,19 +410,19 @@ export default function FeedGrid({
   }, []);
 
   // Card menu callbacks
-  const handleShare = useCallback((node: FeedNode) => {
+  const handleShare = useCallback((_node: FeedNode) => {
     showToast('Coming soon — use drag to share');
-  }, []);
+  }, [showToast]);
 
-  const handleMoveToFolder = useCallback((node: FeedNode) => {
+  const handleMoveToFolder = useCallback((_node: FeedNode) => {
     showToast('Coming soon — use drag to move');
-  }, []);
+  }, [showToast]);
 
-  const handleAddTag = useCallback((node: FeedNode) => {
+  const handleAddTag = useCallback((_node: FeedNode) => {
     showToast('Coming soon — use Tag Mode via FAB');
-  }, []);
+  }, [showToast]);
 
-  const handleDelete = useCallback((nodeId: string) => {
+  const handleDelete = useCallback((_nodeId: string) => {
     // Optimistic removal from local state
     // Note: Since we use useFeed hook which manages its own state,
     // we'll trigger a refresh to sync with server

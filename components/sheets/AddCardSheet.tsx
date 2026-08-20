@@ -196,7 +196,7 @@ export default function AddCardSheet({ open, onClose, userId, languageCode }: Ad
 
     if (effectiveType === 'link' || effectiveType === 'image') {
       let domain = '';
-      try { domain = new URL(text).hostname.replace(/^www\./, ''); } catch (e) { domain = text; }
+      try { domain = new URL(text).hostname.replace(/^www\./, ''); } catch { domain = text; }
       setPreviewType('link');
       setPreviewData({ title: effectiveType === 'link' ? 'Link' : 'Image', domain });
     } else {

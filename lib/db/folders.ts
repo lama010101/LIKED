@@ -11,7 +11,7 @@
 import { getSupabaseServiceClient } from "@/lib/supabase/service";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { rpc } from "@/lib/db/rpc";
-import { Folder, Permission } from "@/lib/types/app";
+import { Folder } from "@/lib/types/app";
 import {
   hasFolderPermission,
   assertFolderPermission,

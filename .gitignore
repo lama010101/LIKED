@@ -39,3 +39,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# temp/scratch scripts and audit outputs
+temp_*.js
+temp_*.sql
+tsc-*.txt
+audit_*.json
+audit_*.txt
+audit_query*.txt
+build.log
+
+# supabase temp
+supabase/.temp/

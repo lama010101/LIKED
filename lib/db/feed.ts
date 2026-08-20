@@ -79,15 +79,6 @@ export interface FeedResult {
 const FEED_INITIAL_LOAD = 30;
 const FEED_PAGE_SIZE = PAGINATION.defaultPageSize;
 
-// ── Context key builder for custom sort ────────────────────────
-
-function buildContextKey(params: FeedParams): string {
-  if (params.p_folder_id) return `folder:${params.p_folder_id}`;
-  if (params.p_friend_id) return `friend:${params.p_friend_id}`;
-  if (params.p_group_id) return `group:${params.p_group_id}`;
-  return "personal";
-}
-
 // ── Canonical feed function ─────────────────────────────────────
 
 /**

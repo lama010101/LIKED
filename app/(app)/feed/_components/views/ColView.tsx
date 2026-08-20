@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import type { ViewProps, FeedItem } from "@/lib/types/feed";
 
 function FolderCollage({ item, size }: { item: FeedItem; size: number }) {
@@ -32,7 +33,6 @@ function FolderCollage({ item, size }: { item: FeedItem; size: number }) {
 
 function ColTile({
   item,
-  zoom,
   onClick,
   currentUserId,
   onCardShare,
@@ -92,17 +92,14 @@ function ColTile({
     >
       {/* Real thumbnail if available */}
       {item.thumbnailKey && (
-        <img
+        <Image
           src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/thumbnails/${item.thumbnailKey}`}
           alt={item.title}
+          fill
+          sizes="200px"
           style={{
-            position: "absolute",
-            inset: 0,
-            width: "100%",
-            height: "100%",
             objectFit: "cover",
           }}
-          loading="lazy"
         />
       )}
       {item.kind === "folder" && (

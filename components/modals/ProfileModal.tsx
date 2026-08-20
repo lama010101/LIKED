@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
+import Image from 'next/image';
 import { updateUsername, uploadAvatar } from '@/app/lib/actions/profile';
 import { signOut } from '@/app/lib/actions/auth';
 
@@ -284,10 +285,12 @@ export default function ProfileModal({
                 }}
               >
                 {resolvedAvatarUrl ? (
-                  <img
+                  <Image
                     src={resolvedAvatarUrl}
                     alt="Your avatar"
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    fill
+                    sizes="80px"
+                    style={{ objectFit: 'cover' }}
                   />
                 ) : (
                   <span style={{

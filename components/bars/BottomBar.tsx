@@ -1,9 +1,9 @@
 'use client';
 
 import { useRef, useCallback, useState } from 'react';
-import BottomBarAvatar, { BottomBarAvatarItem } from './BottomBarAvatar';
+import BottomBarAvatar from './BottomBarAvatar';
 import { useDragPauseExpand } from '@/lib/dnd/useDragPauseExpand';
-import { useRouter } from 'next/navigation';
+
 
 interface BottomBarItem {
   id: string;
@@ -27,7 +27,6 @@ interface BottomBarProps {
 
 export default function BottomBar({ items, onAvatarClick, state, onStateChange, currentUserId, onRefresh }: BottomBarProps) {
   const touchStartY = useRef<number | null>(null);
-  const router = useRouter();
   const [inviteSheetOpen, setInviteSheetOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteError, setInviteError] = useState<string | null>(null);
@@ -95,7 +94,7 @@ export default function BottomBar({ items, onAvatarClick, state, onStateChange, 
           if (onRefresh) onRefresh();
         }, 1500);
       }
-    } catch (err) {
+    } catch {
       setInviteError('Failed to send invite');
     } finally {
       setIsSendingInvite(false);

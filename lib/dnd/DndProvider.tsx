@@ -1,6 +1,6 @@
 'use client'
 
-import { DndContext, DragEndEvent, useSensor, useSensors, PointerSensor, TouchSensor, KeyboardSensor, useDndContext } from "@dnd-kit/core";
+import { DndContext, DragEndEvent, useSensor, useSensors, PointerSensor, TouchSensor, KeyboardSensor } from "@dnd-kit/core";
 import { useUIStore } from "@/lib/store/uiStore";
 import { DragSource, DropTarget } from "./types";
 import AutoCreatePrompt from "@/components/dnd/AutoCreatePrompt";

@@ -311,7 +311,7 @@ function groupItems(
       groups[key].push(item);
     }
     return Object.entries(groups)
-      .map(([key, g]) => ({
+      .map(([, g]) => ({
         label: g[0].title?.split(" ")[0]?.slice(0, 16) || "Folder",
         items: g,
       }))
@@ -343,11 +343,6 @@ function groupItems(
   }
 
   // 4. Fallback → recency buckets
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-  const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
-
   const buckets: Record<string, FeedItem[]> = {
     Today: [],
     "This week": [],

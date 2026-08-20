@@ -11,8 +11,6 @@ import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { sourceId, targetId, DragSource, DropTarget } from "@/lib/dnd/types";
 import { useLongPress } from "@/lib/hooks/useLongPress";
 import { useSelectionStore, SelectionKind } from "@/lib/store/selectionStore";
-import SelectionCloseButton from "@/components/selection/SelectionCloseButton";
-import { useRouter } from "next/navigation";
 
 export interface BottomBarAvatarItem {
   id: string;
@@ -39,7 +37,6 @@ export default function BottomBarAvatar({ item, onClick, currentUserId, onRefres
   // Disable DnD during SSR to prevent hydration mismatch
   const [isMounted, setIsMounted] = useState(false);
   const [popoverOpen, setPopoverOpen] = useState(false);
-  const router = useRouter();
 
   useEffect(() => {
     setIsMounted(true);
@@ -61,8 +58,6 @@ export default function BottomBarAvatar({ item, onClick, currentUserId, onRefres
   const selectionKind: SelectionKind | null =
     item.type === "friend" ? "friend" : item.type === "group" ? "group" : null;
   const selectionActive = useSelectionStore((s) => s.isActive);
-  const isSelected = useSelectionStore((s) => s.isSelected({ kind: selectionKind!, id: item.id }));
-  const activate = useSelectionStore((s) => s.activate);
   const toggle = useSelectionStore((s) => s.toggle);
 
   const longPressRef = useLongPress(
@@ -76,7 +71,6 @@ export default function BottomBarAvatar({ item, onClick, currentUserId, onRefres
 
   const {
     setNodeRef: setDropRef,
-    isOver,
   } = useDroppable({
     id: dropTarget ? targetId(dropTarget) : `me:${item.id}`,
     disabled: !dropTarget || selectionActive || !isMounted,
@@ -99,8 +93,6 @@ export default function BottomBarAvatar({ item, onClick, currentUserId, onRefres
     setDragRef(el);
     longPressRef(el);
   };
-
-  const activeRing = isOver && dropTarget;
 
   const handleClick = () => {
     // Pending invites are not tappable

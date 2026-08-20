@@ -252,7 +252,7 @@ body {
 }
 
 .font-serif {
-  font-family: 'Fraunces', Georgia, serif;
+  font-family: var(--font-serif), Georgia, serif;
   font-feature-settings: 'ss01';
   letter-spacing: -0.02em;
 }
@@ -405,7 +405,7 @@ body {
   pointer-events: none;
 }
 .note-card__text {
-  font-family: 'Caveat', 'Patrick Hand', 'Comic Sans MS', cursive, sans-serif;
+  font-family: var(--font-hand), 'Patrick Hand', 'Comic Sans MS', cursive, sans-serif;
   font-size: 17px;
   line-height: 1.32;
   color: rgba(0,0,0,0.78);

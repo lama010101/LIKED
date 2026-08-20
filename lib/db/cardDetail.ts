@@ -12,12 +12,6 @@ import { getVisibleNodeById, type VisibleNode } from "@/lib/db/visibility";
 import { getTagsForNode, type TagWithLabel } from "@/lib/db/tags";
 import { getRatingsForNode, type RatingWithUser } from "@/lib/db/ratings";
 
-// CLEANUP-E pending: Supabase types are stale for `nodes_sort_cache`
-// (missing view_count/share_count). Cast through `AnySupabase` like the
-// rest of the lib/db/* files until types are regenerated.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnySupabase = any;
-
 export interface CardDetailSharedUser {
   userId: string;
   displayName: string | null;

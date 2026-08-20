@@ -102,7 +102,7 @@ export async function addTagToNodeAction(
   tagId: string
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   try {
-    const userId = await requireUserId();
+    await requireUserId();
     await addTagToNode(tagId, nodeId);
     revalidatePath("/feed");
     return { ok: true };
@@ -119,7 +119,7 @@ export async function removeTagFromNodeAction(
   tagId: string
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   try {
-    const userId = await requireUserId();
+    await requireUserId();
     await removeTagFromNode(tagId, nodeId);
     revalidatePath("/feed");
     return { ok: true };

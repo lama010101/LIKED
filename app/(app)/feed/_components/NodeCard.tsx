@@ -3,6 +3,7 @@
 import { useCallback, useState, useEffect } from "react";
 import { useDraggable, useDroppable, useDndContext } from "@dnd-kit/core";
 import type { DraggableSyntheticListeners } from "@dnd-kit/core";
+import Image from "next/image";
 import type { FeedNode } from "@/lib/hooks/useFeed";
 import { sourceId, targetId } from "@/lib/dnd/types";
 import { useLongPress } from "@/lib/hooks/useLongPress";
@@ -10,7 +11,6 @@ import { useSelectionStore } from "@/lib/store/selectionStore";
 import SelectionCloseButton from "@/components/selection/SelectionCloseButton";
 import { trashNode } from "@/app/lib/actions/selection";
 import { getStorageUrl } from "@/lib/utils/avatar";
-import { useRouter } from "next/navigation";
 
 interface NodeCardProps {
   node: FeedNode;
@@ -30,7 +30,6 @@ function formatDate(iso: string): string {
 
 export default function NodeCard({ node, onClick, currentUserId, dragListeners, onShare, onMoveToFolder, onAddTag, onDelete }: NodeCardProps) {
   const isTextCard = !node.url && !!node.text_content;
-  const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
 
   // P9-T01: Direction badge — amber for mine, blue for received (PRD §11.3)
@@ -194,11 +193,12 @@ export default function NodeCard({ node, onClick, currentUserId, dragListeners, 
             {...(dragListeners ?? {})}
           >
             {node.thumbnail_key ? (
-              <img
+              <Image
                 src={getStorageUrl('thumbnails', node.thumbnail_key)}
                 alt={title}
+                fill
+                sizes="200px"
                 className="w-full h-full object-cover"
-                loading="lazy"
               />
             ) : (
               <svg
