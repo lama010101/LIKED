@@ -9,9 +9,9 @@
 
 | Field | Value |
 |-------|-------|
-|| **Last completed task** | P11 — Advanced Views & Multilingual |
-|| **Next task to execute** | P12 — Admin & Permissions |
-|| **Current phase** | P11 complete; P12 next |
+|| **Last completed task** | P12 — Admin & Permissions |
+|| **Next task to execute** | P1-P12 gates passed — P13 Chat deferred |
+|| **Current phase** | P12 complete; P1-P12 done |
 || **Phase gate passed** | ✅ Build / type-check / lint 0 warnings / 0 errors / npm audit 0 vulnerabilities |
 || **Last updated** | 2026-08-20 (Devin) |
 
@@ -253,7 +253,7 @@
 |-------|--------|
 | P10 Realtime & Notifications | ✅ Complete |
 | P11 Advanced Views | ⏳ Not started |
-| P12 Admin & Permissions | ⏳ Not started |
+| P12 Admin & Permissions | ✅ Complete |
 | P13 Chat | ⏳ Deferred — do not start until P1–P12 gates pass |
 
 ---
@@ -339,7 +339,7 @@
 | 1-T04 | `dotenv` version hygiene | ✅ | ^17.4.2 → ^16.4.5 (2026-08-20) | `package.json` pins `^17.4.2` which does not exist; needs correction to a real version. |
 | P10 | Realtime & Notifications | ✅ | Migration 058 applied: Realtime enabled on 5 tables, notifications created in share RPCs, NotificationPanel + useRealtime hook + server actions. Build/lint/tsc clean. | Phase 10 per `02_BUILD_PLAN.md`. |
 | P11 | Advanced Views & Multilingual | ✅ Complete | Phase 11 per `02_BUILD_PLAN.md`. |
-| P12 | Admin & Permissions | ⏳ Not started | Phase 12 per `02_BUILD_PLAN.md`. |
+| P12 | Admin & Permissions | ✅ Complete | Phase 12 per `02_BUILD_PLAN.md`. |
 | P13 | Chat | ⏳ Deferred | Phase 13 per PRD §28; start only after P1–P12 gates pass. |
 
 
@@ -372,4 +372,11 @@
 | P11-T01 | Infinite canvas polish | ✅ | Migration 060: card_positions table + RLS + upsert_card_position RPC + Realtime enabled. FreeGrid rewritten as true infinite canvas: free card positioning (drag anywhere), pan (drag background), auto-arrange button, resize handles, positions persist to DB per user per folder context, debounced save (500ms). Realtime sync via card_positions in supabase_realtime publication. No pinch-to-zoom (PRD §39). |
 | P11-T02 | Multilingual support | ✅ | Language selector added to ProfileModal (en/fr/th). updateLanguage server action in profile.ts. Migration 059: 10 seed translations (5 French, 5 Thai) for 5 seed nodes. Fallback chain verified: get_feed already implements §33.3 (user lang → node lang → nodes.title) and §33.4 (user lang → English → tag_id suffix). Tag labels already use resolveTagLabel fallback in tags.ts. Search already queries translations in user's language via get_feed RPC. No runtime translation API calls. |
 | **P11 Gate** | | ✅ | Canvas positions persist and survive refresh; no pinch-to-zoom; multilingual fallback chain verified with French and Thai; no runtime translation; build/lint/tsc all clean. |
+
+
+### P12 — Admin & Permissions (2026-08-20)
+| Task ID | Title | Status | Notes |
+|---------|-------|--------|-------|
+| P12-T01 | Admin grant and capabilities | ✅ | Migration 061: is_folder_admin/is_group_admin helper RPCs, grant_folder_admin/grant_group_admin RPCs (verify caller is owner/admin, idempotent INSERT), revoke_folder_admin/revoke_group_admin RPCs (owner-only), rename_folder fixed to check admin via is_folder_admin. RLS: INSERT/DELETE on admin tables service_role only. app/lib/actions/admin.ts: grantFolderAdminAction, grantGroupAdminAction, revokeFolderAdminAction, revokeGroupAdminAction, getFolderAdminsAction, getGroupAdminsAction. SelectionOverlay: 'Give admin rights' action wired — checks active folder/group context from filterStore, calls grant RPC, shows toast. |
+| **P12 Gate** | | ✅ | Admin grant works via long-press context menu; admin capabilities enforced server-side (RPCs check is_folder_admin/is_group_admin); non-admins blocked (RAISE EXCEPTION); build/lint/tsc all clean. |
 
