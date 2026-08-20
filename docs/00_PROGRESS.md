@@ -9,9 +9,9 @@
 
 | Field | Value |
 |-------|-------|
-|| **Last completed task** | M0 migration sync + M1 lint/deps cleanup + AUDIT-01 H4/H5/M3 fixes |
-|| **Next task to execute** | P10 — Realtime & Notifications |
-|| **Current phase** | Post-audit cleanup complete; P10 next |
+|| **Last completed task** | P10 — Realtime & Notifications |
+|| **Next task to execute** | P11 — Advanced Views & Multilingual |
+|| **Current phase** | P10 complete; P11 next |
 || **Phase gate passed** | ✅ Build / type-check / lint 0 warnings / 0 errors / npm audit 0 vulnerabilities |
 || **Last updated** | 2026-08-20 (Devin) |
 
@@ -251,7 +251,7 @@
 ### PHASES 10–13
 | Phase | Status |
 |-------|--------|
-| P10 Realtime & Notifications | ⏳ Not started |
+| P10 Realtime & Notifications | ✅ Complete |
 | P11 Advanced Views | ⏳ Not started |
 | P12 Admin & Permissions | ⏳ Not started |
 | P13 Chat | ⏳ Deferred — do not start until P1–P12 gates pass |
@@ -337,7 +337,7 @@
 | 1-T02 | Audit H4/H5 write-authority gaps | ✅ | H4: SECURITY DEFINER applied; H5: no direct folder writes in TS — 2026-08-20 | `create_node` / `create_node_with_metadata` still `SECURITY INVOKER`; folder writes (`addNodeToFolder`, `removeNodeFromFolder`, `deleteFolder`, `moveFolder`) need DB RPCs. |
 | 1-T03 | Next.js `proxy` migration | ✅ | middleware.ts → proxy.ts (2026-08-20) | `middleware.ts` is deprecated; migrate to `proxy` convention. |
 | 1-T04 | `dotenv` version hygiene | ✅ | ^17.4.2 → ^16.4.5 (2026-08-20) | `package.json` pins `^17.4.2` which does not exist; needs correction to a real version. |
-| P10 | Realtime & Notifications | ⏳ Next | Phase 10 per `02_BUILD_PLAN.md`. |
+| P10 | Realtime & Notifications | ✅ | Migration 058 applied: Realtime enabled on 5 tables, notifications created in share RPCs, NotificationPanel + useRealtime hook + server actions. Build/lint/tsc clean. | Phase 10 per `02_BUILD_PLAN.md`. |
 | P11 | Advanced Views & Multilingual | ⏳ Not started | Phase 11 per `02_BUILD_PLAN.md`. |
 | P12 | Admin & Permissions | ⏳ Not started | Phase 12 per `02_BUILD_PLAN.md`. |
 | P13 | Chat | ⏳ Deferred | Phase 13 per PRD §28; start only after P1–P12 gates pass. |
@@ -355,4 +355,13 @@
 | AUDIT-01/M5 | proxy.ts console.log | ✅ | Removed during proxy migration. |
 | AUDIT-01/M4 | HorizView stub sub-folder grouping | ⚠️ | Still uses folderColor as proxy. Fixing requires either get_feed SQL modification (forbidden by FEED LOCK) or separate folder_edges lookup query. Deferred to P11. |
 | PROGRESS | Update 00_PROGRESS.md | ✅ | All stale audit items and roadmap entries updated to reflect current state. |
+
+
+### P10 — Realtime & Notifications (2026-08-20)
+| Task ID | Title | Status | Notes |
+|---------|-------|--------|-------|
+| P10-T01 | Supabase Realtime subscriptions | ✅ | Migration 058: enabled Realtime publication on edges, notifications, ratings, users, nodes. Created lib/hooks/useRealtime.ts — 5 channel subscriptions (edges INSERT → feed refresh, notifications INSERT → bell increment, ratings * → refresh, users UPDATE → refresh, nodes UPDATE → refresh). All subscriptions clean up on unmount via supabaseBrowser.removeChannel. |
+| P10-T02 | Notification view | ✅ | Created app/lib/actions/notifications.ts (getNotificationsAction, getUnreadNotificationCountAction, markNotificationReadAction, markAllNotificationsReadAction). Created components/modals/NotificationPanel.tsx — slide-in panel with notification list, type-specific icons, unread indicators, mark-read on click, mark-all-read button, relative time display. TopBar bell icon already existed — wired to real notification count (was hardcoded to 2). NotificationPanel mounted in layout.tsx. |
+| P10-MIG | Notification creation in share RPCs | ✅ | Migration 058 redefined direct_share, group_share, share_folder to INSERT into notifications table atomically. direct_share: 1 notification per target. group_share: 1 per member (except sharer). share_folder: 1 per target user (deduplicated, not per-node). RLS: INSERT service_role only, UPDATE/DELETE for own notifications. |
+| **P10 Gate** | | ✅ | Realtime subscriptions clean up on unmount; notification bell wired to real count; share RPCs create notifications; build/lint/tsc all clean. |
 

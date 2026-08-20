@@ -22,9 +22,12 @@ import ContextStrip, { ContextPill } from '@/components/bars/ContextStrip';
 import FabSpeedDial from '@/components/bars/FabSpeedDial';
 import FolderPathBar from '@/components/bars/FolderPathBar';
 import DesktopToolbar from '@/components/bars/DesktopToolbar';
+import NotificationPanel from '@/components/modals/NotificationPanel';
 import { getSessionUser, getFriendBarAction, getGroupBarAction } from '@/app/lib/actions/session';
 import { getUserFoldersAction } from '@/app/lib/actions/getFolders';
 import { getTagsAction } from '@/app/lib/actions/getTags';
+import { getUnreadNotificationCountAction } from '@/app/lib/actions/notifications';
+import { useRealtime } from '@/lib/hooks/useRealtime';
 import type { SessionUser } from '@/app/lib/actions/session';
 import type { FriendBarEntry, GroupBarEntry } from '@/lib/db/friends';
 
@@ -242,7 +245,13 @@ function AppShell({ children }: { children: React.ReactNode }) {
   const [openFolder, setOpenFolder] = useState(false);
   const [speedDialOpen, setSpeedDialOpen] = useState(false);
   const [openProfile, setOpenProfile] = useState(false);
-  const [notificationCount] = useState(2);
+  const [notificationCount, setNotificationCount] = useState(0);
+  const [notificationPanelOpen, setNotificationPanelOpen] = useState(false);
+
+  // Fetch initial unread notification count
+  useEffect(() => {
+    getUnreadNotificationCountAction().then(setNotificationCount);
+  }, []);
   const [toast, setToast] = useState<{ kind: 'ok' | 'err'; message: string } | null>(null);
   const [trashCount, setTrashCount] = useState<number>(0);
   const isMobile = useIsMobile();
@@ -251,6 +260,36 @@ function AppShell({ children }: { children: React.ReactNode }) {
   const searchParams = useSearchParams();
   const hydrateFromStorage = useFilterStore((s) => s.hydrateFromStorage);
   const setCurrentContextKey = useFilterStore((s) => s.setCurrentContextKey);
+
+  // P10-T01: Realtime subscriptions
+  const handleNewShare = useCallback(() => {
+    router.refresh();
+  }, [router]);
+
+  const handleNewNotification = useCallback(() => {
+    setNotificationCount((prev) => prev + 1);
+  }, []);
+
+  const handleRatingChange = useCallback((_nodeId: string) => {
+    router.refresh();
+  }, [router]);
+
+  const handleProfileChange = useCallback((_userId: string) => {
+    router.refresh();
+  }, [router]);
+
+  const handleNodeTitleChange = useCallback((_nodeId: string) => {
+    router.refresh();
+  }, [router]);
+
+  useRealtime({
+    userId: sessionUser?.id ?? null,
+    onNewShare: handleNewShare,
+    onNewNotification: handleNewNotification,
+    onRatingChange: handleRatingChange,
+    onProfileChange: handleProfileChange,
+    onNodeTitleChange: handleNodeTitleChange,
+  });
 
   // Refresh the trash-icon badge count (PRD §20.1) whenever the route
   // changes, so restoring or leaving /trash reflects in the top bar.
@@ -323,7 +362,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
           userId={sessionUser?.id ?? ''}
           avatarKey={sessionUser?.avatar_key ?? null}
           displayName={profileDisplayName}
-          onNotificationClick={() => {}}
+          onNotificationClick={() => setNotificationPanelOpen(true)}
           onProfileClick={() => setOpenProfile(true)}
           onTrashClick={() => router.push('/trash')}
           trashCount={trashCount}
@@ -358,7 +397,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
         sortLabel="Newest"
         onSortClick={() => setOpenFilter(true)}
         notificationCount={notificationCount}
-        onNotificationClick={() => {}}
+        onNotificationClick={() => setNotificationPanelOpen(true)}
         isInFolder={isInFolder}
         folderName={isInFolder ? 'Current Folder' : undefined}
         onBackClick={() => setFolderPath((p) => p.slice(0, -1))}
@@ -524,6 +563,13 @@ function AppShell({ children }: { children: React.ReactNode }) {
         theme={theme}
         onThemeChange={handleThemeChange}
         onDisplayNameChange={(name) => setProfileDisplayName(name)}
+      />
+
+      {/* Notification Panel (P10-T02) */}
+      <NotificationPanel
+        open={notificationPanelOpen}
+        onClose={() => setNotificationPanelOpen(false)}
+        onUnreadCountChange={setNotificationCount}
       />
 
       {/* Multi-select context menu + undo toast (P7-T03) */}
