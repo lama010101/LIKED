@@ -56,8 +56,12 @@ const RATE_LIMIT_PER_MIN = 30;
 const THUMBNAILS_BUCKET = "thumbnails";
 const USER_AGENT = "LIKED-Bot/1.0";
 
+// This function is only ever invoked server-to-server (Next.js server
+// action / API route via lib/edge/extract-metadata.ts) — never directly
+// from a browser or the extension — so it does not need permissive CORS.
+// These headers exist only so the OPTIONS/error paths return *something*;
+// no origin is allowed to read the response cross-origin.
 const CORS_HEADERS: Record<string, string> = {
-  "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",

@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+LIKED is a Next.js app for saving and organizing links, backed by Supabase (Postgres + Auth + Storage + Edge Functions), with a companion Chrome extension for quick-saving from the browser toolbar.
 
-## Getting Started
-
-First, run the development server:
+## Getting started
 
 ```bash
+npm install
+cp .env.example .env.local   # fill in the values below
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Environment variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variable | Where it's used |
+| --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL (client + server) |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key (client + server) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server-only, used sparingly in `lib/supabase/service.ts` — never expose to the client |
+| `NEXT_PUBLIC_APP_URL` | Base URL used for OAuth redirects and the extension auth relay |
+| `NEXT_PUBLIC_EXTENSION_ID` | Chrome extension ID, used by `externally_connectable` messaging |
+| `NEXT_PUBLIC_CHROME_WEBSTORE_URL` | Link shown to users who don't have the extension installed |
 
-## Learn More
+YouTube integration (liked videos / subscriptions) authenticates via Supabase Auth's Google OAuth provider with the `youtube` scope — configure the Google provider (client ID/secret, redirect URL) in the Supabase dashboard, not as app env vars.
 
-To learn more about Next.js, take a look at the following resources:
+## Project structure
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `app/` — Next.js App Router pages, API routes (`app/api/**`), and server actions (`app/lib/actions/**`)
+- `lib/` — shared server/client helpers (Supabase clients, DB access, YouTube API wrapper)
+- `supabase/functions/` — Deno Edge Functions (currently `extract-node-metadata`, used server-to-server for link metadata extraction)
+- `supabase/migrations/` — SQL migrations
+- `extension/` — the Chrome extension (Manifest V3); see `extension/README.md` for its own build steps
+- `e2e/` — Playwright end-to-end tests
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Testing
 
-## Deploy on Vercel
+```bash
+npm test                # unit tests (Vitest)
+npm run test:e2e        # e2e, headless (Playwright)
+npm run test:e2e:ui     # e2e, interactive Playwright UI
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Unit tests (`**/*.test.ts`, run via Vitest — see `vitest.config.ts`) cover pure/mockable logic such as `lib/youtube/client.ts` and `lib/db/rpc.ts`; add more alongside the modules they test as coverage grows. E2E tests run against a local dev server and a real (or local) Supabase project — see `playwright.config.ts` and `e2e/` for setup details.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Linting & type checking
+
+```bash
+npm run lint
+npx tsc --noEmit
+```
+
+## CI
+
+`.github/workflows/ci.yml` runs lint and build on every push/PR. The e2e job is opt-in: set the `RUN_E2E` repository variable to `true` and provide `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` as repository secrets to enable it.
+
+## Deploying Supabase changes
+
+Migrations live in `supabase/migrations/`; apply them with the Supabase CLI or MCP tooling rather than hand-editing the remote database. Edge Functions are deployed with `supabase functions deploy <name>`.

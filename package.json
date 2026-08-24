@@ -9,6 +9,7 @@
     "lint": "eslint",
     "build:extension": "npm --prefix extension run build",
     "dev:extension": "npm --prefix extension run dev",
+    "test": "vitest run",
     "test:e2e": "npx playwright test",
     "test:e2e:ui": "npx playwright test --ui",
     "test:e2e:headed": "npx playwright test --headed"
@@ -36,6 +37,7 @@
     "eslint-config-next": "16.2.4",
     "postcss": "^8.5.10",
     "tailwindcss": "^3.4.19",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3.2.7"
   }
 }
