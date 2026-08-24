@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { createNodeAction } from "@/app/lib/actions/createNode";
 
@@ -518,11 +519,12 @@ function VideoRow({
     }}>
       {/* Thumbnail */}
       {video.thumbnail && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
+        <Image
           src={video.thumbnail}
           alt={video.title}
-          style={{ width: 120, height: 68, borderRadius: 8, objectFit: "cover", flexShrink: 0 }}
+          width={120}
+          height={68}
+          style={{ borderRadius: 8, objectFit: "cover", flexShrink: 0 }}
         />
       )}
 
@@ -643,11 +645,12 @@ function SubscriptionRow({
     }}>
       {/* Avatar */}
       {subscription.thumbnail && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
+        <Image
           src={subscription.thumbnail}
           alt={subscription.title}
-          style={{ width: 48, height: 48, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}
+          width={48}
+          height={48}
+          style={{ borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}
         />
       )}
 
