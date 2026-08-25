@@ -4,6 +4,13 @@
   "version": "0.1.0",
   "description": "Save any URL to your LIKED library with one click. Quick save by default, optional title, description, tags, and collection.",
   "permissions": ["activeTab", "storage"],
+  "host_permissions": [
+    "https://liked.app/*",
+    "http://localhost:3000/*",
+    "http://127.0.0.1:3000/*",
+    "http://localhost:3001/*",
+    "http://127.0.0.1:3001/*"
+  ],
   "action": {
     "default_popup": "popup.html",
     "default_title": "Save to LIKED",
