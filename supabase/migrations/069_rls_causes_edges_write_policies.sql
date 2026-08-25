@@ -1,4 +1,4 @@
--- Migration 037: Add missing write RLS policies on causes and edges
+-- Migration 069: Add missing write RLS policies on causes and edges
 -- Causes: INSERT restricted to creator, DELETE restricted to creator
 -- Edges: INSERT restricted to sender, DELETE restricted to sender or recipient
 -- No UPDATE policies added (causes and edges are immutable; mutations go through RPCs)
