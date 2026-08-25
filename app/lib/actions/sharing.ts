@@ -47,28 +47,44 @@ export async function hasNodePermissionAction(
   nodeId: string,
   required: Permission
 ): Promise<boolean> {
-  const actorId = await getActorId();
-  return hasNodePermission(actorId, nodeId, required);
+  try {
+    const actorId = await getActorId();
+    return await hasNodePermission(actorId, nodeId, required);
+  } catch {
+    return false;
+  }
 }
 
 export async function hasFolderPermissionAction(
   folderId: string,
   required: Permission
 ): Promise<boolean> {
-  const actorId = await getActorId();
-  return hasFolderPermission(actorId, folderId, required);
+  try {
+    const actorId = await getActorId();
+    return await hasFolderPermission(actorId, folderId, required);
+  } catch {
+    return false;
+  }
 }
 
 export async function getEffectiveNodePermissionAction(
   nodeId: string
 ): Promise<Permission | null> {
-  const actorId = await getActorId();
-  return getEffectiveNodePermission(actorId, nodeId);
+  try {
+    const actorId = await getActorId();
+    return await getEffectiveNodePermission(actorId, nodeId);
+  } catch {
+    return null;
+  }
 }
 
 export async function getEffectiveFolderPermissionAction(
   folderId: string
 ): Promise<Permission | null> {
-  const actorId = await getActorId();
-  return getEffectiveFolderPermission(actorId, folderId);
+  try {
+    const actorId = await getActorId();
+    return await getEffectiveFolderPermission(actorId, folderId);
+  } catch {
+    return null;
+  }
 }

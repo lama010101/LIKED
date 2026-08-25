@@ -60,6 +60,7 @@ function HorizTile({ item, onClick, currentUserId, onCardShare, onCardMoveToFold
     } else {
       const body = await res.json().catch(() => ({}));
       console.error('Card delete failed', res.status, body);
+      alert(body?.error || 'Failed to delete card. Please try again.');
     }
   };
 
