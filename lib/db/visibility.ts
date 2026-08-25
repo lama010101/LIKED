@@ -32,37 +32,6 @@ export interface VisibleNode {
   created_at: string;
 }
 
-export type FeedView = 'all' | 'mine' | 'received';
-export type MineSubFilter = 'all' | 'not_shared' | 'shared';
-
-/**
- * Get all visible nodes for a user, with optional view filter.
- * Delegates to get_visible_nodes(p_user_id, p_sort, p_view, p_mine_filter) Postgres function.
- *
- * P9-T01: Added p_view ('all'|'mine'|'received') and p_mine_filter ('all'|'not_shared'|'shared')
- * for feed tab filtering. Defaults to 'all'/'all' for backward compatibility.
- */
-export async function getVisibleNodes(
-  userId: string,
-  view: FeedView = 'all',
-  mineFilter: MineSubFilter = 'all'
-): Promise<VisibleNode[]> {
-  const supabase = await getSupabaseServerClient();
-
-  const { data, error } = await supabase.rpc("get_visible_nodes", {
-    p_user_id: userId,
-    p_sort: "newest",
-    p_view: view,
-    p_mine_filter: mineFilter,
-  });
-
-  if (error) {
-    throw new Error(`Failed to fetch visible nodes: ${error.message}`);
-  }
-
-  return (data ?? []) as VisibleNode[];
-}
-
 /**
  * Get a single visible node by ID.
  * Delegates to get_visible_node_by_id(p_user_id, p_node_id) Postgres function.

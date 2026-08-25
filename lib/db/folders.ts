@@ -53,8 +53,6 @@ export async function getUserFolders(): Promise<Folder[]> {
   } = await supabase.auth.getUser();
   if (!user) return [];
 
-  console.log('[getUserFolders] user_id:', user.id);
-
   // Step 1: fetch all folders owned by user
   const { data, error } = await supabase
     .from('folders')
