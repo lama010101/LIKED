@@ -178,8 +178,10 @@ export default function ProfileModal({
     setSignOutPending(true);
     try {
       await signOut();
-    } catch {
+    } catch (err) {
+      console.error('[handleSignOut]', err);
       setSignOutPending(false);
+      alert('Failed to sign out. Please try again.');
     }
   };
 
