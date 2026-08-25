@@ -1,5 +1,19 @@
 # AUDIT-01 — Full Repository & Database Audit Report
 
+> **STALE — historical record only, not current status.** Written 2026-04-27
+> against an earlier Next.js version and DB state. As of 2026-08-25, the
+> code-level findings below have been re-verified against the current
+> codebase and are resolved (`getNodeById` visibility, `SharePickerModal`
+> / `usePermissions` client-side imports, `unshareFolderOp`,
+> `createOrGetTag`, `setCustomOrder`, folder write RPCs). The `proxy.ts`
+> "middleware.ts missing" finding (#2) is invalid — Next.js later renamed
+> that convention from `middleware.ts` to `proxy.ts`, so `proxy.ts` is
+> correct. The `scripts/audit-01-output.txt` and `scripts/audit-01.js`
+> referenced below no longer exist (`scripts/` was deleted — see git log).
+> The DB-side findings (RLS policies, missing RPCs, duplicate indexes)
+> were not independently re-verified against the live database — this
+> session had no access to the LIKED Supabase project.
+
 **Project:** LIKED · **Task ID:** AUDIT-01 · **Mode:** READ-ONLY (no modifications).
 **Date:** 2026-04-27 · **DB inspected:** `lzkzfqshnjvlzosnntfx` (session pooler, port 6543).
 **Authoritative docs:** `01_PRD.md` v27.2 · `02_BUILD_PLAN.md` v1.0 · `03_TECHNICAL_ARCHITECTURE.md` v1.0 · `04_FEED_SQL_SPEC.md` v1.0.
