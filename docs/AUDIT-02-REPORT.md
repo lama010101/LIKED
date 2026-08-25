@@ -364,8 +364,33 @@ RM supabase/migrations/037_rls_causes_edges_write_policies.sql -> supabase/migra
 | 5 | MAJOR (`/youtube` auth) | ✅ FIXED (Task A) |
 | 6 | MAJOR (migration collisions) | ✅ FIXED (Task B) |
 | 9 | MINOR (dead code) | ✅ FIXED (Task C) |
+| 3 | CRITICAL (RPC DEFINER+GRANT) | ✅ FIXED (Task D — migration 070) |
+| 4 | MAJOR (`createNode` race) | ✅ FIXED (Task E — migration 071) |
 | 1 | CRITICAL (feed pipeline order) | ❌ still open (requires SQL migration, feed-lock) |
 | 2 | CRITICAL (DB unreachable) | ❌ still open (infra) |
-| 3 | CRITICAL (RPC DEFINER+GRANT) | ❌ still open (requires live DB) |
-| 4 | MAJOR (`createNode` race) | ❌ still open |
-| 7 | MAJOR (`mineSubTab` dead) | ❌ still open |
+| 7 | MAJOR (`mineSubTab` dead) | ❌ still open (product decision — UI is live, backend not wired) |
+
+### Task D — RPC SECURITY DEFINER + GRANT EXECUTE  ✅ FIXED
+
+| Field | Value |
+|---|---|
+| File | `supabase/migrations/070_fix_rpc_security_definer_grants.sql` (new) |
+| Functions | `set_node_deleted(UUID, BOOLEAN)`, `rename_folder(UUID, TEXT)`, `create_tag_with_translation(TEXT, TEXT, TEXT)` |
+| Change | `ALTER FUNCTION ... SECURITY DEFINER` + `GRANT EXECUTE TO authenticated, service_role` |
+| Pattern | Identical to migration 035 (which fixed `create_node` and `create_node_with_metadata` the same way) |
+| No logic change | Security mode and grants only — no function body modifications |
+| Build | `npm run build` exit 0 |
+| Live verification | **NOT YET VERIFIED** — DB unreachable. Migration file is correct; applying requires DB restore. |
+
+### Task E — `createNode` race condition  ✅ FIXED (DB-level constraint)
+
+| Field | Value |
+|---|---|
+| File | `supabase/migrations/071_nodes_url_owner_unique.sql` (new) |
+| Change | `CREATE UNIQUE INDEX IF NOT EXISTS nodes_url_owner_active_uniq ON nodes (url, owner_id) WHERE deleted_at IS NULL AND url IS NOT NULL` |
+| Mechanism | Partial unique index enforces uniqueness at the DB level. Concurrent `createNode` calls with same `(url, owner_id)` — the second INSERT fails with a unique constraint violation instead of silently creating a duplicate. |
+| Application-level check | Left in place (`lib/db/nodes.ts:97-114`) — provides better UX via `DuplicateNodeError` in the non-race case. The index is the safety net for the race window. |
+| Text-only cards | Excluded (`url IS NOT NULL` filter) — text-only cards have `url = NULL` and duplicates are valid. |
+| No write logic change | Pure constraint addition. No RPC modifications, no feed involvement. |
+| Build | `npm run build` exit 0 |
+| Live verification | **NOT YET VERIFIED** — DB unreachable. Migration file is correct; applying requires DB restore. |

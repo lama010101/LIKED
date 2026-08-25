@@ -1,4 +1,4 @@
--- Migration 035: get_visible_tags RPC for TagsStrip (UX-001)
+-- Migration 068: get_visible_tags RPC for TagsStrip (UX-001)
 -- Per PRD §11.3f: Tags shown are only tags that exist on nodes currently visible to the current user
 -- This requires joining tag_edges → tags → tag_translations → nodes → edges
 
