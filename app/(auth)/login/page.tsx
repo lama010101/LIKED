@@ -21,10 +21,15 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
 
-    const result = await signIn(email, password, redirectTo);
+    try {
+      const result = await signIn(email, password, redirectTo);
 
-    if (result?.error) {
-      setError(result.error);
+      if (result?.error) {
+        setError(result.error);
+        setLoading(false);
+      }
+    } catch {
+      setError("Sign in failed. Please try again.");
       setLoading(false);
     }
   };

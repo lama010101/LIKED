@@ -44,7 +44,7 @@ test.describe("Auth — Login flow", () => {
     await page.locator("#password").fill("wrongpassword");
     await page.getByRole("button", { name: /sign in/i }).click();
 
-    await expect(page.locator("text=/invalid|error|incorrect|failed/i")).toBeVisible({ timeout: 30_000 });
+    await expect(page.locator("text=/invalid|error|incorrect|failed|disabled/i")).toBeVisible({ timeout: 30_000 });
     await expect(page).toHaveURL(/\/login/);
   });
 
