@@ -105,6 +105,7 @@ export default function YouTubeActivityPage() {
     });
     if (error) {
       setConnecting(false);
+      setToast({ message: error.message || "Failed to connect YouTube. Please try again.", type: "error" });
     }
   }, []);
 
