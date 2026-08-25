@@ -120,7 +120,6 @@ export default function DndProvider({ children }: { children: React.ReactNode })
       }
 
       // Unhandled combination
-      console.log("Unhandled DnD combination:", dragSource.kind, "→", dropTarget.kind);
     } catch (e) {
       console.error("DnD handler error:", e);
     }
