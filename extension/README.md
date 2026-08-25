@@ -4,7 +4,7 @@ Save any URL to your LIKED library from the browser toolbar. Quick save by defau
 
 ## Architecture
 
-- **Manifest V3**, permissions `activeTab` + `storage` only.
+- **Manifest V3**, permissions `activeTab` + `storage`, host_permissions for the LIKED API origin (needed for popup `fetch()` calls).
 - **Service worker** receives the user's LIKED session from the web app's `/extension/auth` relay page via `chrome.runtime.sendMessageExternal` and stores it in `chrome.storage.local`.
 - **Popup** reads the active tab, posts to `/api/import` on the LIKED web app, and renders saved / already-saved / error states.
 - **No DB credentials** in the extension. The extension only holds the user's Supabase `access_token` (anon-key authed) and sends it as `Authorization: Bearer <token>`.
@@ -16,6 +16,12 @@ Save any URL to your LIKED library from the browser toolbar. Quick save by defau
 npm install
 LIKED_API_URL=http://localhost:3000 npm run build
 # → extension/dist/  (load this directory unpacked in Chrome)
+```
+
+If port 3000 is occupied (Next.js auto-selects 3001), build with:
+
+```bash
+LIKED_API_URL=http://localhost:3001 npm run build
 ```
 
 Watch mode for development:
