@@ -113,9 +113,14 @@ export default function BottomBarAvatar({ item, onClick, currentUserId, onRefres
   const handleRemoveFriend = async () => {
     setPopoverOpen(false);
     if (!currentUserId || !item.user_id) return;
-    const { removeFriendAction } = await import('@/app/lib/actions/friends');
-    await removeFriendAction(item.user_id);
-    if (onRefresh) onRefresh();
+    try {
+      const { removeFriendAction } = await import('@/app/lib/actions/friends');
+      await removeFriendAction(item.user_id);
+      if (onRefresh) onRefresh();
+    } catch (err) {
+      console.error('[handleRemoveFriend]', err);
+      alert('Failed to remove friend. Please try again.');
+    }
   };
 
   const handleBlock = async () => {
@@ -123,9 +128,14 @@ export default function BottomBarAvatar({ item, onClick, currentUserId, onRefres
     if (!currentUserId || !item.user_id) return;
     const confirmed = window.confirm(`Block ${item.displayName}? They will be removed from your friends and will no longer be able to share content with you.`);
     if (!confirmed) return;
-    const { blockUserAction } = await import('@/app/lib/actions/friends');
-    await blockUserAction(item.user_id);
-    if (onRefresh) onRefresh();
+    try {
+      const { blockUserAction } = await import('@/app/lib/actions/friends');
+      await blockUserAction(item.user_id);
+      if (onRefresh) onRefresh();
+    } catch (err) {
+      console.error('[handleBlock]', err);
+      alert('Failed to block user. Please try again.');
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
