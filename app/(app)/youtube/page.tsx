@@ -40,6 +40,8 @@ export default function YouTubeActivityPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [confirmUnlike, setConfirmUnlike] = useState<string | null>(null);
   const [savingVideoId, setSavingVideoId] = useState<string | null>(null);
+  const [savedVideoIds, setSavedVideoIds] = useState<Set<string>>(new Set());
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
   // Subscriptions state
   const [subscriptions, setSubscriptions] = useState<YouTubeSubscription[]>([]);
@@ -50,6 +52,13 @@ export default function YouTubeActivityPage() {
   const [confirmUnsub, setConfirmUnsub] = useState<string | null>(null);
 
   const lastFetchRef = useRef<number>(0);
+
+  // Auto-dismiss toast after 3 seconds
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 3000);
+    return () => clearTimeout(timer);
+  }, [toast]);
 
   // Auth guard: redirect to /login if not authenticated
   useEffect(() => {
@@ -102,13 +111,18 @@ export default function YouTubeActivityPage() {
   // Disconnect
   const handleDisconnect = useCallback(async () => {
     try {
-      await fetch("/api/youtube/disconnect", { method: "POST" });
-      setConnected(false);
-      setEmail(null);
-      setVideos([]);
-      setSubscriptions([]);
+      const res = await fetch("/api/youtube/disconnect", { method: "POST" });
+      if (res.ok) {
+        setConnected(false);
+        setEmail(null);
+        setVideos([]);
+        setSubscriptions([]);
+        setToast({ message: "YouTube disconnected.", type: "success" });
+      } else {
+        setToast({ message: "Failed to disconnect. Please try again.", type: "error" });
+      }
     } catch {
-      // ignore
+      setToast({ message: "Network error. Please try again.", type: "error" });
     }
   }, []);
 
@@ -195,9 +209,13 @@ export default function YouTubeActivityPage() {
       const res = await fetch(`/api/youtube/likes/${videoId}`, { method: "DELETE" });
       if (res.ok) {
         setVideos((prev) => prev.filter((v) => v.id !== videoId));
+        setToast({ message: "Video unliked.", type: "success" });
+      } else {
+        const data = await res.json().catch(() => null);
+        setToast({ message: data?.error ?? "Failed to unlike video.", type: "error" });
       }
     } catch {
-      // ignore
+      setToast({ message: "Network error. Please try again.", type: "error" });
     }
   }, []);
 
@@ -208,9 +226,13 @@ export default function YouTubeActivityPage() {
       const res = await fetch(`/api/youtube/subscriptions/${subscriptionId}`, { method: "DELETE" });
       if (res.ok) {
         setSubscriptions((prev) => prev.filter((s) => s.id !== subscriptionId));
+        setToast({ message: "Unsubscribed.", type: "success" });
+      } else {
+        const data = await res.json().catch(() => null);
+        setToast({ message: data?.error ?? "Failed to unsubscribe.", type: "error" });
       }
     } catch {
-      // ignore
+      setToast({ message: "Network error. Please try again.", type: "error" });
     }
   }, []);
 
@@ -219,9 +241,18 @@ export default function YouTubeActivityPage() {
     setSavingVideoId(video.id);
     try {
       const url = `https://www.youtube.com/watch?v=${video.id}`;
-      await createNodeAction({ url });
+      const result = await createNodeAction({ url });
+      if (result.ok) {
+        setSavedVideoIds((prev) => new Set(prev).add(video.id));
+        setToast({ message: "Saved to your feed!", type: "success" });
+      } else if (result.code === "duplicate") {
+        setSavedVideoIds((prev) => new Set(prev).add(video.id));
+        setToast({ message: "Already in your feed.", type: "success" });
+      } else {
+        setToast({ message: result.error || "Failed to save.", type: "error" });
+      }
     } catch {
-      // ignore
+      setToast({ message: "Failed to save video.", type: "error" });
     } finally {
       setSavingVideoId(null);
     }
@@ -289,6 +320,25 @@ export default function YouTubeActivityPage() {
 
   return (
     <div style={{ minHeight: "100vh", paddingBottom: 100 }}>
+      {/* Toast */}
+      {toast && (
+        <div style={{
+          position: "fixed",
+          bottom: 24,
+          left: "50%",
+          transform: "translateX(-50%)",
+          padding: "10px 20px",
+          background: toast.type === "error" ? "var(--red, #ef4444)" : "var(--accent, #7c5cfc)",
+          color: "#fff",
+          borderRadius: 10,
+          fontSize: 13,
+          fontWeight: 600,
+          zIndex: 1000,
+          boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+        }}>
+          {toast.message}
+        </div>
+      )}
       {/* Header */}
       <div style={{
         padding: "16px 20px",
@@ -401,6 +451,7 @@ export default function YouTubeActivityPage() {
                     onUnlike={() => handleUnlike(video.id)}
                     onSaveToLiked={() => handleSaveToLiked(video)}
                     saving={savingVideoId === video.id}
+                    saved={savedVideoIds.has(video.id)}
                   />
                 ))}
                 {nextPageToken && (
@@ -498,6 +549,7 @@ function VideoRow({
   onUnlike,
   onSaveToLiked,
   saving,
+  saved,
 }: {
   video: YouTubeVideo;
   confirmUnlike: boolean;
@@ -506,6 +558,7 @@ function VideoRow({
   onUnlike: () => void;
   onSaveToLiked: () => void;
   saving: boolean;
+  saved: boolean;
 }) {
   return (
     <div style={{
@@ -546,20 +599,20 @@ function VideoRow({
         <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
           <button
             onClick={onSaveToLiked}
-            disabled={saving}
+            disabled={saving || saved}
             style={{
               padding: "4px 10px",
-              background: "var(--accent, #7c5cfc)",
-              color: "#fff",
+              background: saved ? "var(--surface-3, #e5e7eb)" : "var(--accent, #7c5cfc)",
+              color: saved ? "var(--text-3, #999)" : "#fff",
               border: "none",
               borderRadius: 6,
               fontSize: 11,
               fontWeight: 600,
-              cursor: "pointer",
+              cursor: saved ? "default" : "pointer",
               opacity: saving ? 0.6 : 1,
             }}
           >
-            {saving ? "Saving…" : "Save to LIKED"}
+            {saving ? "Saving…" : saved ? "Saved ✓" : "Save to LIKED"}
           </button>
 
           {confirmUnlike ? (
