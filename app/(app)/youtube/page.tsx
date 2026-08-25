@@ -242,7 +242,11 @@ export default function YouTubeActivityPage() {
     setSavingVideoId(video.id);
     try {
       const url = `https://www.youtube.com/watch?v=${video.id}`;
-      const result = await createNodeAction({ url });
+      const result = await createNodeAction({
+        url,
+        title: video.title,
+        thumbnailUrl: video.thumbnail || null,
+      });
       if (result.ok) {
         setSavedVideoIds((prev) => new Set(prev).add(video.id));
         setToast({ message: "Saved to your feed!", type: "success" });
