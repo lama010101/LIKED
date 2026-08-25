@@ -27,26 +27,31 @@ export default function SignupPage() {
     setLoading(true);
     setError(null);
 
-    // Sign up with Supabase Auth
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-    });
+    try {
+      // Sign up with Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+      });
 
-    if (authError) {
-      setError(authError.message);
+      if (authError) {
+        setError(authError.message);
+        setLoading(false);
+        return;
+      }
+
+      if (!authData.user) {
+        setError("Failed to create user");
+        setLoading(false);
+        return;
+      }
+
+      router.push("/feed");
+      router.refresh();
+    } catch {
+      setError("Sign up failed. Please try again.");
       setLoading(false);
-      return;
     }
-
-    if (!authData.user) {
-      setError("Failed to create user");
-      setLoading(false);
-      return;
-    }
-
-    router.push("/feed");
-    router.refresh();
   };
 
   const handleGoogleSignup = async () => {
