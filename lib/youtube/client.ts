@@ -90,29 +90,35 @@ export async function fetchLikedVideos(
   });
   if (pageToken) params.set("pageToken", pageToken);
 
-  const res = await fetch(`${YOUTUBE_API_BASE}/videos?${params}`, {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  });
+  try {
+    const res = await fetch(`${YOUTUBE_API_BASE}/videos?${params}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
 
-  const data: YouTubeListResponse<{
-    id: string;
-    snippet: { title: string; thumbnails: { medium?: { url: string } }; channelTitle: string; channelId: string; description: string };
-  }> = await res.json();
+    const data = await res
+      .json()
+      .catch(() => null) as YouTubeListResponse<{
+      id: string;
+      snippet: { title: string; thumbnails: { medium?: { url: string } }; channelTitle: string; channelId: string; description: string };
+    }> | null;
 
-  if (!res.ok) {
-    return { videos: [], nextPageToken: null, error: data.error?.message ?? `YouTube API error: ${res.status}` };
+    if (!res.ok) {
+      return { videos: [], nextPageToken: null, error: data?.error?.message ?? `YouTube API error: ${res.status}` };
+    }
+
+    const videos: YouTubeVideo[] = (data?.items ?? []).map((item) => ({
+      id: item.id,
+      title: item.snippet?.title ?? "Unknown",
+      thumbnail: item.snippet?.thumbnails?.medium?.url ?? "",
+      channelTitle: item.snippet?.channelTitle ?? "",
+      channelId: item.snippet?.channelId ?? "",
+      description: item.snippet?.description ?? "",
+    }));
+
+    return { videos, nextPageToken: data?.nextPageToken ?? null };
+  } catch {
+    return { videos: [], nextPageToken: null, error: "Failed to fetch liked videos. Please check your connection and try again." };
   }
-
-  const videos: YouTubeVideo[] = (data.items ?? []).map((item) => ({
-    id: item.id,
-    title: item.snippet?.title ?? "Unknown",
-    thumbnail: item.snippet?.thumbnails?.medium?.url ?? "",
-    channelTitle: item.snippet?.channelTitle ?? "",
-    channelId: item.snippet?.channelId ?? "",
-    description: item.snippet?.description ?? "",
-  }));
-
-  return { videos, nextPageToken: data.nextPageToken ?? null };
 }
 
 /**
@@ -128,17 +134,21 @@ export async function unlikeVideo(
     rating: "none",
   });
 
-  const res = await fetch(`${YOUTUBE_API_BASE}/videos/rate?${params}`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${accessToken}` },
-  });
+  try {
+    const res = await fetch(`${YOUTUBE_API_BASE}/videos/rate?${params}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
 
-  if (!res.ok) {
-    const data = await res.json().catch(() => null);
-    return { ok: false, error: data?.error?.message ?? `YouTube API error: ${res.status}` };
+    if (!res.ok) {
+      const data = await res.json().catch(() => null);
+      return { ok: false, error: data?.error?.message ?? `YouTube API error: ${res.status}` };
+    }
+
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "Failed to unlike video. Please check your connection and try again." };
   }
-
-  return { ok: true };
 }
 
 /**
@@ -156,32 +166,38 @@ export async function fetchSubscriptions(
   });
   if (pageToken) params.set("pageToken", pageToken);
 
-  const res = await fetch(`${YOUTUBE_API_BASE}/subscriptions?${params}`, {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  });
+  try {
+    const res = await fetch(`${YOUTUBE_API_BASE}/subscriptions?${params}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
 
-  const data: YouTubeListResponse<{
-    id: string;
-    snippet: {
-      title: string;
-      thumbnails: { medium?: { url: string } };
-      resourceId: { channelId: string };
-    };
-  }> = await res.json();
+    const data = await res
+      .json()
+      .catch(() => null) as YouTubeListResponse<{
+      id: string;
+      snippet: {
+        title: string;
+        thumbnails: { medium?: { url: string } };
+        resourceId: { channelId: string };
+      };
+    }> | null;
 
-  if (!res.ok) {
-    return { subscriptions: [], nextPageToken: null, error: data.error?.message ?? `YouTube API error: ${res.status}` };
+    if (!res.ok) {
+      return { subscriptions: [], nextPageToken: null, error: data?.error?.message ?? `YouTube API error: ${res.status}` };
+    }
+
+    const subscriptions: YouTubeSubscription[] = (data?.items ?? []).map((item) => ({
+      id: item.id,
+      title: item.snippet?.title ?? "Unknown",
+      thumbnail: item.snippet?.thumbnails?.medium?.url ?? "",
+      channelId: item.snippet?.resourceId?.channelId ?? "",
+      subscriberCount: "",
+    }));
+
+    return { subscriptions, nextPageToken: data?.nextPageToken ?? null };
+  } catch {
+    return { subscriptions: [], nextPageToken: null, error: "Failed to fetch subscriptions. Please check your connection and try again." };
   }
-
-  const subscriptions: YouTubeSubscription[] = (data.items ?? []).map((item) => ({
-    id: item.id,
-    title: item.snippet?.title ?? "Unknown",
-    thumbnail: item.snippet?.thumbnails?.medium?.url ?? "",
-    channelId: item.snippet?.resourceId?.channelId ?? "",
-    subscriberCount: "",
-  }));
-
-  return { subscriptions, nextPageToken: data.nextPageToken ?? null };
 }
 
 /**
@@ -194,15 +210,19 @@ export async function unsubscribeFromChannel(
 ): Promise<{ ok: boolean; error?: string }> {
   const params = new URLSearchParams({ id: subscriptionId });
 
-  const res = await fetch(`${YOUTUBE_API_BASE}/subscriptions?${params}`, {
-    method: "DELETE",
-    headers: { Authorization: `Bearer ${accessToken}` },
-  });
+  try {
+    const res = await fetch(`${YOUTUBE_API_BASE}/subscriptions?${params}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
 
-  if (!res.ok) {
-    const data = await res.json().catch(() => null);
-    return { ok: false, error: data?.error?.message ?? `YouTube API error: ${res.status}` };
+    if (!res.ok) {
+      const data = await res.json().catch(() => null);
+      return { ok: false, error: data?.error?.message ?? `YouTube API error: ${res.status}` };
+    }
+
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "Failed to unsubscribe. Please check your connection and try again." };
   }
-
-  return { ok: true };
 }
