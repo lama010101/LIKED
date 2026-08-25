@@ -18,6 +18,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { getSupabaseServiceClient } from "@/lib/supabase/service";
 import {
   createNode,
   DuplicateNodeError,
@@ -33,6 +34,10 @@ export interface CreateNodeInput {
   url?: string | null;
   textContent?: string | null;
   languageCode?: string | null;
+  /** Pre-known title from the caller (e.g. YouTube Data API). Priority over Edge Function. */
+  title?: string | null;
+  /** Pre-known thumbnail URL from the caller. Downloaded + uploaded to Storage. */
+  thumbnailUrl?: string | null;
 }
 
 function isValidUrl(s: string): boolean {
@@ -41,6 +46,47 @@ function isValidUrl(s: string): boolean {
     return u.protocol === "http:" || u.protocol === "https:";
   } catch {
     return false;
+  }
+}
+
+/**
+ * Download an image from a URL and upload it to the `thumbnails` bucket
+ * in Supabase Storage. Returns the storage key or null on any failure.
+ * Mirrors the Edge Function's downloadAndUploadThumbnail logic.
+ */
+async function downloadAndUploadThumbnail(
+  imageUrl: string,
+  userId: string
+): Promise<string | null> {
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 10_000);
+
+    const res = await fetch(imageUrl, {
+      signal: controller.signal,
+      headers: { "User-Agent": "LIKED-Bot/1.0" },
+    });
+    clearTimeout(timer);
+
+    if (!res.ok) return null;
+    const contentType = res.headers.get("content-type") ?? "";
+    if (!contentType.startsWith("image/")) return null;
+
+    const buf = new Uint8Array(await res.arrayBuffer());
+    if (buf.length === 0 || buf.length > 8 * 1024 * 1024) return null;
+
+    const ext = (contentType.split("/")[1] ?? "jpg").split(";")[0] || "jpg";
+    const key = `${userId}/${crypto.randomUUID()}.${ext}`;
+
+    const supabase = getSupabaseServiceClient();
+    const { error } = await supabase.storage
+      .from("thumbnails")
+      .upload(key, buf, { contentType, upsert: false });
+
+    if (error) return null;
+    return key;
+  } catch {
+    return null;
   }
 }
 
@@ -70,12 +116,34 @@ export async function createNodeAction(
   const userLang = (input.languageCode ?? "en").slice(0, 8);
 
   // 2. Invoke Edge Function (never throws — returns undefined on failure).
-  const metadata: NodeMetadata | undefined = await extractNodeMetadata({
+  const edgeMetadata: NodeMetadata | undefined = await extractNodeMetadata({
     url,
     textContent: text,
     languageCode: userLang,
     accessToken: session?.access_token ?? null,
   });
+
+  // 2b. Merge caller-provided metadata with Edge Function results.
+  // Caller-provided title takes priority (e.g. YouTube Data API title).
+  // Caller-provided thumbnailUrl is downloaded + uploaded to Storage.
+  const callerTitle = input.title?.trim() || null;
+  const callerThumbnailUrl = input.thumbnailUrl?.trim() || null;
+
+  let callerThumbnailKey: string | null = null;
+  if (callerThumbnailUrl) {
+    callerThumbnailKey = await downloadAndUploadThumbnail(
+      callerThumbnailUrl,
+      user.id
+    );
+  }
+
+  const metadata: NodeMetadata = {
+    title: callerTitle ?? edgeMetadata?.title ?? null,
+    thumbnailKey: callerThumbnailKey ?? edgeMetadata?.thumbnailKey ?? null,
+    languageCode: edgeMetadata?.languageCode ?? userLang,
+    suggestedTags: edgeMetadata?.suggestedTags ?? [],
+    description: edgeMetadata?.description ?? null,
+  };
 
   // 3. Persist — single transaction via RPC.
   try {
