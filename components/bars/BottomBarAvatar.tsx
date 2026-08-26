@@ -118,8 +118,7 @@ export default function BottomBarAvatar({ item, onClick, currentUserId, onRefres
       const { removeFriendAction } = await import('@/app/lib/actions/friends');
       await removeFriendAction(item.user_id);
       if (onRefresh) onRefresh();
-    } catch (err) {
-      console.error('[handleRemoveFriend]', err);
+    } catch {
       toast.error('Failed to remove friend. Please try again.');
     }
   };
@@ -133,8 +132,7 @@ export default function BottomBarAvatar({ item, onClick, currentUserId, onRefres
       const { blockUserAction } = await import('@/app/lib/actions/friends');
       await blockUserAction(item.user_id);
       if (onRefresh) onRefresh();
-    } catch (err) {
-      console.error('[handleBlock]', err);
+    } catch {
       toast.error('Failed to block user. Please try again.');
     }
   };

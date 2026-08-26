@@ -454,16 +454,32 @@ export default function YouTubeActivityPage() {
               <div style={{ padding: 40, textAlign: "center", color: "var(--red, #ef4444)" }}>
                 {likesError}
                 <br />
-                <button
-                  onClick={() => fetchLikes()}
-                  style={{
-                    marginTop: 12, padding: "6px 16px",
-                    background: "var(--surface-3)", border: "1px solid var(--border-1)",
-                    borderRadius: 8, cursor: "pointer", fontSize: 13,
-                  }}
-                >
-                  Try again
-                </button>
+                <div style={{ display: "flex", gap: 8, justifyContent: "center", marginTop: 12 }}>
+                  <button
+                    onClick={() => fetchLikes()}
+                    style={{
+                      padding: "6px 16px",
+                      background: "var(--surface-3)", border: "1px solid var(--border-1)",
+                      borderRadius: 8, cursor: "pointer", fontSize: 13,
+                    }}
+                  >
+                    Try again
+                  </button>
+                  {likesError.includes("reconnect") && (
+                    <button
+                      onClick={handleConnect}
+                      disabled={connecting}
+                      style={{
+                        padding: "6px 16px",
+                        background: "var(--accent, #7c5cfc)", color: "#fff",
+                        border: "none", borderRadius: 8, cursor: "pointer", fontSize: 13,
+                        opacity: connecting ? 0.6 : 1,
+                      }}
+                    >
+                      {connecting ? "Connecting…" : "Reconnect YouTube"}
+                    </button>
+                  )}
+                </div>
               </div>
             ) : videos.length === 0 ? (
               <div style={{ padding: 60, textAlign: "center" }}>
@@ -537,16 +553,32 @@ export default function YouTubeActivityPage() {
               <div style={{ padding: 40, textAlign: "center", color: "var(--red, #ef4444)" }}>
                 {subsError}
                 <br />
-                <button
-                  onClick={() => fetchSubs()}
-                  style={{
-                    marginTop: 12, padding: "6px 16px",
-                    background: "var(--surface-3)", border: "1px solid var(--border-1)",
-                    borderRadius: 8, cursor: "pointer", fontSize: 13,
-                  }}
-                >
-                  Try again
-                </button>
+                <div style={{ display: "flex", gap: 8, justifyContent: "center", marginTop: 12 }}>
+                  <button
+                    onClick={() => fetchSubs()}
+                    style={{
+                      padding: "6px 16px",
+                      background: "var(--surface-3)", border: "1px solid var(--border-1)",
+                      borderRadius: 8, cursor: "pointer", fontSize: 13,
+                    }}
+                  >
+                    Try again
+                  </button>
+                  {subsError.includes("reconnect") && (
+                    <button
+                      onClick={handleConnect}
+                      disabled={connecting}
+                      style={{
+                        padding: "6px 16px",
+                        background: "var(--accent, #7c5cfc)", color: "#fff",
+                        border: "none", borderRadius: 8, cursor: "pointer", fontSize: 13,
+                        opacity: connecting ? 0.6 : 1,
+                      }}
+                    >
+                      {connecting ? "Connecting…" : "Reconnect YouTube"}
+                    </button>
+                  )}
+                </div>
               </div>
             ) : subscriptions.length === 0 ? (
               <div style={{ padding: 60, textAlign: "center" }}>

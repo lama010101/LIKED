@@ -3,12 +3,14 @@
 import { useEffect, useRef, useState, useCallback, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { createNodeAction } from '@/app/lib/actions/createNode';
+import { directShareAction } from '@/app/lib/actions/sharing';
 import { useFilterStore } from '@/lib/store/filterStore';
 import { addNodeToFolderAction } from '@/app/lib/actions/addNodeToFolder';
 import { getTagsAction } from '@/app/lib/actions/getTags';
 import { applyTagToNodeAction } from '@/app/lib/actions/applyTagToNode';
 import { getUserFoldersAction } from '@/app/lib/actions/getFolders';
 import { supabaseBrowser } from '@/lib/supabase/client';
+import { toast } from '@/lib/store/toastStore';
 
 function useIsDesktop(): boolean {
   const [isDesktop, setIsDesktop] = useState(false);
@@ -156,7 +158,7 @@ export default function AddCardSheet({ open, onClose, userId, languageCode }: Ad
       .then((tags) => {
         if (!cancelled) setAvailableTags(tags.map(t => ({ id: t.id, label: t.label, color: t.color_hex })));
       })
-      .catch((err) => console.error('Failed to load tags:', err));
+      .catch(() => toast.error('Failed to load tags.'));
 
     // Load friends
     Promise.resolve(supabaseBrowser.rpc('get_friend_bar', { p_user_id: userId }))
@@ -170,14 +172,14 @@ export default function AddCardSheet({ open, onClose, userId, languageCode }: Ad
           })));
         }
       })
-      .catch((err) => console.error('Failed to load friends:', err));
+      .catch(() => toast.error('Failed to load friends list.'));
 
     // Load folders
     getUserFoldersAction()
       .then((folders) => {
         if (!cancelled) setAvailableFolders(folders.map(f => ({ id: f.id, name: f.name, colorHex: f.color_hex })));
       })
-      .catch((err) => console.error('Failed to load folders:', err));
+      .catch(() => toast.error('Failed to load folders.'));
 
     return () => { cancelled = true; };
   }, [userId, languageCode]);
@@ -288,9 +290,24 @@ export default function AddCardSheet({ open, onClose, userId, languageCode }: Ad
             // Non-fatal — card is saved, tag assignment failed silently
           }
         }
-        // TODO P8-future: apply selectedFriends share ops here
+        // Share with selected friends (non-fatal — card is saved even if share fails)
+        if (selectedFriends.size > 0) {
+          const friendIds = Array.from(selectedFriends);
+          const shareResults = await Promise.allSettled(
+            friendIds.map((fid) =>
+              directShareAction({ nodeId: result.nodeId, targetUserId: fid, permission: 'view' })
+            )
+          );
+          const failedCount = shareResults.filter((r) => r.status === 'rejected').length;
+          if (failedCount > 0) {
+            toast.error(`Shared with ${friendIds.length - failedCount} friend(s), ${failedCount} failed`);
+          } else {
+            toast.success(`Shared with ${friendIds.length} friend(s)`);
+          }
+        }
         setInput('');
         setSelectedType('auto');
+        setSelectedFriends(new Set());
         setSaveError(null);
         setUrlWarning(null);
         onClose();

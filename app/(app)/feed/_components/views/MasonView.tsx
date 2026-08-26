@@ -42,7 +42,6 @@ function MasonCard({ item, onClick, currentUserId, onCardShare, onCardMoveToFold
       onCardDelete?.(item.id);
     } else {
       const body = await res.json().catch(() => ({}));
-      console.error('Card delete failed', res.status, body);
       toast.error(body?.error || 'Failed to delete card. Please try again.');
     }
   };

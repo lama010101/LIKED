@@ -69,7 +69,6 @@ function FolderTile({ folder, isActive, onClick, currentUserId, onFolderDelete }
       onFolderDelete?.(folder.id);
     } else {
       const body = await res.json().catch(() => ({}));
-      console.error('Folder delete failed', res.status, body);
       toast.error(body?.error || 'Failed to delete folder. Please try again.');
     }
   };
