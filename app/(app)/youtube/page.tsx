@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { createNodeAction } from "@/app/lib/actions/createNode";
+import { toast } from "@/lib/store/toastStore";
 
 interface YouTubeVideo {
   id: string;
@@ -41,7 +43,6 @@ export default function YouTubeActivityPage() {
   const [confirmUnlike, setConfirmUnlike] = useState<string | null>(null);
   const [savingVideoId, setSavingVideoId] = useState<string | null>(null);
   const [savedVideoIds, setSavedVideoIds] = useState<Set<string>>(new Set());
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
   // Subscriptions state
   const [subscriptions, setSubscriptions] = useState<YouTubeSubscription[]>([]);
@@ -52,13 +53,6 @@ export default function YouTubeActivityPage() {
   const [confirmUnsub, setConfirmUnsub] = useState<string | null>(null);
 
   const lastFetchRef = useRef<number>(0);
-
-  // Auto-dismiss toast after 3 seconds
-  useEffect(() => {
-    if (!toast) return;
-    const timer = setTimeout(() => setToast(null), 3000);
-    return () => clearTimeout(timer);
-  }, [toast]);
 
   // Auth guard: redirect to /login if not authenticated
   useEffect(() => {
@@ -105,7 +99,7 @@ export default function YouTubeActivityPage() {
     });
     if (error) {
       setConnecting(false);
-      setToast({ message: error.message || "Failed to connect YouTube. Please try again.", type: "error" });
+      toast.error(error.message || "Failed to connect YouTube. Please try again.");
     }
   }, []);
 
@@ -118,12 +112,12 @@ export default function YouTubeActivityPage() {
         setEmail(null);
         setVideos([]);
         setSubscriptions([]);
-        setToast({ message: "YouTube disconnected.", type: "success" });
+        toast.success("YouTube disconnected.");
       } else {
-        setToast({ message: "Failed to disconnect. Please try again.", type: "error" });
+        toast.error("Failed to disconnect. Please try again.");
       }
     } catch {
-      setToast({ message: "Network error. Please try again.", type: "error" });
+      toast.error("Network error. Please try again.");
     }
   }, []);
 
@@ -210,13 +204,13 @@ export default function YouTubeActivityPage() {
       const res = await fetch(`/api/youtube/likes/${videoId}`, { method: "DELETE" });
       if (res.ok) {
         setVideos((prev) => prev.filter((v) => v.id !== videoId));
-        setToast({ message: "Video unliked.", type: "success" });
+        toast.success("Video unliked.");
       } else {
         const data = await res.json().catch(() => null);
-        setToast({ message: data?.error ?? "Failed to unlike video.", type: "error" });
+        toast.error(data?.error ?? "Failed to unlike video.");
       }
     } catch {
-      setToast({ message: "Network error. Please try again.", type: "error" });
+      toast.error("Network error. Please try again.");
     }
   }, []);
 
@@ -227,13 +221,13 @@ export default function YouTubeActivityPage() {
       const res = await fetch(`/api/youtube/subscriptions/${subscriptionId}`, { method: "DELETE" });
       if (res.ok) {
         setSubscriptions((prev) => prev.filter((s) => s.id !== subscriptionId));
-        setToast({ message: "Unsubscribed.", type: "success" });
+        toast.success("Unsubscribed.");
       } else {
         const data = await res.json().catch(() => null);
-        setToast({ message: data?.error ?? "Failed to unsubscribe.", type: "error" });
+        toast.error(data?.error ?? "Failed to unsubscribe.");
       }
     } catch {
-      setToast({ message: "Network error. Please try again.", type: "error" });
+      toast.error("Network error. Please try again.");
     }
   }, []);
 
@@ -249,15 +243,15 @@ export default function YouTubeActivityPage() {
       });
       if (result.ok) {
         setSavedVideoIds((prev) => new Set(prev).add(video.id));
-        setToast({ message: "Saved to your feed!", type: "success" });
+        toast.success("Saved to your feed!");
       } else if (result.code === "duplicate") {
         setSavedVideoIds((prev) => new Set(prev).add(video.id));
-        setToast({ message: "Already in your feed.", type: "success" });
+        toast.success("Already in your feed.");
       } else {
-        setToast({ message: result.error || "Failed to save.", type: "error" });
+        toast.error(result.error || "Failed to save.");
       }
     } catch {
-      setToast({ message: "Failed to save video.", type: "error" });
+      toast.error("Failed to save video.");
     } finally {
       setSavingVideoId(null);
     }
@@ -265,8 +259,44 @@ export default function YouTubeActivityPage() {
 
   if (statusLoading) {
     return (
-      <div style={{ padding: 40, textAlign: "center", color: "var(--text-3, #999)" }}>
-        Loading…
+      <div style={{ minHeight: "100vh", padding: 20 }}>
+        <div style={{
+          height: 52,
+          background: "var(--surface-2, #f9f9f9)",
+          borderRadius: 12,
+          marginBottom: 16,
+          animation: "skeleton-pulse 1.5s ease-in-out infinite",
+        }} />
+        <div style={{
+          height: 44,
+          background: "var(--surface-2, #f9f9f9)",
+          borderRadius: 12,
+          marginBottom: 16,
+          animation: "skeleton-pulse 1.5s ease-in-out infinite",
+        }} />
+        {[1, 2, 3].map((i) => (
+          <div key={i} style={{
+            display: "flex",
+            gap: 12,
+            padding: 12,
+            background: "var(--surface-2, #f9f9f9)",
+            borderRadius: 12,
+            marginBottom: 12,
+            animation: "skeleton-pulse 1.5s ease-in-out infinite",
+          }}>
+            <div style={{ width: 120, height: 68, borderRadius: 8, background: "var(--surface-3, #eee)" }} />
+            <div style={{ flex: 1 }}>
+              <div style={{ height: 14, borderRadius: 4, background: "var(--surface-3, #eee)", marginBottom: 8, width: "60%" }} />
+              <div style={{ height: 12, borderRadius: 4, background: "var(--surface-3, #eee)", width: "30%" }} />
+            </div>
+          </div>
+        ))}
+        <style>{`
+          @keyframes skeleton-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+          }
+        `}</style>
       </div>
     );
   }
@@ -325,25 +355,6 @@ export default function YouTubeActivityPage() {
 
   return (
     <div style={{ minHeight: "100vh", paddingBottom: 100 }}>
-      {/* Toast */}
-      {toast && (
-        <div style={{
-          position: "fixed",
-          bottom: 24,
-          left: "50%",
-          transform: "translateX(-50%)",
-          padding: "10px 20px",
-          background: toast.type === "error" ? "var(--red, #ef4444)" : "var(--accent, #7c5cfc)",
-          color: "#fff",
-          borderRadius: 10,
-          fontSize: 13,
-          fontWeight: 600,
-          zIndex: 1000,
-          boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-        }}>
-          {toast.message}
-        </div>
-      )}
       {/* Header */}
       <div style={{
         padding: "16px 20px",
@@ -422,8 +433,23 @@ export default function YouTubeActivityPage() {
         {tab === "likes" && (
           <>
             {likesLoading ? (
-              <div style={{ padding: 40, textAlign: "center", color: "var(--text-3, #999)" }}>
-                Loading liked videos…
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} style={{
+                    display: "flex",
+                    gap: 12,
+                    padding: 12,
+                    background: "var(--surface-2, #f9f9f9)",
+                    borderRadius: 12,
+                    border: "1px solid var(--border-1, #f0f0f0)",
+                  }}>
+                    <div style={{ width: 120, height: 68, borderRadius: 8, background: "var(--surface-3, #eee)", animation: "skeleton-pulse 1.5s ease-in-out infinite" }} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ height: 14, borderRadius: 4, background: "var(--surface-3, #eee)", marginBottom: 8, width: "70%", animation: "skeleton-pulse 1.5s ease-in-out infinite" }} />
+                      <div style={{ height: 12, borderRadius: 4, background: "var(--surface-3, #eee)", width: "35%", animation: "skeleton-pulse 1.5s ease-in-out infinite" }} />
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : likesError ? (
               <div style={{ padding: 40, textAlign: "center", color: "var(--red, #ef4444)" }}>
@@ -441,8 +467,14 @@ export default function YouTubeActivityPage() {
                 </button>
               </div>
             ) : videos.length === 0 ? (
-              <div style={{ padding: 40, textAlign: "center", color: "var(--text-3, #999)" }}>
-                No liked videos found
+              <div style={{ padding: 60, textAlign: "center" }}>
+                <div style={{ fontSize: 40, marginBottom: 12 }}>&#128075;</div>
+                <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-2, #666)", marginBottom: 4 }}>
+                  No liked videos found
+                </div>
+                <div style={{ fontSize: 13, color: "var(--text-3, #999)" }}>
+                  Like videos on YouTube and they&apos;ll appear here.
+                </div>
               </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -485,8 +517,22 @@ export default function YouTubeActivityPage() {
         {tab === "subscriptions" && (
           <>
             {subsLoading ? (
-              <div style={{ padding: 40, textAlign: "center", color: "var(--text-3, #999)" }}>
-                Loading subscriptions…
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} style={{
+                    display: "flex",
+                    gap: 12,
+                    padding: 12,
+                    background: "var(--surface-2, #f9f9f9)",
+                    borderRadius: 12,
+                    border: "1px solid var(--border-1, #f0f0f0)",
+                  }}>
+                    <div style={{ width: 48, height: 48, borderRadius: "50%", background: "var(--surface-3, #eee)", animation: "skeleton-pulse 1.5s ease-in-out infinite", flexShrink: 0 }} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ height: 14, borderRadius: 4, background: "var(--surface-3, #eee)", marginBottom: 8, width: "50%", animation: "skeleton-pulse 1.5s ease-in-out infinite" }} />
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : subsError ? (
               <div style={{ padding: 40, textAlign: "center", color: "var(--red, #ef4444)" }}>
@@ -504,8 +550,14 @@ export default function YouTubeActivityPage() {
                 </button>
               </div>
             ) : subscriptions.length === 0 ? (
-              <div style={{ padding: 40, textAlign: "center", color: "var(--text-3, #999)" }}>
-                No subscriptions found
+              <div style={{ padding: 60, textAlign: "center" }}>
+                <div style={{ fontSize: 40, marginBottom: 12 }}>&#128075;</div>
+                <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-2, #666)", marginBottom: 4 }}>
+                  No subscriptions found
+                </div>
+                <div style={{ fontSize: 13, color: "var(--text-3, #999)" }}>
+                  Subscribe to channels on YouTube and they&apos;ll appear here.
+                </div>
               </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -576,10 +628,12 @@ function VideoRow({
     }}>
       {/* Thumbnail */}
       {video.thumbnail && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
+        <Image
           src={video.thumbnail}
           alt={video.title}
+          width={120}
+          height={68}
+          unoptimized
           style={{ width: 120, height: 68, borderRadius: 8, objectFit: "cover", flexShrink: 0 }}
         />
       )}
@@ -701,10 +755,12 @@ function SubscriptionRow({
     }}>
       {/* Avatar */}
       {subscription.thumbnail && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
+        <Image
           src={subscription.thumbnail}
           alt={subscription.title}
+          width={48}
+          height={48}
+          unoptimized
           style={{ width: 48, height: 48, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}
         />
       )}

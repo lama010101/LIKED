@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Fraunces, Caveat } from "next/font/google";
 import "./globals.css";
+import ToastContainer from "@/components/ToastContainer";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -37,6 +38,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
         {children}
+        <ToastContainer />
       </body>
     </html>
   );

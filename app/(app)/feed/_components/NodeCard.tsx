@@ -8,6 +8,7 @@ import type { FeedNode } from "@/lib/hooks/useFeed";
 import { sourceId, targetId } from "@/lib/dnd/types";
 import { useLongPress } from "@/lib/hooks/useLongPress";
 import { useSelectionStore } from "@/lib/store/selectionStore";
+import { toast } from "@/lib/store/toastStore";
 import SelectionCloseButton from "@/components/selection/SelectionCloseButton";
 import { trashNode } from "@/app/lib/actions/selection";
 import { getStorageUrl } from "@/lib/utils/avatar";
@@ -103,7 +104,7 @@ export default function NodeCard({ node, onClick, currentUserId, dragListeners, 
     } else {
       const body = await res.json().catch(() => ({}));
       console.error('Delete failed', res.status, body);
-      alert(body?.error || 'Failed to delete card. Please try again.');
+      toast.error(body?.error || 'Failed to delete card. Please try again.');
     }
   };
 

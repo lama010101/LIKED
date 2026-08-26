@@ -11,6 +11,7 @@ import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { sourceId, targetId, DragSource, DropTarget } from "@/lib/dnd/types";
 import { useLongPress } from "@/lib/hooks/useLongPress";
 import { useSelectionStore, SelectionKind } from "@/lib/store/selectionStore";
+import { toast } from "@/lib/store/toastStore";
 
 export interface BottomBarAvatarItem {
   id: string;
@@ -119,7 +120,7 @@ export default function BottomBarAvatar({ item, onClick, currentUserId, onRefres
       if (onRefresh) onRefresh();
     } catch (err) {
       console.error('[handleRemoveFriend]', err);
-      alert('Failed to remove friend. Please try again.');
+      toast.error('Failed to remove friend. Please try again.');
     }
   };
 
@@ -134,7 +135,7 @@ export default function BottomBarAvatar({ item, onClick, currentUserId, onRefres
       if (onRefresh) onRefresh();
     } catch (err) {
       console.error('[handleBlock]', err);
-      alert('Failed to block user. Please try again.');
+      toast.error('Failed to block user. Please try again.');
     }
   };
 

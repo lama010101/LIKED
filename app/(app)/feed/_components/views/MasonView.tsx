@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import type { ViewProps, FeedItem } from "@/lib/types/feed";
+import { toast } from "@/lib/store/toastStore";
 
 function FolderMiniCollage({ item }: { item: FeedItem }) {
   const base = item.folderColor ?? "#888";
@@ -42,7 +43,7 @@ function MasonCard({ item, onClick, currentUserId, onCardShare, onCardMoveToFold
     } else {
       const body = await res.json().catch(() => ({}));
       console.error('Card delete failed', res.status, body);
-      alert(body?.error || 'Failed to delete card. Please try again.');
+      toast.error(body?.error || 'Failed to delete card. Please try again.');
     }
   };
 
