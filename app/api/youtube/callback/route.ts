@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { backfillFriendInvites } from "@/lib/db/friends";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -47,6 +48,15 @@ export async function GET(request: Request) {
 
     // Record the connection
     const googleEmail = user.user_metadata?.email ?? user.email ?? "unknown@gmail.com";
+
+    // Backfill any pending friend invites for this user's email.
+    if (user.email) {
+      try {
+        await backfillFriendInvites(user.id, user.email);
+      } catch {
+        // Non-fatal — invite backfill is a best-effort enhancement.
+      }
+    }
 
     await supabase.from("youtube_connections").upsert({
       user_id: user.id,

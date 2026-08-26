@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { backfillFriendInvites } from "@/lib/db/friends";
 
 function getEmailPrefix(email: string): string {
   return email.split("@")[0] || "user";
@@ -59,6 +60,16 @@ export async function GET(request: Request) {
           avatar_key: null,
           avatar_change_count_today: 0,
         }, { onConflict: "id" });
+
+        // Backfill any pending friend invites for this user's email.
+        // Idempotent: only updates rows where to_user_id IS NULL.
+        if (user.email) {
+          try {
+            await backfillFriendInvites(user.id, user.email);
+          } catch {
+            // Non-fatal — invite backfill is a best-effort enhancement.
+          }
+        }
       }
 
       return NextResponse.redirect(`${origin}${next}`);

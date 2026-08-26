@@ -85,23 +85,6 @@ function FolderTile({ folder, isActive, onClick, currentUserId, onFolderDelete }
     }
   }, [menuOpen]);
 
-  const showToast = (message: string) => {
-    const existing = document.getElementById('temp-toast');
-    if (existing) existing.remove();
-
-    const toast = document.createElement('div');
-    toast.id = 'temp-toast';
-    toast.style.cssText = 'position: fixed; bottom: 96px; left: 50%; transform: translateX(-50%); background: #111; color: #fff; padding: 12px 20px; border-radius: 12px; font-size: 13px; font-weight: 600; z-index: 60; pointer-events: none;';
-    toast.textContent = message;
-    document.body.appendChild(toast);
-
-    setTimeout(() => {
-      toast.style.transition = 'opacity 0.3s ease';
-      toast.style.opacity = '0';
-      setTimeout(() => toast.remove(), 300);
-    }, 2000);
-  };
-
   return (
     <div
       onClick={() => {
@@ -231,7 +214,7 @@ function FolderTile({ folder, isActive, onClick, currentUserId, onFolderDelete }
               className="w-full text-left px-3 py-2.5 rounded-xl text-sm flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-800 dark:text-gray-100"
               onClick={() => {
                 setMenuOpen(false);
-                showToast('Coming soon');
+                toast.info('Coming soon');
               }}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -393,36 +376,18 @@ export default function FeedGrid({
     useFilterStore.getState().setContext({ folderId: folder.id });
   }, []);
 
-  // Simple toast utility
-  const showToast = useCallback((message: string) => {
-    const existing = document.getElementById('temp-toast');
-    if (existing) existing.remove();
-
-    const toast = document.createElement('div');
-    toast.id = 'temp-toast';
-    toast.style.cssText = 'position: fixed; bottom: 96px; left: 50%; transform: translateX(-50%); background: #111; color: #fff; padding: 12px 20px; border-radius: 12px; font-size: 13px; font-weight: 600; z-index: 60; pointer-events: none;';
-    toast.textContent = message;
-    document.body.appendChild(toast);
-
-    setTimeout(() => {
-      toast.style.transition = 'opacity 0.3s ease';
-      toast.style.opacity = '0';
-      setTimeout(() => toast.remove(), 300);
-    }, 2000);
-  }, []);
-
   // Card menu callbacks
   const handleShare = useCallback((_node: FeedNode) => {
-    showToast('Coming soon — use drag to share');
-  }, [showToast]);
+    toast.info('Coming soon — use drag to share');
+  }, []);
 
   const handleMoveToFolder = useCallback((_node: FeedNode) => {
-    showToast('Coming soon — use drag to move');
-  }, [showToast]);
+    toast.info('Coming soon — use drag to move');
+  }, []);
 
   const handleAddTag = useCallback((_node: FeedNode) => {
-    showToast('Coming soon — use Tag Mode via FAB');
-  }, [showToast]);
+    toast.info('Coming soon — use Tag Mode via FAB');
+  }, []);
 
   const handleDelete = useCallback((_nodeId: string) => {
     // Optimistic removal from local state

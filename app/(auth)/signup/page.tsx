@@ -30,9 +30,16 @@ export default function SignupPage() {
 
     try {
       // Sign up with Supabase Auth
+      // Pass display name as user_metadata so the ensure_user_profile trigger
+      // (migration 013) picks it up via raw_user_meta_data->>'full_name'.
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            full_name: displayName || undefined,
+          },
+        },
       });
 
       if (authError) {
