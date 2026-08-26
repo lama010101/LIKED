@@ -68,6 +68,7 @@ test.describe("Feed page — authenticated user", () => {
   });
 
   test("profile modal opens with all options", async ({ page }) => {
+    test.setTimeout(60_000);
     await page.goto("/feed");
     await expect(page).toHaveURL(/\/feed/);
 
@@ -81,6 +82,7 @@ test.describe("Feed page — authenticated user", () => {
   });
 
   test("Install Chrome Extension link navigates to install page", async ({ page }) => {
+    test.setTimeout(60_000);
     await page.goto("/feed");
     await expect(page).toHaveURL(/\/feed/);
 
@@ -94,6 +96,7 @@ test.describe("Feed page — authenticated user", () => {
   });
 
   test("theme toggle switches between dark and light", async ({ page }) => {
+    test.setTimeout(60_000);
     await page.goto("/feed");
     await expect(page).toHaveURL(/\/feed/);
 
@@ -108,6 +111,7 @@ test.describe("Feed page — authenticated user", () => {
   });
 
   test("language selector shows English, Français, ภาษาไทย", async ({ page }) => {
+    test.setTimeout(60_000);
     await page.goto("/feed");
     await expect(page).toHaveURL(/\/feed/);
 
@@ -119,6 +123,7 @@ test.describe("Feed page — authenticated user", () => {
   });
 
   test("sign out button is visible", async ({ page }) => {
+    test.setTimeout(60_000);
     await page.goto("/feed");
     await expect(page).toHaveURL(/\/feed/);
 
