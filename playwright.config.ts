@@ -44,6 +44,7 @@ export default defineConfig({
         /auth-create-node\.spec\.ts/,
         /extension-auth\.spec\.ts/,
         /extension-install\.spec\.ts/,
+        /extension-api\.spec\.ts/,
         /navigation-unauth\.spec\.ts/,
       ],
       use: { ...devices["Desktop Chrome"] },
