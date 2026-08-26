@@ -11,6 +11,7 @@ import {
   DuplicateNodeError,
   type ImportUrlInput,
 } from "@/lib/db/nodes";
+import { getOrCreateUnsortedFolder, addNodeToFolder } from "@/lib/db/folders";
 import { extractNodeMetadata } from "@/lib/edge/extract-metadata";
 
 /**
@@ -198,6 +199,18 @@ export async function POST(req: NextRequest) {
       { success: false, code: "server", message },
       { status: 500, headers: cors }
     );
+  }
+
+  // 5. If no folderId was provided, auto-assign to "Unsorted" folder
+  //    so that no node is ever without a folder (home page shows only folders).
+  if (!importInput.folderId) {
+    try {
+      const unsortedFolderId = await getOrCreateUnsortedFolder(user.id);
+      await addNodeToFolder(nodeId, unsortedFolderId, user.id);
+    } catch (folderErr) {
+      // Non-fatal: node is created even if folder assignment fails.
+      console.error("Failed to auto-assign imported node to Unsorted folder:", folderErr);
+    }
   }
 
   return NextResponse.json(

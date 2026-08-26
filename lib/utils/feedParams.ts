@@ -257,6 +257,9 @@ export function buildFeedParams(state: FilterState, userId: string, languageCode
     p_filter_friend_ids: state.filterFriendIds.length > 0 ? state.filterFriendIds : undefined,
     p_filter_folder_ids: state.filterFolderIds.length > 0 ? state.filterFolderIds : undefined,
     p_search_query: state.searchQuery ?? undefined,
+    // Home page (no folder context): exclude foldered nodes so only folders show.
+    // When a folder is open, p_folder_id filters the result set instead.
+    p_exclude_foldered: !state.folderId,
   };
 }
 

@@ -65,6 +65,7 @@ export interface FeedParams {
   p_cursor_created_at?: string;
   p_cursor_node_id?: string;
   p_limit?: number;
+  p_exclude_foldered?: boolean;
 }
 
 /** Result from getFeed call */
@@ -112,6 +113,7 @@ export async function getFeed(
     p_cursor_created_at: params.p_cursor_created_at,
     p_cursor_node_id: params.p_cursor_node_id,
     p_limit: limit,
+    p_exclude_foldered: params.p_exclude_foldered ?? false,
   });
 
   if (error) throw new Error(`Feed query failed: ${error.message}`);

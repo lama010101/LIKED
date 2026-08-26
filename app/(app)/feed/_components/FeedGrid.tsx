@@ -470,30 +470,40 @@ export default function FeedGrid({
           <p style={{ color: "var(--text-3)", fontSize: 14 }}>No results for &ldquo;{searchQuery}&rdquo;</p>
           <p style={{ color: "var(--text-3)", fontSize: 12, marginTop: 8 }}>Try different keywords</p>
         </>
-      ) : (
+      ) : activeFolderId ? (
         <p style={{ color: "var(--text-3)", fontSize: 14 }}>Nothing here yet</p>
+      ) : (
+        <p style={{ color: "var(--text-3)", fontSize: 14 }}>Open a folder to see your cards</p>
       )}
     </div>
   );
 
-  // Show loading state during initial fetch
-  if (isLoading && displayNodes.length === 0) {
-    return (
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "128px 0" }}>
-        <p style={{ color: "var(--text-3)", fontSize: 14 }}>Loading...</p>
-      </div>
-    );
-  }
+  // Loading state — show folder grid on home page while loading
+  const loadingState = (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "128px 0" }}>
+      <p style={{ color: "var(--text-3)", fontSize: 14 }}>Loading...</p>
+    </div>
+  );
 
-  // Show error state
-  if (feedError && displayNodes.length === 0) {
-    return (
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "128px 0" }}>
-        <p style={{ color: "var(--red, #dc2626)", fontSize: 14 }}>Failed to load feed</p>
-        <button onClick={refresh} style={{ color: "var(--accent)", fontSize: 12, marginTop: 8, cursor: "pointer", background: "none", border: "none" }}>Retry</button>
-      </div>
-    );
-  }
+  // Error state — show folder grid on home page with error
+  const errorState = (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "128px 0" }}>
+      <p style={{ color: "var(--red, #dc2626)", fontSize: 14 }}>Failed to load feed</p>
+      <button onClick={refresh} style={{ color: "var(--accent)", fontSize: 12, marginTop: 8, cursor: "pointer", background: "none", border: "none" }}>Retry</button>
+    </div>
+  );
+
+  // On home page (no folder context): show folder grid + loading/empty/error below it.
+  // Inside a folder: show loading/error as full-page (folder grid is hidden in folder view).
+  const isHomePage = !activeFolderId && !folderContext;
+  const showFolderGrid = !folderContext;
+  const cardArea = isLoading && displayNodes.length === 0
+    ? loadingState
+    : feedError && displayNodes.length === 0
+    ? errorState
+    : displayNodes.length === 0
+    ? emptyState
+    : null;
 
   /* ── Folder view: hides top bar, shows folder header + breadcrumb ── */
   if (folderContext) {
@@ -523,7 +533,7 @@ export default function FeedGrid({
     return (
       <div style={{ minHeight: '100%', position: 'relative' }}>
         {folderGrid}
-        {displayNodes.length === 0 ? emptyState : (
+        {cardArea && isHomePage ? cardArea : displayNodes.length === 0 ? emptyState : (
           <FreeGrid nodes={displayNodes} scopeKey={scopeKey} onCardClick={handleOpen} currentUserId={currentUserId} activeFolderId={activeFolderId} onShare={handleShare} onMoveToFolder={handleMoveToFolder} onAddTag={handleAddTag} onDelete={handleDelete} />
         )}
         <CardDetailSheet node={activeNode} currentUserId={currentUserId} onClose={handleClose} />
@@ -536,7 +546,9 @@ export default function FeedGrid({
     return (
       <div style={{ minHeight: '100%', position: 'relative' }}>
         {folderGrid}
-        <ColView items={feedItems} zoom={zoom} scopeKey={scopeKey} onItemClick={handleItemClick} currentUserId={currentUserId} onCardShare={handleShareItem} onCardMoveToFolder={handleMoveToFolderItem} onCardAddTag={handleAddTagItem} onCardDelete={handleDelete} />
+        {cardArea && isHomePage ? cardArea : (
+          <ColView items={feedItems} zoom={zoom} scopeKey={scopeKey} onItemClick={handleItemClick} currentUserId={currentUserId} onCardShare={handleShareItem} onCardMoveToFolder={handleMoveToFolderItem} onCardAddTag={handleAddTagItem} onCardDelete={handleDelete} />
+        )}
         <CardDetailSheet node={activeNode} currentUserId={currentUserId} onClose={handleClose} />
       </div>
     );
@@ -547,7 +559,9 @@ export default function FeedGrid({
     return (
       <div style={{ minHeight: '100%', position: 'relative' }}>
         {folderGrid}
-        <MasonView items={feedItems} scopeKey={scopeKey} onItemClick={handleItemClick} currentUserId={currentUserId} onCardShare={handleShareItem} onCardMoveToFolder={handleMoveToFolderItem} onCardAddTag={handleAddTagItem} onCardDelete={handleDelete} />
+        {cardArea && isHomePage ? cardArea : (
+          <MasonView items={feedItems} scopeKey={scopeKey} onItemClick={handleItemClick} currentUserId={currentUserId} onCardShare={handleShareItem} onCardMoveToFolder={handleMoveToFolderItem} onCardAddTag={handleAddTagItem} onCardDelete={handleDelete} />
+        )}
         <CardDetailSheet node={activeNode} currentUserId={currentUserId} onClose={handleClose} />
       </div>
     );
@@ -558,7 +572,9 @@ export default function FeedGrid({
     return (
       <div style={{ minHeight: '100%', position: 'relative' }}>
         {folderGrid}
-        <ListView items={feedItems} scopeKey={scopeKey} onItemClick={handleItemClick} currentUserId={currentUserId} onCardShare={handleShareItem} onCardMoveToFolder={handleMoveToFolderItem} onCardAddTag={handleAddTagItem} onCardDelete={handleDelete} />
+        {cardArea && isHomePage ? cardArea : (
+          <ListView items={feedItems} scopeKey={scopeKey} onItemClick={handleItemClick} currentUserId={currentUserId} onCardShare={handleShareItem} onCardMoveToFolder={handleMoveToFolderItem} onCardAddTag={handleAddTagItem} onCardDelete={handleDelete} />
+        )}
         <CardDetailSheet node={activeNode} currentUserId={currentUserId} onClose={handleClose} />
       </div>
     );
@@ -569,17 +585,19 @@ export default function FeedGrid({
     return (
       <div style={{ minHeight: '100%', position: 'relative' }}>
         {folderGrid}
-        <HorizView
-          items={feedItems}
-          scopeKey={scopeKey}
-          onItemClick={handleItemClick}
-          folderContext={folderContext}
-          currentUserId={currentUserId}
-          onCardShare={handleShareItem}
-          onCardMoveToFolder={handleMoveToFolderItem}
-          onCardAddTag={handleAddTagItem}
-          onCardDelete={handleDelete}
-        />
+        {cardArea && isHomePage ? cardArea : (
+          <HorizView
+            items={feedItems}
+            scopeKey={scopeKey}
+            onItemClick={handleItemClick}
+            folderContext={folderContext}
+            currentUserId={currentUserId}
+            onCardShare={handleShareItem}
+            onCardMoveToFolder={handleMoveToFolderItem}
+            onCardAddTag={handleAddTagItem}
+            onCardDelete={handleDelete}
+          />
+        )}
         <CardDetailSheet node={activeNode} currentUserId={currentUserId} onClose={handleClose} />
       </div>
     );
@@ -589,7 +607,7 @@ export default function FeedGrid({
   return (
     <div style={{ minHeight: '100%', position: 'relative' }}>
       {folderGrid}
-      {displayNodes.length === 0 ? emptyState : (
+      {cardArea && isHomePage ? cardArea : displayNodes.length === 0 ? emptyState : (
         <SortableNodeGrid
           nodes={displayNodes}
           scopeKey={scopeKey}
