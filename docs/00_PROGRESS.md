@@ -9,11 +9,11 @@
 
 | Field | Value |
 |-------|-------|
-|| **Last completed task** | Chrome Extension — URL Capture (Quick + Advanced) |
+|| **Last completed task** | UI/UX Best Practice Fixes (focus-visible, contrast, reduced-motion, form a11y, semantic HTML, touch targets) |
 || **Next task to execute** | — |
-|| **Current phase** | Chrome extension complete; all 28 atomic tasks done |
-|| **Phase gate passed** | ✅ tsc / lint / build / build:extension all exit 0; grep proofs pass; atomic RPC verified |
-|| **Last updated** | 2026-08-20 (Devin) |
+|| **Current phase** | All phases complete; UI polish + E2E hardening done |
+|| **Phase gate passed** | ✅ tsc / build / 67 E2E tests pass locally and on Vercel |
+|| **Last updated** | 2026-08-21 (Devin) |
 
 ---
 
@@ -414,4 +414,52 @@
 | TASK 27 | npm run build:extension | ✅ | Exit 0, extension/dist/ produced. |
 | TASK 28 | npm run lint | ✅ | Exit 0, no warnings. |
 | **Gate** | | ✅ | All 28 tasks complete. tsc/lint/build/build:extension exit 0. Atomic RPC verified. Grep proofs pass. Rule 9 compliant. |
+
+
+### YouTube Intelligent Import (2026-08-21)
+| Task ID | Title | Status | Notes |
+|---------|-------|--------|-------|
+| YT-01 | YouTube category name fetch | ✅ | `lib/youtube/client.ts` updated with `categoryId` in video data + `fetchVideoCategoryName` function for human-readable category names. |
+| YT-02 | Intelligent import server action | ✅ | `app/lib/actions/youtubeImport.ts` created — handles intelligent import using atomic `importUrl` RPC, auto-creates/gets "YouTube" folder, assigns tags (`"YouTube"`, channel name, video category name), saves full video description. |
+| YT-03 | YouTube page UI wiring | ✅ | `app/(app)/youtube/page.tsx` updated to use new `importYouTubeActivity` action and pass full metadata. |
+| YT-04 | Thumbnail download reuse | ✅ | `downloadAndUploadThumbnail` exported from `app/lib/actions/createNode.ts` for reuse by youtubeImport. |
+| YT-05 | E2E tests for intelligent import | ✅ | 6 new E2E tests in `youtube-intelligent-import.spec.ts` — verify atomic RPC creates node with tags + description + folder, duplicate detection, many tags, empty description fallback, UI rendering. Mock YouTube data (test user has no YouTube connection). Tests call `/api/import` endpoint directly. |
+
+
+### E2E Test Configuration & Vercel Hardening (2026-08-21)
+| Task ID | Title | Status | Notes |
+|---------|-------|--------|-------|
+| E2E-01 | Configurable BASE_URL for E2E tests | ✅ | E2E tests now use `BASE_URL` env var (defaults to `http://localhost:3001`). Enables running against local or Vercel URLs. |
+| E2E-02 | Configurable test credentials | ✅ | `TEST_EMAIL` and `TEST_PASSWORD` env vars added to `e2e/helpers/auth.ts`. |
+| E2E-03 | Fix localhost-only cookie filter | ✅ | `youtube-api.spec.ts` filtered cookies by `c.domain.includes("localhost")` — dropped all auth cookies on Vercel. Filter removed. |
+| E2E-04 | Update Vercel Supabase API keys | ✅ | Legacy anon/service keys on Vercel updated to current `sb_publishable_` format. |
+| E2E-05 | Profile modal test timeouts for Vercel cold starts | ✅ | 5 tests using `openProfileModal` timed out at 30s on Vercel. Added `test.setTimeout(60_000)` to all 5. |
+| E2E-06 | Replace networkidle with domcontentloaded | ✅ | `auth-smoke.spec.ts` — all 3 smoke tests (feed, trash, youtube) replaced `networkidle` with `domcontentloaded + waitForTimeout(2000)`. `networkidle` times out during transient DNS outages or when pages poll APIs. |
+| E2E-VERIFIED | Full suite passes locally + on Vercel | ✅ | 67/67 tests pass both locally and on Vercel production. |
+
+
+### UI Polish — Hover States, Transitions, Loading Skeletons, Empty States (2026-08-21)
+| Task ID | Title | Status | Notes |
+|---------|-------|--------|-------|
+| UI-01 | Folder tile hover states | ✅ | `FeedGrid.tsx` — added `.folder-tile` class with `transition: transform 0.15s ease, box-shadow 0.15s ease`. CSS: `.folder-tile:hover { transform: translateY(-2px) scale(1.02); }` |
+| UI-02 | FolderView toggle hover + aria-pressed | ✅ | `FolderView.tsx` — grid/list/filter toggles: added `.toolbar-btn` class, `aria-pressed`, `transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease`. CSS: `.toolbar-btn:hover { background: var(--surface-5); }` |
+| UI-03 | Responsive folder grid | ✅ | `FeedGrid.tsx` — changed from fixed `repeat(zoom, 1fr)` to `auto-fill, minmax(80-140px, 1fr)` — adapts to screen size. |
+| UI-04 | Loading skeleton pulse animation | ✅ | Added `.skeleton` CSS class with `skeleton-pulse` keyframe (1.5s ease-in-out infinite, respects `prefers-reduced-motion`). Applied to `feed/loading.tsx` (6 cards), `trash/loading.tsx` (3 cards), `youtube/loading.tsx` (3 rows + 2 bars). |
+| UI-05 | TrashView button hover states | ✅ | `TrashView.tsx` — close button + pill buttons: added `.pill-btn` class, `transition: opacity 0.15s ease, transform 0.1s ease`. CSS: `.pill-btn:hover { opacity: 0.85; } .pill-btn:active { transform: scale(0.95); }` |
+| UI-06 | SortViewRow view mode button a11y | ✅ | `SortViewRow.tsx` — added `aria-label` + `aria-pressed` on all 5 view mode buttons, `aria-label` on zoom in/out buttons. |
+| UI-07 | TagsStrip search input a11y | ✅ | `TagsStrip.tsx` — added `aria-label="Search tags"` on input, `transition: background 0.15s ease, color 0.15s ease` on clear button. |
+| UI-08 | Empty state improvements | ✅ | `FeedGrid.tsx` — added contextual icons (🔍 for search, 📂 for folder, 🗂️ for home) + helpful subtitles. `FolderView.tsx` — added 📂 icon + "Save cards here from the Chrome extension or Add button" subtitle. |
+
+
+### UI/UX Best Practice Fixes (2026-08-21)
+| Task ID | Title | Status | Notes |
+|---------|-------|--------|-------|
+| UIX-01 | Global focus-visible states | ✅ | `globals.css` — added global `:focus-visible` styles for all interactive elements (buttons, links, inputs, textarea, select, `[role="button"]`, `[tabindex]`): 2px accent outline with 2px offset. Removes default outline only when `:focus-visible` doesn't match. |
+| UIX-02 | Color contrast (WCAG AA) | ✅ | Dark mode `--text-3`: `#666680` → `#80808e` (contrast ratio ~4.5:1 on `--bg #0a0a12`, previously ~3.5:1 which failed WCAG AA for normal text). |
+| UIX-03 | Comprehensive reduced-motion | ✅ | `globals.css` — added `@media (prefers-reduced-motion: reduce)` block disabling all animations and transitions for `.subtab-animate`, `.speed-dial__item`, `.speed-dial__btn`, `.folder-tile`, `.toolbar-btn`, `.pill-btn`, `.card`, `.folder-card` + forces `scroll-behavior: auto`. |
+| UIX-04 | Form UX — login | ✅ | `login/page.tsx` — added `autoComplete="email"`, `autoFocus`, `inputMode="email"`, `aria-invalid`, `aria-describedby` on email input. `autoComplete="current-password"`, `aria-invalid`, `aria-describedby` on password input. `role="alert"` + `aria-live="polite"` on error div. |
+| UIX-05 | Form UX — signup | ✅ | `signup/page.tsx` — added `autoComplete="email"`, `autoFocus`, `inputMode="email"`, `aria-invalid`, `aria-describedby` on email input. `autoComplete="new-password"`, `aria-invalid`, `aria-describedby` on password input. `autoComplete="name"` on display name input. `role="alert"` + `aria-live="polite"` on error div. |
+| UIX-06 | Semantic HTML in layout | ✅ | `layout.tsx` — desktop sidebar wrapper: `<div>` → `<nav aria-label="Main navigation">`. Main content column: `<div>` → `<main>`. Bottom dock wrapper: `<div>` → `<nav aria-label="Bottom navigation">`. |
+| UIX-07 | Touch target sizes | ✅ | `globals.css` — added `.min-hit` CSS utility (min-width/min-height: 44px) with `@media (pointer: coarse)` padding expansion for touch devices. Applied to `SortViewRow` view mode buttons (were 28x28), `TagsStrip` clear search button (was 16x16). |
+| UIX-VERIFIED | tsc + build + E2E all pass | ✅ | tsc: 0 errors. Build: exit 0. E2E: 67/67 pass. |
 
