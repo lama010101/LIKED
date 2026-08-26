@@ -42,7 +42,8 @@ test.describe("Authenticated smoke — core flows", () => {
     await page.goto("/feed");
 
     // Wait for page to settle (either content or empty state)
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
+    await page.waitForTimeout(2000);
 
     // Should not be redirected to login
     expect(page.url()).toContain("/feed");
@@ -66,7 +67,8 @@ test.describe("Authenticated smoke — core flows", () => {
     const page = await context.newPage();
 
     await page.goto("/trash");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
+    await page.waitForTimeout(2000);
 
     expect(page.url()).toContain("/trash");
 
@@ -87,7 +89,8 @@ test.describe("Authenticated smoke — core flows", () => {
     const page = await context.newPage();
 
     await page.goto("/youtube");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
+    await page.waitForTimeout(2000);
 
     // YouTube page may redirect to login if not connected,
     // but should not crash

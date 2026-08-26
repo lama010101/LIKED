@@ -155,6 +155,7 @@ export default function TrashView() {
             type="button"
             onClick={() => router.back()}
             aria-label="Close trash and return to previous page"
+            className="toolbar-btn"
             style={{
               width: 32,
               height: 32,
@@ -167,6 +168,7 @@ export default function TrashView() {
               cursor: "pointer",
               color: "var(--text-2)",
               padding: 0,
+              transition: "background 0.15s ease, transform 0.1s ease",
             }}
           >
             <svg
@@ -325,6 +327,7 @@ function TrashRow({
               type="button"
               onClick={onCancelDelete}
               disabled={isBusy}
+              className="pill-btn"
               style={pillBtn("neutral")}
             >
               Cancel
@@ -333,6 +336,7 @@ function TrashRow({
               type="button"
               onClick={onConfirmDelete}
               disabled={isBusy}
+              className="pill-btn"
               style={pillBtn("danger")}
             >
               Delete
@@ -344,6 +348,7 @@ function TrashRow({
               type="button"
               onClick={onRestore}
               disabled={isBusy}
+              className="pill-btn"
               style={pillBtn("accent")}
             >
               Restore
@@ -353,6 +358,7 @@ function TrashRow({
               onClick={onRequestDelete}
               disabled={isBusy}
               aria-label="Delete permanently"
+              className="pill-btn"
               style={pillBtn("ghostDanger")}
             >
               Delete
@@ -376,6 +382,7 @@ function pillBtn(
     border: "1px solid var(--border-1)",
     minHeight: 28,
     whiteSpace: "nowrap",
+    transition: "opacity 0.15s ease, transform 0.1s ease",
   };
   switch (variant) {
     case "accent":

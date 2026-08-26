@@ -122,6 +122,7 @@ export default function TagsStrip({ visible = true, userId, languageCode }: Tags
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search tags…"
+          aria-label="Search tags"
           style={{
             flex: 1,
             background: 'transparent',
@@ -150,6 +151,7 @@ export default function TagsStrip({ visible = true, userId, languageCode }: Tags
               flexShrink: 0,
               color: 'var(--text-3)',
               padding: 0,
+              transition: 'background 0.15s ease, color 0.15s ease',
             }}
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

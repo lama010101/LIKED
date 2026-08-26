@@ -89,6 +89,7 @@ function FolderTile({ folder, isActive, onClick, currentUserId, onFolderDelete }
       onClick={() => {
         onClick(folder);
       }}
+      className="folder-tile"
       style={{
         aspectRatio: '1 / 1',
         borderRadius: 10,
@@ -102,6 +103,7 @@ function FolderTile({ folder, isActive, onClick, currentUserId, onFolderDelete }
         flexDirection: 'column',
         justifyContent: 'flex-end',
         padding: '8px',
+        transition: 'transform 0.15s ease, box-shadow 0.15s ease',
       }}
     >
       {/* 2x2 thumbnail collage or fallback color collage */}
@@ -438,7 +440,7 @@ export default function FeedGrid({
   const folderGrid = visibleFolders.length > 0 ? (
     <div style={{
       display: 'grid',
-      gridTemplateColumns: `repeat(${zoom}, 1fr)`,
+      gridTemplateColumns: `repeat(auto-fill, minmax(${Math.max(80, 140 - zoom * 8)}px, 1fr))`,
       gap: 3,
       padding: '4px 4px 0',
       borderBottom: '1px solid var(--border-1)',
@@ -467,13 +469,21 @@ export default function FeedGrid({
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "128px 0", textAlign: "center" }}>
       {searchQuery?.trim() ? (
         <>
+          <div style={{ fontSize: 36, marginBottom: 12, opacity: 0.3 }}>🔍</div>
           <p style={{ color: "var(--text-3)", fontSize: 14 }}>No results for &ldquo;{searchQuery}&rdquo;</p>
           <p style={{ color: "var(--text-3)", fontSize: 12, marginTop: 8 }}>Try different keywords</p>
         </>
       ) : activeFolderId ? (
-        <p style={{ color: "var(--text-3)", fontSize: 14 }}>Nothing here yet</p>
+        <>
+          <div style={{ fontSize: 36, marginBottom: 12, opacity: 0.3 }}>📂</div>
+          <p style={{ color: "var(--text-3)", fontSize: 14 }}>Nothing here yet</p>
+          <p style={{ color: "var(--text-3)", fontSize: 12, marginTop: 4, opacity: 0.7 }}>Save cards to this folder from the extension</p>
+        </>
       ) : (
-        <p style={{ color: "var(--text-3)", fontSize: 14 }}>Open a folder to see your cards</p>
+        <>
+          <div style={{ fontSize: 36, marginBottom: 12, opacity: 0.3 }}>🗂️</div>
+          <p style={{ color: "var(--text-3)", fontSize: 14 }}>Open a folder to see your cards</p>
+        </>
       )}
     </div>
   );

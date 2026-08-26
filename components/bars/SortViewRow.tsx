@@ -151,6 +151,7 @@ export default function SortViewRow({
           }}
         >
             <button
+              aria-label="Zoom out"
               onClick={() => onZoomChange(Math.max(2, zoom - 1))}
               style={{
                 width: '26px',
@@ -180,6 +181,7 @@ export default function SortViewRow({
               {zoom} col
             </span>
             <button
+              aria-label="Zoom in"
               onClick={() => onZoomChange(Math.min(6, zoom + 1))}
               style={{
                 width: '26px',
@@ -215,6 +217,8 @@ export default function SortViewRow({
           return (
             <button
               key={id}
+              aria-label={`${id} view`}
+              aria-pressed={isActive}
               onClick={() => onViewChange(id)}
               style={{
                 width: '28px',
@@ -227,7 +231,7 @@ export default function SortViewRow({
                 border: 'none',
                 background: isActive ? 'var(--surface-3)' : 'transparent',
                 color: isActive ? 'var(--text-1)' : 'var(--text-3)',
-                transition: 'background var(--transition-fast), color var(--transition-fast)',
+                transition: 'background var(--transition-fast), color var(--transition-fast), transform 0.1s ease',
               }}
             >
               <Icon />

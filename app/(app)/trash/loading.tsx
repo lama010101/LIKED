@@ -1,7 +1,7 @@
 export default function TrashLoading() {
   return (
     <div style={{ minHeight: "100vh", padding: "16px" }}>
-      <div style={{
+      <div className="skeleton" style={{
         height: 48,
         background: "var(--surface-2)",
         borderRadius: 12,
@@ -13,11 +13,10 @@ export default function TrashLoading() {
         gap: 16,
       }}>
         {[1, 2, 3].map((i) => (
-          <div key={i} style={{
+          <div key={i} className="skeleton" style={{
             background: "var(--surface-2)",
             borderRadius: 12,
             overflow: "hidden",
-            opacity: 0.6,
           }}>
             <div style={{ height: 100, background: "var(--surface-3)" }} />
             <div style={{ padding: 12 }}>
