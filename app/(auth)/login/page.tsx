@@ -85,6 +85,9 @@ export default function LoginPage() {
 
         {error && (
           <div
+            id="form-error"
+            role="alert"
+            aria-live="polite"
             className="p-3 text-sm font-medium"
             style={{
               background: "rgba(248,113,113,0.12)",
@@ -109,6 +112,11 @@ export default function LoginPage() {
             <input
               id="email"
               type="email"
+              autoComplete="email"
+              autoFocus
+              inputMode="email"
+              aria-invalid={error ? true : undefined}
+              aria-describedby={error ? "form-error" : undefined}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -146,6 +154,9 @@ export default function LoginPage() {
               <input
                 id="password"
                 type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
+                aria-invalid={error ? true : undefined}
+                aria-describedby={error ? "form-error" : undefined}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required

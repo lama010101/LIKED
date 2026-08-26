@@ -2,6 +2,39 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Global focus-visible for keyboard accessibility ────── */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[role="button"]:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+/* Remove default outline only when focus-visible is not matched */
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible),
+input:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ── Minimum touch target (44x44) for small icon buttons ── */
+/* Uses transparent padding to expand hit area without changing visual size */
+.min-hit {
+  min-width: 44px;
+  min-height: 44px;
+}
+@media (pointer: coarse) {
+  .min-hit {
+    /* On touch devices, expand the clickable area via padding */
+    padding: 10px !important;
+    box-sizing: border-box !important;
+  }
+}
+
 /* ── Design-system tokens (dark = default) ───────────────── */
 :root {
   /* Surfaces (mockup dark) */
@@ -19,7 +52,7 @@
   /* Text */
   --text-1: #f0f0f5;
   --text-2: #9898b0;
-  --text-3: #666680;
+  --text-3: #80808e;
 
   /* Accent (purple per mobile mockup) */
   --accent: #7c5cfc;
@@ -807,4 +840,23 @@ body {
   z-index: 30;
   width: 100%;
   padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+/* ── Global reduced-motion: disable all animations ──────── */
+@media (prefers-reduced-motion: reduce) {
+  .subtab-animate,
+  .speed-dial__item,
+  .speed-dial--open .speed-dial__item,
+  .speed-dial__btn,
+  .folder-tile,
+  .toolbar-btn,
+  .pill-btn,
+  .card,
+  .folder-card {
+    animation: none !important;
+    transition: none !important;
+  }
+  * {
+    scroll-behavior: auto !important;
+  }
 }
