@@ -45,6 +45,7 @@ export default defineConfig({
         /extension-auth\.spec\.ts/,
         /extension-install\.spec\.ts/,
         /extension-api\.spec\.ts/,
+        /youtube-api\.spec\.ts/,
         /navigation-unauth\.spec\.ts/,
       ],
       use: { ...devices["Desktop Chrome"] },
