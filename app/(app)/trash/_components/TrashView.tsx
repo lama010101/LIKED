@@ -19,6 +19,7 @@ import {
   restoreFromTrash,
   permanentlyDeleteFromTrash,
 } from "@/app/lib/actions/trash";
+import { toast as showToast } from "@/lib/store/toastStore";
 
 function formatDate(iso: string): string {
   const d = new Date(iso);
@@ -44,7 +45,6 @@ export default function TrashView() {
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ kind: "ok" | "err"; msg: string } | null>(null);
   const [, startTransition] = useTransition();
 
   const refresh = useCallback(async () => {
@@ -68,12 +68,6 @@ export default function TrashView() {
     });
   }, [refresh]);
 
-  useEffect(() => {
-    if (!toast) return;
-    const t = window.setTimeout(() => setToast(null), 2400);
-    return () => window.clearTimeout(t);
-  }, [toast]);
-
   const handleRestore = (id: string) => {
     setBusyId(id);
     startTransition(async () => {
@@ -81,9 +75,9 @@ export default function TrashView() {
       setBusyId(null);
       if (result.ok) {
         setItems((prev) => prev?.filter((n) => n.id !== id) ?? null);
-        setToast({ kind: "ok", msg: "Restored" });
+        showToast.success("Restored");
       } else {
-        setToast({ kind: "err", msg: result.error });
+        showToast.error(result.error);
       }
     });
   };
@@ -96,16 +90,44 @@ export default function TrashView() {
       setBusyId(null);
       if (result.ok) {
         setItems((prev) => prev?.filter((n) => n.id !== id) ?? null);
-        setToast({ kind: "ok", msg: "Deleted permanently" });
+        showToast.success("Deleted permanently");
       } else {
-        setToast({ kind: "err", msg: result.error });
+        showToast.error(result.error);
       }
     });
   };
 
   if (items === null && !error) {
     return (
-      <div style={{ padding: 24, color: "var(--text-2)", fontSize: 13 }}>Loading…</div>
+      <div style={{ padding: "16px 14px 40px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
+          <div style={{ width: 32, height: 32, borderRadius: 10, background: "var(--surface-3)", animation: "trash-skeleton 1.5s ease-in-out infinite" }} />
+          <div style={{ height: 22, width: 80, borderRadius: 6, background: "var(--surface-3)", animation: "trash-skeleton 1.5s ease-in-out infinite" }} />
+        </div>
+        {[1, 2, 3].map((i) => (
+          <div key={i} style={{
+            display: "flex",
+            gap: 12,
+            padding: 14,
+            background: "var(--surface-2)",
+            borderRadius: 12,
+            border: "1px solid var(--border-1)",
+            marginBottom: 8,
+          }}>
+            <div style={{ width: 48, height: 48, borderRadius: 8, background: "var(--surface-3)", animation: "trash-skeleton 1.5s ease-in-out infinite" }} />
+            <div style={{ flex: 1 }}>
+              <div style={{ height: 14, borderRadius: 4, background: "var(--surface-3)", marginBottom: 8, width: "60%", animation: "trash-skeleton 1.5s ease-in-out infinite" }} />
+              <div style={{ height: 12, borderRadius: 4, background: "var(--surface-3)", width: "30%", animation: "trash-skeleton 1.5s ease-in-out infinite" }} />
+            </div>
+          </div>
+        ))}
+        <style>{`
+          @keyframes trash-skeleton {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+          }
+        `}</style>
+      </div>
     );
   }
 
@@ -182,16 +204,20 @@ export default function TrashView() {
       {items!.length === 0 ? (
         <div
           style={{
-            padding: "36px 16px",
+            padding: "60px 16px",
             textAlign: "center",
-            color: "var(--text-3)",
-            fontSize: 13,
             background: "var(--surface-2)",
             border: "1px solid var(--border-1)",
             borderRadius: 12,
           }}
         >
-          Your trash is empty.
+          <div style={{ fontSize: 40, marginBottom: 12 }}>&#128681;</div>
+          <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-2)", marginBottom: 4 }}>
+            Your trash is empty
+          </div>
+          <div style={{ fontSize: 13, color: "var(--text-3)" }}>
+            Deleted cards will appear here for recovery.
+          </div>
         </div>
       ) : (
         <ul style={{ display: "flex", flexDirection: "column", gap: 8, padding: 0, margin: 0, listStyle: "none" }}>
@@ -210,27 +236,6 @@ export default function TrashView() {
         </ul>
       )}
 
-      {toast && (
-        <div
-          role="status"
-          style={{
-            position: "fixed",
-            bottom: 88,
-            left: "50%",
-            transform: "translateX(-50%)",
-            background: toast.kind === "ok" ? "var(--surface-4)" : "var(--red, #dc2626)",
-            color: toast.kind === "ok" ? "var(--text-1)" : "#fff",
-            padding: "8px 14px",
-            borderRadius: 10,
-            fontSize: 12,
-            fontWeight: 600,
-            boxShadow: "var(--shadow-md)",
-            zIndex: 60,
-          }}
-        >
-          {toast.msg}
-        </div>
-      )}
     </div>
   );
 }

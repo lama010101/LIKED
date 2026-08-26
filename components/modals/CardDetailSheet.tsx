@@ -44,6 +44,7 @@ import {
   getFriendRatingsAction,
 } from "@/app/lib/actions/cardDetail";
 import { getTagsAction } from "@/app/lib/actions/getTags";
+import { toast as showToast } from "@/lib/store/toastStore";
 
 interface CardDetailSheetProps {
   node: FeedNode | null;
@@ -182,7 +183,6 @@ export default function CardDetailSheet({
 
   const [detail, setDetail] = useState<CardDetail | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [toast, setToast] = useState<string | null>(null);
   const [, startTransition] = useTransition();
   const mediaContainerRef = useRef<HTMLDivElement>(null);
 
@@ -253,12 +253,6 @@ export default function CardDetailSheet({
     return () => document.removeEventListener("keydown", handler);
   }, [open, onClose]);
 
-  useEffect(() => {
-    if (!toast) return;
-    const t = window.setTimeout(() => setToast(null), 2200);
-    return () => window.clearTimeout(t);
-  }, [toast]);
-
   // Auto-save rating after slider-release (mouseup / touchend)
   const handleRatingCommit = useCallback(
     (score: number) => {
@@ -271,9 +265,9 @@ export default function CardDetailSheet({
               ? { ...prev, yourRating: score }
               : prev
           );
-          setToast("Rating saved");
+          showToast.success("Rating saved");
         } else {
-          setToast(result.error);
+          showToast.error(result.error);
         }
       });
     },
@@ -299,9 +293,9 @@ export default function CardDetailSheet({
           prev ? { ...prev, node: { ...prev.node, title: next } } : prev
         );
         setEditingTitle(false);
-        setToast("Title updated");
+        showToast.success("Title updated");
       } else {
-        setToast(result.error);
+        showToast.error(result.error);
       }
     });
   };
@@ -312,9 +306,9 @@ export default function CardDetailSheet({
       const result = await trashCardAction(nodeId);
       if (result.ok) {
         onClose();
-        setToast("Moved to trash");
+        showToast.success("Moved to trash");
       } else {
-        setToast(result.error);
+        showToast.error(result.error);
       }
     });
   };
@@ -337,9 +331,9 @@ export default function CardDetailSheet({
         setDetail((prev) =>
           prev ? { ...prev, tags: prev.tags.filter((t) => t.id !== tagId) } : prev
         );
-        setToast("Tag removed");
+        showToast.success("Tag removed");
       } else {
-        setToast(result.error);
+        showToast.error(result.error);
       }
     });
   };
@@ -356,9 +350,9 @@ export default function CardDetailSheet({
             setDetail(res.detail);
           }
         });
-        setToast("Tag added");
+        showToast.success("Tag added");
       } else {
-        setToast(result.error);
+        showToast.error(result.error);
       }
     });
   };
@@ -526,27 +520,6 @@ export default function CardDetailSheet({
           )}
         </div>
 
-        {toast && (
-          <div
-            role="status"
-            style={{
-              position: "absolute",
-              bottom: 16,
-              left: "50%",
-              transform: "translateX(-50%)",
-              background: "var(--surface-4)",
-              color: "var(--text-1)",
-              padding: "8px 14px",
-              borderRadius: 10,
-              fontSize: 12,
-              fontWeight: 600,
-              boxShadow: "var(--shadow-md)",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {toast}
-          </div>
-        )}
       </div>
     </>
   );
