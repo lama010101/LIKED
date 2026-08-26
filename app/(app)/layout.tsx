@@ -28,6 +28,7 @@ import { getUserFoldersAction } from '@/app/lib/actions/getFolders';
 import { getTagsAction } from '@/app/lib/actions/getTags';
 import { getUnreadNotificationCountAction } from '@/app/lib/actions/notifications';
 import { useRealtime } from '@/lib/hooks/useRealtime';
+import { toast as showToast } from '@/lib/store/toastStore';
 import type { SessionUser } from '@/app/lib/actions/session';
 import type { FriendBarEntry, GroupBarEntry } from '@/lib/db/friends';
 
@@ -252,7 +253,6 @@ function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     getUnreadNotificationCountAction().then(setNotificationCount);
   }, []);
-  const [toast, setToast] = useState<{ kind: 'ok' | 'err'; message: string } | null>(null);
   const [trashCount, setTrashCount] = useState<number>(0);
   const isMobile = useIsMobile();
   const router = useRouter();
@@ -301,15 +301,8 @@ function AppShell({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [pathname, toast]);
+  }, [pathname]);
 
-
-  // Auto-hide toast after 2.2s
-  useEffect(() => {
-    if (!toast) return;
-    const t = window.setTimeout(() => setToast(null), 2200);
-    return () => window.clearTimeout(t);
-  }, [toast]);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -501,7 +494,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
             setSpeedDialOpen(false);
             if (id === 'card') setOpenAdd(true);
             else if (id === 'folder') setOpenFolder(true);
-            else setToast({ kind: 'ok', message: 'Coming soon' });
+            else showToast.info('Coming soon');
           }}
         />
 
@@ -578,32 +571,12 @@ function AppShell({ children }: { children: React.ReactNode }) {
       <SelectionOverlay
         isMobile={isMobile}
         activeFolderId={folderPath.length > 0 ? folderPath[folderPath.length - 1] : null}
-        onToast={(msg, kind) => setToast({ kind: kind ?? 'ok', message: msg })}
+        onToast={(msg, kind) => {
+          if (kind === 'err') showToast.error(msg);
+          else showToast.success(msg);
+        }}
       />
 
-      {/* DnD result toast */}
-      {toast && (
-        <div
-          role="status"
-          style={{
-            position: 'fixed',
-            bottom: 88,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            background: toast.kind === 'ok' ? 'var(--surface-4)' : 'var(--red, #dc2626)',
-            color: toast.kind === 'ok' ? 'var(--text-1)' : '#fff',
-            padding: '8px 14px',
-            borderRadius: 10,
-            fontSize: 12,
-            fontWeight: 600,
-            boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
-            zIndex: 200,
-            pointerEvents: 'none',
-          }}
-        >
-          {toast.message}
-        </div>
-      )}
     </div>
     </DndProvider>
   );
