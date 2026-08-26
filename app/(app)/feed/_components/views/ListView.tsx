@@ -63,7 +63,6 @@ function ListRow({ item, onClick, currentUserId, onCardShare, onCardMoveToFolder
       onCardDelete?.(item.id);
     } else {
       const body = await res.json().catch(() => ({}));
-      console.error('Card delete failed', res.status, body);
       toast.error(body?.error || 'Failed to delete card. Please try again.');
     }
   };

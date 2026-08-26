@@ -179,8 +179,7 @@ export default function ProfileModal({
     setSignOutPending(true);
     try {
       await signOut();
-    } catch (err) {
-      console.error('[handleSignOut]', err);
+    } catch {
       setSignOutPending(false);
       toast.error('Failed to sign out. Please try again.');
     }

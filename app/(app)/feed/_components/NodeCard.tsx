@@ -103,7 +103,6 @@ export default function NodeCard({ node, onClick, currentUserId, dragListeners, 
       onDelete?.(node.node_id);
     } else {
       const body = await res.json().catch(() => ({}));
-      console.error('Delete failed', res.status, body);
       toast.error(body?.error || 'Failed to delete card. Please try again.');
     }
   };

@@ -95,12 +95,15 @@ export async function createNodeAction(
 ): Promise<CreateNodeResult> {
   const supabase = await getSupabaseServerClient();
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  const user = session?.user;
-  if (!user) {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+  if (authError || !user) {
     return { ok: false, error: "Not authenticated", code: "invalid" };
   }
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
   const url = input.url?.trim() || null;
   const text = input.textContent?.trim() || null;

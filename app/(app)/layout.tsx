@@ -161,7 +161,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
   const refreshFolders = useCallback(() => {
     getUserFoldersAction()
       .then((f) => setLayoutFolders(f))
-      .catch((err) => console.error('[layout] getUserFoldersAction failed:', err));
+      .catch(() => showToast.error('Failed to load folders. Please refresh the page.'));
   }, []);
 
   const refreshFriends = useCallback(() => {
@@ -171,7 +171,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
       getGroupBarAction(),
     ]).then(([friends, groups]) => {
       setBottomBarItems(friendBarToBottomBarItems(sessionUser, friends, groups));
-    }).catch((err) => console.error('[layout] refreshFriends failed:', err));
+    }).catch(() => showToast.error('Failed to load friends list. Please refresh the page.'));
   }, [sessionUser]);
 
   // Load folders on mount; refreshFolders can also be called post-creation
@@ -520,7 +520,19 @@ function AppShell({ children }: { children: React.ReactNode }) {
               toggleFriendFilter(id);
               return;
             }
-            // Groups: future implementation (group feed view)
+            // Groups: toggle group context (navigate to group feed view)
+            if (type === 'group') {
+              const currentGroupId = useFilterStore.getState().groupId;
+              if (currentGroupId === id) {
+                // Clicking the active group again clears it
+                useFilterStore.getState().setContext({ groupId: null });
+                router.push('/feed?view=all');
+              } else {
+                useFilterStore.getState().setContext({ groupId: id });
+                router.push(`/feed?group=${id}`);
+              }
+              return;
+            }
           }}
         />
       </div>

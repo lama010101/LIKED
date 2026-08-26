@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useFilterStore } from '@/lib/store/filterStore';
 import { getVisibleTags } from '@/lib/db/tags';
+import { toast } from '@/lib/store/toastStore';
 import DroppableTagChip from '@/components/dnd/DroppableTagChip';
 
 interface TagChip {
@@ -40,8 +41,8 @@ export default function TagsStrip({ visible = true, userId, languageCode }: Tags
           setLoading(false);
         }
       })
-      .catch((err) => {
-        console.error('Failed to load visible tags:', err);
+      .catch(() => {
+        toast.error('Failed to load tags.');
         if (!cancelled) setLoading(false);
       });
 

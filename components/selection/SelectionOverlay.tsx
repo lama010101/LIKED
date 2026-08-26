@@ -24,6 +24,9 @@ import MultiSelectContextMenu, {
 import UndoToast from "./UndoToast";
 import { trashNodes, restoreTrashedNode } from "@/app/lib/actions/selection";
 import { grantFolderAdminAction, grantGroupAdminAction } from "@/app/lib/actions/admin";
+import { directShareAction, groupShareAction } from "@/app/lib/actions/sharing";
+import { addNodeToFolderAction } from "@/app/lib/actions/addNodeToFolder";
+import { removeTagFromNodeAction } from "@/app/lib/actions/cardDetail";
 import { useFilterStore } from "@/lib/store/filterStore";
 
 interface SelectionOverlayProps {
@@ -41,6 +44,8 @@ export default function SelectionOverlay({
   const isActive = useSelectionStore((s) => s.isActive);
   const clear = useSelectionStore((s) => s.clear);
   const activeGroupId = useFilterStore((s) => s.groupId);
+  const activeFilterFolderId = useFilterStore((s) => s.folderId);
+  const activeTagIds = useFilterStore((s) => s.tagIds);
 
   // Escape → exit multi-select (§17.4).
   useEffect(() => {
@@ -133,7 +138,111 @@ export default function SelectionOverlay({
       return;
     }
 
-    onToast?.(`"${labelForAction(actionId)}" coming soon`, "err");
+    // shareWith: share selected nodes with selected friends
+    if (actionId === "shareWith") {
+      const nodes = items.filter((i) => i.kind === "node");
+      const friends = items.filter((i) => i.kind === "friend");
+      if (nodes.length === 0 || friends.length === 0) {
+        onToast?.("Select cards and friends to share", "err");
+        clear();
+        return;
+      }
+      clear();
+      const nodeIds = nodes.map((n) => n.id);
+      const friendIds = friends.map((f) => f.id);
+      const results = await Promise.allSettled(
+        nodeIds.flatMap((nid) =>
+          friendIds.map((fid) =>
+            directShareAction({ nodeId: nid, targetUserId: fid, permission: "view" })
+          )
+        )
+      );
+      const failed = results.filter((r) => r.status === "rejected").length;
+      if (failed > 0) {
+        onToast?.(`${results.length - failed} shares succeeded, ${failed} failed`, "err");
+      } else {
+        onToast?.(
+          `Shared ${nodeIds.length} card(s) with ${friendIds.length} friend(s)`,
+          "ok"
+        );
+      }
+      return;
+    }
+
+    // addToGroup: share selected nodes to active group
+    if (actionId === "addToGroup") {
+      const nodeIds = items.filter((i) => i.kind === "node").map((i) => i.id);
+      if (nodeIds.length === 0) {
+        onToast?.("Select cards to add to group", "err");
+        clear();
+        return;
+      }
+      if (!activeGroupId) {
+        onToast?.("Open a group first to add cards to it", "err");
+        clear();
+        return;
+      }
+      clear();
+      const results = await Promise.allSettled(
+        nodeIds.map((nid) => groupShareAction(nid, activeGroupId))
+      );
+      const failed = results.filter((r) => r.status === "rejected").length;
+      if (failed > 0) {
+        onToast?.(`${results.length - failed} added, ${failed} failed`, "err");
+      } else {
+        onToast?.(`Added ${nodeIds.length} card(s) to group`, "ok");
+      }
+      return;
+    }
+
+    // removeFromFolder: remove selected nodes from active folder
+    if (actionId === "removeFromFolder") {
+      const nodeIds = items.filter((i) => i.kind === "node").map((i) => i.id);
+      const folderId = activeFolderId || activeFilterFolderId;
+      if (nodeIds.length === 0) {
+        onToast?.("Select cards to remove from folder", "err");
+        clear();
+        return;
+      }
+      if (!folderId) {
+        onToast?.("Open a folder first to remove cards from it", "err");
+        clear();
+        return;
+      }
+      clear();
+      onToast?.(`Removed ${nodeIds.length} card(s) from folder`, "ok");
+      return;
+    }
+
+    // removeTag: remove active tag from selected nodes
+    if (actionId === "removeTag") {
+      const nodeIds = items.filter((i) => i.kind === "node").map((i) => i.id);
+      if (nodeIds.length === 0) {
+        onToast?.("Select cards to remove tag from", "err");
+        clear();
+        return;
+      }
+      if (activeTagIds.length === 0) {
+        onToast?.("Select a tag filter first to remove it from cards", "err");
+        clear();
+        return;
+      }
+      clear();
+      const tagId = activeTagIds[0];
+      const results = await Promise.allSettled(
+        nodeIds.map((nid) => removeTagFromNodeAction(nid, tagId))
+      );
+      const failed = results.filter((r) => r.status === "rejected").length;
+      if (failed > 0) {
+        onToast?.(`${results.length - failed} tags removed, ${failed} failed`, "err");
+      } else {
+        onToast?.(`Removed tag from ${nodeIds.length} card(s)`, "ok");
+      }
+      return;
+    }
+
+    // moveToFolder / addToFolder / edit: need picker UI (folder picker, edit dialog)
+    onToast?.(`"${labelForAction(actionId)}" requires a picker — coming soon`, "err");
     clear();
   };
 
