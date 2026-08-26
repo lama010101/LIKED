@@ -3,12 +3,33 @@ import { defineConfig, devices } from "@playwright/test";
 /**
  * Playwright E2E configuration for LIKED.
  *
- * Tests run against the local dev server (Next.js) on port 3000.
- * Start the server automatically via `webServer` config below.
+ * Tests can run against:
+ *   1. Local dev server (default): http://localhost:3001
+ *   2. Any remote URL (Vercel preview/production): set BASE_URL env var
+ *
+ * Usage:
+ *   # Local (auto-starts dev server):
+ *   npx playwright test
+ *
+ *   # Vercel production:
+ *   BASE_URL=https://liked-zeta.vercel.app npx playwright test
+ *
+ *   # Vercel preview:
+ *   BASE_URL=https://liked-hmbcjj8kc-lolos-projects-dc7e07be.vercel.app npx playwright test
+ *
+ *   # With custom test user:
+ *   BASE_URL=https://liked-zeta.vercel.app \
+ *   TEST_EMAIL=test@liked.app \
+ *   TEST_PASSWORD=YourPassword \
+ *   npx playwright test
  *
  * Run:  npm run test:e2e
  * UI:   npm run test:e2e:ui
  */
+
+const BASE_URL = process.env.BASE_URL ?? "http://localhost:3001";
+const isRemote = !!process.env.BASE_URL;
+
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: false,
@@ -20,7 +41,7 @@ export default defineConfig({
   expect: { timeout: 10_000 },
 
   use: {
-    baseURL: "http://localhost:3001",
+    baseURL: BASE_URL,
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
@@ -66,10 +87,16 @@ export default defineConfig({
     },
   ],
 
-  webServer: {
-    command: "npm run dev",
-    url: "http://localhost:3001",
-    reuseExistingServer: !process.env.CI,
-    timeout: 60_000,
-  },
+  // Only auto-start the dev server for local runs.
+  // When BASE_URL is set (remote/Vercel), skip webServer entirely.
+  ...(isRemote
+    ? {}
+    : {
+        webServer: {
+          command: "npm run dev",
+          url: "http://localhost:3001",
+          reuseExistingServer: !process.env.CI,
+          timeout: 60_000,
+        },
+      }),
 });
