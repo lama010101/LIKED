@@ -321,7 +321,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
     document.documentElement.setAttribute('data-theme', t);
   };
 
-  const isInFolder = folderPath.length > 0;
+  const isInFolder = !!activeFolderId;
 
   const breadcrumbPath = folderStack.map(f => ({
     id: f.id,
