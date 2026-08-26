@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import Image from 'next/image';
 import { updateUsername, uploadAvatar, updateLanguage } from '@/app/lib/actions/profile';
 import { signOut } from '@/app/lib/actions/auth';
+import { toast } from '@/lib/store/toastStore';
 
 // ── types ─────────────────────────────────────────────────────────────────
 
@@ -181,7 +182,7 @@ export default function ProfileModal({
     } catch (err) {
       console.error('[handleSignOut]', err);
       setSignOutPending(false);
-      alert('Failed to sign out. Please try again.');
+      toast.error('Failed to sign out. Please try again.');
     }
   };
 

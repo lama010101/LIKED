@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import type { ViewProps, FeedItem } from "@/lib/types/feed";
+import { toast } from "@/lib/store/toastStore";
 
 interface FolderContext {
   id: string;
@@ -60,7 +61,7 @@ function HorizTile({ item, onClick, currentUserId, onCardShare, onCardMoveToFold
     } else {
       const body = await res.json().catch(() => ({}));
       console.error('Card delete failed', res.status, body);
-      alert(body?.error || 'Failed to delete card. Please try again.');
+      toast.error(body?.error || 'Failed to delete card. Please try again.');
     }
   };
 

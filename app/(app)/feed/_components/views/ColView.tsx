@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import type { ViewProps, FeedItem } from "@/lib/types/feed";
+import { toast } from "@/lib/store/toastStore";
 
 function FolderCollage({ item, size }: { item: FeedItem; size: number }) {
   const base = item.folderColor ?? "#888";
@@ -62,7 +63,7 @@ function ColTile({
     } else {
       const body = await res.json().catch(() => ({}));
       console.error('Card delete failed', res.status, body);
-      alert(body?.error || 'Failed to delete card. Please try again.');
+      toast.error(body?.error || 'Failed to delete card. Please try again.');
     }
   };
   const showOverlays = true;

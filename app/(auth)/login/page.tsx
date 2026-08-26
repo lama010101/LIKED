@@ -9,6 +9,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Read ?redirect= from the URL so the extension auth relay flow can
   // bounce here, collect the sign-in, then return to /extension/auth.
@@ -141,37 +142,71 @@ export default function LoginPage() {
             >
               Password
             </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full px-3 py-2.5 text-sm"
-              style={{
-                background: "var(--c-input-bg, var(--surface-2))",
-                border: "1px solid var(--c-input-border, var(--border-1))",
-                borderRadius: "var(--r-md)",
-                color: "var(--text-1)",
-                outline: "none",
-                transition: "border-color 150ms ease, box-shadow 150ms ease",
-              }}
-              onFocus={(e) => {
-                e.currentTarget.style.borderColor = "var(--accent)";
-                e.currentTarget.style.boxShadow =
-                  "0 0 0 3px rgba(124,92,252,0.15)";
-              }}
-              onBlur={(e) => {
-                e.currentTarget.style.borderColor =
-                  "var(--c-input-border, var(--border-1))";
-                e.currentTarget.style.boxShadow = "none";
-              }}
-            />
+            <div style={{ position: "relative" }}>
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full px-3 py-2.5 text-sm"
+                style={{
+                  background: "var(--c-input-bg, var(--surface-2))",
+                  border: "1px solid var(--c-input-border, var(--border-1))",
+                  borderRadius: "var(--r-md)",
+                  color: "var(--text-1)",
+                  outline: "none",
+                  transition: "border-color 150ms ease, box-shadow 150ms ease",
+                  paddingRight: 40,
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = "var(--accent)";
+                  e.currentTarget.style.boxShadow =
+                    "0 0 0 3px rgba(124,92,252,0.15)";
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor =
+                    "var(--c-input-border, var(--border-1))";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((s) => !s)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                style={{
+                  position: "absolute",
+                  right: 8,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: 4,
+                  color: "var(--text-3)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                {showPassword ? (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                    <line x1="1" y1="1" x2="23" y2="23" />
+                  </svg>
+                ) : (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                )}
+              </button>
+            </div>
           </div>
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !email || !password}
             className="w-full py-2.5 px-4 text-sm font-bold"
             style={{
               background: "var(--accent)",
@@ -180,7 +215,7 @@ export default function LoginPage() {
               border: "none",
               cursor: "pointer",
               transition: "opacity 150ms ease, transform 150ms ease",
-              opacity: loading ? 0.6 : 1,
+              opacity: loading || !email || !password ? 0.5 : 1,
             }}
             onMouseEnter={(e) => {
               if (!loading) e.currentTarget.style.opacity = "0.9";

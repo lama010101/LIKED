@@ -27,6 +27,7 @@ import type { FeedItem } from "@/lib/types/feed";
 import type { Folder } from "@/lib/types/app";
 import { useFeedURLSync } from "@/lib/hooks/useFeedURLSync";
 import { useFeed } from "@/lib/hooks/useFeed";
+import { toast } from "@/lib/store/toastStore";
 import { useFilterStore, type FilterState } from "@/lib/store/filterStore";
 import CardDetailSheet from "@/components/modals/CardDetailSheet";
 import FreeGrid from "./FreeGrid";
@@ -69,7 +70,7 @@ function FolderTile({ folder, isActive, onClick, currentUserId, onFolderDelete }
     } else {
       const body = await res.json().catch(() => ({}));
       console.error('Folder delete failed', res.status, body);
-      alert(body?.error || 'Failed to delete folder. Please try again.');
+      toast.error(body?.error || 'Failed to delete folder. Please try again.');
     }
   };
 

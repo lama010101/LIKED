@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import type { ViewProps, FeedItem } from "@/lib/types/feed";
+import { toast } from "@/lib/store/toastStore";
 
 function FolderThumb({ item }: { item: FeedItem }) {
   const base = item.folderColor ?? "#888";
@@ -63,7 +64,7 @@ function ListRow({ item, onClick, currentUserId, onCardShare, onCardMoveToFolder
     } else {
       const body = await res.json().catch(() => ({}));
       console.error('Card delete failed', res.status, body);
-      alert(body?.error || 'Failed to delete card. Please try again.');
+      toast.error(body?.error || 'Failed to delete card. Please try again.');
     }
   };
 
