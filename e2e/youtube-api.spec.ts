@@ -54,7 +54,6 @@ test.describe("YouTube API — authenticated (not connected)", () => {
     return {
       headers: {
         Cookie: cookies
-          .filter((c) => c.domain.includes("localhost"))
           .map((c) => `${c.name}=${c.value}`)
           .join("; "),
         ...extra,
