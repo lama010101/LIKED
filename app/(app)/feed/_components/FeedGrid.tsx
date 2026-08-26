@@ -522,6 +522,8 @@ export default function FeedGrid({
           onMoveToFolder={handleMoveToFolder}
           onAddTag={handleAddTag}
           onDelete={handleDelete}
+          folders={localFolders}
+          currentFolderId={activeFolderId}
         />
         <CardDetailSheet node={activeNode} currentUserId={currentUserId} onClose={handleClose} />
       </>

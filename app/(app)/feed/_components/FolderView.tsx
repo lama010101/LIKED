@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { FeedNode } from "@/lib/hooks/useFeed";
 import NodeCard from "./NodeCard";
+import DroppableFolderChip from "@/components/dnd/DroppableFolderChip";
 
 interface FolderViewProps {
   folderName: string;
@@ -17,6 +18,10 @@ interface FolderViewProps {
   onMoveToFolder?: (node: FeedNode) => void;
   onAddTag?: (node: FeedNode) => void;
   onDelete?: (nodeId: string) => void;
+  /** Sibling/available folders for drag-and-drop move targets. */
+  folders?: Array<{ id: string; name: string; color_hex: string }>;
+  /** The ID of the currently open folder (excluded from drop targets). */
+  currentFolderId?: string | null;
 }
 
 export default function FolderView({
@@ -32,6 +37,8 @@ export default function FolderView({
   onMoveToFolder,
   onAddTag,
   onDelete,
+  folders = [],
+  currentFolderId,
 }: FolderViewProps) {
   const [layout, setLayout] = useState<"grid" | "list">("grid");
 
@@ -193,6 +200,51 @@ export default function FolderView({
           {breadcrumb.join(" › ")}
         </span>
       </div>
+
+      {/* Folder drop zone bar — drag cards here to move to another folder */}
+      {folders.length > 0 && (
+        <div style={{
+          display: "flex",
+          gap: 6,
+          padding: "6px 16px",
+          background: "var(--surface-2)",
+          borderBottom: "1px solid var(--border-1)",
+          overflowX: "auto",
+          flexShrink: 0,
+        }}>
+          <span style={{ fontSize: 11, color: "var(--text-3)", whiteSpace: "nowrap", alignSelf: "center", paddingRight: 4 }}>
+            Move to:
+          </span>
+          {folders
+            .filter(f => f.id !== currentFolderId)
+            .map(f => (
+              <DroppableFolderChip key={f.id} folderId={f.id}>
+                <div style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 5,
+                  padding: "4px 10px",
+                  borderRadius: 8,
+                  background: "var(--surface-3)",
+                  border: "1px solid var(--border-1)",
+                  fontSize: 12,
+                  color: "var(--text-2)",
+                  whiteSpace: "nowrap",
+                  cursor: "default",
+                }}>
+                  <div style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: "50%",
+                    background: f.color_hex || "var(--accent)",
+                    flexShrink: 0,
+                  }} />
+                  {f.name}
+                </div>
+              </DroppableFolderChip>
+            ))}
+        </div>
+      )}
 
       {/* Scrollable content area */}
       <div style={{ flex: 1, overflowY: "auto", padding: 12 }}>
