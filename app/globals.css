@@ -242,6 +242,18 @@ body {
   .liked-wobble { animation: none; }
 }
 
+/* ── Skeleton shimmer for loading states ────────────────── */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.5; }
+  50%      { opacity: 0.85; }
+}
+.skeleton {
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton { animation: none; opacity: 0.6; }
+}
+
 /* Sub-tab slide-in (Phase 6, PRD §11.2a) */
 @keyframes subtab-slide {
   from { opacity: 0; transform: translateY(-4px); }
@@ -584,6 +596,19 @@ body {
 }
 .card:hover, .folder-card:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
 .card:active, .folder-card:active { transform: scale(0.97); }
+
+/* Folder tile hover — subtle lift + brightness */
+.folder-tile:hover { transform: translateY(-2px) scale(1.02); }
+.folder-tile:active { transform: scale(0.97); }
+
+/* Toolbar button hover — subtle background lift */
+.toolbar-btn:hover { background: var(--surface-5) !important; }
+.toolbar-btn:active { transform: scale(0.92) !important; }
+
+/* Pill button hover — subtle lift + dim */
+.pill-btn:hover { opacity: 0.85; }
+.pill-btn:active { transform: scale(0.95); }
+.pill-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .card__overlay {
   position: absolute;

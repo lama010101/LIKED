@@ -86,7 +86,9 @@ export default function FolderView({
           <button
             type="button"
             aria-label="Grid view"
+            aria-pressed={layout === "grid"}
             onClick={() => setLayout("grid")}
+            className="toolbar-btn"
             style={{
               width: 32,
               height: 32,
@@ -99,6 +101,7 @@ export default function FolderView({
               justifyContent: "center",
               cursor: "pointer",
               padding: 0,
+              transition: "background 0.15s ease, color 0.15s ease, transform 0.1s ease",
             }}
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden="true">
@@ -113,7 +116,9 @@ export default function FolderView({
           <button
             type="button"
             aria-label="List view"
+            aria-pressed={layout === "list"}
             onClick={() => setLayout("list")}
+            className="toolbar-btn"
             style={{
               width: 32,
               height: 32,
@@ -126,6 +131,7 @@ export default function FolderView({
               justifyContent: "center",
               cursor: "pointer",
               padding: 0,
+              transition: "background 0.15s ease, color 0.15s ease, transform 0.1s ease",
             }}
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden="true">
@@ -140,6 +146,7 @@ export default function FolderView({
             type="button"
             aria-label="Filter"
             onClick={onFilterClick}
+            className="toolbar-btn"
             style={{
               width: 32,
               height: 32,
@@ -152,6 +159,7 @@ export default function FolderView({
               justifyContent: "center",
               cursor: "pointer",
               padding: 0,
+              transition: "background 0.15s ease, color 0.15s ease, transform 0.1s ease",
             }}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -249,8 +257,17 @@ export default function FolderView({
       {/* Scrollable content area */}
       <div style={{ flex: 1, overflowY: "auto", padding: 12 }}>
         {nodes.length === 0 && (
-          <div style={{ textAlign: "center", padding: "64px 0", color: "var(--text-3)", fontSize: 14 }}>
+          <div style={{
+            textAlign: "center",
+            padding: "64px 0",
+            color: "var(--text-3)",
+            fontSize: 14,
+          }}>
+            <div style={{ fontSize: 32, marginBottom: 8, opacity: 0.4 }}>📂</div>
             This folder is empty
+            <div style={{ fontSize: 12, marginTop: 4, color: "var(--text-3)", opacity: 0.7 }}>
+              Save cards here from the Chrome extension or Add button
+            </div>
           </div>
         )}
 

@@ -2,7 +2,7 @@ export default function FeedLoading() {
   return (
     <div style={{ minHeight: "100vh", padding: "16px" }}>
       {/* Top bar skeleton */}
-      <div style={{
+      <div className="skeleton" style={{
         height: 48,
         background: "var(--surface-2)",
         borderRadius: 12,
@@ -15,7 +15,7 @@ export default function FeedLoading() {
         gap: 16,
       }}>
         {[1, 2, 3, 4, 5, 6].map((i) => (
-          <div key={i} style={{
+          <div key={i} className="skeleton" style={{
             background: "var(--surface-2)",
             borderRadius: 12,
             overflow: "hidden",

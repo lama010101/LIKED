@@ -1,20 +1,20 @@
 export default function YoutubeLoading() {
   return (
     <div style={{ minHeight: "100vh", padding: 20 }}>
-      <div style={{
+      <div className="skeleton" style={{
         height: 52,
         background: "var(--surface-2)",
         borderRadius: 12,
         marginBottom: 16,
       }} />
-      <div style={{
+      <div className="skeleton" style={{
         height: 44,
         background: "var(--surface-2)",
         borderRadius: 12,
         marginBottom: 16,
       }} />
       {[1, 2, 3].map((i) => (
-        <div key={i} style={{
+        <div key={i} className="skeleton" style={{
           display: "flex",
           gap: 12,
           padding: 12,
