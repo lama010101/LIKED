@@ -12,7 +12,7 @@
 import { revalidatePath } from "next/cache";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { directShare, groupShare, createGroup, shareFolder } from "@/lib/db/sharing";
-import { addNodeToFolder, createFolder } from "@/lib/db/folders";
+import { addNodeToFolder, removeNodeFromFolder, createFolder } from "@/lib/db/folders";
 import { addTagToNode, removeTagFromNode } from "@/lib/db/tags";
 import { softDeleteNode } from "@/lib/db/nodes";
 import { setCustomOrder } from "@/lib/db/nodePreferences";
@@ -72,6 +72,31 @@ export async function dndAddNodeToFolder(
     return { ok: true };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : "Add to folder failed" };
+  }
+}
+
+/**
+ * Node → Folder chip (move semantics): removes the node from the source
+ * folder and adds it to the target folder. If sourceFolderId is null
+ * (dragging from the home page), this is equivalent to add-only.
+ */
+export async function dndMoveNodeToFolder(
+  nodeId: string,
+  targetFolderId: string,
+  sourceFolderId: string | null
+): Promise<DndActionResult> {
+  try {
+    const userId = await requireUserId();
+    // Add to target first (ensures node is never without a folder)
+    await addNodeToFolder(nodeId, targetFolderId, userId);
+    // Remove from source if different from target
+    if (sourceFolderId && sourceFolderId !== targetFolderId) {
+      await removeNodeFromFolder(nodeId, sourceFolderId, userId);
+    }
+    revalidatePath("/feed");
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Move to folder failed" };
   }
 }
 

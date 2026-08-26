@@ -26,12 +26,13 @@ async function openProfileModal(page: import("@playwright/test").Page) {
   // in the viewport (not off-screen via CSS transform).
   const closeBtns = page.getByRole("button", { name: /close/i });
   const count = await closeBtns.count();
+  const viewport = page.viewportSize();
   for (let i = 0; i < count; i++) {
     const btn = closeBtns.nth(i);
     const box = await btn.boundingBox().catch(() => null);
-    if (box && box.x >= 0 && box.y >= 0 &&
-        box.x + box.width <= page.viewportSize()?.width &&
-        box.y + box.height <= page.viewportSize()?.height) {
+    if (box && viewport && box.x >= 0 && box.y >= 0 &&
+        box.x + box.width <= viewport.width &&
+        box.y + box.height <= viewport.height) {
       await btn.click({ timeout: 5_000 }).catch(() => {});
       await page.waitForTimeout(500);
       break;

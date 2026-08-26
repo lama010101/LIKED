@@ -2,6 +2,7 @@
 
 import { DndContext, DragEndEvent, useSensor, useSensors, PointerSensor, TouchSensor, KeyboardSensor } from "@dnd-kit/core";
 import { useUIStore } from "@/lib/store/uiStore";
+import { useFilterStore } from "@/lib/store/filterStore";
 import { toast } from "@/lib/store/toastStore";
 import { DragSource, DropTarget } from "./types";
 import AutoCreatePrompt from "@/components/dnd/AutoCreatePrompt";
@@ -57,11 +58,21 @@ export default function DndProvider({ children }: { children: React.ReactNode })
         return;
       }
 
-      // Node → Folder: add node to folder
+      // Node → Folder: move node to folder (remove from source + add to target)
       if (dragSource.kind === "node" && dropTarget.kind === "folder") {
-        const { dndAddNodeToFolder } = await import("@/app/lib/actions/dnd");
-        const result = await dndAddNodeToFolder(dragSource.nodeId, dropTarget.folderId);
-        if (!result.ok) toast.error(result.error || "Add to folder failed");
+        const sourceFolderId = useFilterStore.getState().folderId;
+        // If dragging from within a folder, use move semantics
+        if (sourceFolderId && sourceFolderId !== dropTarget.folderId) {
+          const { dndMoveNodeToFolder } = await import("@/app/lib/actions/dnd");
+          const result = await dndMoveNodeToFolder(dragSource.nodeId, dropTarget.folderId, sourceFolderId);
+          if (result.ok) toast.success("Card moved to folder");
+          else toast.error(result.error || "Move to folder failed");
+        } else {
+          const { dndAddNodeToFolder } = await import("@/app/lib/actions/dnd");
+          const result = await dndAddNodeToFolder(dragSource.nodeId, dropTarget.folderId);
+          if (result.ok) toast.success("Card added to folder");
+          else toast.error(result.error || "Add to folder failed");
+        }
         return;
       }
 
