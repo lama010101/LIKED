@@ -205,6 +205,13 @@ export const useFilterStore = create<FilterStore>((set, get) => ({
         else found = true;
       }
     }
+    // Reset view tab when entering a folder — tabs are hidden inside
+    // folders, so a stale view would filter the folder with no way to
+    // switch back to "all".
+    if (next.folderId !== null) {
+      (next as Partial<FilterState>).view = "all";
+      (next as Partial<FilterState>).mineSubTab = "all";
+    }
     set(next);
   },
 
