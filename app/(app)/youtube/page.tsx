@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
-import { createNodeAction } from "@/app/lib/actions/createNode";
+import { importYouTubeActivity } from "@/app/lib/actions/youtubeImport";
 import { toast } from "@/lib/store/toastStore";
 
 interface YouTubeVideo {
@@ -14,6 +14,7 @@ interface YouTubeVideo {
   channelTitle: string;
   channelId: string;
   description: string;
+  categoryId: string;
 }
 
 interface YouTubeSubscription {
@@ -230,19 +231,22 @@ export default function YouTubeActivityPage() {
     }
   }, []);
 
-  // Save to LIKED — creates a node from the YouTube video URL
+  // Save to LIKED — intelligent import with auto-tags, auto-folder, full description
   const handleSaveToLiked = useCallback(async (video: YouTubeVideo) => {
     setSavingVideoId(video.id);
     try {
       const url = `https://www.youtube.com/watch?v=${video.id}`;
-      const result = await createNodeAction({
+      const result = await importYouTubeActivity({
         url,
         title: video.title,
+        description: video.description,
+        channelTitle: video.channelTitle,
+        categoryId: video.categoryId,
         thumbnailUrl: video.thumbnail || null,
       });
       if (result.ok) {
         setSavedVideoIds((prev) => new Set(prev).add(video.id));
-        toast.success("Saved to your feed!");
+        toast.success("Saved to your YouTube folder!");
       } else if (result.code === "duplicate") {
         setSavedVideoIds((prev) => new Set(prev).add(video.id));
         toast.success("Already in your feed.");

@@ -59,6 +59,7 @@ export interface YouTubeVideo {
   channelTitle: string;
   channelId: string;
   description: string;
+  categoryId: string;
 }
 
 export interface YouTubeSubscription {
@@ -98,7 +99,7 @@ export async function fetchLikedVideos(
       .json()
       .catch(() => null) as YouTubeListResponse<{
       id: string;
-      snippet: { title: string; thumbnails: { medium?: { url: string } }; channelTitle: string; channelId: string; description: string };
+      snippet: { title: string; thumbnails: { medium?: { url: string } }; channelTitle: string; channelId: string; description: string; categoryId: string };
     }> | null;
 
     if (!res.ok) {
@@ -119,6 +120,7 @@ export async function fetchLikedVideos(
       channelTitle: item.snippet?.channelTitle ?? "",
       channelId: item.snippet?.channelId ?? "",
       description: item.snippet?.description ?? "",
+      categoryId: item.snippet?.categoryId ?? "",
     }));
 
     return { videos, nextPageToken: data?.nextPageToken ?? null };
@@ -242,5 +244,39 @@ export async function unsubscribeFromChannel(
     return { ok: true };
   } catch {
     return { ok: false, error: "Failed to unsubscribe. Please check your connection and try again." };
+  }
+}
+
+/**
+ * Fetch the human-readable name for a YouTube video category ID.
+ * GET /videoCategories?part=snippet&id=<categoryId>
+ *
+ * Returns null on any failure (non-fatal — category tag is optional).
+ */
+export async function fetchVideoCategoryName(
+  accessToken: string,
+  categoryId: string
+): Promise<string | null> {
+  if (!categoryId) return null;
+
+  const params = new URLSearchParams({
+    part: "snippet",
+    id: categoryId,
+  });
+
+  try {
+    const res = await fetch(`${YOUTUBE_API_BASE}/videoCategories?${params}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    if (!res.ok) return null;
+
+    const data = await res.json().catch(() => null) as {
+      items?: { snippet: { title: string } }[];
+    } | null;
+
+    return data?.items?.[0]?.snippet?.title ?? null;
+  } catch {
+    return null;
   }
 }

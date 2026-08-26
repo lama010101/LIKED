@@ -55,7 +55,7 @@ function isValidUrl(s: string): boolean {
  * in Supabase Storage. Returns the storage key or null on any failure.
  * Mirrors the Edge Function's downloadAndUploadThumbnail logic.
  */
-async function downloadAndUploadThumbnail(
+export async function downloadAndUploadThumbnail(
   imageUrl: string,
   userId: string
 ): Promise<string | null> {
