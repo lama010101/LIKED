@@ -40,6 +40,8 @@ export default defineConfig({
         /api-unauthenticated\.spec\.ts/,
         /auth-login\.spec\.ts/,
         /auth-signup\.spec\.ts/,
+        /auth-smoke\.spec\.ts/,
+        /auth-create-node\.spec\.ts/,
         /extension-auth\.spec\.ts/,
         /extension-install\.spec\.ts/,
         /navigation-unauth\.spec\.ts/,
