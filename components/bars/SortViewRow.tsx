@@ -220,6 +220,7 @@ export default function SortViewRow({
               aria-label={`${id} view`}
               aria-pressed={isActive}
               onClick={() => onViewChange(id)}
+              className="min-hit"
               style={{
                 width: '28px',
                 height: '28px',

@@ -90,7 +90,7 @@ export default function SignupPage() {
         </div>
 
         {error && (
-          <div className="p-3 text-sm font-medium" style={{ background: "rgba(248,113,113,0.12)", color: "var(--red)", borderRadius: "var(--r-md)", border: "1px solid rgba(248,113,113,0.25)" }}>{error}</div>
+          <div id="form-error" role="alert" aria-live="polite" className="p-3 text-sm font-medium" style={{ background: "rgba(248,113,113,0.12)", color: "var(--red)", borderRadius: "var(--r-md)", border: "1px solid rgba(248,113,113,0.25)" }}>{error}</div>
         )}
 
         <form onSubmit={handleSignup} className="space-y-4">
@@ -101,6 +101,11 @@ export default function SignupPage() {
             <input
               id="email"
               type="email"
+              autoComplete="email"
+              autoFocus
+              inputMode="email"
+              aria-invalid={error ? true : undefined}
+              aria-describedby={error ? "form-error" : undefined}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -119,6 +124,9 @@ export default function SignupPage() {
               <input
                 id="password"
                 type={showPassword ? "text" : "password"}
+                autoComplete="new-password"
+                aria-invalid={error ? true : undefined}
+                aria-describedby={error ? "form-error" : undefined}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -174,6 +182,7 @@ export default function SignupPage() {
             <input
               id="displayName"
               type="text"
+              autoComplete="name"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               placeholder={getEmailPrefix(email) || "Your name"}

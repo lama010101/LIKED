@@ -138,6 +138,7 @@ export default function TagsStrip({ visible = true, userId, languageCode }: Tags
             type="button"
             onClick={() => setSearch('')}
             aria-label="Clear search"
+            className="min-hit"
             style={{
               width: 16,
               height: 16,

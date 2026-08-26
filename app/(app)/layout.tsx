@@ -333,12 +333,12 @@ function AppShell({ children }: { children: React.ReactNode }) {
     <DndProvider>
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
       {/* DESKTOP SIDEBAR — hidden below lg */}
-      <div className="hidden lg:flex" style={{ flexShrink: 0 }}>
+      <nav aria-label="Main navigation" className="hidden lg:flex" style={{ flexShrink: 0 }}>
         <DesktopSidebar items={bottomBarItems} displayName={profileDisplayName} />
-      </div>
+      </nav>
 
       {/* MAIN COLUMN */}
-      <div
+      <main
         style={{
           flex: 1,
           display: 'flex',
@@ -499,7 +499,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
         />
 
         {/* Bottom dock: folders + friends (PRD §11.8) */}
-        <div className="bottom-dock lg:hidden">
+        <nav aria-label="Bottom navigation" className="bottom-dock lg:hidden">
           {/* BottomBar */}
           <BottomBar
           items={bottomBarItems}
@@ -535,10 +535,10 @@ function AppShell({ children }: { children: React.ReactNode }) {
             }
           }}
         />
+      </nav>
       </div>
 
-      </div>
-      </div>
+      </main>
 
       {/* Add Card Sheet */}
       <AddCardSheet 
