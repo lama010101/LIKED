@@ -24,6 +24,7 @@ import {
   DuplicateNodeError,
   type NodeMetadata,
 } from "@/lib/db/nodes";
+import { getOrCreateUnsortedFolder, addNodeToFolder } from "@/lib/db/folders";
 import { extractNodeMetadata } from "@/lib/edge/extract-metadata";
 
 export type CreateNodeResult =
@@ -155,6 +156,17 @@ export async function createNodeAction(
       { url: url ?? undefined, textContent: text ?? undefined },
       metadata
     );
+
+    // Auto-assign new node to the user's "Unsorted" folder so that no
+    // node is ever without a folder (home page shows only folders).
+    try {
+      const unsortedFolderId = await getOrCreateUnsortedFolder(user.id);
+      await addNodeToFolder(node.id, unsortedFolderId, user.id);
+    } catch (folderErr) {
+      // Non-fatal: node is created even if folder assignment fails.
+      console.error("Failed to auto-assign node to Unsorted folder:", folderErr);
+    }
+
     revalidatePath("/feed");
     return { ok: true, nodeId: node.id };
   } catch (err) {

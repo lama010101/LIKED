@@ -334,6 +334,69 @@ export async function addNodeToFolder(
 }
 
 /**
+ * Find or create the user's "Unsorted" folder.
+ * Every user gets one on first node creation so that no node is ever
+ * without a folder (home page shows only folders).
+ *
+ * @returns The folder UUID of the user's "Unsorted" folder.
+ */
+export async function getOrCreateUnsortedFolder(userId: string): Promise<string> {
+  const supabase = getSupabaseServiceClient();
+
+  // Check if user already has an "Unsorted" folder
+  const { data: existing } = await supabase
+    .from("folders")
+    .select("id")
+    .eq("owner_id", userId)
+    .eq("name", "Unsorted")
+    .is("deleted_at", null)
+    .limit(1);
+
+  if (existing && existing.length > 0) {
+    return existing[0].id as string;
+  }
+
+  // Create "Unsorted" folder
+  const { data: created, error: createError } = await supabase
+    .from("folders")
+    .insert({
+      name: "Unsorted",
+      owner_id: userId,
+      parent_folder_id: null,
+      is_project: true,
+      color_hex: "#6b7280",
+      deleted_at: null,
+    })
+    .select("id")
+    .single();
+
+  if (createError || !created) {
+    // Race condition: another request may have created it concurrently.
+    // Retry the fetch.
+    const { data: retry } = await supabase
+      .from("folders")
+      .select("id")
+      .eq("owner_id", userId)
+      .eq("name", "Unsorted")
+      .is("deleted_at", null)
+      .limit(1);
+    if (retry && retry.length > 0) {
+      return retry[0].id as string;
+    }
+    throw new Error(`Failed to create Unsorted folder: ${createError?.message ?? "unknown"}`);
+  }
+
+  const folderId = created.id as string;
+
+  // Insert folder_tree self-reference (required by folder_tree schema)
+  await supabase
+    .from("folder_tree")
+    .insert({ folder_id: folderId, ancestor_id: folderId, depth: 0 });
+
+  return folderId;
+}
+
+/**
  * Remove a node from a folder
  *
  * Per P13-T01 C5:

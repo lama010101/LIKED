@@ -22,11 +22,20 @@ test.use({ storageState: "e2e/.auth/storageState.json" });
 
 /** Click the visible Profile button (works on both mobile and desktop layouts). */
 async function openProfileModal(page: import("@playwright/test").Page) {
-  // Close any open dialogs/sheets first
-  const closeBtn = page.getByRole("button", { name: /close/i }).first();
-  if (await closeBtn.isVisible({ timeout: 2_000 }).catch(() => false)) {
-    await closeBtn.click();
-    await page.waitForTimeout(500);
+  // Close any open dialogs/sheets first — but only if they're actually
+  // in the viewport (not off-screen via CSS transform).
+  const closeBtns = page.getByRole("button", { name: /close/i });
+  const count = await closeBtns.count();
+  for (let i = 0; i < count; i++) {
+    const btn = closeBtns.nth(i);
+    const box = await btn.boundingBox().catch(() => null);
+    if (box && box.x >= 0 && box.y >= 0 &&
+        box.x + box.width <= page.viewportSize()?.width &&
+        box.y + box.height <= page.viewportSize()?.height) {
+      await btn.click({ timeout: 5_000 }).catch(() => {});
+      await page.waitForTimeout(500);
+      break;
+    }
   }
 
   // Find the visible Profile button (TopBar on mobile, DesktopToolbar on desktop)
