@@ -66,7 +66,6 @@ export interface YouTubeSubscription {
   title: string;
   thumbnail: string;
   channelId: string;
-  subscriberCount: string;
 }
 
 interface YouTubeListResponse<T> {
@@ -103,7 +102,14 @@ export async function fetchLikedVideos(
     }> | null;
 
     if (!res.ok) {
-      return { videos: [], nextPageToken: null, error: data?.error?.message ?? `YouTube API error: ${res.status}` };
+      const apiMsg = data?.error?.message ?? `YouTube API error: ${res.status}`;
+      if (res.status === 403) {
+        return { videos: [], nextPageToken: null, error: "YouTube API access forbidden. Your connection may have expired — try reconnecting your YouTube account." };
+      }
+      if (res.status === 429) {
+        return { videos: [], nextPageToken: null, error: "YouTube API quota exceeded. Please try again later." };
+      }
+      return { videos: [], nextPageToken: null, error: apiMsg };
     }
 
     const videos: YouTubeVideo[] = (data?.items ?? []).map((item) => ({
@@ -142,6 +148,9 @@ export async function unlikeVideo(
 
     if (!res.ok) {
       const data = await res.json().catch(() => null);
+      if (res.status === 403) {
+        return { ok: false, error: "YouTube API access forbidden. Try reconnecting your YouTube account." };
+      }
       return { ok: false, error: data?.error?.message ?? `YouTube API error: ${res.status}` };
     }
 
@@ -183,7 +192,14 @@ export async function fetchSubscriptions(
     }> | null;
 
     if (!res.ok) {
-      return { subscriptions: [], nextPageToken: null, error: data?.error?.message ?? `YouTube API error: ${res.status}` };
+      const apiMsg = data?.error?.message ?? `YouTube API error: ${res.status}`;
+      if (res.status === 403) {
+        return { subscriptions: [], nextPageToken: null, error: "YouTube API access forbidden. Your connection may have expired — try reconnecting your YouTube account." };
+      }
+      if (res.status === 429) {
+        return { subscriptions: [], nextPageToken: null, error: "YouTube API quota exceeded. Please try again later." };
+      }
+      return { subscriptions: [], nextPageToken: null, error: apiMsg };
     }
 
     const subscriptions: YouTubeSubscription[] = (data?.items ?? []).map((item) => ({
@@ -191,7 +207,6 @@ export async function fetchSubscriptions(
       title: item.snippet?.title ?? "Unknown",
       thumbnail: item.snippet?.thumbnails?.medium?.url ?? "",
       channelId: item.snippet?.resourceId?.channelId ?? "",
-      subscriberCount: "",
     }));
 
     return { subscriptions, nextPageToken: data?.nextPageToken ?? null };
@@ -218,6 +233,9 @@ export async function unsubscribeFromChannel(
 
     if (!res.ok) {
       const data = await res.json().catch(() => null);
+      if (res.status === 403) {
+        return { ok: false, error: "YouTube API access forbidden. Try reconnecting your YouTube account." };
+      }
       return { ok: false, error: data?.error?.message ?? `YouTube API error: ${res.status}` };
     }
 

@@ -21,7 +21,6 @@ interface YouTubeSubscription {
   title: string;
   thumbnail: string;
   channelId: string;
-  subscriberCount: string;
 }
 
 type Tab = "likes" | "subscriptions";

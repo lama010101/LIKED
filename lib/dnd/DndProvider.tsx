@@ -2,6 +2,7 @@
 
 import { DndContext, DragEndEvent, useSensor, useSensors, PointerSensor, TouchSensor, KeyboardSensor } from "@dnd-kit/core";
 import { useUIStore } from "@/lib/store/uiStore";
+import { toast } from "@/lib/store/toastStore";
 import { DragSource, DropTarget } from "./types";
 import AutoCreatePrompt from "@/components/dnd/AutoCreatePrompt";
 
@@ -44,7 +45,7 @@ export default function DndProvider({ children }: { children: React.ReactNode })
       if (dragSource.kind === "node" && dropTarget.kind === "friend") {
         const { dndShareNodeToFriend } = await import("@/app/lib/actions/dnd");
         const result = await dndShareNodeToFriend(dragSource.nodeId, dropTarget.friendUserId);
-        if (!result.ok) console.error("DnD share to friend failed:", result.error);
+        if (!result.ok) toast.error(result.error || "Share failed");
         return;
       }
 
@@ -52,7 +53,7 @@ export default function DndProvider({ children }: { children: React.ReactNode })
       if (dragSource.kind === "node" && dropTarget.kind === "group") {
         const { dndShareNodeToGroup } = await import("@/app/lib/actions/dnd");
         const result = await dndShareNodeToGroup(dragSource.nodeId, dropTarget.groupId);
-        if (!result.ok) console.error("DnD share to group failed:", result.error);
+        if (!result.ok) toast.error(result.error || "Group share failed");
         return;
       }
 
@@ -60,7 +61,7 @@ export default function DndProvider({ children }: { children: React.ReactNode })
       if (dragSource.kind === "node" && dropTarget.kind === "folder") {
         const { dndAddNodeToFolder } = await import("@/app/lib/actions/dnd");
         const result = await dndAddNodeToFolder(dragSource.nodeId, dropTarget.folderId);
-        if (!result.ok) console.error("DnD add to folder failed:", result.error);
+        if (!result.ok) toast.error(result.error || "Add to folder failed");
         return;
       }
 
@@ -68,7 +69,7 @@ export default function DndProvider({ children }: { children: React.ReactNode })
       if (dragSource.kind === "node" && dropTarget.kind === "tag") {
         const { dndAttachTagToNode } = await import("@/app/lib/actions/dnd");
         const result = await dndAttachTagToNode(dragSource.nodeId, dropTarget.tagId);
-        if (!result.ok) console.error("DnD attach tag failed:", result.error);
+        if (!result.ok) toast.error(result.error || "Attach tag failed");
         return;
       }
 
@@ -76,7 +77,7 @@ export default function DndProvider({ children }: { children: React.ReactNode })
       if (dragSource.kind === "node" && dropTarget.kind === "trash") {
         const { dndTrashNode } = await import("@/app/lib/actions/dnd");
         const result = await dndTrashNode(dragSource.nodeId);
-        if (!result.ok) console.error("DnD trash failed:", result.error);
+        if (!result.ok) toast.error(result.error || "Trash failed");
         return;
       }
 
@@ -115,13 +116,13 @@ export default function DndProvider({ children }: { children: React.ReactNode })
           ? dropTarget.friendUserId
           : "";
         const result = await dndShareFolderToFriend(folderId, friendUserId);
-        if (!result.ok) console.error("DnD share folder to friend failed:", result.error);
+        if (!result.ok) toast.error(result.error || "Share folder failed");
         return;
       }
 
       // Unhandled combination
     } catch (e) {
-      console.error("DnD handler error:", e);
+      toast.error(e instanceof Error ? e.message : "Drag operation failed");
     }
   };
 

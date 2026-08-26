@@ -3,6 +3,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { backfillFriendInvites } from "@/lib/db/friends";
 
 export async function signIn(
   email: string,
@@ -32,6 +33,17 @@ export async function signIn(
 
   if (error) {
     return { error: error.message };
+  }
+
+  // Backfill any pending friend invites for this user's email.
+  // Idempotent: only updates rows where to_user_id IS NULL.
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user?.email) {
+    try {
+      await backfillFriendInvites(user.id, user.email);
+    } catch {
+      // Non-fatal — invite backfill is a best-effort enhancement.
+    }
   }
 
   // Only allow relative paths to prevent open redirect attacks.
