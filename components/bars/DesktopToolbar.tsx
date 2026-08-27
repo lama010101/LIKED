@@ -405,6 +405,8 @@ export default function DesktopToolbar({
               <button
                 key={id}
                 type="button"
+                aria-label={`${id} view`}
+                aria-pressed={isActive}
                 onClick={() => onViewChange(id)}
                 style={{
                   width: '28px',
