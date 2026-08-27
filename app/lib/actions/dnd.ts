@@ -12,7 +12,7 @@
 import { revalidatePath } from "next/cache";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { directShare, groupShare, createGroup, shareFolder } from "@/lib/db/sharing";
-import { addNodeToFolder, removeNodeFromFolder, createFolder } from "@/lib/db/folders";
+import { addNodeToFolder, removeNodeFromFolder, createFolder, moveFolder } from "@/lib/db/folders";
 import { addTagToNode, removeTagFromNode } from "@/lib/db/tags";
 import { softDeleteNode } from "@/lib/db/nodes";
 import { setCustomOrder } from "@/lib/db/nodePreferences";
@@ -235,6 +235,31 @@ export async function dndReorderFeed(
     return {
       ok: false,
       error: e instanceof Error ? e.message : "Reorder failed",
+    };
+  }
+}
+
+/**
+ * Folder → Folder: nest the dragged folder inside the target folder
+ * (or move to root if targetFolderId is null). Uses moveFolder RPC which
+ * handles is_project flag update and cycle prevention server-side.
+ */
+export async function dndMoveFolder(
+  folderId: string,
+  targetFolderId: string
+): Promise<DndActionResult> {
+  try {
+    if (folderId === targetFolderId) {
+      return { ok: false, error: "Cannot move a folder into itself" };
+    }
+    const userId = await requireUserId();
+    await moveFolder(folderId, targetFolderId, userId);
+    revalidatePath("/feed");
+    return { ok: true };
+  } catch (e) {
+    return {
+      ok: false,
+      error: e instanceof Error ? e.message : "Move folder failed",
     };
   }
 }

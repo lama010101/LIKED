@@ -3,10 +3,13 @@
 /**
  * FolderTile — extracted from FeedGrid.tsx
  * Renders a single folder card in the feed's folder grid.
+ * Draggable (folder → folder nesting, folder → friend sharing).
  */
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import { useDraggable } from "@dnd-kit/core";
+import { sourceId } from "@/lib/dnd/types";
 import type { Folder } from "@/lib/types/app";
 import { toast } from "@/lib/store/toastStore";
 
@@ -30,6 +33,18 @@ export default function FolderTile({
   const hasThumbnails = folder.thumbnails && folder.thumbnails.length > 0;
   const [menuOpen, setMenuOpen] = useState(false);
   const isOwned = folder.owner_id === currentUserId;
+
+  // Drag source: folder can be dragged to nest inside another folder
+  // or drop onto a friend avatar to share.
+  const {
+    attributes,
+    listeners,
+    setNodeRef: setDragRef,
+    isDragging,
+  } = useDraggable({
+    id: sourceId({ kind: "folder", folderId: folder.id }),
+    data: { dragSource: { kind: "folder", folderId: folder.id } },
+  });
 
   const handleFolderDelete = async () => {
     setMenuOpen(false);
@@ -58,16 +73,19 @@ export default function FolderTile({
 
   return (
     <div
+      ref={setDragRef}
       onClick={() => {
         onClick(folder);
       }}
+      {...attributes}
+      {...listeners}
       className="folder-tile"
       style={{
         aspectRatio: '1 / 1',
         borderRadius: 10,
         position: 'relative',
         overflow: 'hidden',
-        cursor: 'pointer',
+        cursor: isDragging ? 'grabbing' : 'pointer',
         pointerEvents: 'auto',
         background: `linear-gradient(135deg, ${color}cc, ${color}66)`,
         boxShadow: isActive ? `0 0 0 3px #fff, 0 0 0 5px ${color}` : 'none',
@@ -75,7 +93,9 @@ export default function FolderTile({
         flexDirection: 'column',
         justifyContent: 'flex-end',
         padding: '8px',
-        transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+        transition: 'transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease',
+        opacity: isDragging ? 0.4 : 1,
+        touchAction: 'none', // prevent scroll while dragging on touch
       }}
     >
       {/* 2x2 thumbnail collage or fallback color collage */}
