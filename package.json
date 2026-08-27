@@ -9,6 +9,7 @@
     "lint": "eslint",
     "build:extension": "npm --prefix extension run build",
     "zip:extension": "node scripts/zip-extension.mjs",
+    "seed:demo": "node scripts/seed-demo-user.mjs",
     "dev:extension": "npm --prefix extension run dev",
     "test:e2e": "npx playwright test",
     "test:e2e:ui": "npx playwright test --ui",
