@@ -61,3 +61,6 @@ supabase/.temp/
 /blob-report/
 /playwright/.cache/
 /e2e/.auth/
+
+# extension zip (built artifact — run npm run zip:extension to generate)
+/public/liked-extension.zip
