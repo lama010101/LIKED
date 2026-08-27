@@ -26,9 +26,13 @@ import type { FeedItem } from "@/lib/types/feed";
 import type { Folder } from "@/lib/types/app";
 import { useFeedURLSync } from "@/lib/hooks/useFeedURLSync";
 import { useFeed } from "@/lib/hooks/useFeed";
-import { toast } from "@/lib/store/toastStore";
 import { useFilterStore, type FilterState } from "@/lib/store/filterStore";
 import CardDetailSheet from "@/components/modals/CardDetailSheet";
+import { SharePickerModal } from "@/components/modals/SharePickerModal";
+import { MoveToFolderModal } from "@/components/modals/MoveToFolderModal";
+import { AddTagModal } from "@/components/modals/AddTagModal";
+import { RenameFolderModal } from "@/components/modals/RenameFolderModal";
+import { getFriendBarAction } from "@/app/lib/actions/session";
 import FreeGrid from "./FreeGrid";
 import FolderView from "./FolderView";
 import FolderTile from "./FolderTile";
@@ -108,6 +112,28 @@ export default function FeedGrid({
   const [activeNode, setActiveNode] = useState<FeedNode | null>(null);
   const [pendingFolderSwitch, setPendingFolderSwitch] = useState(false);
 
+  // Modal state for card/folder actions
+  const [shareTarget, setShareTarget] = useState<{ id: string; name: string; type: "node" | "folder" } | null>(null);
+  const [moveTarget, setMoveTarget] = useState<{ id: string; name: string } | null>(null);
+  const [tagTarget, setTagTarget] = useState<{ id: string; name: string } | null>(null);
+  const [renameTarget, setRenameTarget] = useState<Folder | null>(null);
+  const [availableUsers, setAvailableUsers] = useState<Array<{ id: string; display_name: string | null; avatar_key: string | null }>>([]);
+
+  // Fetch friends list for SharePickerModal
+  useEffect(() => {
+    getFriendBarAction().then((friends) => {
+      setAvailableUsers(
+        friends
+          .filter((f) => f.user_id !== null)
+          .map((f) => ({
+            id: f.user_id!,
+            display_name: f.display_name,
+            avatar_key: f.avatar_key,
+          }))
+      );
+    }).catch(() => { /* non-fatal */ });
+  }, []);
+
   // Use client-side data once useFeed has fetched; fall back to SSR nodes
   const displayNodes = useMemo(() => {
     if (pendingFolderSwitch) return [];
@@ -147,17 +173,17 @@ export default function FeedGrid({
     useFilterStore.getState().setContext({ folderId: folder.id });
   }, []);
 
-  // Card menu callbacks
-  const handleShare = useCallback((_node: FeedNode) => {
-    toast.info('Coming soon — use drag to share');
+  // Card menu callbacks — open modals instead of "Coming soon" toasts
+  const handleShare = useCallback((node: FeedNode) => {
+    setShareTarget({ id: node.node_id, name: node.title ?? node.url ?? "Untitled", type: "node" });
   }, []);
 
-  const handleMoveToFolder = useCallback((_node: FeedNode) => {
-    toast.info('Coming soon — use drag to move');
+  const handleMoveToFolder = useCallback((node: FeedNode) => {
+    setMoveTarget({ id: node.node_id, name: node.title ?? node.url ?? "Untitled" });
   }, []);
 
-  const handleAddTag = useCallback((_node: FeedNode) => {
-    toast.info('Coming soon — use Tag Mode via FAB');
+  const handleAddTag = useCallback((node: FeedNode) => {
+    setTagTarget({ id: node.node_id, name: node.title ?? node.url ?? "Untitled" });
   }, []);
 
   const handleDelete = useCallback((_nodeId: string) => {
@@ -188,6 +214,14 @@ export default function FeedGrid({
     setLocalFolders(prev => prev.filter(f => f.id !== folderId));
     router.refresh();
   }, [router]);
+
+  const handleFolderRename = useCallback((folder: Folder) => {
+    setRenameTarget(folder);
+  }, []);
+
+  const handleFolderShare = useCallback((folder: Folder) => {
+    setShareTarget({ id: folder.id, name: folder.name, type: "folder" });
+  }, []);
 
   // Convert FeedNode[] → FeedItem[] for view components
   const feedItems = useMemo(() => {
@@ -227,6 +261,8 @@ export default function FeedGrid({
             onClick={handleFolderClick}
             currentUserId={currentUserId}
             onFolderDelete={handleFolderDelete}
+            onFolderRename={handleFolderRename}
+            onFolderShare={handleFolderShare}
           />
         </DroppableFolderChip>
       ))}
@@ -305,6 +341,58 @@ export default function FeedGrid({
           currentFolderId={activeFolderId}
         />
         <CardDetailSheet node={activeNode} currentUserId={currentUserId} onClose={handleClose} />
+
+      {/* Action modals */}
+      {shareTarget && (
+        <SharePickerModal
+          isOpen={!!shareTarget}
+          onClose={() => setShareTarget(null)}
+          shareType={shareTarget.type}
+          itemId={shareTarget.id}
+          itemName={shareTarget.name}
+          availableUsers={availableUsers}
+          onShareComplete={() => { refresh(); }}
+        />
+      )}
+      {moveTarget && (
+        <MoveToFolderModal
+          isOpen={!!moveTarget}
+          onClose={() => setMoveTarget(null)}
+          nodeId={moveTarget.id}
+          nodeName={moveTarget.name}
+          folders={localFolders.filter(f => !f.deleted_at)}
+          currentFolderId={activeFolderId}
+          onMoved={() => { refresh(); }}
+        />
+      )}
+      {tagTarget && (
+        <AddTagModal
+          isOpen={!!tagTarget}
+          onClose={() => setTagTarget(null)}
+          nodeId={tagTarget.id}
+          nodeName={tagTarget.name}
+          languageCode={languageCode}
+          onTagAdded={() => { refresh(); }}
+        />
+      )}
+      {renameTarget && (
+        <RenameFolderModal
+          isOpen={!!renameTarget}
+          onClose={() => setRenameTarget(null)}
+          folderId={renameTarget.id}
+          folderName={renameTarget.name}
+          folderColor={renameTarget.color_hex}
+          onRenamed={() => {
+            // Update local folders
+            setLocalFolders(prev => prev.map(f =>
+              f.id === renameTarget.id
+                ? { ...f, name: renameTarget.name, color_hex: renameTarget.color_hex }
+                : f
+            ));
+            refresh();
+          }}
+        />
+      )}
       </>
     );
   }
@@ -318,6 +406,58 @@ export default function FeedGrid({
           <FreeGrid nodes={displayNodes} scopeKey={scopeKey} onCardClick={handleOpen} currentUserId={currentUserId} activeFolderId={activeFolderId} onShare={handleShare} onMoveToFolder={handleMoveToFolder} onAddTag={handleAddTag} onDelete={handleDelete} />
         )}
         <CardDetailSheet node={activeNode} currentUserId={currentUserId} onClose={handleClose} />
+
+      {/* Action modals */}
+      {shareTarget && (
+        <SharePickerModal
+          isOpen={!!shareTarget}
+          onClose={() => setShareTarget(null)}
+          shareType={shareTarget.type}
+          itemId={shareTarget.id}
+          itemName={shareTarget.name}
+          availableUsers={availableUsers}
+          onShareComplete={() => { refresh(); }}
+        />
+      )}
+      {moveTarget && (
+        <MoveToFolderModal
+          isOpen={!!moveTarget}
+          onClose={() => setMoveTarget(null)}
+          nodeId={moveTarget.id}
+          nodeName={moveTarget.name}
+          folders={localFolders.filter(f => !f.deleted_at)}
+          currentFolderId={activeFolderId}
+          onMoved={() => { refresh(); }}
+        />
+      )}
+      {tagTarget && (
+        <AddTagModal
+          isOpen={!!tagTarget}
+          onClose={() => setTagTarget(null)}
+          nodeId={tagTarget.id}
+          nodeName={tagTarget.name}
+          languageCode={languageCode}
+          onTagAdded={() => { refresh(); }}
+        />
+      )}
+      {renameTarget && (
+        <RenameFolderModal
+          isOpen={!!renameTarget}
+          onClose={() => setRenameTarget(null)}
+          folderId={renameTarget.id}
+          folderName={renameTarget.name}
+          folderColor={renameTarget.color_hex}
+          onRenamed={() => {
+            // Update local folders
+            setLocalFolders(prev => prev.map(f =>
+              f.id === renameTarget.id
+                ? { ...f, name: renameTarget.name, color_hex: renameTarget.color_hex }
+                : f
+            ));
+            refresh();
+          }}
+        />
+      )}
       </div>
     );
   }
@@ -331,6 +471,58 @@ export default function FeedGrid({
           <ColView items={feedItems} zoom={zoom} scopeKey={scopeKey} onItemClick={handleItemClick} currentUserId={currentUserId} onCardShare={handleShareItem} onCardMoveToFolder={handleMoveToFolderItem} onCardAddTag={handleAddTagItem} onCardDelete={handleDelete} />
         )}
         <CardDetailSheet node={activeNode} currentUserId={currentUserId} onClose={handleClose} />
+
+      {/* Action modals */}
+      {shareTarget && (
+        <SharePickerModal
+          isOpen={!!shareTarget}
+          onClose={() => setShareTarget(null)}
+          shareType={shareTarget.type}
+          itemId={shareTarget.id}
+          itemName={shareTarget.name}
+          availableUsers={availableUsers}
+          onShareComplete={() => { refresh(); }}
+        />
+      )}
+      {moveTarget && (
+        <MoveToFolderModal
+          isOpen={!!moveTarget}
+          onClose={() => setMoveTarget(null)}
+          nodeId={moveTarget.id}
+          nodeName={moveTarget.name}
+          folders={localFolders.filter(f => !f.deleted_at)}
+          currentFolderId={activeFolderId}
+          onMoved={() => { refresh(); }}
+        />
+      )}
+      {tagTarget && (
+        <AddTagModal
+          isOpen={!!tagTarget}
+          onClose={() => setTagTarget(null)}
+          nodeId={tagTarget.id}
+          nodeName={tagTarget.name}
+          languageCode={languageCode}
+          onTagAdded={() => { refresh(); }}
+        />
+      )}
+      {renameTarget && (
+        <RenameFolderModal
+          isOpen={!!renameTarget}
+          onClose={() => setRenameTarget(null)}
+          folderId={renameTarget.id}
+          folderName={renameTarget.name}
+          folderColor={renameTarget.color_hex}
+          onRenamed={() => {
+            // Update local folders
+            setLocalFolders(prev => prev.map(f =>
+              f.id === renameTarget.id
+                ? { ...f, name: renameTarget.name, color_hex: renameTarget.color_hex }
+                : f
+            ));
+            refresh();
+          }}
+        />
+      )}
       </div>
     );
   }
@@ -344,6 +536,58 @@ export default function FeedGrid({
           <MasonView items={feedItems} scopeKey={scopeKey} onItemClick={handleItemClick} currentUserId={currentUserId} onCardShare={handleShareItem} onCardMoveToFolder={handleMoveToFolderItem} onCardAddTag={handleAddTagItem} onCardDelete={handleDelete} />
         )}
         <CardDetailSheet node={activeNode} currentUserId={currentUserId} onClose={handleClose} />
+
+      {/* Action modals */}
+      {shareTarget && (
+        <SharePickerModal
+          isOpen={!!shareTarget}
+          onClose={() => setShareTarget(null)}
+          shareType={shareTarget.type}
+          itemId={shareTarget.id}
+          itemName={shareTarget.name}
+          availableUsers={availableUsers}
+          onShareComplete={() => { refresh(); }}
+        />
+      )}
+      {moveTarget && (
+        <MoveToFolderModal
+          isOpen={!!moveTarget}
+          onClose={() => setMoveTarget(null)}
+          nodeId={moveTarget.id}
+          nodeName={moveTarget.name}
+          folders={localFolders.filter(f => !f.deleted_at)}
+          currentFolderId={activeFolderId}
+          onMoved={() => { refresh(); }}
+        />
+      )}
+      {tagTarget && (
+        <AddTagModal
+          isOpen={!!tagTarget}
+          onClose={() => setTagTarget(null)}
+          nodeId={tagTarget.id}
+          nodeName={tagTarget.name}
+          languageCode={languageCode}
+          onTagAdded={() => { refresh(); }}
+        />
+      )}
+      {renameTarget && (
+        <RenameFolderModal
+          isOpen={!!renameTarget}
+          onClose={() => setRenameTarget(null)}
+          folderId={renameTarget.id}
+          folderName={renameTarget.name}
+          folderColor={renameTarget.color_hex}
+          onRenamed={() => {
+            // Update local folders
+            setLocalFolders(prev => prev.map(f =>
+              f.id === renameTarget.id
+                ? { ...f, name: renameTarget.name, color_hex: renameTarget.color_hex }
+                : f
+            ));
+            refresh();
+          }}
+        />
+      )}
       </div>
     );
   }
@@ -357,6 +601,58 @@ export default function FeedGrid({
           <ListView items={feedItems} scopeKey={scopeKey} onItemClick={handleItemClick} currentUserId={currentUserId} onCardShare={handleShareItem} onCardMoveToFolder={handleMoveToFolderItem} onCardAddTag={handleAddTagItem} onCardDelete={handleDelete} />
         )}
         <CardDetailSheet node={activeNode} currentUserId={currentUserId} onClose={handleClose} />
+
+      {/* Action modals */}
+      {shareTarget && (
+        <SharePickerModal
+          isOpen={!!shareTarget}
+          onClose={() => setShareTarget(null)}
+          shareType={shareTarget.type}
+          itemId={shareTarget.id}
+          itemName={shareTarget.name}
+          availableUsers={availableUsers}
+          onShareComplete={() => { refresh(); }}
+        />
+      )}
+      {moveTarget && (
+        <MoveToFolderModal
+          isOpen={!!moveTarget}
+          onClose={() => setMoveTarget(null)}
+          nodeId={moveTarget.id}
+          nodeName={moveTarget.name}
+          folders={localFolders.filter(f => !f.deleted_at)}
+          currentFolderId={activeFolderId}
+          onMoved={() => { refresh(); }}
+        />
+      )}
+      {tagTarget && (
+        <AddTagModal
+          isOpen={!!tagTarget}
+          onClose={() => setTagTarget(null)}
+          nodeId={tagTarget.id}
+          nodeName={tagTarget.name}
+          languageCode={languageCode}
+          onTagAdded={() => { refresh(); }}
+        />
+      )}
+      {renameTarget && (
+        <RenameFolderModal
+          isOpen={!!renameTarget}
+          onClose={() => setRenameTarget(null)}
+          folderId={renameTarget.id}
+          folderName={renameTarget.name}
+          folderColor={renameTarget.color_hex}
+          onRenamed={() => {
+            // Update local folders
+            setLocalFolders(prev => prev.map(f =>
+              f.id === renameTarget.id
+                ? { ...f, name: renameTarget.name, color_hex: renameTarget.color_hex }
+                : f
+            ));
+            refresh();
+          }}
+        />
+      )}
       </div>
     );
   }
@@ -380,6 +676,58 @@ export default function FeedGrid({
           />
         )}
         <CardDetailSheet node={activeNode} currentUserId={currentUserId} onClose={handleClose} />
+
+      {/* Action modals */}
+      {shareTarget && (
+        <SharePickerModal
+          isOpen={!!shareTarget}
+          onClose={() => setShareTarget(null)}
+          shareType={shareTarget.type}
+          itemId={shareTarget.id}
+          itemName={shareTarget.name}
+          availableUsers={availableUsers}
+          onShareComplete={() => { refresh(); }}
+        />
+      )}
+      {moveTarget && (
+        <MoveToFolderModal
+          isOpen={!!moveTarget}
+          onClose={() => setMoveTarget(null)}
+          nodeId={moveTarget.id}
+          nodeName={moveTarget.name}
+          folders={localFolders.filter(f => !f.deleted_at)}
+          currentFolderId={activeFolderId}
+          onMoved={() => { refresh(); }}
+        />
+      )}
+      {tagTarget && (
+        <AddTagModal
+          isOpen={!!tagTarget}
+          onClose={() => setTagTarget(null)}
+          nodeId={tagTarget.id}
+          nodeName={tagTarget.name}
+          languageCode={languageCode}
+          onTagAdded={() => { refresh(); }}
+        />
+      )}
+      {renameTarget && (
+        <RenameFolderModal
+          isOpen={!!renameTarget}
+          onClose={() => setRenameTarget(null)}
+          folderId={renameTarget.id}
+          folderName={renameTarget.name}
+          folderColor={renameTarget.color_hex}
+          onRenamed={() => {
+            // Update local folders
+            setLocalFolders(prev => prev.map(f =>
+              f.id === renameTarget.id
+                ? { ...f, name: renameTarget.name, color_hex: renameTarget.color_hex }
+                : f
+            ));
+            refresh();
+          }}
+        />
+      )}
       </div>
     );
   }
@@ -401,6 +749,58 @@ export default function FeedGrid({
         />
       )}
       <CardDetailSheet node={activeNode} currentUserId={currentUserId} onClose={handleClose} />
+
+      {/* Action modals */}
+      {shareTarget && (
+        <SharePickerModal
+          isOpen={!!shareTarget}
+          onClose={() => setShareTarget(null)}
+          shareType={shareTarget.type}
+          itemId={shareTarget.id}
+          itemName={shareTarget.name}
+          availableUsers={availableUsers}
+          onShareComplete={() => { refresh(); }}
+        />
+      )}
+      {moveTarget && (
+        <MoveToFolderModal
+          isOpen={!!moveTarget}
+          onClose={() => setMoveTarget(null)}
+          nodeId={moveTarget.id}
+          nodeName={moveTarget.name}
+          folders={localFolders.filter(f => !f.deleted_at)}
+          currentFolderId={activeFolderId}
+          onMoved={() => { refresh(); }}
+        />
+      )}
+      {tagTarget && (
+        <AddTagModal
+          isOpen={!!tagTarget}
+          onClose={() => setTagTarget(null)}
+          nodeId={tagTarget.id}
+          nodeName={tagTarget.name}
+          languageCode={languageCode}
+          onTagAdded={() => { refresh(); }}
+        />
+      )}
+      {renameTarget && (
+        <RenameFolderModal
+          isOpen={!!renameTarget}
+          onClose={() => setRenameTarget(null)}
+          folderId={renameTarget.id}
+          folderName={renameTarget.name}
+          folderColor={renameTarget.color_hex}
+          onRenamed={() => {
+            // Update local folders
+            setLocalFolders(prev => prev.map(f =>
+              f.id === renameTarget.id
+                ? { ...f, name: renameTarget.name, color_hex: renameTarget.color_hex }
+                : f
+            ));
+            refresh();
+          }}
+        />
+      )}
     </div>
   );
 }
