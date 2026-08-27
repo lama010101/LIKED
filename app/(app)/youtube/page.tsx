@@ -9,6 +9,7 @@ import VideoRow, { type YouTubeVideo } from "./_components/VideoRow";
 import SubscriptionRow, { type YouTubeSubscription } from "./_components/SubscriptionRow";
 import YouTubeSkeleton from "./_components/YouTubeSkeleton";
 import YouTubeConnect from "./_components/YouTubeConnect";
+import YouTubeImportDialog from "./_components/YouTubeImportDialog";
 
 type Tab = "likes" | "subscriptions";
 
@@ -37,6 +38,9 @@ export default function YouTubeActivityPage() {
   const [subsNextPageToken, setSubsNextPageToken] = useState<string | null>(null);
   const [subsLoadingMore, setSubsLoadingMore] = useState(false);
   const [confirmUnsub, setConfirmUnsub] = useState<string | null>(null);
+
+  // Import dialog state
+  const [importOpen, setImportOpen] = useState(false);
 
   const lastFetchRef = useRef<number>(0);
 
@@ -273,6 +277,31 @@ export default function YouTubeActivityPage() {
           )}
         </div>
         <div style={{ display: "flex", gap: 8 }}>
+          {tab === "likes" && videos.length > 0 && (
+            <button
+              onClick={() => setImportOpen(true)}
+              style={{
+                padding: "6px 12px",
+                background: "var(--accent, #7c5cfc)",
+                border: "none",
+                borderRadius: 8,
+                fontSize: 12,
+                fontWeight: 600,
+                color: "#fff",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              Import All
+            </button>
+          )}
           <button
             onClick={() => router.push("/feed")}
             style={{
@@ -527,6 +556,13 @@ export default function YouTubeActivityPage() {
           </>
         )}
       </div>
+
+      {/* Import All dialog */}
+      <YouTubeImportDialog
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        videos={videos}
+      />
     </div>
   );
 }

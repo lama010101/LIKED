@@ -292,6 +292,11 @@ body {
   from { opacity: 0; transform: translateY(-4px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
+/* Spinner (YouTube import dialog) */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
 .subtab-animate {
   animation: subtab-slide .18s ease-out;
 }
