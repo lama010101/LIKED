@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { createFolder } from "@/lib/db/folders";
+import { logger } from "@/lib/utils/logger";
 
 export type CreateFolderResult =
   | { ok: true; folderId: string }
@@ -37,7 +38,7 @@ export async function createFolderAction(
     revalidatePath("/feed");
     return { ok: true, folderId: result.id };
   } catch (err) {
-    console.error('[createFolderAction]', err)
+    logger.error('[createFolderAction]', err)
     const message = err instanceof Error ? err.message : 'Failed to create folder'
     return { ok: false, error: message }
   }

@@ -78,8 +78,7 @@ function h<K extends keyof HTMLElementTagNameMap>(
       continue;
     }
     if (v === null || v === undefined) continue;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (el as any)[k] = v;
+    (el as unknown as Record<string, unknown>)[k] = v;
   }
   for (const child of children) {
     el.appendChild(typeof child === "string" ? document.createTextNode(child) : child);

@@ -144,7 +144,8 @@ export async function createOrGetTag(
 
 /**
  * Attach a tag to a node (organizational only — no edge/visibility effects,
- * per PRD §6.6). Idempotent: duplicate assignments are silently ignored.
+ * per PRD §6.6). Idempotent: uses upsert with onConflict so duplicate
+ * assignments are silently ignored without a separate SELECT check.
  */
 export async function addTagToNode(
   tagId: string,
@@ -152,23 +153,14 @@ export async function addTagToNode(
 ): Promise<void> {
   const supabase = getSupabaseServiceClient();
 
-  const { data: existing, error: checkErr } = await supabase
-    .from("tag_edges")
-    .select("id")
-    .eq("tag_id", tagId)
-    .eq("node_id", nodeId)
-    .maybeSingle();
-
-  if (checkErr) {
-    throw new Error(`Failed to check tag_edge: ${checkErr.message}`);
-  }
-  if (existing) return;
-
-  const { error } = await supabase.from("tag_edges").insert({
-    tag_id: tagId,
-    node_id: nodeId,
-    folder_id: null,
-  });
+  const { error } = await supabase.from("tag_edges").upsert(
+    {
+      tag_id: tagId,
+      node_id: nodeId,
+      folder_id: null,
+    },
+    { onConflict: "tag_id,node_id,folder_id", ignoreDuplicates: true }
+  );
 
   if (error) {
     throw new Error(`Failed to add tag to node: ${error.message}`);

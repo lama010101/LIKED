@@ -1,6 +1,8 @@
 'use server';
 
 import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { revalidatePath } from 'next/cache';
+import { logger } from "@/lib/utils/logger";
 
 export interface CardPosition {
   node_id: string;
@@ -30,13 +32,13 @@ export async function getCardPositionsAction(folderId: string | null): Promise<C
 
     const { data, error: queryError } = await query;
     if (queryError) {
-      console.error('[getCardPositionsAction] error:', queryError);
+      logger.error('[getCardPositionsAction] error:', queryError);
       return [];
     }
 
     return (data ?? []) as CardPosition[];
   } catch (err) {
-    console.error('[getCardPositionsAction] error:', err);
+    logger.error('[getCardPositionsAction] error:', err);
     return [];
   }
 }
@@ -64,13 +66,14 @@ export async function upsertCardPositionAction(
     });
 
     if (rpcError) {
-      console.error('[upsertCardPositionAction] RPC error:', rpcError);
+      logger.error('[upsertCardPositionAction] RPC error:', rpcError);
       return false;
     }
 
+    revalidatePath('/feed');
     return true;
   } catch (err) {
-    console.error('[upsertCardPositionAction] error:', err);
+    logger.error('[upsertCardPositionAction] error:', err);
     return false;
   }
 }

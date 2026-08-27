@@ -23,81 +23,14 @@ import FabSpeedDial from '@/components/bars/FabSpeedDial';
 import FolderPathBar from '@/components/bars/FolderPathBar';
 import DesktopToolbar from '@/components/bars/DesktopToolbar';
 import NotificationPanel from '@/components/modals/NotificationPanel';
-import { getSessionUser, getFriendBarAction, getGroupBarAction } from '@/app/lib/actions/session';
+import { getSessionUser, getFriendBarAction, getGroupBarAction, type SessionUser } from '@/app/lib/actions/session';
 import { getUserFoldersAction } from '@/app/lib/actions/getFolders';
 import { getTagsAction } from '@/app/lib/actions/getTags';
 import { getUnreadNotificationCountAction } from '@/app/lib/actions/notifications';
 import { useRealtime } from '@/lib/hooks/useRealtime';
 import { toast as showToast } from '@/lib/store/toastStore';
-import type { SessionUser } from '@/app/lib/actions/session';
-import type { FriendBarEntry, GroupBarEntry } from '@/lib/db/friends';
-
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(() =>
-    typeof window !== 'undefined' && window.matchMedia('(max-width: 1023px)').matches
-  );
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(max-width: 1023px)');
-
-    const handleChange = (e: MediaQueryListEvent) => setIsMobile(e.matches);
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, []);
-
-  return isMobile;
-}
-
-interface BottomBarItem {
-  id: string;
-  type: 'me' | 'friend' | 'group';
-  displayName: string;
-  initial: string;
-  bg: string;
-  hasNew?: boolean;
-  memberCount?: number;
-  is_pending?: boolean;
-  user_id?: string;
-}
-
-function friendBarToBottomBarItems(
-  sessionUser: SessionUser,
-  friends: FriendBarEntry[],
-  groups: GroupBarEntry[]
-): BottomBarItem[] {
-  const initial = (name: string | null) =>
-    (name ?? '?').charAt(0).toUpperCase();
-
-  const meItem: BottomBarItem = {
-    id: sessionUser.id,
-    type: 'me',
-    displayName: sessionUser.display_name ?? 'Me',
-    initial: initial(sessionUser.display_name),
-    bg: 'linear-gradient(135deg,#f5a623,#ff6b6b)',
-  };
-
-  const friendItems: BottomBarItem[] = friends.map((f) => ({
-    id: f.user_id ?? f.to_email ?? Math.random().toString(),
-    type: 'friend',
-    displayName: f.display_name ?? f.to_email ?? 'Pending',
-    initial: initial(f.display_name ?? f.to_email),
-    bg: 'linear-gradient(135deg,#4a9fd5,#1c6fa0)',
-    hasNew: false,
-    is_pending: f.is_pending,
-    user_id: f.user_id ?? undefined,
-  }));
-
-  const groupItems: BottomBarItem[] = groups.map((g) => ({
-    id: g.id,
-    type: 'group',
-    displayName: g.name,
-    initial: initial(g.name),
-    bg: 'linear-gradient(135deg,#7b3ad5,#4a1ca0)',
-    memberCount: g.member_count,
-  }));
-
-  return [meItem, ...friendItems, ...groupItems];
-}
+import { useIsMobile } from './_lib/useIsMobile';
+import { friendBarToBottomBarItems, type BottomBarItem } from './_lib/friendBarToBottomBarItems';
 
 function AppShell({ children }: { children: React.ReactNode }) {
   // P9-T03: Filter state from store (URL is source of truth via useFeedURLSync)
@@ -153,7 +86,11 @@ function AppShell({ children }: { children: React.ReactNode }) {
           setTagLabelMap(labels);
           setTagColorMap(colors);
         }
+      }).catch(() => {
+        if (!cancelled) showToast.error('Failed to load sidebar data. Please refresh the page.');
       });
+    }).catch(() => {
+      // Session fetch failure — user will see unauthenticated state
     });
     return () => { cancelled = true; };
   }, []);
@@ -251,7 +188,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
 
   // Fetch initial unread notification count
   useEffect(() => {
-    getUnreadNotificationCountAction().then(setNotificationCount);
+    getUnreadNotificationCountAction().then(setNotificationCount).catch(() => {});
   }, []);
   const [trashCount, setTrashCount] = useState<number>(0);
   const isMobile = useIsMobile();
@@ -297,7 +234,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
     let cancelled = false;
     getTrashCount().then((n) => {
       if (!cancelled) setTrashCount(n);
-    });
+    }).catch(() => {});
     return () => {
       cancelled = true;
     };

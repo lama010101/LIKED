@@ -25,6 +25,12 @@
 // exclude `supabase/functions/**` (see tsconfig).
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
+import { jsonResponse, corsHeaders } from "./_cors.ts";
+import { extractMeta } from "./_html.ts";
+import { extractTagsFromUrl, tokenizeTextForTags, buildSuggestedTags } from "./_tags.ts";
+import { downloadAndUploadThumbnail, fetchWithTimeout } from "./_storage.ts";
+import { overRateLimit, logInvocation } from "./_rateLimit.ts";
+import type { SupabaseClient } from "./_types.ts";
 
 // ─────────────────────────── Types ───────────────────────────
 
@@ -51,311 +57,15 @@ interface MetadataResponse {
 // ─────────────────────── Constants / Config ───────────────────────
 
 const FETCH_TIMEOUT_MS = 8000;
-const MAX_TAGS = 8;
-const RATE_LIMIT_PER_MIN = 30;
-const THUMBNAILS_BUCKET = "thumbnails";
-const USER_AGENT = "LIKED-Bot/1.0";
-
-const CORS_HEADERS: Record<string, string> = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
-
-// Minimal multilingual stop-word lists. Additional languages can be added
-// without breaking callers — unknown language codes simply fall back to
-// English-only filtering.
-const STOP_WORDS: Record<string, string[]> = {
-  en: [
-    "the", "a", "an", "and", "or", "but", "if", "then", "else", "of", "on",
-    "in", "at", "to", "for", "with", "by", "from", "as", "is", "are", "was",
-    "were", "be", "been", "being", "it", "this", "that", "these", "those",
-    "i", "you", "he", "she", "we", "they", "them", "us", "our", "your",
-    "my", "his", "her", "its", "their", "what", "which", "who", "whom",
-    "when", "where", "why", "how", "all", "any", "both", "each", "few",
-    "more", "most", "other", "some", "such", "no", "not", "only", "own",
-    "same", "so", "than", "too", "very", "can", "will", "just", "about",
-    "one", "two", "three", "into", "via", "com", "www", "http", "https",
-  ],
-  fr: ["le", "la", "les", "de", "des", "un", "une", "et", "ou", "mais", "que", "qui", "dans", "pour", "avec", "sur", "par", "en", "au", "aux", "est", "sont"],
-  es: ["el", "la", "los", "las", "de", "un", "una", "y", "o", "pero", "que", "en", "para", "con", "por", "es", "son"],
-  de: ["der", "die", "das", "den", "dem", "des", "und", "oder", "aber", "ein", "eine", "in", "für", "mit", "auf", "von", "zu", "ist", "sind"],
-  pt: ["o", "a", "os", "as", "de", "um", "uma", "e", "ou", "mas", "que", "em", "para", "com", "por", "é", "são"],
-  it: ["il", "la", "lo", "i", "gli", "le", "di", "un", "una", "e", "o", "ma", "che", "in", "per", "con", "su", "è", "sono"],
-  ja: ["の", "に", "は", "を", "が", "と", "で", "も", "から", "まで"],
-  zh: ["的", "了", "在", "是", "和", "与", "也", "或", "而"],
-  th: ["และ", "หรือ", "แต่", "ของ", "ใน", "ที่", "เป็น", "ได้"],
-};
-
-// ──────────────────────── Utilities ────────────────────────
-
-function jsonResponse(body: unknown, status = 200): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
-  });
-}
-
-function normalizeToken(raw: string): string {
-  return raw.normalize("NFKC").toLowerCase().trim();
-}
-
-function stopWordsFor(languageCode: string): Set<string> {
-  const lang = languageCode.toLowerCase().split("-")[0];
-  const extra = STOP_WORDS[lang] ?? [];
-  return new Set([...STOP_WORDS.en, ...extra]);
-}
-
-/** Defensive fetch: AbortController-backed timeout, safe on any failure. */
-async function fetchWithTimeout(url: string, ms: number): Promise<Response | null> {
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), ms);
-  try {
-    const res = await fetch(url, {
-      redirect: "follow",
-      headers: { "User-Agent": USER_AGENT, Accept: "text/html,*/*" },
-      signal: ctrl.signal,
-    });
-    return res;
-  } catch {
-    return null;
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
-// ──────────────────────── HTML parsing ────────────────────────
-//
-// Regex-based OG/meta extraction — no heavy DOM dependency. Covers the
-// shapes we care about per PRD §15.1 (og:*, twitter:*, <title>, <meta>).
-
-function extractMeta(html: string): {
-  ogTitle?: string;
-  ogDescription?: string;
-  ogImage?: string;
-  ogType?: string;
-  ogLocale?: string;
-  ogVideoTags: string[];
-  ogArticleTags: string[];
-  twitterTitle?: string;
-  twitterDescription?: string;
-  twitterImage?: string;
-  title?: string;
-  description?: string;
-  htmlLang?: string;
-} {
-  const out: ReturnType<typeof extractMeta> = {
-    ogVideoTags: [],
-    ogArticleTags: [],
-  };
-
-  // <title>…</title>
-  const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
-  if (titleMatch) out.title = decodeHtmlEntities(titleMatch[1].trim());
-
-  // <html lang="xx">
-  const htmlLang = html.match(/<html[^>]*\slang=["']([^"']+)["']/i);
-  if (htmlLang) out.htmlLang = htmlLang[1];
-
-  // <meta property="og:foo" content="…">  and  <meta name="…" content="…">
-  const metaRe =
-    /<meta\s+(?:[^>]*?(?:property|name)=["']([^"']+)["'])[^>]*?content=["']([^"']*)["'][^>]*\/?>/gi;
-  const metaRe2 =
-    /<meta\s+(?:[^>]*?content=["']([^"']*)["'])[^>]*?(?:property|name)=["']([^"']+)["'][^>]*\/?>/gi;
-
-  const addMeta = (key: string, rawValue: string) => {
-    const value = decodeHtmlEntities(rawValue);
-    const k = key.toLowerCase();
-    switch (k) {
-      case "og:title":
-        out.ogTitle = value;
-        break;
-      case "og:description":
-        out.ogDescription = value;
-        break;
-      case "og:image":
-      case "og:image:url":
-      case "og:image:secure_url":
-        if (!out.ogImage) out.ogImage = value;
-        break;
-      case "og:type":
-        out.ogType = value;
-        break;
-      case "og:locale":
-        out.ogLocale = value;
-        break;
-      case "og:video:tag":
-        out.ogVideoTags.push(value);
-        break;
-      case "og:article:tag":
-      case "article:tag":
-        out.ogArticleTags.push(value);
-        break;
-      case "twitter:title":
-        out.twitterTitle = value;
-        break;
-      case "twitter:description":
-        out.twitterDescription = value;
-        break;
-      case "twitter:image":
-      case "twitter:image:src":
-        out.twitterImage = value;
-        break;
-      case "description":
-        out.description = value;
-        break;
-    }
-  };
-
-  let m: RegExpExecArray | null;
-  while ((m = metaRe.exec(html)) !== null) addMeta(m[1], m[2]);
-  while ((m = metaRe2.exec(html)) !== null) addMeta(m[2], m[1]);
-
-  return out;
-}
-
-function decodeHtmlEntities(s: string): string {
-  return s
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&nbsp;/g, " ");
-}
-
-// ──────────────────────── Tag extraction ────────────────────────
-
-function extractTagsFromUrl(urlStr: string): string[] {
-  try {
-    const u = new URL(urlStr);
-    const out: string[] = [];
-    // Domain-derived hint
-    const host = u.hostname.replace(/^www\./, "").split(".")[0];
-    if (host) out.push(host);
-    // Known shortcuts
-    if (u.hostname.includes("youtube.com") || u.hostname.includes("youtu.be")) {
-      out.push("video", "youtube");
-    }
-    if (u.hostname.includes("spotify.com")) out.push("music", "spotify");
-    if (u.hostname.includes("suno.com") || u.hostname.includes("suno.ai")) {
-      out.push("music", "suno");
-    }
-    if (u.hostname.includes("soundcloud.com")) out.push("music", "soundcloud");
-    if (u.hostname.includes("vimeo.com")) out.push("video", "vimeo");
-    if (u.hostname.includes("github.com")) out.push("code", "github");
-    if (u.hostname.includes("medium.com")) out.push("article", "medium");
-    if (u.hostname.includes("twitter.com") || u.hostname.includes("x.com")) {
-      out.push("post", "twitter");
-    }
-    // Path segments
-    for (const seg of u.pathname.split("/")) {
-      if (/^[a-z0-9-]{3,32}$/i.test(seg) && !/^\d+$/.test(seg)) {
-        out.push(seg.replace(/-/g, " "));
-      }
-    }
-    return out;
-  } catch {
-    return [];
-  }
-}
-
-function tokenizeTextForTags(text: string): string[] {
-  return text
-    .normalize("NFKC")
-    .toLowerCase()
-    .split(/[\s,;:!?.\-_/\\|()\[\]{}"'`]+/u)
-    .filter((t) => t.length >= 3 && t.length <= 24);
-}
-
-function buildSuggestedTags(
-  candidates: string[],
-  languageCode: string,
-  cap = MAX_TAGS
-): string[] {
-  const stops = stopWordsFor(languageCode);
-  const seen = new Set<string>();
-  const out: string[] = [];
-  for (const raw of candidates) {
-    if (!raw) continue;
-    const n = normalizeToken(raw);
-    if (!n || stops.has(n)) continue;
-    if (seen.has(n)) continue;
-    if (/^\d+$/.test(n)) continue;
-    seen.add(n);
-    out.push(n);
-    if (out.length >= cap) break;
-  }
-  return out;
-}
-
-// ──────────────────────── Storage upload ────────────────────────
-
-async function downloadAndUploadThumbnail(
-  supabase: any,
-  imageUrl: string,
-  userId: string
-): Promise<string | null> {
-  try {
-    const res = await fetchWithTimeout(imageUrl, FETCH_TIMEOUT_MS);
-    if (!res || !res.ok) return null;
-    const contentType = res.headers.get("content-type") ?? "application/octet-stream";
-    if (!contentType.startsWith("image/")) return null;
-    const buf = new Uint8Array(await res.arrayBuffer());
-    if (buf.length === 0 || buf.length > 8 * 1024 * 1024) return null; // 8MB cap
-    const ext = (contentType.split("/")[1] ?? "jpg").split(";")[0] || "jpg";
-    const key = `${userId}/${crypto.randomUUID()}.${ext}`;
-    const { error } = await supabase.storage
-      .from(THUMBNAILS_BUCKET)
-      .upload(key, buf, { contentType, upsert: false });
-    if (error) return null;
-    return key;
-  } catch {
-    return null;
-  }
-}
-
-// ──────────────────────── Rate limit ────────────────────────
-
-async function overRateLimit(supabase: any, userId: string): Promise<boolean> {
-  const since = new Date(Date.now() - 60_000).toISOString();
-  const { count, error } = await supabase
-    .from("activity_log")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", userId)
-    .eq("action", "metadata_extraction")
-    .gte("created_at", since);
-  if (error) return false; // fail open — do not punish the caller for our logging bug
-  return (count ?? 0) >= RATE_LIMIT_PER_MIN;
-}
-
-async function logInvocation(
-  supabase: any,
-  userId: string,
-  metadata: Record<string, unknown>
-): Promise<void> {
-  try {
-    await supabase.from("activity_log").insert({
-      user_id: userId,
-      action: "metadata_extraction",
-      target_id: null,
-      target_type: "node",
-      metadata,
-    });
-  } catch {
-    // best-effort
-  }
-}
 
 // ──────────────────────── Main handler ────────────────────────
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: CORS_HEADERS });
+    return new Response("ok", { headers: corsHeaders(req) });
   }
   if (req.method !== "POST") {
-    return jsonResponse({ error: "Method not allowed" }, 405);
+    return jsonResponse({ error: "Method not allowed" }, 405, req);
   }
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
@@ -363,7 +73,7 @@ Deno.serve(async (req: Request) => {
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 
   if (!supabaseUrl || !serviceRoleKey) {
-    return jsonResponse({ error: "Function mis-configured" }, 500);
+    return jsonResponse({ error: "Function mis-configured" }, 500, req);
   }
 
   // Identify caller from Authorization header (bearer JWT from Supabase Auth)
@@ -397,7 +107,8 @@ Deno.serve(async (req: Request) => {
       await logInvocation(svc, userId, { rate_limited: true, url_given: !!url });
       return jsonResponse(
         buildDefaults(url, textContent, userLang, "rate_limited"),
-        429
+        429,
+        req
       );
     }
   }
@@ -427,13 +138,13 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  return jsonResponse(result);
+  return jsonResponse(result, 200, req);
 });
 
 // ──────────────────────── Branch: URL ────────────────────────
 
 async function handleUrl(
-  svc: any,
+  svc: SupabaseClient,
   url: string,
   userLang: string,
   userId: string | null

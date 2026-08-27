@@ -25,7 +25,7 @@ import UndoToast from "./UndoToast";
 import { trashNodes, restoreTrashedNode } from "@/app/lib/actions/selection";
 import { grantFolderAdminAction, grantGroupAdminAction } from "@/app/lib/actions/admin";
 import { directShareAction, groupShareAction } from "@/app/lib/actions/sharing";
-import { addNodeToFolderAction } from "@/app/lib/actions/addNodeToFolder";
+import { removeNodeFromFolderAction } from "@/app/lib/actions/removeNodeFromFolder";
 import { removeTagFromNodeAction } from "@/app/lib/actions/cardDetail";
 import { useFilterStore } from "@/lib/store/filterStore";
 
@@ -157,7 +157,7 @@ export default function SelectionOverlay({
           )
         )
       );
-      const failed = results.filter((r) => r.status === "rejected").length;
+      const failed = results.filter((r) => r.status === "rejected" || (r.status === "fulfilled" && !r.value.ok)).length;
       if (failed > 0) {
         onToast?.(`${results.length - failed} shares succeeded, ${failed} failed`, "err");
       } else {
@@ -186,7 +186,7 @@ export default function SelectionOverlay({
       const results = await Promise.allSettled(
         nodeIds.map((nid) => groupShareAction(nid, activeGroupId))
       );
-      const failed = results.filter((r) => r.status === "rejected").length;
+      const failed = results.filter((r) => r.status === "rejected" || (r.status === "fulfilled" && !r.value.ok)).length;
       if (failed > 0) {
         onToast?.(`${results.length - failed} added, ${failed} failed`, "err");
       } else {
@@ -210,7 +210,17 @@ export default function SelectionOverlay({
         return;
       }
       clear();
-      onToast?.(`Removed ${nodeIds.length} card(s) from folder`, "ok");
+      const results = await Promise.allSettled(
+        nodeIds.map((nid) =>
+          removeNodeFromFolderAction({ nodeId: nid, folderId })
+        )
+      );
+      const failed = results.filter((r) => r.status === "rejected" || (r.status === "fulfilled" && !r.value.ok)).length;
+      if (failed > 0) {
+        onToast?.(`${results.length - failed} removed, ${failed} failed`, "err");
+      } else {
+        onToast?.(`Removed ${nodeIds.length} card(s) from folder`, "ok");
+      }
       return;
     }
 

@@ -78,6 +78,12 @@ export default defineConfig({
       testMatch: [
         /feed-authenticated\.spec\.ts/,
         /navigation-auth\.spec\.ts/,
+        /trash-authenticated\.spec\.ts/,
+        /card-detail-authenticated\.spec\.ts/,
+        /folders-authenticated\.spec\.ts/,
+        /sharing-authenticated\.spec\.ts/,
+        /dnd-authenticated\.spec\.ts/,
+        /notifications-authenticated\.spec\.ts/,
       ],
       dependencies: ["setup"],
       use: {

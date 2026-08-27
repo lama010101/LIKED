@@ -22,18 +22,23 @@ export interface YouTubeAuthResult {
 
 /**
  * Get the Google provider_token (with YouTube scopes) from the Supabase session.
- * Returns null if the user is not authenticated or doesn't have a provider token.
+ * Verifies user identity via getUser() first (server-side verification), then
+ * reads provider_token from the session. Returns null if not authenticated or
+ * no provider token.
  */
 export async function getYouTubeAccessToken(): Promise<YouTubeAuthResult> {
   try {
     const supabase = await getSupabaseServerClient();
-    const { data: { session }, error } = await supabase.auth.getSession();
 
-    if (error || !session) {
+    // Verify identity server-side via getUser() (per Supabase security docs)
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
       return { ok: false, accessToken: null, error: "Not authenticated" };
     }
 
-    const providerToken = session.provider_token;
+    // Read provider_token from session (only available via getSession)
+    const { data: { session } } = await supabase.auth.getSession();
+    const providerToken = session?.provider_token;
     if (!providerToken) {
       return {
         ok: false,

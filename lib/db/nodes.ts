@@ -6,9 +6,21 @@
 import { getSupabaseServiceClient } from "@/lib/supabase/service";
 import { rpc } from "@/lib/db/rpc";
 import { getVisibleNodeById } from "@/lib/db/visibility";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/lib/types/database";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnySupabase = ReturnType<typeof getSupabaseServiceClient> & { rpc: (...a: any[]) => any };
+/**
+ * Supabase client with a permissive `rpc` signature.
+ * The generated Database type only includes RPCs known at type-generation
+ * time; `create_node_with_metadata` and `import_url` are not in the
+ * generated types, so we loosen the rpc typing at the call site.
+ */
+type AnySupabase = SupabaseClient<Database> & {
+  rpc: (fn: string, params: Record<string, unknown>) => Promise<{
+    data: unknown;
+    error: { message: string } | null;
+  }>;
+};
 
 /**
  * DuplicateNodeError - thrown when a node with the same URL already exists for the owner
@@ -147,11 +159,12 @@ export async function createNode(
     throw new Error(`Failed to create node: ${error.message}`);
   }
 
-  if (!data || data.length === 0) {
+  const rows = data as Node[];
+  if (!rows || rows.length === 0) {
     throw new Error("Node creation returned no data");
   }
 
-  return data[0] as Node;
+  return rows[0];
 }
 
 /**
@@ -209,11 +222,12 @@ export async function importUrl(
     throw new Error(`Failed to import URL: ${error.message}`);
   }
 
-  if (!data || data.length === 0) {
+  const rows = data as Node[];
+  if (!rows || rows.length === 0) {
     throw new Error("Import URL returned no data");
   }
 
-  return data[0] as Node;
+  return rows[0];
 }
 
 /**

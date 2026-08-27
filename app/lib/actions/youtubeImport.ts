@@ -21,6 +21,7 @@ import { getSupabaseServiceClient } from "@/lib/supabase/service";
 import { importUrl, DuplicateNodeError } from "@/lib/db/nodes";
 import { fetchVideoCategoryName } from "@/lib/youtube/client";
 import { downloadAndUploadThumbnail } from "@/app/lib/actions/createNode";
+import { logger } from "@/lib/utils/logger";
 
 export type YouTubeImportResult =
   | { ok: true; nodeId: string }
@@ -183,7 +184,7 @@ export async function importYouTubeActivity(
     folderId = await getOrCreateYouTubeFolder(user.id);
   } catch (err) {
     // Non-fatal: node will go to "Unsorted" if folder creation fails.
-    console.error("Failed to create YouTube folder:", err);
+    logger.error("Failed to create YouTube folder:", err);
   }
 
   // 8. Atomic write via import_url RPC (single transaction, Rule 9 compliant)
