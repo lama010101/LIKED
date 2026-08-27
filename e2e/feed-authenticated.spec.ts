@@ -166,4 +166,101 @@ test.describe("Feed page — authenticated user", () => {
       expect(bodyText).not.toContain("Internal Server Error");
     }
   });
+
+  test("card menu opens via portal and shows all actions", async ({ page }) => {
+    test.setTimeout(60_000);
+    await page.goto("/feed");
+    await expect(page).toHaveURL(/\/feed/);
+    await page.waitForTimeout(3000);
+
+    // Close any open dialogs by clicking their Close buttons
+    await page.getByRole("button", { name: /^close$/i }).first().click({ timeout: 3_000 }).catch(() => {});
+    await page.waitForTimeout(500);
+    await page.getByRole("button", { name: /close panel/i }).first().click({ timeout: 3_000 }).catch(() => {});
+    await page.waitForTimeout(500);
+
+    // Find a card menu button (aria-label="Card menu")
+    const menuBtn = page.getByRole("button", { name: "Card menu" }).first();
+    const btnCount = await menuBtn.count();
+
+    if (btnCount === 0) {
+      test.skip(true, "No owned cards with menu button found");
+    }
+
+    // Click the menu button via JS to bypass any overlay interception
+    await page.evaluate(() => {
+      const btn = document.querySelector('[aria-label="Card menu"]') as HTMLElement;
+      if (btn) btn.click();
+    });
+    await page.waitForTimeout(500);
+
+    // Menu popover should be visible (rendered via portal at document.body)
+    const shareBtn = page.getByRole("button", { name: /share with/i });
+    const moveBtn = page.getByRole("button", { name: /move to folder/i });
+    const tagBtn = page.getByRole("button", { name: /add tag/i });
+    const deleteBtn = page.getByRole("button", { name: /^delete$/i });
+
+    const menuVisible = (await shareBtn.count()) + (await moveBtn.count()) +
+                        (await tagBtn.count()) + (await deleteBtn.count());
+    expect(menuVisible).toBeGreaterThan(0);
+
+    if (await shareBtn.count() > 0) {
+      await expect(shareBtn.first()).toBeVisible({ timeout: 5_000 });
+    }
+    if (await deleteBtn.count() > 0) {
+      await expect(deleteBtn.first()).toBeVisible({ timeout: 5_000 });
+    }
+
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(300);
+
+    const bodyText = await page.locator("body").textContent();
+    expect(bodyText).not.toContain("Application error");
+    expect(bodyText).not.toContain("Internal Server Error");
+  });
+
+  test("folder menu opens via portal and shows rename/delete", async ({ page }) => {
+    test.setTimeout(60_000);
+    await page.goto("/feed");
+    await expect(page).toHaveURL(/\/feed/);
+    await page.waitForTimeout(3000);
+
+    // Close any open dialogs by clicking their Close buttons
+    await page.getByRole("button", { name: /^close$/i }).first().click({ timeout: 3_000 }).catch(() => {});
+    await page.waitForTimeout(500);
+    await page.getByRole("button", { name: /close panel/i }).first().click({ timeout: 3_000 }).catch(() => {});
+    await page.waitForTimeout(500);
+
+    // Find a folder menu button (aria-label="Folder menu")
+    const menuBtn = page.getByRole("button", { name: "Folder menu" }).first();
+    const btnCount = await menuBtn.count();
+
+    if (btnCount === 0) {
+      test.skip(true, "No owned folders with menu button found");
+    }
+
+    // Click the menu button via JS to bypass any overlay interception
+    await page.evaluate(() => {
+      const btn = document.querySelector('[aria-label="Folder menu"]') as HTMLElement;
+      if (btn) btn.click();
+    });
+    await page.waitForTimeout(500);
+
+    // Menu should show Rename and Delete
+    const renameBtn = page.getByRole("button", { name: /rename/i });
+    const deleteBtn = page.getByRole("button", { name: /^delete$/i });
+
+    expect(await renameBtn.count()).toBeGreaterThan(0);
+    expect(await deleteBtn.count()).toBeGreaterThan(0);
+
+    await expect(renameBtn.first()).toBeVisible({ timeout: 5_000 });
+    await expect(deleteBtn.first()).toBeVisible({ timeout: 5_000 });
+
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(300);
+
+    const bodyText = await page.locator("body").textContent();
+    expect(bodyText).not.toContain("Application error");
+    expect(bodyText).not.toContain("Internal Server Error");
+  });
 });

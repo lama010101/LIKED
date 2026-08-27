@@ -6,12 +6,12 @@
  * Draggable (folder → folder nesting, folder → friend sharing).
  */
 
-import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useDraggable } from "@dnd-kit/core";
 import { sourceId } from "@/lib/dnd/types";
 import type { Folder } from "@/lib/types/app";
 import { toast } from "@/lib/store/toastStore";
+import { CardMenu, ShareIcon, RenameIcon, DeleteIcon } from "@/components/modals/CardMenu";
 
 export interface FolderTileProps {
   folder: Folder;
@@ -19,6 +19,8 @@ export interface FolderTileProps {
   onClick: (folder: Folder) => void;
   currentUserId: string;
   onFolderDelete?: (folderId: string) => void;
+  onFolderRename?: (folder: Folder) => void;
+  onFolderShare?: (folder: Folder) => void;
 }
 
 export default function FolderTile({
@@ -27,11 +29,12 @@ export default function FolderTile({
   onClick,
   currentUserId,
   onFolderDelete,
+  onFolderRename,
+  onFolderShare,
 }: FolderTileProps) {
   const color = folder.color_hex || '#7c5cbf';
   const supabaseUrl = process.env['NEXT_PUBLIC_SUPABASE_URL'];
   const hasThumbnails = folder.thumbnails && folder.thumbnails.length > 0;
-  const [menuOpen, setMenuOpen] = useState(false);
   const isOwned = folder.owner_id === currentUserId;
 
   // Drag source: folder can be dragged to nest inside another folder
@@ -47,7 +50,6 @@ export default function FolderTile({
   });
 
   const handleFolderDelete = async () => {
-    setMenuOpen(false);
     const res = await fetch(`/api/folders/${folder.id}`, {
       method: 'DELETE',
       credentials: 'include',
@@ -60,16 +62,25 @@ export default function FolderTile({
     }
   };
 
-  // Escape key closes menu
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setMenuOpen(false);
-    };
-    if (menuOpen) {
-      window.addEventListener('keydown', handleEscape);
-      return () => window.removeEventListener('keydown', handleEscape);
-    }
-  }, [menuOpen]);
+  // Build menu items
+  const menuItems = [
+    ...(onFolderShare ? [{
+      label: "Share with...",
+      icon: <ShareIcon />,
+      onClick: () => onFolderShare(folder),
+    }] : []),
+    ...(onFolderRename ? [{
+      label: "Rename",
+      icon: <RenameIcon />,
+      onClick: () => onFolderRename(folder),
+    }] : []),
+    {
+      label: "Delete",
+      icon: <DeleteIcon />,
+      onClick: handleFolderDelete,
+      variant: "danger" as const,
+    },
+  ];
 
   return (
     <div
@@ -156,80 +167,9 @@ export default function FolderTile({
         </svg>
       </div>
 
-      {/* Menu button (top-right) - only show if owned */}
-      {isOwned && (
-        <span
-          role="button"
-          aria-label="Folder menu"
-          onClick={(e) => {
-            e.stopPropagation();
-            setMenuOpen(true);
-          }}
-          onPointerDown={(e) => e.stopPropagation()}
-          style={{
-            position: 'absolute',
-            top: 8,
-            right: 8,
-            width: 28,
-            height: 28,
-            borderRadius: 9999,
-            background: 'rgba(0,0,0,0.35)',
-            backdropFilter: 'blur(8px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 4,
-            cursor: 'pointer',
-          }}
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff" aria-hidden="true">
-            <circle cx="12" cy="6" r="2" />
-            <circle cx="12" cy="12" r="2" />
-            <circle cx="12" cy="18" r="2" />
-          </svg>
-        </span>
-      )}
+      {/* Menu (portal-based, escapes overflow:hidden) */}
+      <CardMenu items={menuItems} ariaLabel="Folder menu" show={isOwned} />
 
-      {/* Menu popover */}
-      {menuOpen && (
-        <>
-          {/* Full-screen overlay */}
-          <div
-            className="fixed inset-0 z-40"
-            onClick={() => setMenuOpen(false)}
-          />
-          {/* Popover */}
-          <div
-            className="absolute top-8 right-2 z-50 bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-2 min-w-[180px]"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              className="w-full text-left px-3 py-2.5 rounded-xl text-sm flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-800 dark:text-gray-100"
-              onClick={() => {
-                setMenuOpen(false);
-                toast.info('Coming soon');
-              }}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-                <path d="m15 5 4 4" />
-              </svg>
-              Rename
-            </button>
-            <button
-              className="w-full text-left px-3 py-2.5 rounded-xl text-sm flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 text-red-500"
-              onClick={handleFolderDelete}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 6h18" />
-                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-              </svg>
-              Delete
-            </button>
-          </div>
-        </>
-      )}
       {/* Name + count overlay at bottom */}
       <div style={{
         position: 'relative', zIndex: 1,

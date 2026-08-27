@@ -15,7 +15,7 @@ import {
 } from "@/lib/db/cardDetail";
 import { upsertRating } from "@/lib/db/ratings";
 import { softDeleteNode } from "@/lib/db/nodes";
-import { addTagToNode, removeTagFromNode } from "@/lib/db/tags";
+import { addTagToNode, removeTagFromNode, createOrGetTag } from "@/lib/db/tags";
 
 async function requireUserId(): Promise<string> {
   const supabase = await getSupabaseServerClient();
@@ -144,6 +144,25 @@ export async function getFriendRatingsAction(
     return {
       ok: false,
       error: e instanceof Error ? e.message : "Failed to load friend ratings",
+    };
+  }
+}
+
+export async function createOrGetTagAction(
+  label: string,
+  nodeId: string,
+  languageCode: string
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  try {
+    await requireUserId();
+    const tag = await createOrGetTag(label, languageCode);
+    await addTagToNode(tag.id, nodeId);
+    revalidatePath("/feed");
+    return { ok: true };
+  } catch (e) {
+    return {
+      ok: false,
+      error: e instanceof Error ? e.message : "Create tag failed",
     };
   }
 }
