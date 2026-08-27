@@ -119,7 +119,7 @@ export function SharePickerModal({
     shareType === "node" ? NODE_PERMISSION_OPTIONS : FOLDER_PERMISSION_OPTIONS;
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center' }} role="dialog" aria-modal="true" aria-label={`Share ${itemName}`}>
       {/* Backdrop */}
       <div
         style={{

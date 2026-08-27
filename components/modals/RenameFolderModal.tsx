@@ -16,7 +16,7 @@ interface RenameFolderModalProps {
   folderId: string;
   folderName: string;
   folderColor: string;
-  onRenamed?: () => void;
+  onRenamed?: (newName: string, newColor: string) => void;
 }
 
 const COLOR_OPTIONS = [
@@ -61,7 +61,7 @@ export function RenameFolderModal({
       });
       if (res.ok) {
         toast.success("Folder updated");
-        onRenamed?.();
+        onRenamed?.(name.trim(), color);
         onClose();
       } else {
         const body = await res.json().catch(() => ({}));
@@ -79,6 +79,9 @@ export function RenameFolderModal({
       className="fixed inset-0 flex items-center justify-center"
       style={{ zIndex: 10000, background: "rgba(0,0,0,0.5)" }}
       onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Edit folder"
     >
       <div
         onClick={(e) => e.stopPropagation()}

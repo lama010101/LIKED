@@ -46,7 +46,11 @@ export function MoveToFolderModal({
     try {
       // If card is already in a folder, remove from old first
       if (currentFolderId) {
-        await removeNodeFromFolderAction({ nodeId, folderId: currentFolderId });
+        const removeResult = await removeNodeFromFolderAction({ nodeId, folderId: currentFolderId });
+        if (!removeResult.ok) {
+          toast.error(removeResult.error || "Failed to remove from current folder");
+          return;
+        }
       }
       const result = await addNodeToFolderAction({ nodeId, folderId: selectedFolder });
       if (result.ok) {
@@ -68,6 +72,9 @@ export function MoveToFolderModal({
       className="fixed inset-0 flex items-center justify-center"
       style={{ zIndex: 10000, background: "rgba(0,0,0,0.5)" }}
       onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Move ${nodeName} to folder`}
     >
       <div
         onClick={(e) => e.stopPropagation()}
