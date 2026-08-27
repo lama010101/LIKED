@@ -1,11 +1,51 @@
 'use client'
 
-import { DndContext, DragEndEvent, useSensor, useSensors, PointerSensor, TouchSensor, KeyboardSensor } from "@dnd-kit/core";
+import { DndContext, DragEndEvent, DragOverlay, useDndContext, useSensor, useSensors, PointerSensor, TouchSensor, KeyboardSensor } from "@dnd-kit/core";
 import { useUIStore } from "@/lib/store/uiStore";
 import { useFilterStore } from "@/lib/store/filterStore";
 import { toast } from "@/lib/store/toastStore";
 import { DragSource, DropTarget } from "./types";
 import AutoCreatePrompt from "@/components/dnd/AutoCreatePrompt";
+
+/** Folder drag overlay — clean preview that follows the cursor. */
+function FolderDragOverlay() {
+  return (
+    <div
+      style={{
+        width: 80,
+        height: 80,
+        borderRadius: 10,
+        background: 'var(--surface-4)',
+        border: '2px solid var(--accent)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: 11,
+        fontWeight: 700,
+        color: 'var(--text-1)',
+        boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+        opacity: 0.9,
+        pointerEvents: 'none',
+      }}
+    >
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+      </svg>
+    </div>
+  );
+}
+
+/** Renders the appropriate drag overlay based on the active drag source. */
+function ActiveDragOverlay() {
+  const { active } = useDndContext();
+  if (!active) return null;
+  const source = active.data.current?.dragSource as DragSource | undefined;
+  if (!source) return null;
+  if (source.kind === 'folder') {
+    return <FolderDragOverlay />;
+  }
+  return null; // node/friend/tag use default dnd-kit behavior
+}
 
 export default function DndProvider({ children }: { children: React.ReactNode }) {
   const clearDragState = useUIStore((s) => s.clearDragState);
@@ -131,6 +171,16 @@ export default function DndProvider({ children }: { children: React.ReactNode })
         return;
       }
 
+      // Folder → Folder: nest dragged folder inside target folder
+      if (dragSource.kind === "folder" && dropTarget.kind === "folder") {
+        if (dragSource.folderId === dropTarget.folderId) return; // self-drop, no-op
+        const { dndMoveFolder } = await import("@/app/lib/actions/dnd");
+        const result = await dndMoveFolder(dragSource.folderId, dropTarget.folderId);
+        if (result.ok) toast.success("Folder moved");
+        else toast.error(result.error || "Move folder failed");
+        return;
+      }
+
       // Unhandled combination
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Drag operation failed");
@@ -140,6 +190,9 @@ export default function DndProvider({ children }: { children: React.ReactNode })
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
       {children}
+      <DragOverlay dropAnimation={null}>
+        <ActiveDragOverlay />
+      </DragOverlay>
       {autoCreatePrompt && <AutoCreatePrompt />}
     </DndContext>
   );

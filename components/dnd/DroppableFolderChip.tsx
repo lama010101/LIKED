@@ -13,9 +13,18 @@ export default function DroppableFolderChip({ folderId, children }: DroppableFol
   const { active } = useDndContext();
   const activeSource = active?.data.current?.dragSource;
 
-  // Accept drops from 'node' (adds node to folder) and 'friend' (shares folder with friend)
-  const isAcceptable = activeSource && 
-    (activeSource.kind === 'node' || activeSource.kind === 'friend');
+  // Accept drops from:
+  // - 'node' (adds node to folder)
+  // - 'friend' (shares folder with friend)
+  // - 'folder' (nests dragged folder inside this one)
+  // Prevent self-drop (a folder cannot be dropped onto itself).
+  const isSelfDrop =
+    activeSource?.kind === 'folder' && activeSource.folderId === folderId;
+  const isAcceptable = activeSource &&
+    !isSelfDrop &&
+    (activeSource.kind === 'node' ||
+     activeSource.kind === 'friend' ||
+     activeSource.kind === 'folder');
 
   const { setNodeRef, isOver } = useDroppable({
     id: targetId({ kind: 'folder', folderId }),
@@ -31,7 +40,7 @@ export default function DroppableFolderChip({ folderId, children }: DroppableFol
         transition: 'outline 0.15s ease, transform 0.15s ease',
         outline: isOver ? '2px solid var(--accent)' : undefined,
         outlineOffset: isOver ? 2 : undefined,
-        transform: isOver ? 'scale(1.02)' : undefined,
+        transform: isOver ? 'scale(1.05)' : undefined,
       }}
     >
       {children}
