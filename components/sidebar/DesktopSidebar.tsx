@@ -68,6 +68,14 @@ function FolderIcon() {
   );
 }
 
+function ActivityIcon() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+    </svg>
+  );
+}
+
 function TrashIcon() {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -128,18 +136,29 @@ export default function DesktopSidebar({ items, displayName }: DesktopSidebarPro
 
       {/* Nav */}
       <nav style={{ display: 'flex', flexDirection: 'column', gap: 2, paddingTop: 4 }}>
-        <button
-          type="button"
+        <a
+          href="/feed"
           style={{
             ...navItemBase,
             background: 'var(--surface-3)',
             color: 'var(--accent)',
             border: '1px solid var(--border-1)',
+            textDecoration: 'none',
           }}
         >
           <HomeIcon />
           <span>Feed</span>
-        </button>
+        </a>
+        <a
+          href="/social"
+          style={{
+            ...navItemBase,
+            textDecoration: 'none',
+          }}
+        >
+          <ActivityIcon />
+          <span>Activity</span>
+        </a>
         <button type="button" style={navItemBase}>
           <FolderIcon />
           <span>Folders</span>

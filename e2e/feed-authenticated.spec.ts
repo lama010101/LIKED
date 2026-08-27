@@ -62,7 +62,9 @@ test.describe("Feed page — authenticated user", () => {
     await page.goto("/feed");
     await expect(page).toHaveURL(/\/feed/);
 
-    await expect(page.getByRole("button", { name: /^feed$/i })).toBeVisible();
+    // Feed and Activity are <a> tags; Folders and Trash are <button> tags
+    await expect(page.getByRole("link", { name: /^feed$/i })).toBeVisible();
+    await expect(page.getByRole("link", { name: /^activity$/i })).toBeVisible();
     await expect(page.getByRole("button", { name: /^folders$/i })).toBeVisible();
     await expect(page.getByRole("button", { name: /^trash$/i })).toBeVisible();
   });

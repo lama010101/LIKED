@@ -340,6 +340,29 @@ function AppShell({ children }: { children: React.ReactNode }) {
         {!isInFolder && (
           <FeedTabs activeTab={tab} onTabChange={setTab} />
         )}
+        {/* Activity feed link — mobile only */}
+        {!isInFolder && (
+          <div style={{ padding: '4px 16px 0', display: 'flex', justifyContent: 'flex-end' }}>
+            <a
+              href="/social"
+              style={{
+                display: 'flex', alignItems: 'center', gap: 4,
+                fontSize: 11, fontWeight: 600,
+                color: 'var(--text-3)',
+                textDecoration: 'none',
+                padding: '4px 10px',
+                background: 'var(--surface-3)',
+                borderRadius: 999,
+                border: '1px solid var(--border-1)',
+              }}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+              </svg>
+              Activity Feed
+            </a>
+          </div>
+        )}
       </div>
 
       {/* Mine sub-tabs — mobile only, hidden on desktop */}
