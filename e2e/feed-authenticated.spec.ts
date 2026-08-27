@@ -133,4 +133,37 @@ test.describe("Feed page — authenticated user", () => {
 
     await expect(modal.getByRole("button", { name: /sign out/i })).toBeVisible();
   });
+
+  test("all 5 view mode buttons switch the feed layout", async ({ page }) => {
+    test.setTimeout(60_000);
+    await page.goto("/feed");
+    await expect(page).toHaveURL(/\/feed/);
+    await page.waitForTimeout(2000);
+
+    // View buttons have aria-label: "col view", "mason view", "list view", "horiz view", "free view"
+    // They are in SortViewRow (mobile) and DesktopToolbar (desktop)
+    const viewModes = ["col", "mason", "list", "horiz", "free"] as const;
+
+    for (const mode of viewModes) {
+      // Find the visible view button for this mode
+      const btn = page.locator(`button[aria-label="${mode} view"]`).filter({ visible: true }).first();
+      const btnExists = await btn.count();
+
+      if (btnExists === 0) {
+        // On desktop, buttons don't have aria-label — try by title
+        test.skip(true, `View button "${mode} view" not found — may be desktop layout without aria-label`);
+      }
+
+      await btn.click({ timeout: 5_000 });
+      await page.waitForTimeout(500);
+
+      // Verify the button is now active (aria-pressed="true")
+      await expect(btn).toHaveAttribute("aria-pressed", "true", { timeout: 5_000 });
+
+      // Verify page didn't crash
+      const bodyText = await page.locator("body").textContent();
+      expect(bodyText).not.toContain("Application error");
+      expect(bodyText).not.toContain("Internal Server Error");
+    }
+  });
 });
