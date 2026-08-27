@@ -195,10 +195,10 @@ test.describe("Feed page — authenticated user", () => {
     await page.waitForTimeout(500);
 
     // Menu popover should be visible (rendered via portal at document.body)
-    const shareBtn = page.getByRole("button", { name: /share with/i });
-    const moveBtn = page.getByRole("button", { name: /move to folder/i });
-    const tagBtn = page.getByRole("button", { name: /add tag/i });
-    const deleteBtn = page.getByRole("button", { name: /^delete$/i });
+    const shareBtn = page.getByRole("menuitem", { name: /share with/i });
+    const moveBtn = page.getByRole("menuitem", { name: /move to folder/i });
+    const tagBtn = page.getByRole("menuitem", { name: /add tag/i });
+    const deleteBtn = page.getByRole("menuitem", { name: /^delete$/i });
 
     const menuVisible = (await shareBtn.count()) + (await moveBtn.count()) +
                         (await tagBtn.count()) + (await deleteBtn.count());
@@ -247,8 +247,8 @@ test.describe("Feed page — authenticated user", () => {
     await page.waitForTimeout(500);
 
     // Menu should show Rename and Delete
-    const renameBtn = page.getByRole("button", { name: /rename/i });
-    const deleteBtn = page.getByRole("button", { name: /^delete$/i });
+    const renameBtn = page.getByRole("menuitem", { name: /rename/i });
+    const deleteBtn = page.getByRole("menuitem", { name: /^delete$/i });
 
     expect(await renameBtn.count()).toBeGreaterThan(0);
     expect(await deleteBtn.count()).toBeGreaterThan(0);

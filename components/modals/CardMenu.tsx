@@ -40,15 +40,27 @@ export function CardMenu({
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
   const btnRef = useRef<HTMLSpanElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   // Escape key closes menu
   useEffect(() => {
     if (!menuOpen) return;
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setMenuOpen(false);
+      if (e.key === "Escape") {
+        setMenuOpen(false);
+        btnRef.current?.focus();
+      }
     };
     window.addEventListener("keydown", handleEscape);
     return () => window.removeEventListener("keydown", handleEscape);
+  }, [menuOpen]);
+
+  // Focus first menu item when menu opens
+  useEffect(() => {
+    if (menuOpen && menuRef.current) {
+      const firstBtn = menuRef.current.querySelector("button");
+      firstBtn?.focus();
+    }
   }, [menuOpen]);
 
   const openMenu = useCallback((e: React.MouseEvent) => {
@@ -63,6 +75,20 @@ export function CardMenu({
     setMenuOpen(true);
   }, [items.length]);
 
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      e.stopPropagation();
+      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+      const popoverWidth = 200;
+      const popoverHeight = items.length * 44 + 16;
+      const left = Math.min(rect.right - popoverWidth, window.innerWidth - popoverWidth - 8);
+      const top = Math.min(rect.bottom + 4, window.innerHeight - popoverHeight - 8);
+      setMenuPos({ top: Math.max(8, top), left: Math.max(8, left) });
+      setMenuOpen(true);
+    }
+  }, [items.length]);
+
   if (!show) return null;
 
   return (
@@ -72,7 +98,11 @@ export function CardMenu({
         ref={btnRef}
         role="button"
         aria-label={ariaLabel}
+        aria-haspopup="menu"
+        aria-expanded={menuOpen}
+        tabIndex={0}
         onClick={openMenu}
+        onKeyDown={handleKeyDown}
         onPointerDown={(e) => e.stopPropagation()}
         style={{
           position: "absolute",
@@ -108,7 +138,23 @@ export function CardMenu({
           />
           {/* Popover */}
           <div
+            ref={menuRef}
+            role="menu"
+            aria-label={ariaLabel}
             onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => {
+              if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+                e.preventDefault();
+                const btns = menuRef.current?.querySelectorAll("button");
+                if (!btns || btns.length === 0) return;
+                const arr = Array.from(btns);
+                const idx = arr.indexOf(document.activeElement as HTMLButtonElement);
+                const next = e.key === "ArrowDown"
+                  ? (idx + 1) % arr.length
+                  : (idx - 1 + arr.length) % arr.length;
+                arr[next]?.focus();
+              }
+            }}
             style={{
               position: "fixed",
               top: menuPos.top,
@@ -125,6 +171,7 @@ export function CardMenu({
             {items.map((item, i) => (
               <button
                 key={i}
+                role="menuitem"
                 className="w-full text-left flex items-center gap-2"
                 onClick={() => {
                   setMenuOpen(false);

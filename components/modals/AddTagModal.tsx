@@ -101,6 +101,9 @@ export function AddTagModal({
       className="fixed inset-0 flex items-center justify-center"
       style={{ zIndex: 10000, background: "rgba(0,0,0,0.5)" }}
       onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Add tag to ${nodeName}`}
     >
       <div
         onClick={(e) => e.stopPropagation()}

@@ -382,11 +382,11 @@ export default function FeedGrid({
           folderId={renameTarget.id}
           folderName={renameTarget.name}
           folderColor={renameTarget.color_hex}
-          onRenamed={() => {
-            // Update local folders
+          onRenamed={(newName, newColor) => {
+            // Update local folders with new values from modal
             setLocalFolders(prev => prev.map(f =>
               f.id === renameTarget.id
-                ? { ...f, name: renameTarget.name, color_hex: renameTarget.color_hex }
+                ? { ...f, name: newName, color_hex: newColor }
                 : f
             ));
             refresh();
@@ -447,11 +447,11 @@ export default function FeedGrid({
           folderId={renameTarget.id}
           folderName={renameTarget.name}
           folderColor={renameTarget.color_hex}
-          onRenamed={() => {
-            // Update local folders
+          onRenamed={(newName, newColor) => {
+            // Update local folders with new values from modal
             setLocalFolders(prev => prev.map(f =>
               f.id === renameTarget.id
-                ? { ...f, name: renameTarget.name, color_hex: renameTarget.color_hex }
+                ? { ...f, name: newName, color_hex: newColor }
                 : f
             ));
             refresh();
@@ -512,11 +512,11 @@ export default function FeedGrid({
           folderId={renameTarget.id}
           folderName={renameTarget.name}
           folderColor={renameTarget.color_hex}
-          onRenamed={() => {
-            // Update local folders
+          onRenamed={(newName, newColor) => {
+            // Update local folders with new values from modal
             setLocalFolders(prev => prev.map(f =>
               f.id === renameTarget.id
-                ? { ...f, name: renameTarget.name, color_hex: renameTarget.color_hex }
+                ? { ...f, name: newName, color_hex: newColor }
                 : f
             ));
             refresh();
@@ -577,11 +577,11 @@ export default function FeedGrid({
           folderId={renameTarget.id}
           folderName={renameTarget.name}
           folderColor={renameTarget.color_hex}
-          onRenamed={() => {
-            // Update local folders
+          onRenamed={(newName, newColor) => {
+            // Update local folders with new values from modal
             setLocalFolders(prev => prev.map(f =>
               f.id === renameTarget.id
-                ? { ...f, name: renameTarget.name, color_hex: renameTarget.color_hex }
+                ? { ...f, name: newName, color_hex: newColor }
                 : f
             ));
             refresh();
@@ -642,11 +642,11 @@ export default function FeedGrid({
           folderId={renameTarget.id}
           folderName={renameTarget.name}
           folderColor={renameTarget.color_hex}
-          onRenamed={() => {
-            // Update local folders
+          onRenamed={(newName, newColor) => {
+            // Update local folders with new values from modal
             setLocalFolders(prev => prev.map(f =>
               f.id === renameTarget.id
-                ? { ...f, name: renameTarget.name, color_hex: renameTarget.color_hex }
+                ? { ...f, name: newName, color_hex: newColor }
                 : f
             ));
             refresh();
@@ -717,11 +717,11 @@ export default function FeedGrid({
           folderId={renameTarget.id}
           folderName={renameTarget.name}
           folderColor={renameTarget.color_hex}
-          onRenamed={() => {
-            // Update local folders
+          onRenamed={(newName, newColor) => {
+            // Update local folders with new values from modal
             setLocalFolders(prev => prev.map(f =>
               f.id === renameTarget.id
-                ? { ...f, name: renameTarget.name, color_hex: renameTarget.color_hex }
+                ? { ...f, name: newName, color_hex: newColor }
                 : f
             ));
             refresh();
@@ -790,11 +790,11 @@ export default function FeedGrid({
           folderId={renameTarget.id}
           folderName={renameTarget.name}
           folderColor={renameTarget.color_hex}
-          onRenamed={() => {
-            // Update local folders
+          onRenamed={(newName, newColor) => {
+            // Update local folders with new values from modal
             setLocalFolders(prev => prev.map(f =>
               f.id === renameTarget.id
-                ? { ...f, name: renameTarget.name, color_hex: renameTarget.color_hex }
+                ? { ...f, name: newName, color_hex: newColor }
                 : f
             ));
             refresh();
