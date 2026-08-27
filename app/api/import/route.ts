@@ -13,6 +13,7 @@ import {
 } from "@/lib/db/nodes";
 import { getOrCreateUnsortedFolder, addNodeToFolder } from "@/lib/db/folders";
 import { extractNodeMetadata } from "@/lib/edge/extract-metadata";
+import { logger } from "@/lib/utils/logger";
 
 /**
  * POST /api/import — Chrome extension save orchestrator.
@@ -209,7 +210,7 @@ export async function POST(req: NextRequest) {
       await addNodeToFolder(nodeId, unsortedFolderId, user.id);
     } catch (folderErr) {
       // Non-fatal: node is created even if folder assignment fails.
-      console.error("Failed to auto-assign imported node to Unsorted folder:", folderErr);
+      logger.error("Failed to auto-assign imported node to Unsorted folder:", folderErr);
     }
   }
 

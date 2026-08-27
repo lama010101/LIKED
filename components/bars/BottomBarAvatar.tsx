@@ -116,7 +116,11 @@ export default function BottomBarAvatar({ item, onClick, currentUserId, onRefres
     if (!currentUserId || !item.user_id) return;
     try {
       const { removeFriendAction } = await import('@/app/lib/actions/friends');
-      await removeFriendAction(item.user_id);
+      const result = await removeFriendAction(item.user_id);
+      if (!result.ok) {
+        toast.error(result.error);
+        return;
+      }
       if (onRefresh) onRefresh();
     } catch {
       toast.error('Failed to remove friend. Please try again.');
@@ -130,7 +134,11 @@ export default function BottomBarAvatar({ item, onClick, currentUserId, onRefres
     if (!confirmed) return;
     try {
       const { blockUserAction } = await import('@/app/lib/actions/friends');
-      await blockUserAction(item.user_id);
+      const result = await blockUserAction(item.user_id);
+      if (!result.ok) {
+        toast.error(result.error);
+        return;
+      }
       if (onRefresh) onRefresh();
     } catch {
       toast.error('Failed to block user. Please try again.');

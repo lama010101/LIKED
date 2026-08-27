@@ -12,6 +12,8 @@
     "test:e2e": "npx playwright test",
     "test:e2e:ui": "npx playwright test --ui",
     "test:e2e:headed": "npx playwright test --headed",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "test:vercel": "BASE_URL=https://liked-zeta.vercel.app npx playwright test",
     "test:vercel:headed": "BASE_URL=https://liked-zeta.vercel.app npx playwright test --headed"
   },
@@ -38,6 +40,7 @@
     "eslint-config-next": "16.2.4",
     "postcss": "^8.5.10",
     "tailwindcss": "^3.4.19",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3.2.7"
   }
 }

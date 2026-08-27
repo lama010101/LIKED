@@ -9,6 +9,11 @@ import {
 } from "@/lib/db/permissions";
 import type { Permission } from "@/lib/types/app";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { revalidatePath } from "next/cache";
+
+export type ShareActionResult =
+  | { ok: true; edgeId: string }
+  | { ok: false; error: string };
 
 async function getActorId(): Promise<string> {
   const supabase = await getSupabaseServerClient();
@@ -21,26 +26,44 @@ export async function directShareAction(input: {
   nodeId: string;
   targetUserId: string;
   permission?: string;
-}): Promise<string> {
-  const actorId = await getActorId();
-  return directShare({ sharerId: actorId, ...input });
+}): Promise<ShareActionResult> {
+  try {
+    const actorId = await getActorId();
+    const edgeId = await directShare({ sharerId: actorId, ...input });
+    revalidatePath("/feed");
+    return { ok: true, edgeId };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Share failed" };
+  }
 }
 
 export async function shareFolderAction(input: {
   folderId: string;
   targetUserIds: string[];
   permission?: string;
-}): Promise<string> {
-  const actorId = await getActorId();
-  return shareFolder({ sharerId: actorId, ...input });
+}): Promise<ShareActionResult> {
+  try {
+    const actorId = await getActorId();
+    const edgeId = await shareFolder({ sharerId: actorId, ...input });
+    revalidatePath("/feed");
+    return { ok: true, edgeId };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Folder share failed" };
+  }
 }
 
 export async function groupShareAction(
   nodeId: string,
   groupId: string
-): Promise<string> {
-  const actorId = await getActorId();
-  return groupShare(actorId, nodeId, groupId);
+): Promise<ShareActionResult> {
+  try {
+    const actorId = await getActorId();
+    const edgeId = await groupShare(actorId, nodeId, groupId);
+    revalidatePath("/feed");
+    return { ok: true, edgeId };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Group share failed" };
+  }
 }
 
 export async function hasNodePermissionAction(

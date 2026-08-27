@@ -1,6 +1,13 @@
 import { Pool } from 'pg';
 import fs from 'fs';
 
+interface PgFunctionParam {
+  parameter_name: string;
+  parameter_mode: string;
+  data_type: string;
+  routine_name: string;
+}
+
 const connectionString = 'postgresql://postgres.lzkzfqshnjvlzosnntfx:UVYrurEWBDl6qVQ2@aws-1-us-west-2.pooler.supabase.com:5432/postgres';
 
 const pool = new Pool({ connectionString });
@@ -14,11 +21,11 @@ async function generateTypes() {
     ORDER BY table_name
   `);
 
-  const { rows: functions } = await pool.query(`
-    SELECT 
+  const { rows: functions } = await pool.query<PgFunctionParam>(`
+    SELECT
       r.routine_name,
-      p.parameter_mode, 
-      p.parameter_name, 
+      p.parameter_mode,
+      p.parameter_name,
       p.data_type
     FROM information_schema.parameters p
     JOIN information_schema.routines r ON p.specific_name = r.specific_name
@@ -75,14 +82,14 @@ export interface Database {
 
   output += `    }\n    Functions: {\n`;
 
-  const grouped: Record<string, any[]> = {};
+  const grouped: Record<string, PgFunctionParam[]> = {};
   for (const fn of functions) {
     if (!grouped[fn.routine_name]) grouped[fn.routine_name] = [];
     grouped[fn.routine_name].push(fn);
   }
 
   for (const [fnName, params] of Object.entries(grouped)) {
-    const inParams = params.filter((p: any) => p.parameter_mode === 'IN');
+    const inParams = params.filter((p: PgFunctionParam) => p.parameter_mode === 'IN');
     output += `      ${fnName}: {\n        Args: {\n`;
     for (const p of inParams) {
       output += `          ${p.parameter_name}: ${pgTypeToTs(p.data_type)}\n`;

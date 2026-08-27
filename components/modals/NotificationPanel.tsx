@@ -28,6 +28,11 @@ export default function NotificationPanel({ open, onClose, onUnreadCountChange }
       setLoading(false);
       const unread = items.filter((n) => !n.read).length;
       onUnreadCountChange(unread);
+    }).catch(() => {
+      if (!cancelled) {
+        setNotifications([]);
+        setLoading(false);
+      }
     });
     return () => { cancelled = true; };
   }, [open, onUnreadCountChange]);

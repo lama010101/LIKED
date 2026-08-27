@@ -79,11 +79,14 @@ export function SharePickerModal({
 
         // Share to each user
         for (const targetUserId of selectedUserIds) {
-          await directShareAction({
+          const result = await directShareAction({
             nodeId: itemId,
             targetUserId,
             permission,
           });
+          if (!result.ok) {
+            throw new Error(result.error);
+          }
         }
       } else {
         // Share folder
@@ -92,7 +95,10 @@ export function SharePickerModal({
           targetUserIds: selectedUserIds,
           permission,
         };
-        await shareFolderAction(folderShareInput);
+        const result = await shareFolderAction(folderShareInput);
+        if (!result.ok) {
+          throw new Error(result.error);
+        }
       }
 
       // Reset and close

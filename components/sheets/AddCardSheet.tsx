@@ -11,47 +11,12 @@ import { applyTagToNodeAction } from '@/app/lib/actions/applyTagToNode';
 import { getUserFoldersAction } from '@/app/lib/actions/getFolders';
 import { supabaseBrowser } from '@/lib/supabase/client';
 import { toast } from '@/lib/store/toastStore';
-
-function useIsDesktop(): boolean {
-  const [isDesktop, setIsDesktop] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia("(min-width: 1024px)");
-    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
-    queueMicrotask(() => setIsDesktop(mq.matches));
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
-  return isDesktop;
-}
-
-const YT_HOST_RE = /^(www\.|m\.)?(youtube\.com|youtu\.be)$/;
-const YT_VIDEO_RE = /^\/(shorts|embed)\/([A-Za-z0-9_-]+)/;
-
-function extractYouTubeId(url: string): string | null {
-  try {
-    const u = new URL(url);
-    if (!YT_HOST_RE.test(u.hostname)) return null;
-    const v = u.searchParams.get("v");
-    if (v) return v;
-    const m = u.pathname.match(YT_VIDEO_RE);
-    if (m) return m[2];
-    if (/youtu\.be/.test(u.hostname)) {
-      const id = u.pathname.slice(1).split("/")[0];
-      return id || null;
-    }
-    return null;
-  } catch {
-    return null;
-  }
-}
-
-function isYouTubeUrl(url: string): boolean {
-  try {
-    return YT_HOST_RE.test(new URL(url).hostname);
-  } catch {
-    return false;
-  }
-}
+import { useIsDesktop, extractYouTubeId, isYouTubeUrl } from './AddCardSheet/addCardUtils';
+import { CARD_TYPES, XIcon } from './AddCardSheet/AddCardTypes';
+import { AddCardPreview } from './AddCardSheet/AddCardPreview';
+import { AddCardTagSection } from './AddCardSheet/AddCardTagSection';
+import { AddCardFolderSection } from './AddCardSheet/AddCardFolderSection';
+import { AddCardFriendSection } from './AddCardSheet/AddCardFriendSection';
 
 interface AddCardSheetProps {
   open: boolean;
@@ -59,43 +24,6 @@ interface AddCardSheetProps {
   userId: string;
   languageCode: string;
 }
-
-const CARD_TYPES = [
-  { id: 'auto', label: 'Auto', icon: <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v4"/><path d="M12 18v4"/><path d="M4.93 4.93l2.83 2.83"/><path d="M16.24 16.24l2.83 2.83"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="M4.93 19.07l2.83-2.83"/><path d="M16.24 7.76l2.83-2.83"/></svg> },
-  { id: 'link', label: 'Link', icon: <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> },
-  { id: 'image', label: 'Image', icon: <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg> },
-  { id: 'note', label: 'Note', icon: <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> },
-];
-
-// Avatar color palette for deterministic background colors
-const AVATAR_PALETTE = [
-  '#ef4444', '#f97316', '#f59e0b', '#84cc16', '#22c55e',
-  '#10b981', '#14b8a6', '#06b6d4', '#0ea5e9', '#3b82f6',
-  '#6366f1', '#8b5cf6', '#a855f7', '#d946ef', '#ec4899',
-  '#f43f5e', '#78716c', '#6b7280', '#71717a', '#64748b',
-];
-
-function getAvatarColor(userId: string): string {
-  let hash = 0;
-  for (let i = 0; i < userId.length; i++) {
-    hash = userId.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const index = Math.abs(hash) % AVATAR_PALETTE.length;
-  return AVATAR_PALETTE[index];
-}
-
-const XIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M18 6 6 18" />
-    <path d="m6 6 12 12" />
-  </svg>
-);
-
-const CheckIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="20 6 9 17 4 12" />
-  </svg>
-);
 
 export default function AddCardSheet({ open, onClose, userId, languageCode }: AddCardSheetProps) {
   const isDesktop = useIsDesktop();
@@ -298,7 +226,7 @@ export default function AddCardSheet({ open, onClose, userId, languageCode }: Ad
               directShareAction({ nodeId: result.nodeId, targetUserId: fid, permission: 'view' })
             )
           );
-          const failedCount = shareResults.filter((r) => r.status === 'rejected').length;
+          const failedCount = shareResults.filter((r) => r.status === 'rejected' || (r.status === 'fulfilled' && !r.value.ok)).length;
           if (failedCount > 0) {
             toast.error(`Shared with ${friendIds.length - failedCount} friend(s), ${failedCount} failed`);
           } else {
@@ -489,132 +417,7 @@ export default function AddCardSheet({ open, onClose, userId, languageCode }: Ad
           </div>
 
           {/* Live preview */}
-          <div
-            style={{
-              marginBottom: 12,
-              padding: '12px',
-              borderRadius: 12,
-              background: 'var(--surface-3)',
-              border: '1px solid var(--border-1)',
-              minHeight: 80,
-            }}
-          >
-            {previewType === 'empty' ? (
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 8,
-                  color: 'var(--text-3)',
-                }}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <rect x="3" y="3" width="18" height="18" rx="3" />
-                  <path d="M3 16l5-5 4 4 3-3 6 6" />
-                </svg>
-                <span style={{ fontSize: 11, fontWeight: 500 }}>Preview appears here</span>
-              </div>
-            ) : previewType === 'link' ? (
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 12,
-                  padding: '8px',
-                  background: 'var(--surface-2)',
-                  borderRadius: 10,
-                  border: '1px solid var(--border-1)',
-                }}
-              >
-                <div
-                  style={{
-                    width: 56,
-                    height: 56,
-                    borderRadius: 'var(--r-md)',
-                    background: 'var(--surface-4)',
-                    flexShrink: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="var(--text-3)"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-                  </svg>
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div
-                    style={{
-                      fontSize: 'var(--text-md)',
-                      fontWeight: 700,
-                      color: 'var(--text-1)',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                    }}
-                  >
-                    {previewData?.title}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 'var(--text-xs)',
-                      color: 'var(--text-3)',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                    }}
-                  >
-                    {previewData?.domain}
-                  </div>
-                </div>
-              </div>
-            ) : previewType === 'note' ? (
-              <div
-                style={{
-                  padding: '16px',
-                  borderRadius: 4,
-                  background: 'linear-gradient(135deg, #fef3c7, #fde68a)',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                  transform: 'rotate(-1deg)',
-                }}
-              >
-                <div
-                  style={{
-                    fontFamily: 'cursive',
-                    fontSize: 22,
-                    color: '#444',
-                    lineHeight: 1.4,
-                    wordBreak: 'break-word',
-                  }}
-                >
-                  {previewData?.text}
-                </div>
-              </div>
-            ) : null}
-          </div>
+          <AddCardPreview previewType={previewType} previewData={previewData} />
 
           {/* Big input textarea */}
           <div style={{ marginBottom: 16 }}>
@@ -646,296 +449,25 @@ export default function AddCardSheet({ open, onClose, userId, languageCode }: Ad
           </div>
 
           {/* Tag Section */}
-          <div style={{ marginBottom: 12 }}>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                fontSize: 'var(--text-sm)',
-                fontWeight: 700,
-                color: 'var(--text-2)',
-                marginBottom: 8,
-              }}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="13"
-                height="13"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
-                <line x1="7" y1="7" x2="7.01" y2="7" />
-              </svg>
-              <span>Tag</span>
-            </div>
-            <div
-              style={{
-                display: 'flex',
-                gap: 8,
-                overflowX: 'auto',
-                scrollbarWidth: 'none',
-                paddingBottom: 2,
-              }}
-            >
-              {availableTags.map((tag) => {
-                const isActive = selectedTag === tag.id;
-                return (
-                  <button
-                    key={tag.id}
-                    onClick={() => toggleTag(tag.id)}
-                    style={{
-                      padding: '5px 14px',
-                      borderRadius: 'var(--r-full)',
-                      fontSize: 'var(--text-sm)',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      flexShrink: 0,
-                      background: isActive ? tag.color : 'var(--surface-3)',
-                      border: '2px solid ' + (isActive ? tag.color : 'transparent'),
-                      color: isActive ? '#fff' : 'var(--text-2)',
-                      opacity: isActive ? 1 : 0.7,
-                      transition: 'opacity var(--transition-fast)',
-                    }}
-                  >
-                    {tag.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          <AddCardTagSection
+            availableTags={availableTags}
+            selectedTag={selectedTag}
+            onToggleTag={toggleTag}
+          />
 
           {/* Folder Selection Section */}
-          <div style={{ marginBottom: 12 }}>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                fontSize: 'var(--text-sm)',
-                fontWeight: 700,
-                color: 'var(--text-2)',
-                marginBottom: 8,
-              }}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="13"
-                height="13"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-              </svg>
-              <span>Save to folder</span>
-            </div>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(3, 1fr)',
-                gap: 10,
-              }}
-            >
-              {availableFolders.map((folder) => {
-                const isSelected = selectedFolder === folder.id;
-                return (
-                  <button
-                    key={folder.id}
-                    onClick={() => toggleFolder(folder.id)}
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: 6,
-                      cursor: 'pointer',
-                      background: 'transparent',
-                      border: 'none',
-                      padding: 0,
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: 80,
-                        height: 68,
-                        borderRadius: 'var(--r-md)',
-                        background: folder.colorHex,
-                        border: isSelected ? '2px solid var(--accent)' : '2px solid transparent',
-                        transition: 'border-color var(--transition-fast)',
-                        position: 'relative',
-                      }}
-                    >
-                      {isSelected && (
-                        <div
-                          style={{
-                            position: 'absolute',
-                            bottom: -5,
-                            right: -5,
-                            width: 18,
-                            height: 18,
-                            borderRadius: '50%',
-                            background: 'var(--accent)',
-                            border: '2.5px solid var(--surface-2)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}
-                        >
-                          <CheckIcon />
-                        </div>
-                      )}
-                    </div>
-                    <span
-                      style={{
-                        fontSize: 'var(--text-sm)',
-                        color: isSelected ? 'var(--accent)' : 'var(--text-2)',
-                        fontWeight: isSelected ? 700 : 500,
-                        textAlign: 'center',
-                      }}
-                    >
-                      {folder.name}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          <AddCardFolderSection
+            availableFolders={availableFolders}
+            selectedFolder={selectedFolder}
+            onToggleFolder={toggleFolder}
+          />
 
           {/* Share With Section */}
-          <div style={{ marginBottom: 12 }}>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                fontSize: 'var(--text-sm)',
-                fontWeight: 700,
-                color: 'var(--text-2)',
-                marginBottom: 8,
-              }}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="13"
-                height="13"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                <circle cx="9" cy="7" r="4" />
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-              </svg>
-              <span>Share with</span>
-              {selectedFriends.size > 0 && (
-                <span
-                  style={{
-                    fontSize: 'var(--text-xs)',
-                    fontWeight: 600,
-                    color: 'var(--text-3)',
-                    background: 'var(--surface-3)',
-                    padding: '2px 8px',
-                    borderRadius: 'var(--r-full)',
-                  }}
-                >
-                  {selectedFriends.size}
-                </span>
-              )}
-            </div>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 0,
-                overflowX: 'auto',
-                scrollbarWidth: 'none',
-              }}
-            >
-              {availableFriends.map((friend) => {
-                const isSelected = selectedFriends.has(friend.id);
-                return (
-                  <button
-                    key={friend.id}
-                    onClick={() => toggleFriend(friend.id)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 3,
-                      cursor: 'pointer',
-                      background: 'transparent',
-                      border: 'none',
-                      padding: 0,
-                      flexShrink: 0,
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: 40,
-                        height: 40,
-                        borderRadius: '50%',
-                        background: friend.avatarKey
-                          ? `url(${supabaseBrowser.storage.from('avatars').getPublicUrl(friend.avatarKey).data.publicUrl}) center/cover`
-                          : getAvatarColor(friend.id),
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: 13,
-                        fontWeight: 700,
-                        color: '#fff',
-                        position: 'relative',
-                        border: isSelected ? '2px solid var(--accent)' : 'none',
-                      }}
-                    >
-                      {!friend.avatarKey && friend.name.charAt(0).toUpperCase()}
-                      {isSelected && (
-                        <div
-                          style={{
-                            position: 'absolute',
-                            bottom: -1,
-                            right: -1,
-                            width: 14,
-                            height: 14,
-                            borderRadius: '50%',
-                            background: 'var(--accent)',
-                            border: '2px solid var(--surface-2)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}
-                        >
-                          <CheckIcon />
-                        </div>
-                      )}
-                    </div>
-                    <span
-                      style={{
-                        fontSize: 9,
-                        color: 'var(--text-2)',
-                        whiteSpace: 'nowrap',
-                        maxWidth: 40,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                      }}
-                    >
-                      {friend.name}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          <AddCardFriendSection
+            availableFriends={availableFriends}
+            selectedFriends={selectedFriends}
+            onToggleFriend={toggleFriend}
+          />
 
           {/* URL warning */}
           {urlWarning && (

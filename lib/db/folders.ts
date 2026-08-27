@@ -17,6 +17,7 @@ import {
   assertFolderPermission,
   PermissionError,
 } from "./permissions";
+import { logger } from "@/lib/utils/logger";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnySupabase = any;
@@ -87,7 +88,7 @@ export async function getUserFolders(): Promise<Folder[]> {
     .in('folder_id', folderIds);
 
   if (edgeError) {
-    console.error('Failed to fetch folder edge counts:', edgeError.message);
+    logger.error('Failed to fetch folder edge counts:', edgeError.message);
   }
 
   // Build card count map
@@ -105,7 +106,7 @@ export async function getUserFolders(): Promise<Folder[]> {
     .not('nodes.thumbnail_key', 'is', null);
 
   if (thumbError) {
-    console.error('Failed to fetch folder thumbnails:', thumbError.message);
+    logger.error('Failed to fetch folder thumbnails:', thumbError.message);
   }
 
   // Build thumbnail map (up to 4 per folder)

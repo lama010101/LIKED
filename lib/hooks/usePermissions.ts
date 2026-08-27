@@ -8,6 +8,7 @@ import {
   getEffectiveFolderPermissionAction,
 } from "@/app/lib/actions/sharing";
 import type { Permission } from "@/lib/types/app";
+import { toast } from "@/lib/store/toastStore";
 
 /**
  * Hook to check node permission for current user
@@ -45,8 +46,8 @@ export function useNodePermission(
       ]);
       setHasPermission(has);
       setEffectivePermission(effective);
-    } catch (err) {
-      console.error("Failed to check node permission:", err);
+    } catch {
+      toast.error("Failed to check card permission");
       setHasPermission(false);
       setEffectivePermission(null);
     } finally {
@@ -104,8 +105,8 @@ export function useFolderPermission(
       ]);
       setHasPermission(has);
       setEffectivePermission(effective);
-    } catch (err) {
-      console.error("Failed to check folder permission:", err);
+    } catch {
+      toast.error("Failed to check folder permission");
       setHasPermission(false);
       setEffectivePermission(null);
     } finally {

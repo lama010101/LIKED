@@ -27,7 +27,7 @@ test.describe("YouTube intelligent import — atomic RPC verification", () => {
   test.use({ storageState: undefined });
 
   let accessToken: string;
-  let youtubeFolderId: string | null = null;
+  const _youtubeFolderId: string | null = null;
 
   test.beforeAll(async ({ browser }) => {
     // Login via UI to get session cookies

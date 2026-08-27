@@ -2,6 +2,7 @@
 
 import { getVisibleTags } from '@/lib/db/tags';
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { logger } from "@/lib/utils/logger";
 
 export async function getTagsAction(
   languageCode: string
@@ -17,7 +18,7 @@ export async function getTagsAction(
       color_hex: t.color_hex,
     }));
   } catch (err) {
-    console.error('[getTagsAction] error:', err);
+    logger.error('[getTagsAction] error:', err);
     return [];
   }
 }

@@ -73,6 +73,7 @@ export async function permanentlyDeleteFromTrash(
     const userId = await requireUserId();
     await hardDeleteNode(nodeId, userId);
     revalidatePath("/trash");
+    revalidatePath("/feed");
     return { ok: true };
   } catch (e) {
     return {

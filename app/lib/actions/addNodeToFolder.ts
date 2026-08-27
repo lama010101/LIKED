@@ -2,6 +2,7 @@
 
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { addNodeToFolder } from '@/lib/db/folders';
+import { revalidatePath } from 'next/cache';
 
 export interface AddNodeToFolderInput {
   nodeId: string;
@@ -21,6 +22,7 @@ export async function addNodeToFolderAction(
 
   try {
     await addNodeToFolder(input.nodeId, input.folderId, user.id);
+    revalidatePath('/feed');
     return { ok: true };
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to assign card to folder';

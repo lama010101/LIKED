@@ -1,6 +1,7 @@
 'use server';
 
 import { getUserFolders } from '@/lib/db/folders';
+import { logger } from "@/lib/utils/logger";
 
 export async function getUserFoldersAction(): Promise<Array<{ id: string; name: string; color_hex: string; parent_folder_id: string | null }>> {
   try {
@@ -12,7 +13,7 @@ export async function getUserFoldersAction(): Promise<Array<{ id: string; name: 
       parent_folder_id: f.parent_folder_id,
     }));
   } catch (err) {
-    console.error('[getFoldersAction] error:', err);
+    logger.error('[getFoldersAction] error:', err);
     return [];
   }
 }

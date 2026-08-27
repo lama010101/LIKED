@@ -1,6 +1,7 @@
 'use server';
 
 import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { logger } from "@/lib/utils/logger";
 
 export interface AdminEntry {
   user_id: string;
@@ -115,13 +116,13 @@ export async function getFolderAdminsAction(folderId: string): Promise<AdminEntr
       .eq('folder_id', folderId);
 
     if (queryError) {
-      console.error('[getFolderAdminsAction] error:', queryError);
+      logger.error('[getFolderAdminsAction] error:', queryError);
       return [];
     }
 
     return (data ?? []) as AdminEntry[];
   } catch (err) {
-    console.error('[getFolderAdminsAction] error:', err);
+    logger.error('[getFolderAdminsAction] error:', err);
     return [];
   }
 }
@@ -138,13 +139,13 @@ export async function getGroupAdminsAction(groupId: string): Promise<AdminEntry[
       .eq('group_id', groupId);
 
     if (queryError) {
-      console.error('[getGroupAdminsAction] error:', queryError);
+      logger.error('[getGroupAdminsAction] error:', queryError);
       return [];
     }
 
     return (data ?? []) as AdminEntry[];
   } catch (err) {
-    console.error('[getGroupAdminsAction] error:', err);
+    logger.error('[getGroupAdminsAction] error:', err);
     return [];
   }
 }

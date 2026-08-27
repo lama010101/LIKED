@@ -85,6 +85,8 @@ export default function BottomBar({ items, onAvatarClick, state, onStateChange, 
         setInviteError('Invite already sent to this email');
       } else if (result.error === 'INVALID_EMAIL') {
         setInviteError('Enter a valid email address');
+      } else if (!result.ok) {
+        setInviteError(result.error ?? 'Failed to send invite');
       } else {
         setInviteSuccess(true);
         setInviteEmail('');

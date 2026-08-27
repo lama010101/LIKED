@@ -1,6 +1,8 @@
 'use server';
 
 import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { revalidatePath } from 'next/cache';
+import { logger } from "@/lib/utils/logger";
 
 export interface NotificationItem {
   id: string;
@@ -24,13 +26,13 @@ export async function getNotificationsAction(): Promise<NotificationItem[]> {
       .limit(50);
 
     if (queryError) {
-      console.error('[getNotificationsAction] query error:', queryError);
+      logger.error('[getNotificationsAction] query error:', queryError);
       return [];
     }
 
     return (data ?? []) as NotificationItem[];
   } catch (err) {
-    console.error('[getNotificationsAction] error:', err);
+    logger.error('[getNotificationsAction] error:', err);
     return [];
   }
 }
@@ -48,13 +50,13 @@ export async function getUnreadNotificationCountAction(): Promise<number> {
       .eq('read', false);
 
     if (queryError) {
-      console.error('[getUnreadNotificationCountAction] query error:', queryError);
+      logger.error('[getUnreadNotificationCountAction] query error:', queryError);
       return 0;
     }
 
     return count ?? 0;
   } catch (err) {
-    console.error('[getUnreadNotificationCountAction] error:', err);
+    logger.error('[getUnreadNotificationCountAction] error:', err);
     return 0;
   }
 }
@@ -72,13 +74,14 @@ export async function markNotificationReadAction(notificationId: string): Promis
       .eq('user_id', user.id);
 
     if (updateError) {
-      console.error('[markNotificationReadAction] error:', updateError);
+      logger.error('[markNotificationReadAction] error:', updateError);
       return false;
     }
 
+    revalidatePath('/feed');
     return true;
   } catch (err) {
-    console.error('[markNotificationReadAction] error:', err);
+    logger.error('[markNotificationReadAction] error:', err);
     return false;
   }
 }
@@ -96,13 +99,14 @@ export async function markAllNotificationsReadAction(): Promise<boolean> {
       .eq('read', false);
 
     if (updateError) {
-      console.error('[markAllNotificationsReadAction] error:', updateError);
+      logger.error('[markAllNotificationsReadAction] error:', updateError);
       return false;
     }
 
+    revalidatePath('/feed');
     return true;
   } catch (err) {
-    console.error('[markAllNotificationsReadAction] error:', err);
+    logger.error('[markAllNotificationsReadAction] error:', err);
     return false;
   }
 }

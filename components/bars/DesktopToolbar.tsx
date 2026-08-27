@@ -429,6 +429,7 @@ export default function DesktopToolbar({
         {/* Notification bell */}
         <button
           type="button"
+          aria-label="Notifications"
           onClick={onNotificationClick}
           style={{
             width: '32px',
