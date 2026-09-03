@@ -115,7 +115,18 @@ function faviconUrl(tab: ActiveTab): string {
   // Only use Chrome's own favIconUrl (cached locally by the browser).
   // Do NOT fall back to third-party favicon services — that would leak
   // every domain the user considers saving to a third party.
-  return tab.favIconUrl ?? "";
+  // Validate scheme to prevent javascript:/data: URLs in <img> (AUDIT-06 P3-11).
+  const url = tab.favIconUrl ?? "";
+  if (!url) return "";
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
+      return "";
+    }
+    return url;
+  } catch {
+    return "";
+  }
 }
 
 function domainOf(url: string): string {

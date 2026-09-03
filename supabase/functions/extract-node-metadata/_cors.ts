@@ -11,13 +11,19 @@ const ALLOWED_ORIGINS = [
 
 export function corsHeaders(req: Request): Record<string, string> {
   const origin = req.headers.get("origin") ?? "";
-  const allowOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : "";
-  return {
-    "Access-Control-Allow-Origin": allowOrigin,
+  const allowOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : null;
+  const headers: Record<string, string> = {
     "Access-Control-Allow-Headers":
       "authorization, x-client-info, apikey, content-type",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Vary": "Origin",
   };
+  // Only set Access-Control-Allow-Origin when there's a match (AUDIT-06 P2-16:
+  // empty string is not a valid CORS value; omit header entirely for disallowed).
+  if (allowOrigin) {
+    headers["Access-Control-Allow-Origin"] = allowOrigin;
+  }
+  return headers;
 }
 
 export function jsonResponse(body: unknown, status = 200, req?: Request): Response {

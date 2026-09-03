@@ -6,9 +6,6 @@
 import { getSupabaseServiceClient } from "@/lib/supabase/service";
 import { Tag } from "@/lib/types/app";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnySupabase = any;
-
 export interface TagWithLabel extends Tag {
   label: string;
   language_code: string;
@@ -99,7 +96,7 @@ export async function createOrGetTag(
     .select("tag_id, tags:tag_id (id, color_hex, created_at)")
     .eq("language_code", languageCode)
     .eq("label", normalized)
-    .maybeSingle() as unknown as {
+    .maybeSingle() as {
       data: { tag_id: string; tags: Tag | null } | null;
       error: { message: string } | null;
     };
@@ -112,19 +109,42 @@ export async function createOrGetTag(
     return existing.tags;
   }
 
-  // 2. Create new tag + translation atomically via RPC
+  // 2. Create new tag + translation atomically via RPC.
+  //    With the unique constraint on tag_translations(language_code, label)
+  //    (migration 089), a concurrent call may insert the same label first.
+  //    On RPC failure, retry the lookup (race-safe pattern, AUDIT-06 P2-10).
   const color = await pickNextColor();
 
-  const { data: newTagId, error: rpcErr } = await (supabase as AnySupabase).rpc(
+  const { data: newTagId, error: rpcErr } = await supabase.rpc(
     "create_tag_with_translation",
     {
       p_color: color,
       p_label: normalized,
       p_lang: languageCode,
     }
-  ) as unknown as { data: string | null; error: { message: string } | null };
+  );
 
   if (rpcErr || !newTagId) {
+    // Race condition: another caller may have created the same (language, label).
+    // Retry the lookup — if found, return it; otherwise re-throw.
+    const { data: retry, error: retryErr } = await supabase
+      .from("tag_translations")
+      .select("tag_id, tags:tag_id (id, color_hex, created_at)")
+      .eq("language_code", languageCode)
+      .eq("label", normalized)
+      .maybeSingle() as {
+        data: { tag_id: string; tags: Tag | null } | null;
+        error: { message: string } | null;
+      };
+
+    if (retryErr) {
+      throw new Error(`Failed to create tag: ${rpcErr?.message ?? "unknown"}`);
+    }
+
+    if (retry?.tags) {
+      return retry.tags;
+    }
+
     throw new Error(`Failed to create tag: ${rpcErr?.message ?? "unknown"}`);
   }
 
@@ -133,7 +153,7 @@ export async function createOrGetTag(
     .from("tags")
     .select("id, color_hex, created_at")
     .eq("id", newTagId)
-    .single() as unknown as { data: Tag | null; error: { message: string } | null };
+    .single() as { data: Tag | null; error: { message: string } | null };
 
   if (fetchErr || !newTag) {
     throw new Error(`Failed to fetch created tag: ${fetchErr?.message ?? "unknown"}`);
@@ -217,7 +237,7 @@ export async function getTagsForNode(
     .select(
       "tag_id, tags:tag_id (id, color_hex, created_at, tag_translations (language_code, label))"
     )
-    .eq("node_id", nodeId) as unknown as {
+    .eq("node_id", nodeId) as {
       data: Row[] | null;
       error: { message: string } | null;
     };
@@ -256,7 +276,7 @@ export async function getAllTags(
     .select(
       "id, color_hex, created_at, tag_translations (language_code, label)"
     )
-    .order("created_at", { ascending: true }) as unknown as {
+    .order("created_at", { ascending: true }) as {
       data: Row[] | null;
       error: { message: string } | null;
     };
@@ -280,13 +300,10 @@ export async function getVisibleTags(
 ): Promise<TagWithLabel[]> {
   const supabase = getSupabaseServiceClient();
 
-  const { data, error } = await (supabase as AnySupabase).rpc("get_visible_tags", {
+  const { data, error } = await supabase.rpc("get_visible_tags", {
     p_user_id: userId,
     p_language_code: languageCode,
-  }) as unknown as {
-    data: { id: string; color_hex: string; label: string }[] | null;
-    error: { message: string } | null;
-  };
+  });
 
   if (error) {
     throw new Error(`Failed to fetch visible tags: ${error.message}`);

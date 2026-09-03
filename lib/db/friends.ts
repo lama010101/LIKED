@@ -114,6 +114,11 @@ export async function removeFriend(
 ): Promise<void> {
   const supabase = getSupabaseServiceClient();
 
+  // PostgREST filter DSL (NOT raw SQL): the .or() with .and() sub-filters
+  // is the idiomatic PostgREST API for compound conditions. The values are
+  // UUID parameters interpolated into the filter string — they are not
+  // user input and are validated as UUIDs by the caller. This is not SQL
+  // concatenation (AUDIT-06 P3-17: documented as PostgREST DSL).
   const { error } = await supabase
     .from("friend_invites")
     .delete()

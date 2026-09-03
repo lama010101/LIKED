@@ -1,0 +1,3399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIKED — V2 Desktop Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f2f2f6;
+  --surface: #ffffff;
+  --surface-2: #f8f8fb;
+  --border: rgba(0,0,0,0.06);
+  --border-strong: rgba(0,0,0,0.10);
+  --text: #1a1a2e;
+  --text-2: #6b6b80;
+  --text-3: #9a9aaf;
+  --red: #ff3b30;
+  --red-soft: #ffebeb;
+  --orange: #ff9500;
+  --green: #34c759;
+  --blue: #007aff;
+  --purple: #af52de;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+  --shadow: 0 1px 2px rgba(0,0,0,0.04), 0 1px 4px rgba(0,0,0,0.02);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.06), 0 2px 6px rgba(0,0,0,0.04);
+  --sidebar-w: 260px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  height: 100vh;
+  overflow: hidden;
+}
+
+.app {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ─── SIDEBAR ─── */
+.sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 24px 16px 16px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  font-size: 22px;
+  padding: 0 12px 24px;
+  color: var(--text);
+}
+
+.logo span { color: var(--red); }
+
+.logo-icon {
+  width: 30px;
+  height: 30px;
+  background: var(--red);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.nav-section { margin-bottom: 8px; }
+
+.nav-section + .nav-section { border-top: 1px solid var(--border); padding-top: 12px; }
+
+.nav-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-3);
+  padding: 12px 12px 8px;
+}
+
+/* ─── SIDEBAR TOGGLE & COLLAPSE ─── */
+.sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 24px 16px 16px;
+  transition: width .2s ease, padding .2s ease, border-width .2s ease;
+}
+
+.sidebar.closed {
+  width: 72px;
+  padding: 24px 8px 16px;
+  overflow: visible;
+}
+
+.sidebar.closed .sidebar-header { justify-content: center; padding: 0 0 24px; }
+
+.sidebar.closed .logo { display: none; }
+
+.sidebar.closed .nav-section + .nav-section { border-top: none; padding-top: 0; }
+
+.sidebar.closed .nav-label,
+.sidebar.closed .collapsible-header { display: none; }
+
+.sidebar.closed .collapsible-content { display: block !important; }
+
+.sidebar.closed .nav-item {
+  justify-content: center;
+  padding: 12px 0;
+  gap: 0;
+}
+
+.sidebar.closed .nav-item > *:not(.nav-icon):not(.folder-icon) { display: none; }
+
+.sidebar.closed .folder-icon { width: 24px; height: 24px; border-radius: 6px; }
+
+.sidebar.closed .nav-icon { width: 24px; height: 24px; }
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px 24px;
+}
+
+.sidebar-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background: transparent;
+  border: none;
+  color: var(--text-3);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.sidebar-toggle:hover { color: var(--text); }
+
+.sidebar.closed .sidebar-toggle { transform: rotate(180deg); }
+
+/* ─── COLLAPSIBLE SECTIONS ─── */
+.collapsible-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+}
+
+.collapsible-header svg {
+  width: 14px;
+  height: 14px;
+  color: var(--text-3);
+  transition: transform .15s;
+}
+
+.collapsed .collapsible-header svg { transform: rotate(-90deg); }
+
+.collapsible-content { display: block; }
+
+.collapsed .collapsible-content { display: none; }
+
+.folder-icon {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  color: #fff;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.lock-badge {
+  position: absolute;
+  bottom: -3px;
+  right: -3px;
+  width: 12px;
+  height: 12px;
+  background: var(--red);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  border: 2px solid var(--surface);
+}
+
+.lock-badge svg { width: 7px; height: 7px; }
+
+.section-header { display: none; }
+
+.app.sidebar-closed .section-header,
+.app.sidebar-closed-mobile .section-header { display: flex; }
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: background .12s, color .12s;
+  margin: 2px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nav-item:hover { background: var(--surface-2); color: var(--text); }
+.nav-item.active { background: var(--red-soft); color: var(--red); }
+.nav-item.drag-over { background: var(--red); color: #fff; }
+.nav-item.drag-over .folder-icon { box-shadow: 0 0 0 2px #fff; }
+
+.nav-item.sub-folder {
+  padding-left: 32px;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.nav-item.sub-folder .folder-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+}
+
+.nav-item.sub-folder-2 {
+  padding-left: 48px;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.nav-item.sub-folder-2 .folder-icon {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+}
+
+.nav-icon {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  color: inherit;
+}
+
+.nav-icon svg { width: 16px; height: 16px; }
+
+/* ─── MAIN ─── */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.header {
+  height: 72px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+  flex-shrink: 0;
+}
+
+.search-bar {
+  width: 420px;
+  height: 40px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  gap: 10px;
+  color: var(--text-2);
+  font-size: 14px;
+}
+
+.search-bar input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font: inherit;
+  color: var(--text);
+}
+
+.search-bar input::placeholder { color: var(--text-3); }
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.icon-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-2);
+  position: relative;
+}
+
+.icon-btn:hover { background: var(--surface-2); }
+
+.badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  background: var(--red);
+  border-radius: 50%;
+  border: 2px solid var(--surface);
+}
+
+.avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f5a623, #ff3b30);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 28px 28px 40px;
+}
+
+/* ─── TITLE ROW ─── */
+.title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.title {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.title h1 { font-size: 24px; font-weight: 700; }
+.title .count { font-size: 14px; color: var(--text-2); font-weight: 500; }
+
+.title-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.view-toggle, .sort-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.view-toggle button, .view-toggle .toggle-active {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: var(--text-3);
+}
+
+.view-toggle button.active { color: var(--red); }
+
+.sort-btn { min-width: 150px; justify-content: space-between; }
+
+/* ─── COLUMNS CONTROL ─── */
+.cols-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px 6px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.cols-label { font-weight: 600; }
+
+.cols-stepper { display: flex; align-items: center; gap: 4px; }
+
+.cols-stepper button {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cols-stepper button:hover { background: var(--surface-2); color: var(--text); }
+
+#colsValue { min-width: 16px; text-align: center; color: var(--text); }
+
+.all-videos-left { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; flex-shrink: 0; }
+.all-videos-right { display: flex; align-items: center; gap: 12px; flex-wrap: nowrap; flex-shrink: 0; }
+.all-videos-left .count { font-size: 12px; color: var(--text-2); font-weight: 500; padding-left: 14px; }
+
+/* ─── STORIES ─── */
+.stories-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 28px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.stories-me {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  cursor: pointer;
+  padding-right: 0;
+}
+
+.stories-me .story-ring { border: 2px solid var(--border); }
+.stories-me .story-ring.active { border: 3px solid var(--red); }
+
+.stories-me .story-name { font-size: 11px; color: var(--text); font-weight: 600; }
+
+.stories {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  overflow-x: auto;
+  flex: 1;
+  min-width: 0;
+}
+
+.stories::-webkit-scrollbar { height: 0; }
+
+.story {
+  position: relative;
+  text-align: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.story-ring {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  padding: 3px;
+  background: transparent;
+  border: 2px solid var(--border);
+}
+
+.story-ring.active {
+  border: 3px solid var(--red);
+  padding: 3px;
+}
+
+.story-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+}
+
+.story-name {
+  font-size: 11px;
+  color: var(--text-2);
+  margin-top: 6px;
+}
+
+.story-add {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 2px dashed var(--border-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-3);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.story-add svg { width: 24px; height: 24px; }
+
+/* ─── FEED TABS ─── */
+.feed-tabs {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.feed-tabs-left { display: flex; gap: 10px; }
+.feed-tabs-right { display: flex; align-items: center; gap: 12px; }
+
+.feed-tab {
+  padding: 10px 22px;
+  border-radius: var(--radius-full);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .12s;
+}
+
+.feed-tab:hover { background: var(--surface-2); }
+.feed-tab.active { background: var(--red); color: #fff; border-color: var(--red); }
+
+/* ─── MINE SUB TABS ─── */
+.sub-tabs {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  margin-top: -8px;
+  margin-bottom: 16px;
+}
+
+.sub-tabs.show { display: flex; }
+
+.sub-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .12s;
+}
+
+.sub-tab:hover { background: var(--surface); }
+.sub-tab.active { background: var(--red-soft); color: var(--red); border-color: var(--red-soft); }
+
+.sub-tab .folder-icon {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+}
+
+.sub-tab .folder-icon svg {
+  width: 11px;
+  height: 11px;
+}
+
+/* ─── FOLDERS ─── */
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.section-header h2 { display: none; }
+
+.section-header .new-folder { margin-left: auto; }
+
+.new-folder {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--red);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+.folders-mobile-toggle {
+  display: none;
+}
+
+.folders-grid {
+  display: none;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.app.sidebar-closed .folders-grid { display: grid; }
+
+.folder-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  transition: box-shadow .12s;
+  position: relative;
+}
+
+.folder-card:hover { box-shadow: var(--shadow-md); }
+.folder-card.active { border-color: var(--red); background: var(--red-soft); }
+
+.folder-icon {
+  width: 44px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.folder-card .lock-badge {
+  width: 16px;
+  height: 16px;
+  bottom: -4px;
+  right: -4px;
+  border-width: 2px;
+}
+
+.folder-card .lock-badge svg { width: 9px; height: 9px; }
+
+.folder-info { flex: 1; }
+.folder-name { font-weight: 600; font-size: 14px; }
+.folder-count { font-size: 12px; color: var(--text-2); }
+
+.folder-menu {
+  color: var(--text-3);
+  cursor: pointer;
+  padding: 4px;
+}
+
+/* ─── ALL VIDEOS HEADER ─── */
+.all-videos-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: nowrap;
+  position: relative;
+  z-index: 10;
+  margin-bottom: 16px;
+}
+
+.filter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+}
+
+#feedPillLabel {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+}
+
+/* ─── DROPDOWN ─── */
+.dropdown { position: relative; }
+
+.dropdown-menu {
+  position: fixed;
+  min-width: 200px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  padding: 6px;
+  z-index: 9999;
+  display: none;
+}
+
+.dropdown-menu.open { display: block; }
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2);
+  cursor: pointer;
+  white-space: nowrap;
+  min-height: 30px;
+}
+
+.icon-pill {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.icon-pill svg { width: 16px; height: 16px; }
+
+.dropdown-item .icon-pill,
+.dropdown-item.sub .icon-pill {
+  width: 30px;
+  height: 30px;
+}
+
+.dropdown-item .icon-pill svg,
+.dropdown-item.sub .icon-pill svg { width: 16px; height: 16px; }
+
+#feedPillIcon .icon-pill {
+  width: 30px;
+  height: 30px;
+}
+
+.dropdown-item:hover { background: var(--surface-2); color: var(--text); }
+.dropdown-item.active { background: var(--red-soft); color: var(--red); }
+
+.dropdown-item.parent { justify-content: flex-start; }
+.dropdown-item.parent .expand-arrow { margin-left: auto; color: var(--text-3); transition: transform .15s; }
+
+.dropdown-children {
+  margin-left: 16px;
+  border-left: 2px solid var(--border);
+  padding-left: 8px;
+  margin-top: 2px;
+  margin-bottom: 4px;
+}
+
+.dropdown-item.sub {
+  padding: 7px 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.dropdown-item.sub .icon-pill { width: 22px; height: 22px; }
+.dropdown-item.sub .icon-pill svg { width: 12px; height: 12px; }
+
+/* ─── VIDEO GRID ─── */
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.video-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  cursor: pointer;
+  transition: box-shadow .12s, transform .12s;
+}
+
+.video-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+
+.thumb-wrap {
+  position: relative;
+  aspect-ratio: 16/9;
+  overflow: hidden;
+}
+
+.thumb {
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+}
+
+.duration {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: rgba(0,0,0,0.75);
+  color: #fff;
+  padding: 3px 6px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.video-info { padding: 14px; }
+
+.video-title {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.35;
+  margin-bottom: 6px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.video-creator {
+  font-size: 12px;
+  color: var(--text-2);
+  margin-bottom: 10px;
+}
+
+.video-stats {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 13px;
+  color: var(--text-2);
+  font-weight: 500;
+}
+
+.stat { display: flex; align-items: center; gap: 5px; }
+
+/* ─── VIDEO LIST VIEW ─── */
+.video-grid.list-view {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.video-list-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background .12s;
+}
+
+.video-list-item:hover { background: var(--surface-2); }
+
+.video-list-item .thumb-wrap {
+  width: 160px;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+}
+
+.video-list-item .thumb {
+  border-radius: var(--radius-sm);
+}
+
+.video-list-meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.video-list-title {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.video-list-creator {
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.video-list-footer {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 12px;
+  color: var(--text-2);
+  font-weight: 500;
+}
+
+.video-list-footer .stat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+@media (max-width: 700px) {
+  .video-list-item { gap: 12px; }
+  .video-list-item .thumb-wrap { width: 120px; }
+  .video-list-title { font-size: 14px; }
+  .video-list-footer { flex-wrap: wrap; gap: 10px; }
+}
+@media (max-width: 1200px) {
+  .video-grid { grid-template-columns: repeat(3, 1fr); }
+  .folders-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 900px) {
+  .video-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 700px) {
+  .sidebar { display: none; }
+  .folders-grid { display: grid; }
+  .section-header { display: flex; }
+  .section-header h2 { display: none; }
+  .search-bar { width: 100%; }
+  .feed-tabs { flex-wrap: wrap; gap: 8px; }
+  .feed-tab { padding: 8px 16px; font-size: 13px; }
+  .sub-tab { padding: 5px 12px; font-size: 11px; }
+  .all-videos-header { flex-wrap: nowrap; overflow-x: auto; gap: 10px; }
+  .all-videos-left { flex-shrink: 0; }
+  .all-videos-right { flex-shrink: 0; flex-wrap: nowrap; }
+  .cols-control { padding: 4px 8px; font-size: 12px; }
+  .cols-label { display: none; }
+}
+
+@media (max-width: 900px) and (min-width: 701px) {
+  .sidebar.closed { width: 0; padding: 24px 0 16px; border-right-width: 0; overflow: hidden; }
+  .app.sidebar-closed .folders-grid { display: none; }
+  .app.sidebar-closed .section-header { display: none; }
+}
+
+@media (max-width: 700px) {
+  .folders-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+
+  .folders-section .section-header {
+    display: flex !important;
+    align-items: center;
+    margin-bottom: 0;
+    padding: 12px 16px;
+    gap: 12px;
+  }
+
+  .folders-section .section-header h2 {
+    display: block;
+    flex: 1;
+    min-width: 0;
+    font-size: 16px;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .folders-section .folders-mobile-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    margin-left: auto;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--text-3);
+    cursor: pointer;
+  }
+
+  .folders-section .folders-mobile-toggle svg {
+    width: 20px;
+    height: 20px;
+    transition: transform .15s;
+  }
+
+  .folders-section.collapsed .folders-mobile-toggle svg {
+    transform: rotate(-90deg);
+  }
+
+  .folders-section .folders-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    padding: 0 16px 16px;
+    margin-bottom: 0;
+    gap: 12px;
+  }
+
+  .folders-section .folder-card {
+    min-width: 0;
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .folders-section .folder-icon {
+    width: 36px;
+    height: 30px;
+  }
+
+  .folders-section .folder-info {
+    min-width: 0;
+  }
+
+  .folders-section .folder-name {
+    overflow-wrap: anywhere;
+  }
+
+  .folders-section.collapsed .folders-grid {
+    display: none;
+  }
+}
+
+/* ─── PROFILE MODAL (avatar → modal menu; mirrors prod ProfileModal) ─── */
+.profile-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: rgba(0,0,0,0.55);
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.profile-overlay.show { display: flex; }
+
+.profile-modal {
+  width: 100%;
+  max-width: 420px;
+  background: var(--surface);
+  border-radius: 20px 20px 0 0;
+  padding: 8px 0 32px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-height: 88vh;
+  overflow-y: auto;
+}
+
+@media (min-width: 640px) {
+  .profile-overlay { align-items: center; }
+  .profile-modal { border-radius: 20px; }
+}
+
+.profile-handle { display: flex; justify-content: center; padding: 8px 0 12px; }
+
+.profile-handle-bar { width: 36px; height: 4px; background: var(--border-strong); border-radius: 100px; }
+
+.profile-avatar-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 24px 20px;
+}
+
+.profile-avatar-wrap { position: relative; }
+
+.profile-avatar-btn {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f5a623, #ff3b30);
+  border: 2px solid var(--border-strong);
+  cursor: pointer;
+  overflow: hidden;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.15s;
+}
+
+.profile-avatar-initials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-size: 24px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.profile-camera-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s;
+  color: #fff;
+}
+
+.profile-avatar-btn:hover .profile-camera-overlay { opacity: 1; }
+
+.profile-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+.profile-divider { height: 1px; background: var(--border); margin: 0 16px; }
+
+.profile-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+}
+
+.profile-row-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.profile-row-label svg { color: var(--text-2); }
+
+.profile-toggle {
+  width: 44px;
+  height: 26px;
+  border-radius: 13px;
+  background: var(--surface-2);
+  border: 1px solid var(--border-strong);
+  cursor: pointer;
+  padding: 3px;
+  position: relative;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.profile-toggle .profile-toggle-knob {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  transition: left 0.2s;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+
+.profile-toggle.dark { background: var(--red); border-color: var(--red); }
+.profile-toggle.dark .profile-toggle-knob { left: 21px; }
+
+.profile-section { padding: 16px 24px; }
+
+.profile-field-label { font-size: 13px; color: var(--text-2); font-weight: 500; }
+
+.profile-edit-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.profile-username-value { font-size: 15px; color: var(--text); font-weight: 600; }
+
+.profile-name-input {
+  width: 100%;
+  padding: 9px 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.profile-form-actions { display: flex; gap: 8px; margin-top: 8px; }
+
+.profile-save-btn {
+  flex: 1;
+  padding: 9px 0;
+  background: var(--red);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.profile-cancel-btn {
+  padding: 9px 16px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.profile-lang-grid { display: flex; gap: 8px; margin-top: 10px; }
+
+.profile-lang-btn {
+  flex: 1;
+  padding: 8px 0;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.profile-lang-btn.active { background: var(--red); border-color: var(--red); color: #fff; }
+
+.profile-link-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 0;
+  background: transparent;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.profile-link-left { display: flex; align-items: center; gap: 10px; }
+.profile-link-left svg { color: var(--text-2); }
+.profile-link-row > svg { color: var(--text-3); }
+
+.profile-signout-btn {
+  width: 100%;
+  padding: 10px 0;
+  background: transparent;
+  border: 1px solid var(--red);
+  border-radius: 10px;
+  color: var(--red);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ─── ADD FAB (mirrors prod FabSpeedDial) ─── */
+.fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: var(--red);
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  z-index: 60;
+  border: none;
+  transition: transform .15s, box-shadow .15s, background .15s;
+}
+.fab:hover { transform: scale(1.05); }
+.fab:active { transform: scale(0.95); }
+.fab svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform .15s;
+}
+.fab--open svg { transform: rotate(45deg); }
+
+.fab-scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.25);
+  z-index: 59;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .15s;
+}
+.fab-scrim--open { opacity: 1; pointer-events: all; }
+
+.speed-dial {
+  position: fixed;
+  bottom: 88px;
+  right: 24px;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: flex-end;
+  gap: 14px;
+  z-index: 100;
+  pointer-events: none;
+}
+.speed-dial--open { pointer-events: all; }
+.speed-dial__item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  pointer-events: none;
+  transform: translateY(16px);
+  opacity: 0;
+  transition: opacity .15s, transform .2s;
+}
+.speed-dial--open .speed-dial__item { pointer-events: all; transform: translateY(0); opacity: 1; }
+.speed-dial__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  background: rgba(0,0,0,0.75);
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-md);
+}
+.speed-dial__btn {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-md);
+  flex-shrink: 0;
+  cursor: pointer;
+  border: 2px solid rgba(255,255,255,0.35);
+  transition: transform .15s;
+  color: #fff;
+}
+.speed-dial__btn:hover { transform: scale(1.08); }
+.speed-dial__btn:active { transform: scale(0.95); }
+.speed-dial__btn svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@media (min-width: 701px) {
+  .fab { right: 18px; }
+  .speed-dial { right: 18px; }
+}
+
+@media (max-width: 700px) {
+  .fab {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+  }
+  .fab:hover { transform: translateX(-50%) scale(1.05); }
+  .fab:active { transform: translateX(-50%) scale(0.95); }
+  .speed-dial {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    align-items: center;
+  }
+}
+
+/* ─── MOBILE DRILL-DOWN (breadcrumb + child-folder grid) ─── */
+.mobile-drill {
+  display: none;
+}
+
+.mobile-breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.breadcrumb-crumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  color: var(--red);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.breadcrumb-crumb.current {
+  color: var(--text);
+  background: var(--surface-2);
+  cursor: default;
+}
+
+.breadcrumb-sep {
+  color: var(--text-3);
+  font-size: 12px;
+}
+
+.child-folder-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.child-folder-grid .folder-card {
+  min-width: 0;
+  padding: 12px;
+  gap: 10px;
+}
+
+.child-folder-grid .folder-icon {
+  width: 36px;
+  height: 30px;
+}
+
+.child-folder-grid .folder-info {
+  min-width: 0;
+}
+
+.child-folder-grid .folder-name {
+  overflow-wrap: anywhere;
+}
+
+.child-folder-grid .folder-menu {
+  display: none;
+}
+
+/* ─── CARD ACTION SHEET (mobile long-press) ─── */
+.sheet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  background: rgba(0,0,0,0.4);
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.sheet-overlay.open {
+  display: flex;
+}
+
+.bottom-sheet {
+  width: 100%;
+  max-width: 480px;
+  background: var(--surface);
+  border-radius: 20px 20px 0 0;
+  padding: 12px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 -4px 24px rgba(0,0,0,0.12);
+}
+
+.sheet-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-3);
+  text-align: center;
+  padding: 6px 0 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sheet-breadcrumb {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--red);
+  text-align: center;
+  padding: 0 8px 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sheet-action {
+  display: block;
+  width: 100%;
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sheet-action:active { background: var(--border); }
+
+.sheet-cancel {
+  background: transparent;
+  color: var(--red);
+  text-align: center;
+  border: none;
+}
+
+/* ─── FULL-SCREEN FOLDER TREE PICKER ─── */
+.tree-picker {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: var(--surface);
+  display: none;
+  flex-direction: column;
+}
+
+.tree-picker.open {
+  display: flex;
+}
+
+.tree-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.tree-picker-close {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: var(--surface-2);
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+.tree-picker-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0 16px;
+}
+
+.tree-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 6px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+}
+
+.tree-row-indent {
+  width: 18px;
+  flex-shrink: 0;
+}
+
+.tree-chevron {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.tree-chevron svg {
+  transition: transform .15s;
+}
+
+.tree-chevron.open svg {
+  transform: rotate(90deg);
+}
+
+.tree-row-icon {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.tree-row-icon svg {
+  width: 13px;
+  height: 13px;
+}
+
+.tree-row-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tree-row-input {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  accent-color: var(--red);
+  cursor: pointer;
+}
+
+.tree-picker-footer {
+  display: flex;
+  gap: 10px;
+  padding: 12px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--border);
+}
+
+.tree-picker-cancel,
+.tree-picker-confirm {
+  flex: 1;
+  padding: 14px 0;
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+}
+
+.tree-picker-cancel {
+  background: var(--surface-2);
+  color: var(--text-2);
+}
+
+.tree-picker-confirm {
+  background: var(--red);
+  color: #fff;
+}
+
+@media (min-width: 701px) {
+  .mobile-drill,
+  .sheet-overlay,
+  .tree-picker {
+    display: none !important;
+  }
+}
+
+@media (max-width: 700px) {
+  .folders-section { display: none; }
+  #subfolderTabs, #subsubfolderTabs { display: none !important; }
+  .mobile-drill { display: block; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <div class="logo-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        </div>
+        liked<span>.</span>
+      </div>
+      <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="9" y1="4" x2="9" y2="20"/></svg>
+      </button>
+    </div>
+
+    <div class="nav-section" id="foldersSection">
+      <div class="nav-label collapsible-header" onclick="toggleSection('foldersSection')">
+        <span id="foldersSectionTitle">Folders</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="collapsible-content" id="foldersList"></div>
+    </div>
+
+    <div class="nav-section collapsed" id="tagsSection">
+      <div class="nav-label collapsible-header" onclick="toggleSection('tagsSection')">
+        <span>Tags</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="collapsible-content">
+        <div class="nav-item">
+          <span class="nav-icon" style="color:#34c759"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8" fill="none" stroke="#fff" stroke-width="2"/></svg></span>
+          Productivity
+        </div>
+        <div class="nav-item active">
+          <span class="nav-icon" style="color:#ff3b30"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/><path d="M12 7v5l3 3" fill="none" stroke="#fff" stroke-width="2"/></svg></span>
+          Boxing
+        </div>
+        <div class="nav-item">
+          <span class="nav-icon" style="color:#ff9500"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h1a4 4 0 0 1 0 8H2" fill="none" stroke="#fff" stroke-width="2"/><path d="M6.5 12a5.5 5.5 0 0 1 11 0" fill="none" stroke="#fff" stroke-width="2"/></svg></span>
+          Food
+        </div>
+        <div class="nav-item">
+          <span class="nav-icon" style="color:#af52de"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="2" width="12" height="20" rx="2"/><circle cx="12" cy="18" r="1" fill="#fff"/></svg></span>
+          Gaming
+        </div>
+        <div class="nav-item">
+          <span class="nav-icon" style="color:#007aff"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10" fill="none" stroke="#fff" stroke-width="2"/><path d="M12 2v20" stroke="#fff" stroke-width="2"/></svg></span>
+          Travel
+        </div>
+        <div class="nav-item">
+          <span class="nav-icon" style="color:#ff3b30"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="6" cy="18" r="3"/><circle cx="18" cy="6" r="3"/><line x1="4.22" y1="19.78" x2="19.78" y2="4.22" stroke="#fff" stroke-width="2"/></svg></span>
+          Music
+        </div>
+        <div class="nav-item">
+          <span class="nav-icon" style="color:#6b6b80"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21" stroke="#fff" stroke-width="2"/><line x1="12" y1="17" x2="12" y2="21" stroke="#fff" stroke-width="2"/></svg></span>
+          Tech
+        </div>
+        <div class="nav-item">
+          <span class="nav-icon" style="color:#34c759"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 10v6M2 10l10-7 10 7v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z" fill="none" stroke="#fff" stroke-width="2"/><path d="M6 12v4" stroke="#fff" stroke-width="2"/></svg></span>
+          Education
+        </div>
+        <div class="nav-item">
+          <span class="nav-icon" style="color:#007aff"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16v16H4z" fill="none" stroke="#fff" stroke-width="2"/><line x1="4" y1="9" x2="20" y2="9" stroke="#fff" stroke-width="2"/></svg></span>
+          News
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">My Library</div>
+      <div class="nav-item">
+        <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+        History
+      </div>
+      <div class="nav-item">
+        <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></span>
+        Watch Later
+      </div>
+      <div class="nav-item active">
+        <span class="nav-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 9V5a3 3 0 0 0-6 0v4a3 3 0 0 0 6 0z"/><rect x="3" y="9" width="18" height="13" rx="2"/></svg></span>
+        Liked Videos
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <header class="header">
+      <div class="search-bar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Search videos, folders, creators...">
+      </div>
+      <div class="header-right">
+        <button class="icon-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="badge"></span>
+        </button>
+        <div class="avatar" onclick="openProfileModal()" role="button" aria-label="Open profile" title="Profile">JS</div>
+      </div>
+    </header>
+
+    <div class="stories-bar">
+      <div class="stories-me" onclick="selectUser('me')">
+        <div class="story-ring active"><div class="story-img" style="background-image:url('https://i.pravatar.cc/64?img=1')"></div></div>
+        <div class="story-name">Me</div>
+      </div>
+      <div class="stories">
+        <div class="story" onclick="selectUser('alice')"><div class="story-ring"><div class="story-img" style="background-image:url('https://i.pravatar.cc/64?img=2')"></div></div><div class="story-name">Alice</div></div>
+        <div class="story" onclick="selectUser('bob')"><div class="story-ring"><div class="story-img" style="background-image:url('https://i.pravatar.cc/64?img=3')"></div></div><div class="story-name">Bob</div></div>
+        <div class="story" onclick="selectUser('chiara')"><div class="story-ring"><div class="story-img" style="background-image:url('https://i.pravatar.cc/64?img=4')"></div></div><div class="story-name">Chiara</div></div>
+        <div class="story" onclick="selectUser('diego')"><div class="story-ring"><div class="story-img" style="background-image:url('https://i.pravatar.cc/64?img=5')"></div></div><div class="story-name">Diego</div></div>
+        <div class="story" onclick="selectUser('emma')"><div class="story-ring"><div class="story-img" style="background-image:url('https://i.pravatar.cc/64?img=6')"></div></div><div class="story-name">Emma</div></div>
+        <div class="story" onclick="selectUser('frank')"><div class="story-ring"><div class="story-img" style="background-image:url('https://i.pravatar.cc/64?img=7')"></div></div><div class="story-name">Frank</div></div>
+        <div class="story-add">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <div style="font-size:10px;color:var(--text-3);margin-top:6px">Add</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="folders-section" id="foldersWorkspace">
+        <div class="section-header" id="folderSectionHeader">
+          <h2>Folders</h2>
+          <button class="new-folder" id="newFolderBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            New Folder
+          </button>
+          <button class="folders-mobile-toggle" type="button" onclick="toggleMobileFolders(event)" aria-label="Toggle folders">
+            <svg class="chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+        </div>
+
+        <div class="folders-grid" id="foldersGrid">
+          <!-- Folder cards generated by JS -->
+        </div>
+      </div>
+
+      <div class="sub-tabs" id="subfolderTabs"></div>
+      <div class="sub-tabs" id="subsubfolderTabs"></div>
+
+      <div class="mobile-drill" id="mobileDrill">
+        <div class="mobile-breadcrumb" id="mobileBreadcrumb"></div>
+        <div class="child-folder-grid" id="mobileFolderGrid"></div>
+      </div>
+
+      <div class="all-videos-header">
+        <div class="dropdown" id="folderFeedDropdown">
+          <button class="filter-pill" onclick="toggleFeedDropdown(event)" id="feedPill">
+            <span id="feedPillIcon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg></span>
+            <span id="feedPillLabel">All Videos</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="dropdown-menu" id="feedDropdown">
+            <div class="dropdown-item active" onclick="pickFeed('all','All Videos',this)">All Videos</div>
+            <div class="dropdown-item" onclick="pickFeed('mine','Mine',this)">Mine</div>
+            <div class="dropdown-item" onclick="pickFeed('received','Received',this)">Received</div>
+          </div>
+        </div>
+        <div class="view-toggle">
+          <button onclick="setView('list')" id="listBtn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><line x1="8" y1="6" x2="21" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="8" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="8" y1="18" x2="21" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="3" y1="6" x2="3.01" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="3" y1="12" x2="3.01" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="3" y1="18" x2="3.01" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </button>
+          <button class="active" onclick="setView('grid')" id="gridBtn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+          </button>
+        </div>
+        <div class="cols-control" id="colsControl">
+          <span class="cols-label">Columns</span>
+          <div class="cols-stepper">
+            <button onclick="decCols()" aria-label="fewer columns">&minus;</button>
+            <span id="colsValue">1</span>
+            <button onclick="incCols()" aria-label="more columns">+</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="video-grid" id="videoGrid">
+        <!-- Video cards generated by JS -->
+      </div>
+    </div>
+  </main>
+
+  <!-- ADD FAB (mirrors prod FabSpeedDial) -->
+  <div class="fab-scrim" id="fabScrim" onclick="toggleFab()"></div>
+  <div class="speed-dial" id="speedDial">
+    <div class="speed-dial__item">
+      <span class="speed-dial__label">Card</span>
+      <button type="button" class="speed-dial__btn" style="background:#457b9d" onclick="fabAction()" aria-label="Card">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/></svg>
+      </button>
+    </div>
+    <div class="speed-dial__item">
+      <span class="speed-dial__label">Folder</span>
+      <button type="button" class="speed-dial__btn" style="background:#e76f51" onclick="fabAction()" aria-label="Folder">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>
+      </button>
+    </div>
+    <div class="speed-dial__item">
+      <span class="speed-dial__label">Template</span>
+      <button type="button" class="speed-dial__btn" style="background:#2a9d8f" onclick="fabAction()" aria-label="Template">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="11" width="7" height="9" rx="1"/><rect x="3" y="13" width="7" height="7" rx="1"/></svg>
+      </button>
+    </div>
+    <div class="speed-dial__item">
+      <span class="speed-dial__label">Tag</span>
+      <button type="button" class="speed-dial__btn" style="background:#7c5cbf" onclick="fabAction()" aria-label="Tag">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+      </button>
+    </div>
+  </div>
+  <button type="button" class="fab" id="fabBtn" onclick="toggleFab()" aria-label="Add">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+  </button>
+
+  <!-- CARD ACTION SHEET (mobile long-press) -->
+  <div class="sheet-overlay" id="cardActionSheet">
+    <div class="bottom-sheet">
+      <div class="sheet-title" id="sheetCardTitle">Card</div>
+      <div class="sheet-breadcrumb" id="sheetBreadcrumb"></div>
+      <button type="button" class="sheet-action" onclick="openTreePicker('move')">Move to</button>
+      <button type="button" class="sheet-action" onclick="openTreePicker('copy')">Copy to</button>
+      <button type="button" class="sheet-action sheet-cancel" onclick="closeCardActionSheet()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- FULL-SCREEN FOLDER TREE PICKER -->
+  <div class="tree-picker" id="treePicker">
+    <div class="tree-picker-header">
+      <span id="treePickerTitle">Move to</span>
+      <button type="button" class="tree-picker-close" onclick="closeTreePicker()" aria-label="Close">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="tree-picker-body" id="treePickerBody"></div>
+    <div class="tree-picker-footer">
+      <button type="button" class="tree-picker-cancel" onclick="closeTreePicker()">Cancel</button>
+      <button type="button" class="tree-picker-confirm" id="treePickerConfirm" onclick="confirmTreePicker()">Move</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── PROFILE MODAL (avatar → modal menu; mirrors prod ProfileModal) ─── -->
+<div class="profile-overlay" id="profileOverlay" onclick="closeProfileModal()">
+  <div class="profile-modal" role="dialog" aria-modal="true" aria-label="Profile" onclick="event.stopPropagation()">
+
+    <!-- Drag handle -->
+    <div class="profile-handle"><div class="profile-handle-bar"></div></div>
+
+    <!-- Avatar + display name -->
+    <div class="profile-avatar-section">
+      <div class="profile-avatar-wrap">
+        <button class="profile-avatar-btn" aria-label="Change avatar">
+          <span class="profile-avatar-initials" id="profileAvatarInitials">JS</span>
+          <div class="profile-camera-overlay">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+          </div>
+        </button>
+      </div>
+      <span class="profile-name" id="profileName">JS</span>
+    </div>
+
+    <div class="profile-divider"></div>
+
+    <!-- Theme toggle -->
+    <div class="profile-row">
+      <div class="profile-row-label" id="profileThemeLabel">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+        <span id="profileThemeText">Light mode</span>
+      </div>
+      <button class="profile-toggle" id="profileThemeToggle" role="switch" aria-checked="false" aria-label="Toggle theme" onclick="toggleProfileTheme()">
+        <div class="profile-toggle-knob"></div>
+      </button>
+    </div>
+
+    <div class="profile-divider"></div>
+
+    <!-- Username -->
+    <div class="profile-section">
+      <div class="profile-row" style="padding:0 0 10px">
+        <span class="profile-field-label">Username</span>
+        <button class="profile-edit-btn" id="profileEditBtn" aria-label="Edit username" onclick="toggleProfileEdit()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Edit
+        </button>
+      </div>
+      <div id="profileUsernameView">
+        <span class="profile-username-value" id="profileUsernameValue">JS</span>
+      </div>
+      <div id="profileUsernameForm" style="display:none">
+        <input class="profile-name-input" id="profileNameInput" type="text" value="JS" maxlength="32" placeholder="3–32 characters" />
+        <div class="profile-form-actions">
+          <button class="profile-save-btn" onclick="saveProfileName()">Save</button>
+          <button class="profile-cancel-btn" onclick="toggleProfileEdit()">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="profile-divider"></div>
+
+    <!-- Language -->
+    <div class="profile-section">
+      <span class="profile-field-label">Language</span>
+      <div class="profile-lang-grid">
+        <button class="profile-lang-btn active" onclick="selectProfileLang(this)">English</button>
+        <button class="profile-lang-btn" onclick="selectProfileLang(this)">Français</button>
+        <button class="profile-lang-btn" onclick="selectProfileLang(this)">ภาษาไทย</button>
+      </div>
+    </div>
+
+    <div class="profile-divider"></div>
+
+    <!-- Install Chrome Extension -->
+    <div class="profile-section">
+      <a class="profile-link-row" href="#">
+        <span class="profile-link-left">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="21.17" y1="8" x2="12" y2="8"/><line x1="3.95" y1="6.06" x2="8.54" y2="14"/><line x1="10.88" y1="21.94" x2="15.46" y2="14"/></svg>
+          Install Chrome Extension
+        </span>
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+
+    <div class="profile-divider"></div>
+
+    <!-- YouTube Activity -->
+    <div class="profile-section">
+      <a class="profile-link-row" href="/youtube">
+        <span class="profile-link-left">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.42a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.42a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.37z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" fill="currentColor"/></svg>
+          YouTube Activity
+        </span>
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+
+    <div class="profile-divider"></div>
+
+    <!-- Sign out -->
+    <div class="profile-section">
+      <button class="profile-signout-btn">Sign out</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const folderIcon = '<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>';
+const folderMenu = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>';
+const lockIcon = '<svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
+
+const users = {
+  me: {
+    name: 'My Folders',
+    folders: [
+      { name: 'Training', color: 'var(--red)', subfolders: [
+        { name: 'Punches', subfolders: [
+          { name: 'Technique', videos: [
+            { title: "Mike Tyson Shows His Punching Technique 🥊", creator: "Mark Rober", likes: "8.4M", comments: 163, duration: "8:45", color: "linear-gradient(135deg,#8a1c1c,#3a0d0d)" },
+          ]},
+          { name: 'Combos', videos: [
+            { title: "10 Best Boxing Combos to Improve Speed", creator: "FightCamp", likes: "1.6M", comments: 98, duration: "10:15", color: "linear-gradient(135deg,#4a2a2a,#1a0d0d)" },
+          ]},
+        ]},
+        { name: 'Drills', subfolders: [
+          { name: 'Workouts', videos: [
+            { title: "Boxing Workout Routine for Explosive Power", creator: "Gymshark Shows", likes: "2.2M", comments: 147, duration: "12:30", color: "linear-gradient(135deg,#2a2a2a,#0d0d0d)" },
+          ]},
+          { name: 'Shadow Boxing', videos: [
+            { title: "Morning Shadow Boxing Routine", creator: "Tony Jeffries", likes: "1.1M", comments: 76, duration: "9:20", color: "linear-gradient(135deg,#3a3a3a,#1a1a1a)" },
+          ]},
+        ]},
+      ]},
+      { name: 'Highlights', color: 'var(--orange)', subfolders: [
+        { name: 'Combos', subfolders: [
+          { name: 'Jab', videos: [
+            { title: "How to Throw a Perfect Jab", creator: "Coach Anthony", likes: "4.5M", comments: 231, duration: "6:15", color: "linear-gradient(135deg,#5c2a1c,#2a1008)" },
+          ]},
+          { name: 'Drills', videos: [] },
+        ]},
+        { name: 'Sparring', subfolders: [
+          { name: 'Tips', videos: [
+            { title: "Sparring Tips from a Pro", creator: "TheModernMartialArtist", likes: "5.1M", comments: 310, duration: "13:05", color: "linear-gradient(135deg,#3a2a1c,#1a0f08)" },
+          ]},
+          { name: 'Matches', videos: [] },
+        ]},
+      ]},
+      { name: 'Motivation', color: 'var(--green)', subfolders: [
+        { name: 'Footwork', subfolders: [
+          { name: 'Defense', videos: [
+            { title: "Defensive Footwork Drills", creator: "Precision Striking", likes: "3.2M", comments: 112, duration: "11:45", color: "linear-gradient(135deg,#1c3a5c,#0d1a2a)" },
+          ]},
+          { name: 'Drills', videos: [] },
+        ]},
+        { name: 'Mindset', subfolders: [
+          { name: 'Focus', videos: [] },
+          { name: 'Discipline', videos: [] },
+        ]},
+        { name: 'Quotes', subfolders: [
+          { name: 'Inspiration', videos: [] },
+          { name: 'Lessons', videos: [] },
+        ]},
+      ]},
+      { name: 'Watch Later', color: 'var(--blue)', subfolders: [
+        { name: 'Bag Work', subfolders: [
+          { name: 'Heavy Bag', videos: [
+            { title: "Heavy Bag Training for Beginners", creator: "NateBowerFitness", likes: "2.8M", comments: 89, duration: "14:20", color: "linear-gradient(135deg,#2a1c0d,#0d0804)" },
+          ]},
+          { name: 'Rounds', videos: [] },
+        ]},
+        { name: 'New Finds', subfolders: [
+          { name: 'Watchlist', videos: [] },
+          { name: 'Recs', videos: [] },
+        ]},
+      ]},
+      { name: 'Footwork', color: 'var(--purple)', subfolders: [
+        { name: 'Drills', subfolders: [
+          { name: 'Defense', videos: [
+            { title: "Defensive Footwork Drills", creator: "Precision Striking", likes: "3.2M", comments: 112, duration: "11:45", color: "linear-gradient(135deg,#1c3a5c,#0d1a2a)" },
+          ]},
+          { name: 'Footwork', videos: [] },
+        ]},
+        { name: 'Ladders', subfolders: [
+          { name: 'Ladders', videos: [
+            { title: "Footwork Ladder Drills", creator: "NateBowerFitness", likes: "1.9M", comments: 87, duration: "10:05", color: "linear-gradient(135deg,#3a1c5c,#1a0d3a)" },
+          ]},
+          { name: 'Speed', videos: [] },
+        ]},
+      ]},
+      { name: 'Combos', color: 'var(--red)', subfolders: [
+        { name: 'Speed', subfolders: [
+          { name: 'Speed Combos', videos: [
+            { title: "10 Best Boxing Combos to Improve Speed", creator: "FightCamp", likes: "1.6M", comments: 98, duration: "10:15", color: "linear-gradient(135deg,#4a2a2a,#1a0d0d)" },
+          ]},
+          { name: 'Timing', videos: [] },
+        ]},
+        { name: 'Beginners', subfolders: [
+          { name: 'Starter Combos', videos: [
+            { title: "5 Deadly Combos for Beginners", creator: "Coach Anthony", likes: "2.7M", comments: 134, duration: "8:30", color: "linear-gradient(135deg,#5c1c1c,#3a0d0d)" },
+          ]},
+          { name: 'Basics', videos: [] },
+        ]},
+      ]},
+      { name: 'Conditioning', color: 'var(--orange)', subfolders: [
+        { name: 'Endurance', subfolders: [
+          { name: 'Power', videos: [
+            { title: "Boxing Workout Routine for Explosive Power", creator: "Gymshark Shows", likes: "2.2M", comments: 147, duration: "12:30", color: "linear-gradient(135deg,#2a2a2a,#0d0d0d)" },
+          ]},
+          { name: 'Endurance', videos: [] },
+        ]},
+        { name: 'Stamina', subfolders: [
+          { name: 'Cardio', videos: [] },
+          { name: 'Recovery', videos: [] },
+        ]},
+      ]},
+    ],
+  },
+  alice: {
+    name: "Alice's Folders",
+    folders: [
+      { name: 'Design Inspo', color: 'var(--blue)', subfolders: [
+        { name: 'Dashboards', subfolders: [
+          { name: 'Layout', videos: [
+            { title: "How to Design Better Dashboards", creator: "Femke Design", likes: "1.2M", comments: 84, duration: "11:20", color: "linear-gradient(135deg,#1c4a5c,#0d2a3a)" },
+          ]},
+          { name: 'Data Viz', videos: [] },
+        ]},
+        { name: 'Interactions', subfolders: [
+          { name: 'Micro', videos: [
+            { title: "Micro-interactions That Delight", creator: "AJ&Smart", likes: "890K", comments: 56, duration: "7:45", color: "linear-gradient(135deg,#3a1c5c,#1a0d3a)" },
+          ]},
+          { name: 'Motion', videos: [] },
+        ]},
+      ]},
+      { name: 'UI Patterns', color: 'var(--purple)', subfolders: [
+        { name: 'Color', subfolders: [
+          { name: 'Palettes', videos: [
+            { title: "Color Theory for Product Designers", creator: "Refactoring UI", likes: "2.1M", comments: 142, duration: "15:30", color: "linear-gradient(135deg,#5c1c3a,#3a0d1a)" },
+          ]},
+          { name: 'Contrast', videos: [] },
+        ]},
+        { name: 'Typography', subfolders: [
+          { name: 'Type Scale', videos: [
+            { title: "Typography Tips Every Designer Should Know", creator: "Mizko", likes: "1.8M", comments: 119, duration: "9:10", color: "linear-gradient(135deg,#1c5c3a,#0d3a1a)" },
+          ]},
+          { name: 'Spacing', videos: [] },
+        ]},
+      ]},
+      { name: 'Saved Talks', color: 'var(--green)', subfolders: [
+        { name: 'Systems', subfolders: [
+          { name: 'Foundations', videos: [
+            { title: "Building a Design System from Scratch", creator: "Streamlined", likes: "3.4M", comments: 256, duration: "22:05", color: "linear-gradient(135deg,#5c4a1c,#3a2a0d)" },
+          ]},
+          { name: 'Tokens', videos: [] },
+        ]},
+        { name: 'Figma', subfolders: [
+          { name: 'Shortcuts', videos: [
+            { title: "Figma Secrets You Didn't Know", creator: "Config", likes: "1.5M", comments: 98, duration: "13:40", color: "linear-gradient(135deg,#4a1c5c,#2a0d3a)" },
+          ]},
+          { name: 'Components', videos: [] },
+        ]},
+      ]},
+    ],
+  },
+  bob: {
+    name: "Bob's Folders",
+    folders: [
+      { name: 'Guitar Riffs', color: 'var(--red)', subfolders: [
+        { name: 'Classics', subfolders: [
+          { name: 'Classic Riffs', videos: [
+            { title: "10 Guitar Riffs Every Player Should Know", creator: "Rick Beato", likes: "4.2M", comments: 287, duration: "12:15", color: "linear-gradient(135deg,#5c1c1c,#3a0d0d)" },
+          ]},
+          { name: 'Songs', videos: [] },
+        ]},
+        { name: 'Pedals', subfolders: [
+          { name: 'Pedalboards', videos: [
+            { title: "Best Pedals Under $100", creator: "Andertons TV", likes: "1.9M", comments: 134, duration: "10:30", color: "linear-gradient(135deg,#5c5c1c,#3a3a0d)" },
+          ]},
+          { name: 'Tone', videos: [] },
+        ]},
+      ]},
+      { name: 'Music Theory', color: 'var(--orange)', subfolders: [
+        { name: 'Basics', subfolders: [
+          { name: 'Fundamentals', videos: [
+            { title: "Music Theory in 16 Minutes", creator: "12tone", likes: "2.8M", comments: 193, duration: "16:00", color: "linear-gradient(135deg,#1c1c5c,#0d0d3a)" },
+          ]},
+          { name: 'Scales', videos: [] },
+        ]},
+        { name: 'Blues', subfolders: [
+          { name: 'Blues Forms', videos: [
+            { title: "How to Play Blues Like a Pro", creator: "JustinGuitar", likes: "3.6M", comments: 245, duration: "18:45", color: "linear-gradient(135deg,#1c5c5c,#0d3a3a)" },
+          ]},
+          { name: 'Solos', videos: [] },
+        ]},
+      ]},
+      { name: 'Live Sets', color: 'var(--purple)', subfolders: [
+        { name: 'Fingerpicking', subfolders: [
+          { name: 'Patterns', videos: [
+            { title: "Fingerpicking for Beginners", creator: "GuitarLessons", likes: "1.4M", comments: 89, duration: "9:20", color: "linear-gradient(135deg,#5c1c5c,#3a0d3a)" },
+          ]},
+          { name: 'Songs', videos: [] },
+        ]},
+        { name: 'Acoustic', subfolders: [
+          { name: 'Chords', videos: [] },
+          { name: 'Strumming', videos: [] },
+        ]},
+        { name: 'Gigs', subfolders: [
+          { name: 'Setlists', videos: [] },
+          { name: 'Stage', videos: [] },
+        ]},
+      ]},
+      { name: 'Gear Reviews', color: 'var(--blue)', subfolders: [
+        { name: 'New Arrivals', subfolders: [
+          { name: 'Pedals', videos: [] },
+          { name: 'Amps', videos: [] },
+        ]},
+        { name: 'Sound Demos', subfolders: [
+          { name: 'Clean', videos: [] },
+          { name: 'Drive', videos: [] },
+        ]},
+      ]},
+    ],
+  },
+  chiara: {
+    name: "Chiara's Folders",
+    folders: [
+      { name: 'Recipes', color: 'var(--orange)', subfolders: [
+        { name: 'Pasta', subfolders: [
+          { name: 'Quick Pasta', videos: [
+            { title: "15 Minute Pasta Recipes", creator: "Bon Appétit", likes: "5.2M", comments: 412, duration: "15:00", color: "linear-gradient(135deg,#5c3a1c,#3a2a0d)" },
+          ]},
+          { name: 'Sauces', videos: [] },
+        ]},
+        { name: 'Bread', subfolders: [
+          { name: 'Sourdough', videos: [
+            { title: "Sourdough for Beginners", creator: "Joshua Weissman", likes: "3.8M", comments: 298, duration: "24:30", color: "linear-gradient(135deg,#5c5c3a,#3a3a1a)" },
+          ]},
+          { name: 'Baking', videos: [] },
+        ]},
+        { name: 'Comfort Food', subfolders: [
+          { name: 'Risotto', videos: [
+            { title: "How to Make Perfect Risotto", creator: "Not Another Cooking Show", likes: "2.3M", comments: 167, duration: "11:15", color: "linear-gradient(135deg,#5c2a1c,#3a1a0d)" },
+          ]},
+          { name: 'Stews', videos: [] },
+        ]},
+      ]},
+      { name: 'Travel Vlogs', color: 'var(--green)', subfolders: [
+        { name: 'Street Food', subfolders: [
+          { name: 'Italy', videos: [
+            { title: "Best Street Food in Italy", creator: "Mark Wiens", likes: "6.1M", comments: 521, duration: "19:45", color: "linear-gradient(135deg,#1c5c1c,#0d3a0d)" },
+          ]},
+          { name: 'Markets', videos: [] },
+        ]},
+        { name: 'City Guides', subfolders: [
+          { name: 'Tokyo', videos: [
+            { title: "Tokyo Food Guide 2025", creator: "Strictly Dumpling", likes: "4.5M", comments: 334, duration: "28:20", color: "linear-gradient(135deg,#1c3a5c,#0d1a3a)" },
+          ]},
+          { name: 'Food Tours', videos: [] },
+        ]},
+        { name: 'Meal Prep', subfolders: [
+          { name: 'Weekly Prep', videos: [
+            { title: "Easy Meal Prep for the Week", creator: "Pick Up Limes", likes: "1.7M", comments: 112, duration: "13:50", color: "linear-gradient(135deg,#3a5c1c,#1a3a0d)" },
+          ]},
+          { name: 'Snacks', videos: [] },
+        ]},
+      ]},
+    ],
+  },
+  diego: {
+    name: "Diego's Folders",
+    folders: [
+      { name: 'Game Reviews', color: 'var(--purple)', subfolders: [
+        { name: 'Indie', subfolders: [
+          { name: 'Top 10', videos: [
+            { title: "Top 10 Indie Games of 2025", creator: "GameSpot", likes: "3.1M", comments: 234, duration: "17:30", color: "linear-gradient(135deg,#3a1c5c,#1a0d3a)" },
+          ]},
+          { name: 'Hidden Gems', videos: [] },
+        ]},
+        { name: 'Deep Dives', subfolders: [
+          { name: 'Analysis', videos: [
+            { title: "Why Hollow Knight is a Masterpiece", creator: "Jacob Geller", likes: "2.4M", comments: 178, duration: "26:40", color: "linear-gradient(135deg,#1c3a3a,#0d1a1a)" },
+          ]},
+          { name: 'Lore', videos: [] },
+        ]},
+      ]},
+      { name: 'Speedruns', color: 'var(--red)', subfolders: [
+        { name: 'Guides', subfolders: [
+          { name: 'Bosses', videos: [
+            { title: "Elden Ring Boss Guide", creator: "VaatiVidya", likes: "5.8M", comments: 489, duration: "21:15", color: "linear-gradient(135deg,#1c1c1c,#0d0d0d)" },
+          ]},
+          { name: 'Routes', videos: [] },
+        ]},
+        { name: 'Glitchless', subfolders: [
+          { name: 'Any%', videos: [] },
+          { name: '100%', videos: [] },
+        ]},
+        { name: 'RTA', subfolders: [
+          { name: 'Categories', videos: [] },
+          { name: 'PB', videos: [] },
+        ]},
+      ]},
+      { name: 'Indie Gems', color: 'var(--blue)', subfolders: [
+        { name: 'Previews', subfolders: [
+          { name: 'Silksong', videos: [
+            { title: "Hollow Knight Silksong First Impressions", creator: "Skill Up", likes: "4.2M", comments: 312, duration: "14:20", color: "linear-gradient(135deg,#3a3a1c,#1a1a0d)" },
+          ]},
+          { name: 'Upcoming', videos: [] },
+        ]},
+        { name: 'Hidden Gems', subfolders: [
+          { name: 'Discoveries', videos: [] },
+          { name: 'Cult Picks', videos: [] },
+        ]},
+      ]},
+    ],
+  },
+  emma: {
+    name: "Emma's Folders",
+    folders: [
+      { name: 'Workout Plans', color: 'var(--green)', subfolders: [
+        { name: 'Full Body', subfolders: [
+          { name: '20 Min', videos: [
+            { title: "20 Min Full Body Workout", creator: "Chloe Ting", likes: "12.4M", comments: 892, duration: "20:00", color: "linear-gradient(135deg,#1c5c2a,#0d3a1a)" },
+          ]},
+          { name: 'Strength', videos: [] },
+        ]},
+        { name: 'HIIT', subfolders: [
+          { name: 'Cardio', videos: [
+            { title: "HIIT Cardio That Actually Works", creator: "Natacha Océane", likes: "4.5M", comments: 312, duration: "22:15", color: "linear-gradient(135deg,#5c1c2a,#3a0d1a)" },
+          ]},
+          { name: 'Intervals', videos: [] },
+        ]},
+      ]},
+      { name: 'Yoga Flows', color: 'var(--blue)', subfolders: [
+        { name: 'Morning', subfolders: [
+          { name: 'Energy', videos: [
+            { title: "Morning Yoga for Energy", creator: "Yoga With Adriene", likes: "6.8M", comments: 534, duration: "18:30", color: "linear-gradient(135deg,#2a5c1c,#1a3a0d)" },
+          ]},
+          { name: 'Routines', videos: [] },
+        ]},
+        { name: 'Evening', subfolders: [
+          { name: 'Wind Down', videos: [] },
+          { name: 'Stretches', videos: [] },
+        ]},
+        { name: 'Restorative', subfolders: [
+          { name: 'Deep Rest', videos: [] },
+          { name: 'Relax', videos: [] },
+        ]},
+      ]},
+      { name: 'Healthy Eats', color: 'var(--orange)', subfolders: [
+        { name: 'Meal Prep', subfolders: [
+          { name: 'Muscle', videos: [
+            { title: "Meal Prep for Muscle Gain", creator: "Jeff Nippard", likes: "3.2M", comments: 245, duration: "16:45", color: "linear-gradient(135deg,#5c4a1c,#3a2a0d)" },
+          ]},
+          { name: 'Meals', videos: [] },
+        ]},
+        { name: 'Snacks', subfolders: [
+          { name: 'High Protein', videos: [] },
+          { name: 'On the Go', videos: [] },
+        ]},
+      ]},
+      { name: 'Recovery', color: 'var(--purple)', subfolders: [
+        { name: 'Stretching', subfolders: [
+          { name: 'Stretch', videos: [
+            { title: "Stretching for Recovery", creator: "Tom Merrick", likes: "2.1M", comments: 156, duration: "12:20", color: "linear-gradient(135deg,#1c4a5c,#0d2a3a)" },
+          ]},
+          { name: 'Mobility', videos: [] },
+        ]},
+        { name: 'Mobility', subfolders: [
+          { name: 'Hip Openers', videos: [] },
+          { name: 'Spine', videos: [] },
+        ]},
+      ]},
+    ],
+  },
+  frank: {
+    name: "Frank's Folders",
+    folders: [
+      { name: 'Tech Talks', color: 'var(--blue)', subfolders: [
+        { name: 'Startups', subfolders: [
+          { name: 'Zero to One', videos: [
+            { title: "Building a Startup from Zero", creator: "Y Combinator", likes: "7.2M", comments: 612, duration: "32:10", color: "linear-gradient(135deg,#1c2a5c,#0d1a3a)" },
+          ]},
+          { name: 'Fundraising', videos: [] },
+        ]},
+        { name: 'AI', subfolders: [
+          { name: 'AI Future', videos: [
+            { title: "AI Will Change Everything", creator: "Lex Fridman", likes: "5.6M", comments: 421, duration: "45:20", color: "linear-gradient(135deg,#3a1c5c,#1a0d3a)" },
+          ]},
+          { name: 'Ethics', videos: [] },
+        ]},
+        { name: 'Code', subfolders: [
+          { name: 'Clean Code', videos: [
+            { title: "Clean Code Principles", creator: "CodeAesthetic", likes: "2.8M", comments: 187, duration: "19:30", color: "linear-gradient(135deg,#5c5c1c,#3a3a0d)" },
+          ]},
+          { name: 'Refactoring', videos: [] },
+        ]},
+      ]},
+      { name: 'Coding Tutorials', color: 'var(--green)', subfolders: [
+        { name: 'Quick Tips', subfolders: [
+          { name: 'Rust', videos: [
+            { title: "Rust in 100 Seconds", creator: "Fireship", likes: "8.9M", comments: 743, duration: "1:40", color: "linear-gradient(135deg,#5c3a1c,#3a2a0d)" },
+          ]},
+          { name: 'Snippets', videos: [] },
+        ]},
+        { name: 'Systems Design', subfolders: [
+          { name: 'Design', videos: [
+            { title: "System Design for Interviews", creator: "ByteByteGo", likes: "4.1M", comments: 298, duration: "28:45", color: "linear-gradient(135deg,#1c5c5c,#0d3a3a)" },
+          ]},
+          { name: 'Interviews', videos: [] },
+        ]},
+      ]},
+    ],
+  },
+};
+
+let currentUser = 'me';
+let currentFolder = null;
+let currentSubfolder = null;
+let currentSubsubfolder = null;
+
+const userDisplayNames = {
+  me: 'You',
+  alice: 'Alice',
+  bob: 'Bob',
+  chiara: 'Chiara',
+  diego: 'Diego',
+  emma: 'Emma',
+  frank: 'Frank',
+};
+
+const feedOptions = {
+  me: [
+    { key: 'all', label: 'Created & Received', color: 'var(--blue)', icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>' },
+    { key: 'created', label: 'I created', color: 'var(--red)', icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg>', expandable: true, children: [
+      { key: 'created-all', label: 'Private & Shared', color: 'var(--red)', icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg>' },
+      { key: 'created-private', label: 'Private', color: 'var(--orange)', icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>' },
+      { key: 'created-shared', label: 'Shared', color: 'var(--purple)', icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>' },
+    ]},
+    { key: 'received', label: 'I received', color: 'var(--green)', icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-6l-2 3H8l-2-3H2"/><path d="M5.55 5.55L2 12v4a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-4l-3.55-6.45A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.69.96z"/></svg>' },
+  ],
+  shared: [
+    { key: 'shared', label: (name) => `${name} & me`, color: 'var(--purple)', icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="6" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="18" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>' },
+    { key: 'sent', label: (name) => `I sent to ${name}`, color: 'var(--orange)', icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>' },
+    { key: 'received', label: (name) => `I received from ${name}`, color: 'var(--green)', icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-6l-2 3H8l-2-3H2"/><path d="M5.55 5.55L2 12v4a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-4l-3.55-6.45A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.69.96z"/></svg>' },
+  ],
+};
+
+let currentFeed = 'all';
+let createdExpanded = false;
+const lastFeedByUser = { me: 'all' };
+
+function getFeedOptions() {
+  const name = userDisplayNames[currentUser] || 'them';
+  return currentUser === 'me' ? feedOptions.me : feedOptions.shared.map(o => ({ ...o, label: typeof o.label === 'function' ? o.label(name) : o.label }));
+}
+
+function renderFeedDropdown() {
+  const options = getFeedOptions();
+  const menu = document.getElementById('feedDropdown');
+  const pill = document.getElementById('feedPillLabel');
+  const pillIcon = document.getElementById('feedPillIcon');
+  const allItems = [];
+  options.forEach(o => {
+    allItems.push(o);
+    if (o.children) allItems.push(...o.children);
+  });
+  const active = allItems.find(o => o.key === currentFeed) || options[0];
+  pill.textContent = active.label;
+  pillIcon.innerHTML = `<span class="icon-pill" style="background:${active.color}">${active.icon}</span>`;
+
+  if (currentUser === 'me') {
+    menu.innerHTML = options.map(o => {
+      if (o.expandable) {
+        const childHtml = o.children.map(c => `
+          <div class="dropdown-item sub ${c.key === currentFeed ? 'active' : ''}" onclick="event.stopPropagation(); pickFeed('${c.key}', '${c.label.replace(/'/g, "\\'")}', this)">
+            <span class="icon-pill" style="background:${c.color}">${c.icon}</span>
+            <span>${c.label}</span>
+          </div>
+        `).join('');
+        return `
+          <div class="dropdown-item parent ${createdExpanded ? 'expanded' : ''}" onclick="event.stopPropagation(); toggleCreated()">
+            <span class="icon-pill" style="background:${o.color}">${o.icon}</span>
+            <span class="parent-label">${o.label}</span>
+            <svg class="expand-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="${createdExpanded ? '18 15 12 9 6 15' : '6 9 12 15 18 9'}"/></svg>
+          </div>
+          <div class="dropdown-children" style="display:${createdExpanded ? 'block' : 'none'}">
+            ${childHtml}
+          </div>
+        `;
+      }
+      return `
+        <div class="dropdown-item ${o.key === currentFeed ? 'active' : ''}" onclick="pickFeed('${o.key}', '${o.label.replace(/'/g, "\\'")}', this)">
+          <span class="icon-pill" style="background:${o.color}">${o.icon}</span>
+          <span>${o.label}</span>
+        </div>
+      `;
+    }).join('');
+  } else {
+    menu.innerHTML = options.map(o => `
+      <div class="dropdown-item ${o.key === currentFeed ? 'active' : ''}" onclick="pickFeed('${o.key}', '${o.label.replace(/'/g, "\\'")}', this)">
+        <span class="icon-pill" style="background:${o.color}">${o.icon}</span>
+        <span>${o.label}</span>
+      </div>
+    `).join('');
+  }
+}
+
+function toggleCreated() {
+  createdExpanded = !createdExpanded;
+  renderFeedDropdown();
+}
+
+function isMobile() {
+  return window.innerWidth <= 700;
+}
+
+function folderPath() {
+  return [currentFolder, currentSubfolder, currentSubsubfolder].filter(Boolean);
+}
+
+function currentNode() {
+  const u = users[currentUser];
+  if (!currentFolder) return null;
+  const folder = u.folders.find(f => f.name === currentFolder);
+  if (!currentSubfolder) return folder || null;
+  const sub = folder && folder.subfolders.find(s => s.name === currentSubfolder);
+  if (!currentSubsubfolder) return sub || null;
+  return (sub && sub.subfolders.find(s => s.name === currentSubsubfolder)) || null;
+}
+
+function getNodeByPath(path) {
+  let node = null;
+  const u = users[currentUser];
+  for (let i = 0; i < path.length; i++) {
+    const children = node ? (node.subfolders || []) : u.folders;
+    node = children.find(c => c.name === path[i]);
+    if (!node) return null;
+  }
+  return node;
+}
+
+function getNodeChildren(node) {
+  if (!node) return users[currentUser].folders;
+  return node.subfolders || [];
+}
+
+function ensureVideos(node) {
+  if (node && !node.videos) node.videos = [];
+  return node ? node.videos : [];
+}
+
+function getSubtreeVideos(node) {
+  if (!node) {
+    return users[currentUser].folders.flatMap(f => getSubtreeVideos(f));
+  }
+  const own = node.videos || [];
+  const children = (node.subfolders || []).flatMap(s => getSubtreeVideos(s));
+  return own.concat(children);
+}
+
+function getSubtreeVideoCount(node) {
+  return getSubtreeVideos(node).length;
+}
+
+function getVideos() {
+  return getSubtreeVideos(currentNode());
+}
+
+function getTotalVideoCount() {
+  return getSubtreeVideoCount(null);
+}
+
+function renderFolders() {
+  const u = users[currentUser];
+  const sidebarClosed = document.querySelector('.app').classList.contains('sidebar-closed');
+  const isMobile = window.innerWidth <= 700;
+  const showInWorkspace = isMobile || sidebarClosed;
+  const sectionHeader = document.getElementById('folderSectionHeader');
+  const newFolder = document.getElementById('newFolderBtn');
+  const showNewFolder = showInWorkspace && currentUser === 'me';
+  if (newFolder) newFolder.style.display = showNewFolder ? 'flex' : 'none';
+  if (sectionHeader) sectionHeader.style.display = showNewFolder ? 'flex' : 'none';
+  const allCount = getTotalVideoCount();
+  const allCountText = `${allCount} video${allCount === 1 ? '' : 's'}`;
+  const foldersSectionTitle = document.getElementById('foldersSectionTitle');
+  if (foldersSectionTitle) foldersSectionTitle.textContent = `Folders · ${allCountText}`;
+  const everythingActive = currentFolder === null ? 'active' : '';
+  const everythingFolder = (drop) => `
+    <div class="folder-card ${everythingActive}" onclick="selectFolder('Everything')">
+      <div class="folder-icon everything" style="background:var(--text-3)">${folderIcon}<span class="lock-badge">${lockIcon}</span></div>
+      <div class="folder-info">
+        <div class="folder-name">Everything</div>
+        <div class="folder-count">${allCountText}</div>
+      </div>
+      <div class="folder-menu">${folderMenu}</div>
+    </div>
+  `;
+  const everythingItem = `
+    <div class="nav-item ${everythingActive}" onclick="selectFolder('Everything')">
+      <span class="folder-icon everything" style="background:var(--text-3)">${folderIcon}<span class="lock-badge">${lockIcon}</span></span>
+      <span>Everything</span>
+    </div>
+  `;
+  const foldersList = document.getElementById('foldersList');
+  if (foldersList) {
+    const list = u.folders.map(f => `
+      <div class="nav-item ${currentFolder === f.name ? 'active' : ''}" onclick="selectFolder('${f.name.replace(/'/g, "\\'")}', event)" ondragover="allowDrop(event)" ondragleave="leaveDrop(event)" ondrop="dropVideo(event, '${f.name.replace(/'/g, "\\'")}')">
+        <span class="folder-icon" style="background:${f.color}">${folderIcon}</span>
+        <span>${f.name}</span>
+      </div>
+      ${currentFolder === f.name ? f.subfolders.map(s => `
+        <div class="nav-item sub-folder ${s.name === currentSubfolder ? 'active' : ''}" onclick="selectSubfolder('${s.name.replace(/'/g, "\\'")}')" ondragover="allowDrop(event)" ondragleave="leaveDrop(event)" ondrop="dropVideo(event, '${f.name.replace(/'/g, "\\'")}', '${s.name.replace(/'/g, "\\'")}')">
+          <span class="folder-icon" style="background:${f.color}">${folderIcon}</span>
+          <span>${s.name}</span>
+        </div>
+        ${s.subfolders.map(ss => `
+          <div class="nav-item sub-folder-2 ${ss.name === currentSubsubfolder ? 'active' : ''}" onclick="selectSubsubfolder('${ss.name.replace(/'/g, "\\'")}', '${s.name.replace(/'/g, "\\'")}')" ondragover="allowDrop(event)" ondragleave="leaveDrop(event)" ondrop="dropVideo(event, '${f.name.replace(/'/g, "\\'")}', '${s.name.replace(/'/g, "\\'")}', '${ss.name.replace(/'/g, "\\'")}')">
+            <span class="folder-icon" style="background:${f.color}">${folderIcon}</span>
+            <span>${ss.name}</span>
+          </div>
+        `).join('')}
+      `).join('') : ''}
+    `).join('');
+    foldersList.innerHTML = everythingItem + list;
+  }
+  const foldersGrid = document.getElementById('foldersGrid');
+  if (foldersGrid) {
+    const grid = u.folders.map(f => {
+      const folderCount = f.subfolders.reduce((s, sf) => s + sf.subfolders.reduce((s2, ss) => s2 + ss.videos.length, 0), 0);
+      const folderCountText = `${folderCount} video${folderCount === 1 ? '' : 's'}`;
+      return `
+      <div class="folder-card ${currentFolder === f.name ? 'active' : ''}" onclick="selectFolder('${f.name.replace(/'/g, "\\'")}', event)">
+        <div class="folder-icon" style="background:${f.color}">${folderIcon}</div>
+        <div class="folder-info">
+          <div class="folder-name">${f.name}</div>
+          <div class="folder-count">${folderCountText}</div>
+        </div>
+        <div class="folder-menu">${folderMenu}</div>
+      </div>
+    `;
+    }).join('');
+    foldersGrid.innerHTML = everythingFolder() + grid;
+  }
+  renderFeedDropdown();
+  renderSubfolderTabs();
+  renderMobileDrill();
+}
+
+let viewMode = 'grid';
+
+function renderGrid() {
+  const grid = document.getElementById('videoGrid');
+  const vids = getVideos();
+  const isList = viewMode === 'list';
+  grid.classList.toggle('list-view', isList);
+
+  if (isList) {
+    grid.innerHTML = vids.map(v => `
+      <div class="video-list-item" draggable="true" data-title="${encodeURIComponent(v.title)}" ondragstart="dragVideo(event, '${encodeURIComponent(v.title)}')">
+        <div class="thumb-wrap">
+          <div class="thumb" style="background:${v.color}"></div>
+          <span class="duration">${v.duration}</span>
+        </div>
+        <div class="video-list-meta">
+          <div class="video-list-title">${v.title}</div>
+          <div class="video-list-creator">${v.creator}</div>
+          <div class="video-list-footer">
+            <span class="stat"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> ${v.likes}</span>
+            <span class="stat"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg> ${v.comments}</span>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  } else {
+    grid.innerHTML = vids.map(v => `
+      <div class="video-card" draggable="true" data-title="${encodeURIComponent(v.title)}" ondragstart="dragVideo(event, '${encodeURIComponent(v.title)}')">
+        <div class="thumb-wrap">
+          <div class="thumb" style="background:${v.color}"></div>
+          <span class="duration">${v.duration}</span>
+        </div>
+        <div class="video-info">
+          <div class="video-title">${v.title}</div>
+          <div class="video-creator">${v.creator}</div>
+          <div class="video-stats">
+            <span class="stat"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> ${v.likes}</span>
+            <span class="stat"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg> ${v.comments}</span>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+  applyCols();
+}
+
+function selectUser(key) {
+  if (currentUser) lastFeedByUser[currentUser] = currentFeed;
+  currentUser = key;
+  currentFolder = null;
+  currentSubfolder = null;
+  currentSubsubfolder = null;
+  currentFeed = lastFeedByUser[currentUser] || (currentUser === 'me' ? 'all' : 'shared');
+  createdExpanded = currentFeed.startsWith('created-');
+  document.querySelectorAll('.stories .story-ring').forEach(r => r.classList.remove('active'));
+  document.querySelector('.stories-me .story-ring').classList.toggle('active', key === 'me');
+  if (key !== 'me') {
+    const story = [...document.querySelectorAll('.stories .story')].find(s => s.getAttribute('onclick') === `selectUser('${key}')`);
+    if (story) story.querySelector('.story-ring').classList.add('active');
+  }
+  renderFolders();
+  renderGrid();
+}
+
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const app = document.querySelector('.app');
+  const closing = !sidebar.classList.contains('closed');
+  sidebar.classList.toggle('closed');
+  app.classList.toggle('sidebar-closed', sidebar.classList.contains('closed'));
+  if (closing) { currentFolder = null; currentSubfolder = null; currentSubsubfolder = null; }
+  renderFolders();
+  renderGrid();
+}
+
+function toggleSection(id) {
+  document.getElementById(id).classList.toggle('collapsed');
+}
+
+function toggleMobileFolders(e) {
+  e.stopPropagation();
+  document.getElementById('foldersWorkspace').classList.toggle('collapsed');
+}
+
+function dragVideo(e, title) {
+  e.dataTransfer.setData('text/plain', title);
+  e.dataTransfer.effectAllowed = 'move';
+}
+
+function allowDrop(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  e.currentTarget.classList.add('drag-over');
+}
+
+function leaveDrop(e) {
+  e.currentTarget.classList.remove('drag-over');
+}
+
+function dropVideo(e, folderName, subfolderName, subsubfolderName) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  const encodedTitle = e.dataTransfer.getData('text/plain');
+  const title = decodeURIComponent(encodedTitle);
+  moveVideoToFolder(title, folderName, subfolderName, subsubfolderName);
+}
+
+function moveVideoToFolder(title, targetFolderName, targetSubfolderName, targetSubsubfolderName) {
+  const u = users[currentUser];
+  let sourceSub2 = null;
+  let sourceIndex = -1;
+  for (const f of u.folders) {
+    for (const sf of f.subfolders) {
+      for (const ss of sf.subfolders) {
+        const idx = ss.videos.findIndex(v => v.title === title);
+        if (idx !== -1) { sourceSub2 = ss; sourceIndex = idx; break; }
+      }
+      if (sourceSub2) break;
+    }
+    if (sourceSub2) break;
+  }
+  const targetFolder = u.folders.find(f => f.name === targetFolderName);
+  const targetSub = targetSubfolderName
+    ? (targetFolder && targetFolder.subfolders.find(s => s.name === targetSubfolderName))
+    : (targetFolder && targetFolder.subfolders.length ? targetFolder.subfolders[0] : null);
+  const targetSub2 = targetSubsubfolderName
+    ? (targetSub && targetSub.subfolders.find(s => s.name === targetSubsubfolderName))
+    : (targetSub && targetSub.subfolders.length ? targetSub.subfolders[0] : null);
+  if (!sourceSub2 || !targetSub2 || sourceSub2 === targetSub2) return;
+
+  const [video] = sourceSub2.videos.splice(sourceIndex, 1);
+  targetSub2.videos.push(video);
+
+  renderFolders();
+  renderGrid();
+}
+
+function selectFolder(name, e) {
+  if (e && e.detail >= 2) {
+    enterFolder(name === 'Everything' ? null : name);
+    return;
+  }
+  currentFolder = name === 'Everything' ? null : (currentFolder === name ? null : name);
+  currentSubfolder = null;
+  currentSubsubfolder = null;
+  renderFolders();
+  renderGrid();
+}
+
+function enterFolder(name) {
+  currentFolder = name;
+  const folder = users[currentUser].folders.find(f => f.name === name);
+  currentSubfolder = folder && folder.subfolders.length ? folder.subfolders[0].name : null;
+  currentSubsubfolder = null;
+  renderFolders();
+  renderGrid();
+}
+
+function selectSubfolder(name) {
+  currentSubfolder = name;
+  currentSubsubfolder = null;
+  renderFolders();
+  renderGrid();
+}
+
+function selectSubsubfolder(name, parentSubfolderName) {
+  if (parentSubfolderName) currentSubfolder = parentSubfolderName;
+  currentSubsubfolder = name;
+  renderFolders();
+  renderGrid();
+}
+
+function renderSubfolderTabs() {
+  const tabs = document.getElementById('subfolderTabs');
+  if (!tabs) return;
+  const u = users[currentUser];
+  const folder = currentFolder ? u.folders.find(f => f.name === currentFolder) : null;
+  if (!folder) {
+    tabs.classList.remove('show');
+    tabs.innerHTML = '';
+    return;
+  }
+  tabs.classList.add('show');
+  tabs.innerHTML = `
+    <button class="sub-tab ${currentSubfolder === null ? 'active' : ''}" onclick="selectSubfolder(null)">All</button>
+  ` + folder.subfolders.map(s => `
+    <button class="sub-tab ${s.name === currentSubfolder ? 'active' : ''}" onclick="selectSubfolder('${s.name.replace(/'/g, "\\'")}')">
+      <span class="folder-icon" style="background:${folder.color}">${folderIcon}</span>
+      ${s.name}
+    </button>
+  `).join('');
+  renderSubsubfolderTabs();
+}
+
+function renderSubsubfolderTabs() {
+  const tabs = document.getElementById('subsubfolderTabs');
+  if (!tabs) return;
+  const u = users[currentUser];
+  const folder = currentFolder ? u.folders.find(f => f.name === currentFolder) : null;
+  const sub = folder && currentSubfolder ? folder.subfolders.find(s => s.name === currentSubfolder) : null;
+  if (!sub) {
+    tabs.classList.remove('show');
+    tabs.innerHTML = '';
+    return;
+  }
+  tabs.classList.add('show');
+  tabs.innerHTML = `
+    <button class="sub-tab ${currentSubsubfolder === null ? 'active' : ''}" onclick="selectSubsubfolder(null)">All</button>
+  ` + sub.subfolders.map(s => `
+    <button class="sub-tab ${s.name === currentSubsubfolder ? 'active' : ''}" onclick="selectSubsubfolder('${s.name.replace(/'/g, "\\'")}', '${sub.name.replace(/'/g, "\\'")}')">
+      <span class="folder-icon" style="background:${folder.color}">${folderIcon}</span>
+      ${s.name}
+    </button>
+  `).join('');
+}
+
+function toggleFeedDropdown(e) {
+  e.stopPropagation();
+  const menu = document.getElementById('feedDropdown');
+  const btn = document.getElementById('feedPill');
+  const isOpen = menu.classList.contains('open');
+  if (isOpen) {
+    menu.classList.remove('open');
+    return;
+  }
+  const rect = btn.getBoundingClientRect();
+  menu.style.top = (rect.bottom + 6) + 'px';
+  menu.style.left = rect.left + 'px';
+  menu.classList.add('open');
+}
+
+function pickFeed(key, label, el) {
+  currentFeed = key;
+  lastFeedByUser[currentUser] = key;
+  if (key.startsWith('created-')) createdExpanded = true;
+  document.getElementById('feedPillLabel').textContent = label;
+  const options = getFeedOptions();
+  const allItems = [];
+  options.forEach(o => { allItems.push(o); if (o.children) allItems.push(...o.children); });
+  const active = allItems.find(o => o.key === key);
+  if (active) document.getElementById('feedPillIcon').innerHTML = `<span class="icon-pill" style="background:${active.color}">${active.icon}</span>`;
+  renderFeedDropdown();
+  if (key.startsWith('created-')) {
+    document.getElementById('feedDropdown').classList.remove('open');
+  } else {
+    document.getElementById('feedDropdown').classList.add('open');
+  }
+  renderGrid();
+}
+
+document.addEventListener('click', () => {
+  document.getElementById('feedDropdown').classList.remove('open');
+});
+
+document.querySelector('.content').addEventListener('scroll', () => {
+  document.getElementById('feedDropdown').classList.remove('open');
+});
+
+function setSubTab(el) {
+  el.parentElement.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function setView(mode) {
+  viewMode = mode;
+  document.getElementById('gridBtn').classList.toggle('active', mode === 'grid');
+  document.getElementById('listBtn').classList.toggle('active', mode === 'list');
+  document.getElementById('colsControl').style.display = mode === 'grid' ? 'flex' : 'none';
+  renderGrid();
+}
+
+function getDefaultCols() {
+  const w = window.innerWidth;
+  if (w < 700) return 1;
+  if (w < 1200) return 2;
+  return 3;
+}
+
+let cols = getDefaultCols();
+const MIN_COLS = 1, MAX_COLS = 6;
+
+function applyCols() {
+  document.getElementById('colsValue').textContent = cols;
+  if (viewMode === 'list') return; // list view uses its own layout
+  const grid = document.getElementById('videoGrid');
+  grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+}
+
+function incCols() {
+  if (cols < MAX_COLS) { cols++; applyCols(); }
+}
+
+function decCols() {
+  if (cols > MIN_COLS) { cols--; applyCols(); }
+}
+
+/* ─── PROFILE MODAL ─── */
+function openProfileModal() {
+  document.getElementById('profileOverlay').classList.add('show');
+}
+
+function closeProfileModal() {
+  document.getElementById('profileOverlay').classList.remove('show');
+  if (document.getElementById('profileUsernameForm').style.display !== 'none') {
+    toggleProfileEdit();
+  }
+}
+
+function toggleProfileTheme() {
+  const toggle = document.getElementById('profileThemeToggle');
+  const dark = toggle.classList.toggle('dark');
+  toggle.setAttribute('aria-checked', dark);
+  const sun = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>';
+  const moon = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+  document.getElementById('profileThemeLabel').innerHTML =
+    (dark ? moon : sun) + '<span id="profileThemeText">' + (dark ? 'Dark mode' : 'Light mode') + '</span>';
+}
+
+function toggleProfileEdit() {
+  const view = document.getElementById('profileUsernameView');
+  const form = document.getElementById('profileUsernameForm');
+  const editBtn = document.getElementById('profileEditBtn');
+  const editing = form.style.display !== 'none';
+  form.style.display = editing ? 'none' : 'block';
+  view.style.display = editing ? 'block' : 'none';
+  editBtn.style.display = editing ? 'flex' : 'none';
+  if (!editing) document.getElementById('profileNameInput').focus();
+}
+
+function saveProfileName() {
+  const input = document.getElementById('profileNameInput');
+  const name = input.value.trim();
+  if (name.length < 3 || name.length > 32) {
+    input.style.borderColor = 'var(--red)';
+    return;
+  }
+  input.style.borderColor = '';
+  document.getElementById('profileName').textContent = name;
+  document.getElementById('profileUsernameValue').textContent = name;
+  document.getElementById('profileAvatarInitials').textContent = name.slice(0, 2).toUpperCase();
+  toggleProfileEdit();
+}
+
+function selectProfileLang(el) {
+  document.querySelectorAll('.profile-lang-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeProfileModal();
+});
+
+selectUser('me');
+applyCols();
+
+window.addEventListener('resize', () => {
+  cols = getDefaultCols();
+  applyCols();
+  renderFolders();
+  renderGrid();
+});
+
+function toggleFab() {
+  const open = document.getElementById('fabBtn').classList.toggle('fab--open');
+  document.getElementById('speedDial').classList.toggle('speed-dial--open', open);
+  document.getElementById('fabScrim').classList.toggle('fab-scrim--open', open);
+}
+
+function fabAction() {
+  document.getElementById('fabBtn').classList.remove('fab--open');
+  document.getElementById('speedDial').classList.remove('speed-dial--open');
+  document.getElementById('fabScrim').classList.remove('fab-scrim--open');
+}
+
+/* ─── MOBILE DRILL-DOWN (breadcrumb + child-folder grid) ─── */
+function renderMobileDrill() {
+  const drill = document.getElementById('mobileDrill');
+  if (!drill) return;
+  const path = folderPath();
+  const node = currentNode();
+  const crumbs = path.map((name, i) => {
+    const current = i === path.length - 1;
+    return current
+      ? `<button type="button" class="breadcrumb-crumb current" disabled>${name.replace(/</g, '&lt;')}</button>`
+      : `<button type="button" class="breadcrumb-crumb" onclick="goToLevel(${i})">${name.replace(/</g, '&lt;')}</button>`;
+  });
+  const breadcrumb = document.getElementById('mobileBreadcrumb');
+  breadcrumb.innerHTML = crumbs.length
+    ? `<button type="button" class="breadcrumb-crumb" onclick="goToLevel(-1)">Folders</button>` +
+      crumbs.map(c => `<span class="breadcrumb-sep">›</span>${c}`).join('')
+    : '';
+
+  const grid = document.getElementById('mobileFolderGrid');
+  const children = getNodeChildren(node);
+  if (!children.length) {
+    grid.innerHTML = '';
+    return;
+  }
+  const parentColor = node ? node.color : 'var(--text-3)';
+  let cardsHtml = '';
+  if (!node) {
+    const allCount = getTotalVideoCount();
+    const allCountText = `${allCount} video${allCount === 1 ? '' : 's'}`;
+    cardsHtml += `
+      <div class="folder-card active" onclick="goToLevel(-1)">
+        <div class="folder-icon everything" style="background:var(--text-3)">${folderIcon}<span class="lock-badge">${lockIcon}</span></div>
+        <div class="folder-info">
+          <div class="folder-name">Everything</div>
+          <div class="folder-count">${allCountText}</div>
+        </div>
+        <div class="folder-menu">${folderMenu}</div>
+      </div>
+    `;
+  }
+  cardsHtml += children.map(c => {
+    const count = getSubtreeVideoCount(c);
+    const countText = `${count} video${count === 1 ? '' : 's'}`;
+    return `
+      <div class="folder-card" onclick="drillInto('${c.name.replace(/'/g, "\\'")}')">
+        <div class="folder-icon" style="background:${c.color || parentColor}">${folderIcon}</div>
+        <div class="folder-info">
+          <div class="folder-name">${c.name}</div>
+          <div class="folder-count">${countText}</div>
+        </div>
+        <div class="folder-menu">${folderMenu}</div>
+      </div>
+    `;
+  }).join('');
+  grid.innerHTML = cardsHtml;
+}
+
+function drillInto(name) {
+  if (!currentFolder) {
+    currentFolder = name;
+  } else if (!currentSubfolder) {
+    currentSubfolder = name;
+  } else {
+    currentSubsubfolder = name;
+  }
+  renderFolders();
+  renderGrid();
+}
+
+function goToLevel(level) {
+  const path = folderPath();
+  currentFolder = null;
+  currentSubfolder = null;
+  currentSubsubfolder = null;
+  if (level >= 0 && path[level]) {
+    currentFolder = path[0];
+    if (level >= 1) currentSubfolder = path[1];
+    if (level >= 2) currentSubsubfolder = path[2];
+  }
+  renderFolders();
+  renderGrid();
+}
+
+/* ─── LONG-PRESS CARD → ACTION SHEET → TREE PICKER ─── */
+let pendingCardTitle = null;
+let pendingMode = 'move';
+let treeExpanded = {};
+let treeSelection = [];
+let longPressTimer = null;
+let longPressStart = null;
+let longPressCard = null;
+
+function cancelLongPress() {
+  clearTimeout(longPressTimer);
+  longPressTimer = null;
+  longPressStart = null;
+  longPressCard = null;
+}
+
+function handleCardPointerDown(e) {
+  if (!isMobile()) return;
+  const card = e.target.closest('.video-card, .video-list-item');
+  if (!card) return;
+  const title = card.getAttribute('data-title');
+  if (!title) return;
+  longPressStart = { x: e.clientX, y: e.clientY };
+  longPressCard = card;
+  clearTimeout(longPressTimer);
+  longPressTimer = setTimeout(() => {
+    if (!longPressCard) return;
+    openCardActions(decodeURIComponent(title));
+    longPressCard = null;
+    if (e.cancelable) e.preventDefault();
+  }, 500);
+}
+
+function handleCardPointerMove(e) {
+  if (!longPressStart || !longPressCard) return;
+  if (Math.abs(e.clientX - longPressStart.x) > 10 || Math.abs(e.clientY - longPressStart.y) > 10) {
+    cancelLongPress();
+  }
+}
+
+function handleCardContextMenu(e) {
+  if (!isMobile()) return;
+  const card = e.target.closest('.video-card, .video-list-item');
+  if (!card) return;
+  const title = card.getAttribute('data-title');
+  if (!title) return;
+  e.preventDefault();
+  openCardActions(decodeURIComponent(title));
+}
+
+function openCardActions(title) {
+  pendingCardTitle = title;
+  document.getElementById('sheetCardTitle').textContent = title;
+  const found = findCard(title);
+  const path = found ? found.path : [];
+  document.getElementById('sheetBreadcrumb').textContent = path.length
+    ? 'Folders › ' + path.join(' › ')
+    : 'Folders';
+  document.getElementById('cardActionSheet').classList.add('open');
+}
+
+function closeCardActionSheet() {
+  document.getElementById('cardActionSheet').classList.remove('open');
+  pendingCardTitle = null;
+}
+
+function openTreePicker(mode) {
+  pendingMode = mode;
+  treeSelection = [];
+  document.getElementById('treePickerTitle').textContent = mode === 'move' ? 'Move to' : 'Copy to';
+  document.getElementById('treePickerConfirm').textContent = mode === 'move' ? 'Move' : 'Copy';
+  document.getElementById('cardActionSheet').classList.remove('open');
+  document.getElementById('treePicker').classList.add('open');
+  renderTreePicker();
+}
+
+function closeTreePicker() {
+  document.getElementById('treePicker').classList.remove('open');
+  pendingCardTitle = null;
+  pendingMode = 'move';
+  treeSelection = [];
+}
+
+function renderTreePicker() {
+  const body = document.getElementById('treePickerBody');
+  const rows = [];
+  const walk = (children, path) => {
+    children.forEach(child => {
+      const childPath = path.concat(child.name);
+      const key = childPath.join('/');
+      const hasChildren = !!(child.subfolders && child.subfolders.length);
+      const isExpanded = treeExpanded[key] !== false;
+      const isSelected = pendingMode === 'move'
+        ? treeSelection.length === 1 && treeSelection[0].join('/') === key
+        : treeSelection.some(p => p.join('/') === key);
+      const indent = path.length;
+      rows.push(`
+        <div class="tree-row" style="padding-left:${12 + indent * 18}px">
+          ${hasChildren
+            ? `<button type="button" class="tree-chevron${isExpanded ? ' open' : ''}" onclick="event.stopPropagation(); toggleTreeExpand('${key}')" aria-label="Expand">
+                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 6 15 12 9 18"/></svg>
+               </button>`
+            : `<span class="tree-chevron"></span>`}
+          <span class="tree-row-icon" style="background:${child.color || 'var(--text-3)'}">${folderIcon}</span>
+          <span class="tree-row-name">${child.name}</span>
+          <input type="${pendingMode === 'move' ? 'radio' : 'checkbox'}" name="treePick" class="tree-row-input" ${isSelected ? 'checked' : ''} onchange="toggleTreeSelection('${key}')" onclick="event.stopPropagation()">
+        </div>
+      `);
+      if (isExpanded && hasChildren) walk(child.subfolders, childPath);
+    });
+  };
+  walk(users[currentUser].folders, []);
+  body.innerHTML = rows.join('');
+}
+
+function toggleTreeExpand(key) {
+  treeExpanded[key] = treeExpanded[key] === false ? true : false;
+  renderTreePicker();
+}
+
+function toggleTreeSelection(key) {
+  const path = key.split('/');
+  if (pendingMode === 'move') {
+    treeSelection = [path];
+  } else {
+    const i = treeSelection.findIndex(p => p.join('/') === key);
+    if (i === -1) treeSelection.push(path);
+    else treeSelection.splice(i, 1);
+  }
+  renderTreePicker();
+}
+
+function confirmTreePicker() {
+  if (!pendingCardTitle) return;
+  if (pendingMode === 'move') {
+    if (treeSelection.length) moveCardToFolder(pendingCardTitle, treeSelection[0]);
+  } else {
+    if (treeSelection.length) copyCardToFolder(pendingCardTitle, treeSelection);
+  }
+  closeTreePicker();
+  renderFolders();
+  renderGrid();
+}
+
+function findCard(title) {
+  const walk = (node, path) => {
+    const videos = node.videos || [];
+    const idx = videos.findIndex(v => v.title === title);
+    if (idx !== -1) return { node, index: idx, path };
+    for (const child of (node.subfolders || [])) {
+      const r = walk(child, path.concat(child.name));
+      if (r) return r;
+    }
+    return null;
+  };
+  for (const f of users[currentUser].folders) {
+    const r = walk(f, [f.name]);
+    if (r) return r;
+  }
+  return null;
+}
+
+function moveCardToFolder(title, targetPath) {
+  const found = findCard(title);
+  if (!found) return;
+  const targetNode = getNodeByPath(targetPath);
+  if (!targetNode || targetNode === found.node) return;
+  const targetVideos = ensureVideos(targetNode);
+  if (targetVideos.length >= 4) return;
+  const [video] = found.node.videos.splice(found.index, 1);
+  targetVideos.push(video);
+}
+
+function copyCardToFolder(title, targetPaths) {
+  const found = findCard(title);
+  if (!found) return;
+  const video = found.node.videos[found.index];
+  if (!video) return;
+  targetPaths.forEach(path => {
+    const targetNode = getNodeByPath(path);
+    if (!targetNode || targetNode === found.node) return;
+    const targetVideos = ensureVideos(targetNode);
+    if (targetVideos.length >= 4) return;
+    targetVideos.push({ ...video });
+  });
+}
+
+const videoGridEl = document.getElementById('videoGrid');
+videoGridEl.addEventListener('pointerdown', handleCardPointerDown);
+videoGridEl.addEventListener('pointermove', handleCardPointerMove);
+videoGridEl.addEventListener('pointerup', cancelLongPress);
+videoGridEl.addEventListener('pointercancel', cancelLongPress);
+videoGridEl.addEventListener('contextmenu', handleCardContextMenu);
+</script>
+
+</body>
+</html>

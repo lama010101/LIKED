@@ -13,9 +13,6 @@
 import { getSupabaseServiceClient } from "@/lib/supabase/service";
 import type { Database } from "@/lib/types/database";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnySupabase = any;
-
 type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row'];
 
 export type Cause = Tables<"causes">;
@@ -101,11 +98,14 @@ export async function unshare(
   });
 
   if (error) {
-    // Handle specific error codes from the RPC function
-    if (error.message.includes("not found")) {
+    // Handle specific error codes from the RPC function (AUDIT-06 P3-18:
+    // use error codes instead of fragile message parsing).
+    // P0001 = cause not found, P0002 = unauthorized
+    const code = (error as { code?: string }).code;
+    if (code === "P0001") {
       throw new Error(`Cause not found: ${causeId}`);
     }
-    if (error.message.includes("Unauthorized")) {
+    if (code === "P0002") {
       throw new Error(`Unauthorized: cannot delete cause ${causeId}`);
     }
     throw new Error(`Unshare failed: ${error.message}`);
@@ -303,7 +303,7 @@ export async function unshareFolderOp(
   requestingUserId: string
 ): Promise<void> {
   const supabase = getSupabaseServiceClient();
-  const { error } = await (supabase as AnySupabase).rpc("unshare_folder_op", {
+  const { error } = await supabase.rpc("unshare_folder_op", {
     p_folder_share_op_id: folderShareOpId,
     p_requesting_user_id: requestingUserId,
   });

@@ -127,11 +127,17 @@ export default function BottomBarAvatar({ item, onClick, currentUserId, onRefres
     }
   };
 
-  const handleBlock = async () => {
+  const [blockConfirmOpen, setBlockConfirmOpen] = useState(false);
+
+  const handleBlock = () => {
     setPopoverOpen(false);
     if (!currentUserId || !item.user_id) return;
-    const confirmed = window.confirm(`Block ${item.displayName}? They will be removed from your friends and will no longer be able to share content with you.`);
-    if (!confirmed) return;
+    setBlockConfirmOpen(true);
+  };
+
+  const handleBlockConfirm = async () => {
+    setBlockConfirmOpen(false);
+    if (!currentUserId || !item.user_id) return;
     try {
       const { blockUserAction } = await import('@/app/lib/actions/friends');
       const result = await blockUserAction(item.user_id);
@@ -167,7 +173,16 @@ export default function BottomBarAvatar({ item, onClick, currentUserId, onRefres
       ref={setRef}
       {...(dragSource && !selectionActive && isMounted ? attributes : {})}
       {...(dragSource && !selectionActive && isMounted ? listeners : {})}
+      role="button"
+      tabIndex={0}
+      aria-label={item.type === 'me' ? 'Your profile' : `${item.displayName}${item.type === 'group' ? ' group' : ''}`}
       onClick={handleClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleClick();
+        }
+      }}
       style={{
         display: "flex",
         flexDirection: "column",
@@ -307,6 +322,70 @@ export default function BottomBarAvatar({ item, onClick, currentUserId, onRefres
           </button>
         </div>
       </>
+    )}
+
+    {/* Block confirmation modal (P3-10: replaces window.confirm) */}
+    {blockConfirmOpen && (
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Block ${item.displayName}?`}
+        className="fixed inset-0 z-[60] flex items-center justify-center"
+        style={{ background: 'rgba(0,0,0,0.5)' }}
+        onClick={() => setBlockConfirmOpen(false)}
+      >
+        <div
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            background: 'var(--surface-1, #1a1a2e)',
+            borderRadius: 16,
+            padding: '24px',
+            maxWidth: 340,
+            width: '90%',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+          }}
+        >
+          <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8, color: 'var(--text-1, #fff)' }}>
+            Block {item.displayName}?
+          </h3>
+          <p style={{ fontSize: 13, color: 'var(--text-3, #999)', marginBottom: 20, lineHeight: 1.5 }}>
+            They will be removed from your friends and will no longer be able to share content with you.
+          </p>
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+            <button
+              onClick={() => setBlockConfirmOpen(false)}
+              style={{
+                padding: '8px 16px',
+                borderRadius: 8,
+                fontSize: 13,
+                fontWeight: 600,
+                background: 'none',
+                border: '1px solid var(--border-1)',
+                color: 'var(--text-2)',
+                cursor: 'pointer',
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleBlockConfirm}
+              autoFocus
+              style={{
+                padding: '8px 16px',
+                borderRadius: 8,
+                fontSize: 13,
+                fontWeight: 600,
+                background: '#dc2626',
+                border: 'none',
+                color: '#fff',
+                cursor: 'pointer',
+              }}
+            >
+              Block
+            </button>
+          </div>
+        </div>
+      </div>
     )}
   </>
   );

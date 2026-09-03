@@ -17,19 +17,6 @@ export type DropTarget =
   | { kind: "node"; nodeId: string } // card→card auto-create folder
   | { kind: "trash" };
 
-export const DND_SOURCE_PREFIX = {
-  node: "node:",
-  tag: "tag:",
-} as const;
-
-export const DND_TARGET_PREFIX = {
-  friend: "friend:",
-  group: "group:",
-  folder: "folder:",
-  tag: "tag:",
-  trash: "trash",
-} as const;
-
 /** Build a stable DndKit id from a typed source. */
 export function sourceId(s: DragSource): string {
   switch (s.kind) {

@@ -25,25 +25,3 @@ export const TAG_PALETTE = [
   "#71717a", // zinc-500
   "#64748b", // slate-500
 ];
-
-/**
- * Get next color from palette (cycles if exhausted)
- */
-export function getNextTagColor(index: number): string {
-  return TAG_PALETTE[index % TAG_PALETTE.length];
-}
-
-/**
- * Get color with opacity for backgrounds
- */
-export function getTagColorWithOpacity(
-  colorHex: string,
-  opacity: number = 0.2
-): string {
-  // Convert hex to RGB
-  const r = parseInt(colorHex.slice(1, 3), 16);
-  const g = parseInt(colorHex.slice(3, 5), 16);
-  const b = parseInt(colorHex.slice(5, 7), 16);
-  
-  return `rgba(${r}, ${g}, ${b}, ${opacity})`;
-}

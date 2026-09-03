@@ -37,19 +37,23 @@ export default function NotificationPanel({ open, onClose, onUnreadCountChange }
     return () => { cancelled = true; };
   }, [open, onUnreadCountChange]);
 
+  const refetchNotifications = useCallback(() => {
+    getNotificationsAction().then((items) => {
+      setNotifications(items);
+      const unread = items.filter((n) => !n.read).length;
+      onUnreadCountChange(unread);
+    }).catch(() => {});
+  }, [onUnreadCountChange]);
+
   const handleMarkRead = useCallback(async (id: string) => {
     await markNotificationReadAction(id);
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    );
-    onUnreadCountChange(notifications.filter((n) => n.id !== id && !n.read).length);
-  }, [notifications, onUnreadCountChange]);
+    refetchNotifications();
+  }, [refetchNotifications]);
 
   const handleMarkAllRead = useCallback(async () => {
     await markAllNotificationsReadAction();
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-    onUnreadCountChange(0);
-  }, [onUnreadCountChange]);
+    refetchNotifications();
+  }, [refetchNotifications]);
 
   if (!open) return null;
 
@@ -114,6 +118,7 @@ export default function NotificationPanel({ open, onClose, onUnreadCountChange }
             )}
             <button
               onClick={onClose}
+              aria-label="Close notifications"
               style={{
                 width: 32,
                 height: 32,
@@ -167,7 +172,15 @@ function NotificationRow({
 
   return (
     <div
+      role={notification.read ? undefined : "button"}
+      tabIndex={notification.read ? undefined : 0}
       onClick={() => !notification.read && onMarkRead(notification.id)}
+      onKeyDown={(e) => {
+        if (!notification.read && (e.key === "Enter" || e.key === " ")) {
+          e.preventDefault();
+          onMarkRead(notification.id);
+        }
+      }}
       style={{
         display: 'flex',
         gap: 12,

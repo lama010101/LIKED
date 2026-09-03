@@ -635,6 +635,30 @@ export interface Database {
         }
         Relationships: []
       }
+      user_node_preferences: {
+        Row: {
+          user_id: string
+          scope_key: string
+          node_id: string
+          position: number
+          updated_at: string
+        }
+        Insert: {
+          user_id: string
+          scope_key: string
+          node_id: string
+          position: number
+          updated_at?: string
+        }
+        Update: {
+          user_id?: string
+          scope_key?: string
+          node_id?: string
+          position?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           id: string
@@ -688,7 +712,13 @@ export interface Database {
           p_name: string
           p_member_ids: string[]
         }
-        Returns: unknown
+        Returns: {
+          id: string
+          name: string
+          owner_id: string
+          deleted_at: string | null
+          created_at: string
+        }[]
       }
       create_node: {
         Args: {
@@ -817,6 +847,8 @@ export interface Database {
           p_cursor_created_at?: string
           p_cursor_node_id?: string
           p_limit?: number
+          p_exclude_foldered?: boolean
+          p_custom_order_ids?: string[]
         }
         Returns: {
           node_id: string
@@ -832,11 +864,11 @@ export interface Database {
           avg_rating: number | null
           view_count: number | null
           share_count: number | null
-          direction: string
+          direction: "own" | "sent" | "received"
           sender_id: string | null
           sender_name: string | null
           sender_avatar_key: string | null
-          tags: Json | null
+          tags: Array<{ tag_id: string; color_hex: string; label: string }>
           total_count: number
         }[]
       }
@@ -915,6 +947,7 @@ export interface Database {
           p_display_name: string
         }
         Returns: {
+          success: boolean
           error_code: string | null
         }[]
       }
@@ -924,6 +957,7 @@ export interface Database {
           p_avatar_key: string
         }
         Returns: {
+          success: boolean
           error_code: string | null
         }[]
       }
@@ -945,6 +979,245 @@ export interface Database {
           score: number
           updated_at: string
         }[]
+      }
+      create_tag_with_translation: {
+        Args: {
+          p_color: string
+          p_label: string
+          p_lang: string
+        }
+        Returns: string
+      }
+      create_node_with_metadata: {
+        Args: {
+          p_owner_id: string
+          p_url: string | null
+          p_text_content: string | null
+          p_title: string | null
+          p_thumbnail_key: string | null
+          p_language_code: string
+          p_tag_labels: string[] | null
+          p_description: string | null
+          p_auto_folder_name?: string | null
+        }
+        Returns: {
+          id: string
+          url: string | null
+          text_content: string | null
+          title: string | null
+          thumbnail_key: string | null
+          owner_id: string
+          language_code: string
+          origin_user_id: string
+          origin_created_at: string
+          deleted_at: string | null
+          created_at: string
+        }[]
+      }
+      import_url: {
+        Args: {
+          p_owner_id: string
+          p_url: string
+          p_title: string | null
+          p_thumbnail_key: string | null
+          p_language_code: string
+          p_description: string | null
+          p_new_tag_labels: string[] | null
+          p_existing_tag_ids: string[] | null
+          p_folder_id: string | null
+          p_note: string | null
+          p_auto_folder_name?: string | null
+        }
+        Returns: {
+          id: string
+          url: string | null
+          text_content: string | null
+          title: string | null
+          thumbnail_key: string | null
+          owner_id: string
+          language_code: string
+          origin_user_id: string
+          origin_created_at: string
+          deleted_at: string | null
+          created_at: string
+        }[]
+      }
+      get_visible_tags: {
+        Args: {
+          p_user_id: string
+          p_language_code: string
+        }
+        Returns: {
+          id: string
+          color_hex: string
+          label: string
+        }[]
+      }
+      get_or_create_unsorted_folder: {
+        Args: {
+          p_user_id: string
+        }
+        Returns: string
+      }
+      get_or_create_named_folder: {
+        Args: {
+          p_user_id: string
+          p_name: string
+          p_color: string | null
+        }
+        Returns: string
+      }
+      move_node_to_folder: {
+        Args: {
+          p_node_id: string
+          p_target_folder_id: string
+          p_source_folder_id: string | null
+          p_user_id: string
+        }
+        Returns: void
+      }
+      create_folder_with_nodes: {
+        Args: {
+          p_name: string
+          p_parent_folder_id: string | null
+          p_node_ids: string[]
+          p_user_id: string
+        }
+        Returns: string
+      }
+      get_folder_tree: {
+        Args: {
+          p_user_id: string
+        }
+        Returns: {
+          id: string
+          name: string
+          owner_id: string
+          parent_folder_id: string | null
+          is_project: boolean
+          color_hex: string
+          deleted_at: string | null
+          created_at: string
+          node_count: number
+          thumbnails: string[]
+        }[]
+      }
+      get_user_folders: {
+        Args: {
+          p_user_id: string
+        }
+        Returns: {
+          id: string
+          name: string
+          owner_id: string
+          parent_folder_id: string | null
+          is_project: boolean
+          color_hex: string
+          deleted_at: string | null
+          created_at: string
+          node_count: number
+          thumbnails: string[]
+        }[]
+      }
+      get_social_timeline: {
+        Args: {
+          p_user_id: string
+          p_language_code: string
+          p_cursor_created_at: string | null
+          p_cursor_id: string | null
+          p_limit: number
+        }
+        Returns: {
+          kind: "card" | "folder"
+          id: string
+          created_at: string
+          url: string | null
+          text_content: string | null
+          title: string | null
+          thumbnail_key: string | null
+          owner_id: string | null
+          direction: string | null
+          sender_id: string | null
+          sender_name: string | null
+          sender_avatar_key: string | null
+          avg_rating: number | null
+          tags: Array<{ tag_id: string; color_hex: string; label: string }> | null
+          folder_name: string | null
+          folder_color: string | null
+          folder_count: number | null
+          folder_thumbnails: string[] | null
+          total_count: number
+        }[]
+      }
+      hard_delete_node: {
+        Args: {
+          p_node_id: string
+          p_user_id: string
+        }
+        Returns: void
+      }
+      delete_folder: {
+        Args: {
+          p_folder_id: string
+        }
+        Returns: void
+      }
+      add_node_to_folder: {
+        Args: {
+          p_node_id: string
+          p_folder_id: string
+        }
+        Returns: void
+      }
+      remove_node_from_folder: {
+        Args: {
+          p_node_id: string
+          p_folder_id: string
+        }
+        Returns: void
+      }
+      move_folder: {
+        Args: {
+          p_folder_id: string
+          p_new_parent_id: string | null
+        }
+        Returns: void
+      }
+      unshare_folder_op: {
+        Args: {
+          p_folder_share_op_id: string
+          p_requesting_user_id: string
+        }
+        Returns: void
+      }
+      set_custom_order: {
+        Args: {
+          p_user_id: string
+          p_scope_key: string
+          p_node_ids: string[]
+        }
+        Returns: void
+      }
+      set_node_deleted: {
+        Args: {
+          p_node_id: string
+          p_deleted: boolean
+        }
+        Returns: void
+      }
+      rename_folder: {
+        Args: {
+          p_folder_id: string
+          p_name: string
+        }
+        Returns: void
+      }
+      create_folder: {
+        Args: {
+          p_name: string
+          p_parent_folder_id: string | null
+        }
+        Returns: string
       }
     }
     Views: Record<string, never>

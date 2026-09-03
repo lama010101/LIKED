@@ -97,7 +97,10 @@ export function detectEmbed(url: string | null): {
       return { kind: "generic", src: url, platform: "Suno" };
     }
 
-    // Generic
+    // Generic — validate scheme to prevent javascript:/data: URIs (AUDIT-06 P2-18).
+    if (u.protocol !== "https:" && u.protocol !== "http:") {
+      return { kind: "none" };
+    }
     return {
       kind: "generic",
       src: url,

@@ -77,7 +77,7 @@ async function getSharedWith(
     .from("edges")
     .select("user_id, users:user_id (display_name, avatar_key)")
     .eq("node_id", nodeId)
-    .neq("user_id", ownerId)) as unknown as {
+    .neq("user_id", ownerId)) as {
     data: EdgeRow[] | null;
     error: { message: string } | null;
   };
@@ -180,7 +180,7 @@ export async function getFriendRatingsForNode(
   const { data, error } = await supabase.rpc("get_node_friend_ratings", {
     p_node_id: nodeId,
     p_user_id: userId,
-  }) as unknown as { data: RatingRow[] | null; error: { message: string } | null };
+  });
 
   if (error) {
     throw new Error(`Failed to fetch friend ratings: ${error.message}`);

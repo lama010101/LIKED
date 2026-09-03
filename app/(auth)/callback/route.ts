@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { backfillFriendInvites } from "@/lib/db/friends";
+import { logger } from "@/lib/utils/logger";
 
 function getEmailPrefix(email: string): string {
   return email.split("@")[0] || "user";
@@ -24,7 +25,7 @@ export async function GET(request: Request) {
     const cookieStore = await cookies();
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
       {
         cookies: {
           getAll() {
@@ -52,7 +53,7 @@ export async function GET(request: Request) {
                            getEmailPrefix(user.email || "user");
         const normalizedName = normalizeDisplayName(displayName);
 
-        await supabase.from("users").upsert({
+        const { error: upsertErr } = await supabase.from("users").upsert({
           id: user.id,
           display_name: displayName,
           normalized_display_name: normalizedName,
@@ -60,6 +61,10 @@ export async function GET(request: Request) {
           avatar_key: null,
           avatar_change_count_today: 0,
         }, { onConflict: "id" });
+
+        if (upsertErr) {
+          logger.error("[auth/callback] Failed to upsert user profile:", upsertErr.message);
+        }
 
         // Backfill any pending friend invites for this user's email.
         // Idempotent: only updates rows where to_user_id IS NULL.

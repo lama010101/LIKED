@@ -3,8 +3,7 @@
  * Convert FeedNode[] (from get_feed RPC) to FeedItem[] for view components
  */
 
-import type { FeedNode } from "@/lib/hooks/useFeed";
-import type { FeedItem } from "@/lib/types/feed";
+import type { FeedNode, FeedItem } from "@/lib/types/feed";
 
 export function toFeedItems(nodes: FeedNode[]): FeedItem[] {
   return nodes.map((n) => {

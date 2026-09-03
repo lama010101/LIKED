@@ -11,9 +11,7 @@ import {
   DuplicateNodeError,
   type ImportUrlInput,
 } from "@/lib/db/nodes";
-import { getOrCreateUnsortedFolder, addNodeToFolder } from "@/lib/db/folders";
 import { extractNodeMetadata } from "@/lib/edge/extract-metadata";
-import { logger } from "@/lib/utils/logger";
 
 /**
  * POST /api/import — Chrome extension save orchestrator.
@@ -202,17 +200,9 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // 5. If no folderId was provided, auto-assign to "Unsorted" folder
-  //    so that no node is ever without a folder (home page shows only folders).
-  if (!importInput.folderId) {
-    try {
-      const unsortedFolderId = await getOrCreateUnsortedFolder(user.id);
-      await addNodeToFolder(nodeId, unsortedFolderId, user.id);
-    } catch (folderErr) {
-      // Non-fatal: node is created even if folder assignment fails.
-      logger.error("Failed to auto-assign imported node to Unsorted folder:", folderErr);
-    }
-  }
+  // 5. Auto-folder assignment happened inside the import_url RPC
+  //    (p_auto_folder_name=NULL → "Unsorted" in the same transaction).
+  //    No post-write folder call needed (AUDIT-06 P1-4).
 
   return NextResponse.json(
     { success: true, nodeId, alreadyExists: false },

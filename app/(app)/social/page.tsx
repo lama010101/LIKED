@@ -1,17 +1,15 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { getFeed } from "@/lib/db/feed";
-import { getUserFolders } from "@/lib/db/folders";
-import { buildFeedParams } from "@/lib/utils/feedParams";
-import { DEFAULT_FILTER_STATE } from "@/lib/store/filterStore";
+import { getSocialTimeline } from "@/lib/db/socialTimeline";
 import SocialFeedView from "../feed/_components/SocialFeedView";
 
 /**
  * Social Feed page — Facebook/Instagram-style timeline.
  *
  * Shows all latest activity (cards + folders) as scrollable posts.
- * Uses the same canonical get_feed RPC as the grid feed, with
- * view=all and sort=newest. Folders are merged in by created_at.
+ * Uses the get_social_timeline RPC which unions cards + folders in a
+ * single SQL query, sorted by created_at DESC (AUDIT-06 P1-2: no
+ * client-side merge or sort).
  */
 export default async function SocialPage() {
   const supabase = await getSupabaseServerClient();
@@ -23,16 +21,8 @@ export default async function SocialPage() {
     redirect("/login");
   }
 
-  // Fetch feed data (view=all, sort=newest) + folders in parallel
-  const feedParams = buildFeedParams(
-    { ...DEFAULT_FILTER_STATE, view: "all", sort: "newest" },
-    user.id
-  );
-
-  const [feedResult, folders] = await Promise.all([
-    getFeed(feedParams, true),
-    getUserFolders(),
-  ]);
+  const languageCode = user.user_metadata?.language_code ?? "en";
+  const result = await getSocialTimeline(user.id, languageCode);
 
   return (
     <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
@@ -75,10 +65,10 @@ export default async function SocialPage() {
       </div>
 
       <SocialFeedView
-        initialNodes={feedResult.nodes}
-        folders={folders}
+        initialItems={result.items}
+        initialCursor={result.nextCursor}
         currentUserId={user.id}
-        languageCode={user.user_metadata?.language_code ?? "en"}
+        languageCode={languageCode}
       />
     </div>
   );
