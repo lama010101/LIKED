@@ -606,6 +606,42 @@ export default function ProfileModal({
 
           <div style={{ height: 1, background: 'var(--border-1)', margin: '0 16px' }} />
 
+          {/* ── YouTube Activity (import) ─────────────────────────────── */}
+          <div style={{ padding: '16px 24px' }}>
+            <a
+              href="/youtube"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                width: '100%',
+                padding: '10px 0',
+                background: 'transparent',
+                color: 'var(--text-1)',
+                fontSize: 14,
+                fontWeight: 500,
+                textDecoration: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                  fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.42a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.42a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.37z" />
+                  <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" fill="currentColor" />
+                </svg>
+                YouTube Activity
+              </span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                style={{ color: 'var(--text-3)' }}>
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </a>
+          </div>
+
+          <div style={{ height: 1, background: 'var(--border-1)', margin: '0 16px' }} />
+
           {/* ── Sign out ───────────────────────────────────────────────── */}
           <div style={{ padding: '16px 24px' }}>
             <button

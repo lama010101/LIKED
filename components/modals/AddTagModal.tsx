@@ -176,6 +176,7 @@ export function AddTagModal({
                 {tags.map((tag) => (
                   <button
                     key={tag.id}
+                    aria-pressed={selectedTagId === tag.id}
                     onClick={() => {
                       setSelectedTagId(selectedTagId === tag.id ? null : tag.id);
                       setNewTagLabel(""); // clear new tag when selecting existing

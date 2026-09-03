@@ -463,3 +463,56 @@
 | UIX-07 | Touch target sizes | ✅ | `globals.css` — added `.min-hit` CSS utility (min-width/min-height: 44px) with `@media (pointer: coarse)` padding expansion for touch devices. Applied to `SortViewRow` view mode buttons (were 28x28), `TagsStrip` clear search button (was 16x16). |
 | UIX-VERIFIED | tsc + build + E2E all pass | ✅ | tsc: 0 errors. Build: exit 0. E2E: 67/67 pass. |
 
+
+### AUDIT-07 Fixes — RLS recursion + client state + a11y + extension security (2026-09-03)
+| Task ID | Title | Status | Notes |
+|---------|-------|--------|-------|
+| P1-12 | Fix RLS infinite recursion (migration 091) | ✅ | `supabase/migrations/091_fix_rls_recursion.sql` created + applied to remote DB. Added SECURITY DEFINER helpers `folder_is_accessible`, `folder_is_owned`, `group_is_member`, `group_is_owned`; updated 9 RLS policies. Behavioral test: folder_edges scoped 8/205, group_members 0/22, no recursion errors. |
+| P2-2/P2-4 | FeedGrid server-authoritative folders | ✅ | `FeedGrid.tsx` — removed `localFolders` optimistic state; folders from server prop + `router.refresh()`. |
+| P2-5 | CardDetailSheet re-fetch after mutations | ✅ | `CardDetailSheet.tsx` — rating/title/tag-remove now call `refetchDetail()` instead of optimistic `setDetail((prev) => ...)`. |
+| P2-6 | NotificationPanel re-fetch after markRead | ✅ | `NotificationPanel.tsx` — markRead/markAllRead call `refetchNotifications()` instead of local mutation. |
+| P2-19 | Extension session token encryption | ✅ | `extension/src/auth/session.ts` — AES-GCM encryption via Web Crypto API, PBKDF2 key from per-install salt. |
+| P2-20 | Extension refresh response validation | ✅ | `extension/src/auth/session.ts` — runtime validation of access_token/refresh_token/expires_at fields. |
+| P2-22/P3-10 | BottomBarAvatar a11y + styled confirm | ✅ | `BottomBarAvatar.tsx` — role/tabIndex/aria-label/keyboard handler; `window.confirm` → styled modal. |
+| P3-5 | CardMenu native button | ✅ | `CardMenu.tsx` — `<span role="button">` → native `<button>`; stable keys via `item.label`. |
+| P3-6 | DnD folder ancestry cycle prevention | ✅ | `DroppableFolderChip.tsx` + `FeedGrid.tsx` — `isDescendant()` client-side check blocks ancestor/descendant drops. |
+| P3-14 | Narrow RPC return types | ✅ | `database.ts`, `feed.ts`, `useFeed.ts`, `socialTimeline.ts`, `useSocialTimeline.ts` — `as unknown as` → `as` on feed/socialTimeline path. |
+| AUDIT-07-VERIFIED | tsc + eslint + RLS test | ✅ | tsc: 0 errors. eslint: 0 errors / 0 warnings. RLS behavioral test passes (no recursion). 17 of 22 findings fixed, 4 already resolved, 1 documented exception (AnySupabase casts). |
+
+
+### Avatar Menu — YouTube Import Link (2026-09-03)
+| Task ID | Title | Status | Notes |
+|---------|-------|--------|-------|
+| YT-NAV-001 | Avatar menu → YouTube import link | ✅ | `components/modals/ProfileModal.tsx` — added "YouTube Activity" row (YouTube icon + label + chevron, mirrors `DOCS/UI/PROTO V2 - liked_desktop.html` lines 1565-1574) between the "Install Chrome Extension" and "Sign out" sections. `<a href="/youtube">` navigates to the YouTube import page (`app/(app)/youtube/page.tsx`). Static link only — no state, no feed, no write changes. tsc exit 0, eslint exit 0. |
+
+### AUDIT-08 Fixes — RPC authorization (IDOR) + polish (2026-09-03)
+| Task ID | Title | Status | Notes |
+|---------|-------|--------|-------|
+| AUDIT08-P0 | Fix RPC IDOR (auth.uid() gates) | ✅ | `supabase/migrations/092_fix_rpc_authz.sql` generated from remote function defs (`scripts/gen-migration-092.mjs`) and applied (`scripts/apply-migration-092.mjs`). 37 SECURITY DEFINER functions got the gate `IF auth.uid() IS NOT NULL AND <user_param> IS DISTINCT FROM auth.uid() THEN RAISE P0003`; 4 resource-only functions (set_node_deleted, delete_folder, add/remove_node_from_folder) rewritten with auth.uid() ownership checks + service-role bypass. SQL-language functions converted to plpgsql (RETURN QUERY / RETURN scalar). |
+| AUDIT08-VERIFY | Behavioral authz verification | ✅ | `scripts/verify-rpc-authz-092.mjs` — 11/11 checks passed: get_feed/get_social_timeline/get_friend_bar/get_user_folders/get_folder_tree with victim id → P0003; hard_delete_node/update_display_name/direct_share with victim id → P0003; own-id calls succeed. Service-role path re-probed (8/8 RPCs respond). tsc 0 / eslint 0 / extension tsc 0. |
+| AUDIT08-P3-1 | useSocialTimeline error logging | ✅ | `lib/hooks/useSocialTimeline.ts` — loadMore catch logs the error before stopping pagination. |
+| AUDIT08-P3-3 | Gitignore .tmp scripts | ✅ | `.gitignore` — added `.tmp-*.js` / `.tmp-*.mjs`. |
+
+### AUDIT-08 P3-2 — Eliminate AnySupabase / as-unknown-as casts (2026-09-03)
+| Task ID | Title | Status | Notes |
+|---------|-------|--------|-------|
+| AUDIT08-P3-2 | Remove AnySupabase escape hatches | ✅ | `lib/db/nodes.ts`, `folders.ts`, `sharing.ts`, `tags.ts`, `nodePreferences.ts`, `rpc.ts` — removed `type AnySupabase = any`; RPC calls now statically typed against `Database`. `lib/types/database.ts` — added 9 missing RPC defs + `user_node_preferences` table; corrected `import_url` Returns (string → node-row TABLE). Nested-select casts narrowed `as unknown as` → `as`. `tsc` 0 / `eslint` 0 / extension `tsc` 0. |
+
+### AUDIT-08 P2-1 — Harden extension session encryption (2026-09-03)
+| Task ID | Title | Status | Notes |
+|---------|-------|--------|-------|
+| AUDIT08-P2-1 | Non-extractable IndexedDB session key | ✅ | `extension/src/auth/session.ts` — session AES-GCM key is now a per-install random non-extractable CryptoKey stored in IndexedDB (per-extension-origin; cannot be exported). Legacy salt-derived key retained only for decrypt-and-migrate of pre-hardening sessions (then salt removed). IDB-unavailable fallback keeps extension functional. Verified: extension tsc 0 / build 0, main tsc 0 / eslint 0, crypto harness proves legacy→new migration round-trip + wrong-key rejection. |
+
+### AUDIT-08 P0 follow-up — anon bypass fix + least-privilege revokes (2026-09-03)
+| Task ID | Title | Status | Notes |
+|---------|-------|--------|-------|
+| AUDIT08-P0-FOLLOWUP | Close anon-role bypass + revoke EXECUTE | ✅ | Migration 092's gate skipped for anon (auth.uid() = NULL) and anon/PUBLIC EXECUTE grants remained → unauthenticated callers could read/impersonate any user. `supabase/migrations/094_fix_anon_bypass_and_revoke.sql` (generated by `scripts/gen-migration-094.mjs`, applied by `scripts/apply-migration-094.mjs`): (1) 37 gates → role-aware `IF NOT (auth.role()='service_role' OR (auth.role()='authenticated' AND <param> IS NOT DISTINCT FROM auth.uid())) THEN RAISE`; (2) 4 resource-only functions use `auth.role()='service_role'` bypass; (3) REVOKE EXECUTE FROM PUBLIC, anon on all RPCs + authenticated on 26 service-only functions. Verified: `scripts/verify-anon-blocked-094.mjs` (9/9 anon calls blocked, 42501), `scripts/verify-rpc-authz-092.mjs` (authenticated own-id OK / victim blocked), `verify-migrations-079-090.mjs` (service-role 8/8 OK). ACLs confirmed: writes = service_role only; reads = authenticated + service_role; no anon/PUBLIC anywhere. |
+| AUDIT08-P2-4 | Dedupe feed pagination constants | ✅ | `lib/constants.ts` — added `PAGINATION.initialLoadSize`; `lib/db/feed.ts` + `lib/hooks/useFeed.ts` now share it instead of duplicating `FEED_INITIAL_LOAD = 30`. |
+
+### Error-review sweep — migration 079 gap, unshare/search_nodes/create_node, node-creation bug (2026-09-03)
+| Task ID | Title | Status | Notes |
+|---------|-------|--------|-------|
+| SWEEP-01 | Drop create_node (079 never applied) + dead search_nodes/get_feed_custom_sort | ✅ | `supabase/migrations/095_drop_dead_and_gate_remaining_rpcs.sql` — pg_proc sweep found `create_node` still live (migration 079's DROP was never applied remotely; RPC-existence probes can't verify DROPs). Dropped it + legacy `search_nodes` + `get_feed_custom_sort`. Verified 0 remaining. |
+| SWEEP-02 | Gate `unshare` + least-privilege revokes | ✅ | `unshare` compared cause ownership to caller-supplied p_requesting_user_id (IDOR-WRITE, anon/PUBLIC grants) → added role-aware auth.uid() gate (095) then revoked to service-only (096). Revoked anon/PUBLIC from grant/revoke_folder/group_admin (authenticated kept — admin.ts uses user-session client); `increment_view_count` → service-only. |
+| SWEEP-03 | Fix node-creation runtime bug (RETURNS TABLE vs string) | ✅ | `create_node_with_metadata` returns a TABLE (array), database.ts said `string`, nodes.ts used `data` as the id → follow-up fetch `WHERE id="[object Object]"` → node creation threw. Runtime-confirmed via service-key probe; fixed database.ts Returns → node-row array and `const nodeId = data?.[0]?.id`. Also completed update_display_name/update_avatar_key Returns (`success`) and typed create_group Returns. |
+| SWEEP-VERIFY | Full verification | ✅ | tsc 0 / eslint 0 / vitest 60/60 / anon-blocked 9/9 / authz 11/11 / service-role probe 8/8. |

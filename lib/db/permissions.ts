@@ -181,21 +181,6 @@ export async function getEffectiveFolderPermission(
 }
 
 /**
- * Check if permission level meets or exceeds requirement
- *
- * @param userPermission - The user's current permission level
- * @param required - The minimum permission required
- * @returns boolean
- */
-export function checkPermission(
-  userPermission: Permission | null,
-  required: Permission
-): boolean {
-  if (!userPermission) return false;
-  return PERMISSION_RANK[userPermission] >= PERMISSION_RANK[required];
-}
-
-/**
  * PermissionError class for permission-related failures
  */
 export class PermissionError extends Error {
@@ -206,28 +191,6 @@ export class PermissionError extends Error {
   ) {
     super(message);
     this.name = "PermissionError";
-  }
-}
-
-/**
- * Assert that user has required permission on a node
- *
- * @throws PermissionError if user lacks required permission
- */
-export async function assertNodePermission(
-  userId: string,
-  nodeId: string,
-  required: Permission
-): Promise<void> {
-  const hasPermission = await hasNodePermission(userId, nodeId, required);
-
-  if (!hasPermission) {
-    const actual = await getEffectiveNodePermission(userId, nodeId);
-    throw new PermissionError(
-      `User ${userId} lacks required permission '${required}' on node ${nodeId}`,
-      required,
-      actual
-    );
   }
 }
 

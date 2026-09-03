@@ -6,21 +6,6 @@
 import { getSupabaseServiceClient } from "@/lib/supabase/service";
 import { rpc } from "@/lib/db/rpc";
 import { getVisibleNodeById } from "@/lib/db/visibility";
-import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/lib/types/database";
-
-/**
- * Supabase client with a permissive `rpc` signature.
- * The generated Database type only includes RPCs known at type-generation
- * time; `create_node_with_metadata` and `import_url` are not in the
- * generated types, so we loosen the rpc typing at the call site.
- */
-type AnySupabase = SupabaseClient<Database> & {
-  rpc: (fn: string, params: Record<string, unknown>) => Promise<{
-    data: unknown;
-    error: { message: string } | null;
-  }>;
-};
 
 /**
  * DuplicateNodeError - thrown when a node with the same URL already exists for the owner
@@ -140,31 +125,42 @@ export async function createNode(
     .filter((t) => t.length > 0);
   const finalDescription = metadata?.description?.trim() || null;
 
-  // 4. Atomic transaction (nodes + sort_cache + tags + tag_edges)
-  const { data, error } = await (supabase as AnySupabase).rpc(
-    "create_node_with_metadata",
-    {
-      p_owner_id: userId,
-      p_url: url ?? null,
-      p_text_content: textContent ?? null,
-      p_title: finalTitle,
-      p_thumbnail_key: finalThumb,
-      p_language_code: finalLang,
-      p_tag_labels: tagLabels,
-      p_description: finalDescription,
-    }
-  );
+  // 4. Atomic transaction (nodes + sort_cache + tags + tag_edges + auto-folder)
+  // Auto-folder assignment happens inside the RPC (p_auto_folder_name=NULL → "Unsorted").
+  const { data, error } = await supabase.rpc("create_node_with_metadata", {
+    p_owner_id: userId,
+    p_url: url ?? null,
+    p_text_content: textContent ?? null,
+    p_title: finalTitle,
+    p_thumbnail_key: finalThumb,
+    p_language_code: finalLang,
+    p_tag_labels: tagLabels,
+    p_description: finalDescription,
+    p_auto_folder_name: null,
+  });
 
   if (error) {
     throw new Error(`Failed to create node: ${error.message}`);
   }
 
-  const rows = data as Node[];
-  if (!rows || rows.length === 0) {
+  // The RPC returns the created node row (RETURNS TABLE → array of 1).
+  const nodeId = data?.[0]?.id;
+  if (!nodeId) {
     throw new Error("Node creation returned no data");
   }
 
-  return rows[0];
+  // Fetch the full node row
+  const { data: nodeRow, error: fetchErr } = await supabase
+    .from("nodes")
+    .select("*")
+    .eq("id", nodeId)
+    .single();
+
+  if (fetchErr || !nodeRow) {
+    throw new Error(`Failed to fetch created node: ${fetchErr?.message ?? "unknown"}`);
+  }
+
+  return nodeRow as Node;
 }
 
 /**
@@ -185,6 +181,8 @@ export interface ImportUrlInput {
   existingTagIds: string[];
   folderId: string | null;
   note: string | null;
+  /** Auto-folder name when folderId is null (e.g. "YouTube"). NULL → "Unsorted". */
+  autoFolderName?: string | null;
 }
 
 /**
@@ -202,7 +200,7 @@ export async function importUrl(
 ): Promise<Node> {
   const supabase = getSupabaseServiceClient();
 
-  const { data, error } = await (supabase as AnySupabase).rpc("import_url", {
+  const { data, error } = await supabase.rpc("import_url", {
     p_owner_id: userId,
     p_url: input.url,
     p_title: input.title,
@@ -213,6 +211,7 @@ export async function importUrl(
     p_existing_tag_ids: input.existingTagIds.length > 0 ? input.existingTagIds : null,
     p_folder_id: input.folderId,
     p_note: input.note,
+    p_auto_folder_name: input.autoFolderName ?? null,
   });
 
   if (error) {
@@ -222,12 +221,23 @@ export async function importUrl(
     throw new Error(`Failed to import URL: ${error.message}`);
   }
 
-  const rows = data as Node[];
-  if (!rows || rows.length === 0) {
+  const nodeId = data?.[0]?.id;
+  if (!nodeId) {
     throw new Error("Import URL returned no data");
   }
 
-  return rows[0];
+  // Fetch the full node row (RPC returns only the UUID)
+  const { data: nodeRow, error: fetchErr } = await supabase
+    .from("nodes")
+    .select("*")
+    .eq("id", nodeId)
+    .single();
+
+  if (fetchErr || !nodeRow) {
+    throw new Error(`Failed to fetch imported node: ${fetchErr?.message ?? "unknown"}`);
+  }
+
+  return nodeRow as Node;
 }
 
 /**
@@ -317,32 +327,15 @@ export async function restoreNode(nodeId: string, userId: string): Promise<void>
 export async function hardDeleteNode(nodeId: string, userId: string): Promise<void> {
   const supabase = getSupabaseServiceClient();
 
-  const { data: node, error: fetchErr } = await supabase
-    .from("nodes")
-    .select("owner_id, deleted_at")
-    .eq("id", nodeId)
-    .maybeSingle();
+  // Single RPC: verify ownership + soft-deleted status, then DELETE (cascades via FKs).
+  // Replaces the two-step fetch-then-delete pattern (AUDIT-06 P2-13).
+  const { error } = await supabase.rpc("hard_delete_node", {
+    p_node_id: nodeId,
+    p_user_id: userId,
+  });
 
-  if (fetchErr) {
-    throw new Error(`Failed to fetch node: ${fetchErr.message}`);
-  }
-  if (!node) {
-    throw new Error("Node not found");
-  }
-  if (node.owner_id !== userId) {
-    throw new Error("Only the owner can permanently delete this node");
-  }
-  if (!node.deleted_at) {
-    throw new Error("Node must be soft-deleted (in Trash) before permanent delete");
-  }
-
-  const { error: deleteErr } = await supabase
-    .from("nodes")
-    .delete()
-    .eq("id", nodeId);
-
-  if (deleteErr) {
-    throw new Error(`Failed to permanently delete node: ${deleteErr.message}`);
+  if (error) {
+    throw new Error(`Failed to permanently delete node: ${error.message}`);
   }
 }
 

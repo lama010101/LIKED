@@ -1,14 +1,21 @@
 /**
- * Feed data access layer — SINGLE ownership boundary for feed queries.
+ * Feed data access layer — server-side wrapper for get_feed RPC.
  * P9-T06-FIX: Canonical Feed System Implementation
  *
  * COMPLIANCE: 04_FEED_SQL_SPEC.md §2 (get_feed function), §8 (TypeScript wrapper)
  *
  * INVARIANTS:
- * - This is the ONLY file that calls get_feed RPC
- * - Contains NO business logic, filtering, or sorting
- * - All parameters come from buildFeedParams (single mapping authority)
- * - Returns data exactly as SQL produces it
+ * - Calls get_feed RPC directly with NO added logic (no filtering,
+ *   sorting, or deduplication — all done in SQL).
+ * - All parameters come from buildFeedParams (single mapping authority).
+ * - Returns data exactly as SQL produces it.
+ *
+ * Two legitimate callers of get_feed exist (both call the RPC directly):
+ *   1. This file (getFeed) — server-side, used by SSR pages.
+ *   2. lib/hooks/useFeed.ts — client-side, for infinite-scroll cursor
+ *      pagination (cannot route through a server action without breaking
+ *      pagination and adding a round-trip per page).
+ * The invariant is "no logic around the RPC", not "single caller".
  *
  * DO NOT:
  * - Add client-side filtering or sorting
@@ -18,66 +25,14 @@
 
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { PAGINATION, DEFAULT_LANGUAGE } from "@/lib/constants";
+import type { FeedNode, FeedParams, FeedResult } from "@/lib/types/feed";
 
-// ── Types ──────────────────────────────────────────────────────
-
-/** Feed node as returned by get_feed RPC — matches SQL RETURN TABLE exactly */
-export interface FeedNode {
-  node_id: string;
-  url: string | null;
-  text_content: string | null;
-  title: string | null;
-  thumbnail_key: string | null;
-  owner_id: string;
-  language_code: string;
-  origin_user_id: string;
-  origin_created_at: string;
-  created_at: string;
-
-  avg_rating: number | null;
-  view_count: number | null;
-  share_count: number | null;
-
-  direction: "own" | "sent" | "received";
-
-  sender_id: string | null;
-  sender_name: string | null;
-  sender_avatar_key: string | null;
-
-  tags: Array<{ tag_id: string; color_hex: string; label: string }>;
-
-  total_count: number;
-}
-
-/** Parameters for getFeed — mirrors buildFeedParams output */
-export interface FeedParams {
-  p_user_id: string;
-  p_language_code: string;
-  p_view?: string;
-  p_friend_id?: string;
-  p_folder_id?: string;
-  p_group_id?: string;
-  p_filter_tag_ids?: string[];
-  p_filter_friend_ids?: string[];
-  p_filter_folder_ids?: string[];
-  p_search_query?: string;
-  p_sort?: string;
-  p_cursor_created_at?: string;
-  p_cursor_node_id?: string;
-  p_limit?: number;
-  p_exclude_foldered?: boolean;
-}
-
-/** Result from getFeed call */
-export interface FeedResult {
-  nodes: FeedNode[];
-  totalCount: number;
-  nextCursor: { createdAt: string; nodeId: string } | null;
-}
+// Re-export so existing `import { FeedNode } from "@/lib/db/feed"` keeps working.
+export type { FeedNode, FeedParams, FeedResult };
 
 // ── Pagination constants ────────────────────────────────────────
 
-const FEED_INITIAL_LOAD = 30;
+const FEED_INITIAL_LOAD = PAGINATION.initialLoadSize;
 const FEED_PAGE_SIZE = PAGINATION.defaultPageSize;
 
 // ── Canonical feed function ─────────────────────────────────────
@@ -114,11 +69,12 @@ export async function getFeed(
     p_cursor_node_id: params.p_cursor_node_id,
     p_limit: limit,
     p_exclude_foldered: params.p_exclude_foldered ?? false,
+    p_custom_order_ids: params.p_custom_order_ids,
   });
 
   if (error) throw new Error(`Feed query failed: ${error.message}`);
 
-  const nodes = (data ?? []) as unknown as FeedNode[];
+  const nodes = (data ?? []) as FeedNode[];
   const totalCount = nodes.length > 0 ? (nodes[0].total_count ?? 0) : 0;
 
   // Derive next cursor from last item if page is full

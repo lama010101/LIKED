@@ -12,7 +12,7 @@ export async function overRateLimit(supabase: SupabaseClient, userId: string): P
     .eq("user_id", userId)
     .eq("action", "metadata_extraction")
     .gte("created_at", since);
-  if (error) return false; // fail open — do not punish the caller for our logging bug
+  if (error) return true; // fail closed — if rate-limit check fails, deny (AUDIT-06 P2-17)
   return (count ?? 0) >= RATE_LIMIT_PER_MIN;
 }
 

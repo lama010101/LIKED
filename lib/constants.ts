@@ -40,6 +40,9 @@ export const RATING = {
 export const PAGINATION = {
   defaultPageSize: 20,
   maxPageSize: 100,
+  /** First-page load size (SSR + client first fetch) — shared by
+   *  lib/db/feed.ts (server) and lib/hooks/useFeed.ts (client). */
+  initialLoadSize: 30,
 } as const;
 
 // UI constants

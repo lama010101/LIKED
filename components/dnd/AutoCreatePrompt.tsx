@@ -84,6 +84,10 @@ export default function AutoCreatePrompt() {
 
   return (
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Create folder"
+      tabIndex={-1}
       onClick={handleBackdropClick}
       onKeyDown={handleKeyDown}
       style={{

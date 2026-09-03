@@ -73,7 +73,7 @@ export async function getRatingsForNode(
   const { data, error } = await supabase
     .from("ratings")
     .select("user_id, score, users:user_id (display_name, avatar_key)")
-    .eq("node_id", nodeId) as unknown as { data: RatingRow[] | null; error: { message: string } | null };
+    .eq("node_id", nodeId) as { data: RatingRow[] | null; error: { message: string } | null };
 
   if (error) {
     throw new Error(`Failed to fetch ratings: ${error.message}`);

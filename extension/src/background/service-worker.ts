@@ -33,7 +33,15 @@ interface LikedSessionMessage {
 }
 
 function isAllowedOrigin(origin: string): boolean {
-  return ALLOWED_ORIGINS.some((allowed) => origin === allowed || origin.startsWith(allowed + "/"));
+  // Use URL-based comparison instead of startsWith (AUDIT-06 P3-12:
+  // startsWith is vulnerable to origin prefix confusion).
+  try {
+    const parsed = new URL(origin);
+    const normalized = `${parsed.protocol}//${parsed.host}`;
+    return ALLOWED_ORIGINS.includes(normalized);
+  } catch {
+    return false;
+  }
 }
 
 chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => {

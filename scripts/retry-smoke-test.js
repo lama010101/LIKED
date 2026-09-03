@@ -1,7 +1,7 @@
 const fs = require('fs');
 
 const envContent = fs.readFileSync('.env.local', 'utf8');
-const anonKeyMatch = envContent.match(/NEXT_PUBLIC_SUPABASE_ANON_KEY=(.+)/);
+const anonKeyMatch = envContent.match(/NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=(.+)/);
 const anonKey = anonKeyMatch ? anonKeyMatch[1].trim() : '';
 
 async function retryInvoke() {

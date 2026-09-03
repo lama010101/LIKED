@@ -44,6 +44,8 @@ next-env.d.ts
 # temp/scratch scripts and audit outputs
 temp_*.js
 temp_*.sql
+.tmp-*.js
+.tmp-*.mjs
 tsc-*.txt
 audit_*.json
 audit_*.txt

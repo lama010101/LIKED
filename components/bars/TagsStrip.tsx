@@ -186,6 +186,7 @@ export default function TagsStrip({ visible = true, userId, languageCode }: Tags
               <button
                 type="button"
                 onClick={() => toggleTagFilter(tag.id)}
+                aria-pressed={isActive}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',

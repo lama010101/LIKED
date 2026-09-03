@@ -24,9 +24,7 @@ import {
   DuplicateNodeError,
   type NodeMetadata,
 } from "@/lib/db/nodes";
-import { getOrCreateUnsortedFolder, addNodeToFolder } from "@/lib/db/folders";
 import { extractNodeMetadata } from "@/lib/edge/extract-metadata";
-import { logger } from "@/lib/utils/logger";
 
 export type CreateNodeResult =
   | { ok: true; nodeId: string }
@@ -151,22 +149,15 @@ export async function createNodeAction(
   };
 
   // 3. Persist — single transaction via RPC.
+  //    Auto-folder assignment happens inside the RPC (p_auto_folder_name=NULL
+  //    → "Unsorted" folder created in the same transaction). No post-write
+  //    folder assignment needed (AUDIT-06 P1-4).
   try {
     const node = await createNode(
       user.id,
       { url: url ?? undefined, textContent: text ?? undefined },
       metadata
     );
-
-    // Auto-assign new node to the user's "Unsorted" folder so that no
-    // node is ever without a folder (home page shows only folders).
-    try {
-      const unsortedFolderId = await getOrCreateUnsortedFolder(user.id);
-      await addNodeToFolder(node.id, unsortedFolderId, user.id);
-    } catch (folderErr) {
-      // Non-fatal: node is created even if folder assignment fails.
-      logger.error("Failed to auto-assign node to Unsorted folder:", folderErr);
-    }
 
     revalidatePath("/feed");
     return { ok: true, nodeId: node.id };

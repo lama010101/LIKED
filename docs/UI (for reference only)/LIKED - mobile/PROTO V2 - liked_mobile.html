@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>LIKED — V2 Mobile Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #e5e5ea;
+  --phone-bg: #f2f2f6;
+  --surface: #ffffff;
+  --border: rgba(0,0,0,0.06);
+  --border-strong: rgba(0,0,0,0.10);
+  --text: #1a1a2e;
+  --text-2: #6b6b80;
+  --text-3: #9a9aaf;
+  --red: #ff3b30;
+  --red-soft: #ffebeb;
+  --orange: #ff9500;
+  --green: #34c759;
+  --blue: #007aff;
+  --purple: #af52de;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+  --shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+/* ─── PHONE FRAME ─── */
+.phone {
+  width: 100%;
+  max-width: 400px;
+  height: 844px;
+  background: var(--phone-bg);
+  border-radius: 44px;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.18), 0 0 0 12px #1a1a2e;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.status-bar {
+  height: 44px;
+  background: var(--surface);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 8px 24px 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ─── HEADER ─── */
+.header {
+  height: 56px;
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  font-size: 20px;
+  color: var(--text);
+}
+
+.logo-icon {
+  width: 28px;
+  height: 28px;
+  background: var(--red);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.icon-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-full);
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
+  cursor: pointer;
+  position: relative;
+}
+
+.badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  background: var(--red);
+  border-radius: 50%;
+  border: 2px solid var(--surface);
+}
+
+.avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f5a623, #ff3b30);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 12px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+/* ─── SCREEN / SCROLL ─── */
+.screen {
+  flex: 1;
+  overflow-y: auto;
+  display: none;
+  flex-direction: column;
+}
+
+.screen.active { display: flex; }
+
+/* ─── STORIES ─── */
+.stories {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--surface);
+  overflow-x: auto;
+  border-bottom: 1px solid var(--border);
+}
+
+.stories::-webkit-scrollbar { display: none; }
+
+.story {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  position: relative;
+  cursor: pointer;
+}
+
+.story-ring {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  padding: 3px;
+  border: 2px solid var(--border);
+}
+
+.story-ring.active {
+  border: 3px solid var(--red);
+}
+
+.story-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.story-status {
+  position: absolute;
+  bottom: 18px;
+  right: 0;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 3px solid var(--surface);
+}
+
+.story-status.red { background: var(--red); }
+.story-status.green { background: var(--green); }
+.story-status.orange { background: var(--orange); }
+.story-status.blue { background: var(--blue); }
+
+.story-name {
+  font-size: 10px;
+  color: var(--text-2);
+}
+
+/* ─── FEED TABS ─── */
+.feed-tabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.feed-tabs::-webkit-scrollbar { display: none; }
+
+.feed-tab {
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  background: var(--phone-bg);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.feed-tab.active { background: var(--red); color: #fff; border-color: var(--red); }
+
+.feed-tabs-left { display: flex; gap: 8px; }
+.feed-tabs-right { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+
+/* ─── VIEW TOGGLE & COLUMNS (mobile) ─── */
+.view-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--radius-full);
+  background: var(--phone-bg);
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.view-toggle button {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-3);
+}
+
+.view-toggle button.active { background: var(--red); color: #fff; }
+
+.cols-control {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  border-radius: var(--radius-full);
+  background: var(--phone-bg);
+  border: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-2);
+  flex-shrink: 0;
+}
+
+.cols-stepper { display: flex; align-items: center; gap: 2px; }
+
+.cols-stepper button {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: none;
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#colsValue { min-width: 12px; text-align: center; color: var(--text); }
+
+/* ─── MINE SUB TABS ─── */
+.sub-tabs {
+  display: none;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+
+.sub-tabs::-webkit-scrollbar { display: none; }
+.sub-tabs.show { display: flex; }
+
+.sub-tab {
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  background: var(--phone-bg);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.sub-tab.active { background: var(--red-soft); color: var(--red); border-color: var(--red-soft); }
+
+/* ─── CATEGORY CHIPS ─── */
+.categories {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+
+.categories::-webkit-scrollbar { display: none; }
+
+.chip {
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  background: var(--phone-bg);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.chip.active { background: var(--red); color: #fff; border-color: var(--red); }
+
+.chip-icon { font-size: 14px; }
+
+/* ─── FEED CARDS ─── */
+.feed {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-bottom: 100px;
+}
+
+.feed.feed-grid {
+  display: grid;
+  gap: 12px;
+  padding-bottom: 100px;
+}
+
+.video-card-compact {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.video-card-compact .vc-thumb {
+  position: relative;
+  aspect-ratio: 16/9;
+  background-size: cover;
+  background-position: center;
+}
+
+.video-card-compact .vc-thumb .duration {
+  bottom: 6px;
+  right: 6px;
+  font-size: 10px;
+  padding: 2px 5px;
+}
+
+.video-card-compact .vc-body { padding: 8px 10px 10px; }
+
+.video-card-compact .vc-title {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.3;
+  margin-bottom: 4px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.video-card-compact .vc-creator { font-size: 11px; color: var(--text-2); margin-bottom: 6px; }
+
+.video-card-compact .vc-stats { display: flex; gap: 10px; font-size: 11px; color: var(--text-2); font-weight: 500; }
+
+.video-card-large {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+}
+
+.channel-av {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.channel-info { flex: 1; }
+.channel-name { font-size: 13px; font-weight: 700; color: var(--text); }
+.channel-time { font-size: 11px; color: var(--text-2); }
+
+.thumb-wrap {
+  position: relative;
+  aspect-ratio: 16/9;
+  overflow: hidden;
+}
+
+.thumb {
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.play-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  backdrop-filter: blur(2px);
+}
+
+.duration {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background: rgba(0,0,0,0.75);
+  color: #fff;
+  padding: 3px 7px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.card-body {
+  padding: 14px;
+}
+
+.card-title {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.4;
+  margin-bottom: 10px;
+}
+
+.card-friends {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.friend-av-stack {
+  display: flex;
+  align-items: center;
+}
+
+.friend-av-stack .avatar {
+  width: 26px;
+  height: 26px;
+  font-size: 10px;
+  border: 2px solid var(--surface);
+  margin-left: -8px;
+}
+
+.friend-av-stack .avatar:first-child { margin-left: 0; }
+
+.friend-label {
+  font-size: 12px;
+  color: var(--text-2);
+  margin-left: 8px;
+}
+
+.card-stats {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.stat { display: flex; align-items: center; gap: 4px; }
+.stat.heart { color: var(--red); }
+
+/* ─── FOLDERS SCREEN ─── */
+.section {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  margin: 12px 16px 0;
+  padding: 16px;
+  border: 1px solid var(--border);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.section-header h2 { font-size: 17px; font-weight: 700; }
+
+.new-folder {
+  color: var(--red);
+  background: none;
+  border: none;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.folder-list-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+
+.folder-list-item:last-child { border-bottom: none; }
+
+.folder-icon {
+  width: 44px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.folder-info { flex: 1; }
+.folder-name { font-weight: 700; font-size: 15px; }
+.folder-count { font-size: 13px; color: var(--text-2); }
+
+.video-list-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+
+.video-list-item:last-child { border-bottom: none; }
+
+.video-list-thumb {
+  width: 130px;
+  height: 78px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
+.video-list-thumb .duration {
+  bottom: 6px;
+  right: 6px;
+  font-size: 10px;
+}
+
+.video-list-info { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+.video-list-title { font-size: 14px; font-weight: 700; line-height: 1.35; margin-bottom: 5px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.video-list-creator { font-size: 12px; color: var(--text-2); margin-bottom: 8px; }
+.video-list-stats { display: flex; gap: 12px; font-size: 12px; color: var(--text-2); font-weight: 500; }
+
+#allVideosList.grid-mode {
+  display: grid;
+  gap: 12px;
+  padding: 0 16px;
+}
+
+/* ─── CONTROLS ROW ─── */
+.controls-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.filter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: var(--phone-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.sort-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: transparent;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+/* ─── BOTTOM NAV ─── */
+.bottom-nav {
+  height: 80px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-around;
+  padding-top: 10px;
+  position: relative;
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.bottom-nav .nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-3);
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 4px 8px;
+}
+
+.bottom-nav .nav-item.active { color: var(--red); }
+
+.fab {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--red);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  margin-top: -22px;
+  box-shadow: 0 4px 14px rgba(255,59,48,0.35);
+  cursor: pointer;
+}
+
+/* ─── FAB SCRIM & SPEED DIAL ─── */
+.fab-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  display: none;
+  z-index: 50;
+}
+
+.fab-scrim.open { display: block; }
+
+.speed-dial {
+  position: absolute;
+  bottom: 100px;
+  right: 24px;
+  display: none;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  z-index: 60;
+}
+
+.speed-dial.open { display: flex; }
+
+.dial-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dial-label { font-size: 12px; font-weight: 700; color: #fff; }
+
+.dial-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  cursor: pointer;
+}
+
+/* ─── TOGGLE SCREENS FROM BOTTOM NAV ─── */
+.home-screen .nav-item[data-screen="feed"],
+.folder-screen .nav-item[data-screen="folders"],
+.search-active .nav-item[data-screen="search"],
+.notif-active .nav-item[data-screen="notifications"],
+.profile-active .nav-item[data-screen="profile"] {
+  color: var(--red);
+}
+
+@media (max-width: 440px) {
+  body { padding: 0; background: var(--phone-bg); }
+  .phone { max-width: 100%; height: 100vh; border-radius: 0; box-shadow: none; border: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="status-bar">
+    <span id="clock">9:41</span>
+    <span>🔋</span>
+  </div>
+
+  <!-- FAB SCRIM -->
+  <div class="fab-scrim" id="fabScrim" onclick="toggleFab()"></div>
+
+  <!-- SPEED DIAL -->
+  <div class="speed-dial" id="speedDial">
+    <div class="dial-item"><span class="dial-label">Card</span><button class="dial-btn" style="background:#457b9d"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="3"/><line x1="2" y1="10" x2="22" y2="10"/></svg></button></div>
+    <div class="dial-item"><span class="dial-label">Folder</span><button class="dial-btn" style="background:#e76f51"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></button></div>
+    <div class="dial-item"><span class="dial-label">Template</span><button class="dial-btn" style="background:#2a9d8f"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="11" width="7" height="9" rx="1"/><rect x="3" y="13" width="7" height="7" rx="1"/></svg></button></div>
+    <div class="dial-item"><span class="dial-label">Tag</span><button class="dial-btn" style="background:#7c5cbf"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></button></div>
+  </div>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+      </div>
+      LIKED
+    </div>
+    <div class="header-right">
+      <button class="icon-btn">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+      <button class="icon-btn">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="badge"></span>
+      </button>
+      <div class="avatar">JS</div>
+    </div>
+  </header>
+
+  <!-- STORIES -->
+  <div class="stories" style="border-bottom:none">
+    <div class="story"><div class="story-ring"><div class="story-img" style="background:linear-gradient(135deg,#4a9fd5,#1c6fa0)">A</div></div><div class="story-status blue"></div><div class="story-name">Alice</div></div>
+    <div class="story"><div class="story-ring"><div class="story-img" style="background:linear-gradient(135deg,#34c759,#1ca06f)">B</div></div><div class="story-status green"></div><div class="story-name">Bob</div></div>
+    <div class="story"><div class="story-ring active"><div class="story-img" style="background:linear-gradient(135deg,#ff3b30,#d62828)">C</div></div><div class="story-status red"></div><div class="story-name">Chiara</div></div>
+    <div class="story"><div class="story-ring"><div class="story-img" style="background:linear-gradient(135deg,#d54a9f,#a01c6f)">D</div></div><div class="story-status orange"></div><div class="story-name">Diego</div></div>
+    <div class="story"><div class="story-ring"><div class="story-img" style="background:linear-gradient(135deg,#ff9500,#c76f00)">E</div></div><div class="story-status red"></div><div class="story-name">Emma</div></div>
+    <div class="story"><div class="story-ring"><div class="story-img" style="background:linear-gradient(135deg,#007aff,#0047cc)">F</div></div><div class="story-status blue"></div><div class="story-name">Frank</div></div>
+  </div>
+
+  <!-- SCREEN 1: FEED -->
+  <div class="screen active" id="feedScreen">
+    <div class="feed-tabs">
+      <div class="feed-tabs-left">
+        <button class="feed-tab active" onclick="setFeedTab(this,'all','feed')">All</button>
+        <button class="feed-tab" onclick="setFeedTab(this,'mine','feed')">Mine</button>
+        <button class="feed-tab" onclick="setFeedTab(this,'received','feed')">Received</button>
+      </div>
+      <div class="feed-tabs-right">
+        <div class="view-toggle">
+          <button class="active" onclick="setView('grid','feedGrid')" id="feedGridBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+          </button>
+          <button onclick="setView('list','feedGrid')" id="feedListBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><line x1="8" y1="6" x2="21" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="8" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="8" y1="18" x2="21" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="3" y1="6" x2="3.01" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="3" y1="12" x2="3.01" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="3" y1="18" x2="3.01" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+        <div class="cols-control">
+          <div class="cols-stepper">
+            <button onclick="decCols('feedCols')" aria-label="fewer columns">&minus;</button>
+            <span id="feedCols">2</span>
+            <button onclick="incCols('feedCols')" aria-label="more columns">+</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub-tabs" id="feedMineSubTabs">
+      <button class="sub-tab active" onclick="setSubTab(this)">all</button>
+      <button class="sub-tab" onclick="setSubTab(this)">not shared</button>
+      <button class="sub-tab" onclick="setSubTab(this)">shared</button>
+    </div>
+
+    <div class="categories">
+      <button class="chip"><span class="chip-icon">🎬</span>Productivity</button>
+      <button class="chip active"><span class="chip-icon">🥊</span>Boxing</button>
+      <button class="chip"><span class="chip-icon">🍴</span>Food</button>
+      <button class="chip"><span class="chip-icon">🎮</span>Gaming</button>
+      <button class="chip"><span class="chip-icon">✈️</span>Travel</button>
+      <button class="chip"><span class="chip-icon">🎵</span>Music</button>
+      <button class="chip"><span class="chip-icon">💻</span>Tech</button>
+    </div>
+
+    <div class="feed" id="feedList"></div>
+  </div>
+
+  <!-- SCREEN 2: FOLDERS -->
+  <div class="screen" id="foldersScreen">
+    <div class="feed-tabs" style="border-bottom:none">
+      <div class="feed-tabs-left">
+        <button class="feed-tab active" onclick="setFeedTab(this,'all','folders')">All</button>
+        <button class="feed-tab" onclick="setFeedTab(this,'mine','folders')">Mine</button>
+        <button class="feed-tab" onclick="setFeedTab(this,'received','folders')">Received</button>
+      </div>
+      <div class="feed-tabs-right">
+        <div class="view-toggle">
+          <button class="active" onclick="setView('grid','allVideosList')" id="foldersGridBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+          </button>
+          <button onclick="setView('list','allVideosList')" id="foldersListBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><line x1="8" y1="6" x2="21" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="8" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="8" y1="18" x2="21" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="3" y1="6" x2="3.01" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="3" y1="12" x2="3.01" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="3" y1="18" x2="3.01" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+        <div class="cols-control">
+          <div class="cols-stepper">
+            <button onclick="decCols('foldersCols')" aria-label="fewer columns">&minus;</button>
+            <span id="foldersCols">2</span>
+            <button onclick="incCols('foldersCols')" aria-label="more columns">+</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub-tabs" id="foldersMineSubTabs">
+      <button class="sub-tab active" onclick="setSubTab(this)">all</button>
+      <button class="sub-tab" onclick="setSubTab(this)">not shared</button>
+      <button class="sub-tab" onclick="setSubTab(this)">shared</button>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <h2>My Folders</h2>
+        <button class="new-folder" onclick="alert('New folder')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Folder
+        </button>
+      </div>
+      <div id="folderList"></div>
+    </div>
+
+    <div class="controls-row">
+      <div class="filter-pill">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+        All Videos
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <button class="sort-pill">
+        Recently Added
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+    </div>
+
+    <div class="section" id="allVideosList" style="margin-top:12px; border:none; box-shadow:none; background:transparent; padding:0 0 80px">
+      <!-- Video list items -->
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav" id="bottomNav">
+    <button class="nav-item active" data-screen="feed" onclick="switchScreen('feed')">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Home
+    </button>
+    <button class="nav-item" data-screen="search" onclick="switchScreen('search')">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Search
+    </button>
+    <button class="fab" id="fabBtn" onclick="toggleFab()">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </button>
+    <button class="nav-item" data-screen="notifications" onclick="switchScreen('notifications')">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      Inbox
+    </button>
+    <button class="nav-item" data-screen="profile" onclick="switchScreen('profile')">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Profile
+    </button>
+  </nav>
+</div>
+
+<script>
+const stories = [
+  { name: 'Alice', initial: 'A', gradient: 'linear-gradient(135deg,#4a9fd5,#1c6fa0)', status: 'blue' },
+  { name: 'Bob', initial: 'B', gradient: 'linear-gradient(135deg,#34c759,#1ca06f)', status: 'green' },
+  { name: 'Chiara', initial: 'C', gradient: 'linear-gradient(135deg,#ff3b30,#d62828)', status: 'red' },
+  { name: 'Diego', initial: 'D', gradient: 'linear-gradient(135deg,#d54a9f,#a01c6f)', status: 'orange' },
+  { name: 'Emma', initial: 'E', gradient: 'linear-gradient(135deg,#ff9500,#c76f00)', status: 'red' },
+  { name: 'Frank', initial: 'F', gradient: 'linear-gradient(135deg,#007aff,#0047cc)', status: 'blue' },
+];
+
+const feedVideos = [
+  { title: "Mike Tyson Shows His Punching Technique 🥊🥊", creator: "Mark Rober", time: "8 min", likes: "8.4M", comments: 163, shares: 24, duration: "8:45", color: "linear-gradient(135deg,#8a1c1c,#3a0d0d)" },
+  { title: "Boxing Workout Routine for Explosive Power", creator: "Gymshark Shows", time: "12 min", likes: "2.2M", comments: 147, shares: 18, duration: "12:30", color: "linear-gradient(135deg,#2a2a2a,#0d0d0d)" },
+  { title: "10 Best Boxing Combos to Improve Speed", creator: "FightCamp", time: "5 min", likes: "1.6M", comments: 98, shares: 12, duration: "10:15", color: "linear-gradient(135deg,#4a2a2a,#1a0d0d)" },
+  { title: "Morning Shadow Boxing Routine", creator: "Tony Jeffries", time: "20 min", likes: "1.1M", comments: 76, shares: 9, duration: "9:20", color: "linear-gradient(135deg,#3a3a3a,#1a1a1a)" },
+];
+
+const folders = [
+  { name: 'Training', count: '24 videos', color: 'var(--red)' },
+  { name: 'Highlights', count: '18 videos', color: 'var(--orange)' },
+  { name: 'Motivation', count: '12 videos', color: 'var(--green)' },
+  { name: 'Watch Later', count: '8 videos', color: 'var(--blue)' },
+];
+
+const listVideos = [
+  { title: "Mike Tyson Shows His Punching Technique 🥊", creator: "Mark Rober", likes: "8.4M", comments: 163, duration: "8:45", color: "linear-gradient(135deg,#8a1c1c,#3a0d0d)" },
+  { title: "Boxing Workout Routine for Explosive Power", creator: "Gymshark Shows", likes: "2.2M", comments: 147, duration: "12:30", color: "linear-gradient(135deg,#2a2a2a,#0d0d0d)" },
+  { title: "10 Best Boxing Combos to Improve Speed", creator: "FightCamp", likes: "1.6M", comments: 98, duration: "10:15", color: "linear-gradient(135deg,#4a2a2a,#1a0d0d)" },
+  { title: "Morning Shadow Boxing Routine", creator: "Tony Jeffries", likes: "1.1M", comments: 76, duration: "9:20", color: "linear-gradient(135deg,#3a3a3a,#1a1a1a)" },
+];
+
+function renderFeed() {
+  const container = document.getElementById('feedList');
+  container.innerHTML = feedVideos.map((v, i) => `
+    <div class="video-card-large">
+      <div class="card-header">
+        <div class="channel-av" style="background:${stories[i % stories.length].gradient}">${v.creator[0]}</div>
+        <div class="channel-info">
+          <div class="channel-name">${v.creator}</div>
+          <div class="channel-time">${v.time} ago</div>
+        </div>
+      </div>
+      <div class="thumb-wrap">
+        <div class="thumb" style="background:${v.color}">
+          <div class="play-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          </div>
+        </div>
+        <span class="duration">${v.duration}</span>
+      </div>
+      <div class="card-body">
+        <div class="card-title">${v.title}</div>
+        <div class="card-friends">
+          <div class="friend-av-stack">
+ ${stories.slice(0, 3).map(s => `<div class="avatar" style="background:${s.gradient}">${s.initial}</div>`).join('')}
+          </div>
+          <span class="friend-label">liked by friends</span>
+        </div>
+        <div class="card-stats">
+          <span class="stat"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> ${v.likes}</span>
+          <span class="stat"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg> ${v.comments}</span>
+          <span class="stat"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg> ${v.shares}</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderFolders() {
+  document.getElementById('folderList').innerHTML = folders.map(f => `
+    <div class="folder-list-item">
+      <div class="folder-icon" style="background:${f.color}">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+      </div>
+      <div class="folder-info">
+        <div class="folder-name">${f.name}</div>
+        <div class="folder-count">${f.count}</div>
+      </div>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="color:var(--text-3)"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+    </div>
+  `).join('');
+
+  document.getElementById('allVideosList').innerHTML = listVideos.map(v => `
+    <div class="video-list-item">
+      <div class="video-list-thumb" style="background:${v.color}">
+        <span class="duration">${v.duration}</span>
+      </div>
+      <div class="video-list-info">
+        <div class="video-list-title">${v.title}</div>
+        <div class="video-list-creator">${v.creator}</div>
+        <div class="video-list-stats">
+          <span class="stat"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="color:var(--red)"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> ${v.likes}</span>
+          <span class="stat"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg> ${v.comments}</span>
+        </div>
+      </div>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="color:var(--text-3);align-self:center"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+    </div>
+  `).join('');
+}
+
+function setTab(el) {
+  el.parentElement.querySelectorAll('.feed-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function switchScreen(screen) {
+  document.getElementById('feedScreen').classList.toggle('active', screen === 'feed');
+  document.getElementById('foldersScreen').classList.toggle('active', screen === 'folders');
+
+  document.querySelectorAll('.bottom-nav .nav-item').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.screen === screen && (screen === 'feed' || screen === 'folders'));
+  });
+
+  if (screen !== 'feed' && screen !== 'folders') {
+    // Search/Notif/Profile not implemented; just keep feed highlighted
+    document.querySelector('[data-screen="feed"]').classList.add('active');
+    alert(screen + ' screen not implemented in this prototype');
+  }
+}
+
+function toggleFab() {
+  const open = document.getElementById('speedDial').classList.toggle('open');
+  document.getElementById('fabScrim').classList.toggle('open', open);
+}
+
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+}
+
+// Category chip toggle
+document.querySelectorAll('.chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+  });
+});
+
+renderFeed();
+renderFolders();
+updateClock();
+setInterval(updateClock, 60000);
+</script>
+
+</body>
+</html>

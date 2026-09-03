@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { backfillFriendInvites } from "@/lib/db/friends";
+import { logger } from "@/lib/utils/logger";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -16,7 +17,7 @@ export async function GET(request: Request) {
     const cookieStore = await cookies();
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
       {
         cookies: {
           getAll() { return cookieStore.getAll(); },
@@ -58,12 +59,16 @@ export async function GET(request: Request) {
       }
     }
 
-    await supabase.from("youtube_connections").upsert({
+    const { error: upsertErr } = await supabase.from("youtube_connections").upsert({
       user_id: user.id,
       google_account_email: googleEmail,
       connected_at: new Date().toISOString(),
       revoked_at: null,
     }, { onConflict: "user_id" });
+
+    if (upsertErr) {
+      logger.error("[youtube/callback] Failed to upsert YouTube connection:", upsertErr.message);
+    }
 
     return NextResponse.redirect(`${origin}${next}`);
   } catch (err) {

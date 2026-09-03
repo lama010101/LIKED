@@ -65,7 +65,7 @@ export default function ExtensionAuthRelayPage() {
           accessToken: session.access_token,
           refreshToken: session.refresh_token ?? null,
           supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ?? null,
-          supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? null,
+          supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? null,
           user: {
             id: user.id,
             email: user.email ?? null,

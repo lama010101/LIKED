@@ -6,16 +6,16 @@ const PROJECT_REF = 'lzkzfqshnjvlzosnntfx';
 const envContent = fs.readFileSync('.env.local', 'utf8');
 const supabaseUrlMatch = envContent.match(/NEXT_PUBLIC_SUPABASE_URL=(.+)/);
 const supabaseUrl = supabaseUrlMatch ? supabaseUrlMatch[1].trim() : '';
-const serviceRoleKeyMatch = envContent.match(/SUPABASE_SERVICE_ROLE_KEY=(.+)/);
+const serviceRoleKeyMatch = envContent.match(/SUPABASE_SECRET_KEY=(.+)/);
 const serviceRoleKey = serviceRoleKeyMatch ? serviceRoleKeyMatch[1].trim() : '';
-const anonKeyMatch = envContent.match(/NEXT_PUBLIC_SUPABASE_ANON_KEY=(.+)/);
+const anonKeyMatch = envContent.match(/NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=(.+)/);
 const anonKey = anonKeyMatch ? anonKeyMatch[1].trim() : '';
 
 async function setEnv() {
   console.log('=== SETTING FUNCTION ENV VARIABLES ===\n');
   console.log('SUPABASE_URL:', supabaseUrl);
-  console.log('SERVICE_ROLE_KEY:', serviceRoleKey.substring(0, 20) + '...');
-  console.log('ANON_KEY:', anonKey.substring(0, 20) + '...\n');
+  console.log('SECRET_KEY:', serviceRoleKey.substring(0, 20) + '...');
+  console.log('PUBLISHABLE_KEY:', anonKey.substring(0, 20) + '...\n');
 
   const envVars = [
     { name: 'SUPABASE_URL', value: supabaseUrl },

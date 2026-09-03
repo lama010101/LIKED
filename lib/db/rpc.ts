@@ -1,7 +1,16 @@
 import { getSupabaseServerClient } from '@/lib/supabase/server'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import type { Database } from '@/lib/types/database'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnySupabase = any
+/**
+ * Dynamic RPC helper. `fn` is a runtime string, so the static Database
+ * function-name typing cannot apply here; cast only the `rpc` method
+ * (not the whole client) to a loose signature.
+ */
+type DynamicRpc = (
+  fn: string,
+  params: Record<string, unknown>
+) => Promise<{ data: unknown; error: { message: string } | null }>
 
 export async function rpc<T>(
   fn: string,
@@ -9,7 +18,8 @@ export async function rpc<T>(
 ): Promise<T> {
   const supabase = await getSupabaseServerClient()
 
-  const { data, error } = await (supabase as AnySupabase).rpc(fn, params)
+  const looseClient = supabase as SupabaseClient<Database> & { rpc: DynamicRpc }
+  const { data, error } = await looseClient.rpc(fn, params)
 
   if (error) {
     throw new Error(`[RPC:${fn}] ${error.message}`)

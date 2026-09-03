@@ -152,6 +152,18 @@ export default function CardDetailSheet({
     return () => document.removeEventListener("keydown", handler);
   }, [open, onClose]);
 
+  // Refetch detail from server after mutations (P2-5 fix: no optimistic updates)
+  const refetchDetail = useCallback(() => {
+    if (!nodeId) return;
+    fetchCardDetail(nodeId, languageCode).then((res) => {
+      if (res.ok) {
+        setDetail(res.detail);
+        setRatingValue(res.detail.yourRating ?? 0);
+        setTitleDraft(res.detail.node.title ?? "");
+      }
+    }).catch(() => {});
+  }, [nodeId, languageCode]);
+
   // Auto-save rating after slider-release (mouseup / touchend)
   const handleRatingCommit = useCallback(
     (score: number) => {
@@ -159,18 +171,14 @@ export default function CardDetailSheet({
       startTransition(async () => {
         const result = await rateCardAction(nodeId, score);
         if (result.ok) {
-          setDetail((prev) =>
-            prev
-              ? { ...prev, yourRating: score }
-              : prev
-          );
+          refetchDetail();
           showToast.success("Rating saved");
         } else {
           showToast.error(result.error);
         }
       });
     },
-    [nodeId]
+    [nodeId, refetchDetail]
   );
 
   const handleTitleSave = () => {
@@ -188,9 +196,7 @@ export default function CardDetailSheet({
     startTransition(async () => {
       const result = await updateNodeTitleAction(nodeId, next);
       if (result.ok) {
-        setDetail((prev) =>
-          prev ? { ...prev, node: { ...prev.node, title: next } } : prev
-        );
+        refetchDetail();
         setEditingTitle(false);
         showToast.success("Title updated");
       } else {
@@ -227,9 +233,7 @@ export default function CardDetailSheet({
     startTransition(async () => {
       const result = await removeTagFromNodeAction(nodeId, tagId);
       if (result.ok) {
-        setDetail((prev) =>
-          prev ? { ...prev, tags: prev.tags.filter((t) => t.id !== tagId) } : prev
-        );
+        refetchDetail();
         showToast.success("Tag removed");
       } else {
         showToast.error(result.error);

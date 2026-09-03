@@ -39,7 +39,7 @@ export function CardMenu({
 }: CardMenuProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
-  const btnRef = useRef<HTMLSpanElement>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Escape key closes menu
@@ -94,13 +94,12 @@ export function CardMenu({
   return (
     <>
       {/* Menu trigger button */}
-      <span
+      <button
+        type="button"
         ref={btnRef}
-        role="button"
         aria-label={ariaLabel}
         aria-haspopup="menu"
         aria-expanded={menuOpen}
-        tabIndex={0}
         onClick={openMenu}
         onKeyDown={handleKeyDown}
         onPointerDown={(e) => e.stopPropagation()}
@@ -125,7 +124,7 @@ export function CardMenu({
           <circle cx="12" cy="12" r="2" />
           <circle cx="12" cy="18" r="2" />
         </svg>
-      </span>
+      </button>
 
       {/* Menu popover via portal — escapes overflow:hidden */}
       {menuOpen && menuPos && createPortal(
@@ -168,9 +167,9 @@ export function CardMenu({
               minWidth: 180,
             }}
           >
-            {items.map((item, i) => (
+            {items.map((item) => (
               <button
-                key={i}
+                key={item.label}
                 role="menuitem"
                 className="w-full text-left flex items-center gap-2"
                 onClick={() => {

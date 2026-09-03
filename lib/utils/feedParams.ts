@@ -244,7 +244,12 @@ const SORT_TO_RPC: Record<SortOption, string> = {
  * Empty arrays → undefined (NULL for RPC).
  * Sort mapped via SORT_TO_RPC (only mapping point).
  */
-export function buildFeedParams(state: FilterState, userId: string, languageCode = "en") {
+export function buildFeedParams(
+  state: FilterState,
+  userId: string,
+  languageCode = "en",
+  customOrderIds?: string[]
+) {
   return {
     p_user_id: userId,
     p_language_code: languageCode,
@@ -260,6 +265,11 @@ export function buildFeedParams(state: FilterState, userId: string, languageCode
     // Home page (no folder context): exclude foldered nodes so only folders show.
     // When a folder is open, p_folder_id filters the result set instead.
     p_exclude_foldered: !state.folderId,
+    // Custom order: when sort='custom', RPC orders by array_position.
+    // Sourced from feedStore (single source of truth for customOrders).
+    p_custom_order_ids: state.sort === "custom" && customOrderIds && customOrderIds.length > 0
+      ? customOrderIds
+      : undefined,
   };
 }
 

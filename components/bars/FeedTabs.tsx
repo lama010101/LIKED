@@ -23,6 +23,7 @@ export default function FeedTabs({ activeTab, onTabChange }: FeedTabsProps) {
             key={t.id}
             data-tab={t.id}
             onClick={() => onTabChange(t.id)}
+            aria-pressed={isActive}
             className={`feed-tab${isActive ? ' feed-tab--active' : ''}`}
           >
             <span>{t.label}</span>

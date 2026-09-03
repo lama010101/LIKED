@@ -24,6 +24,7 @@ export default function MineSubTabs({ activeSubTab, onSubTabChange, scope = 'min
             key={st.id}
             data-subtab={st.id}
             onClick={() => onSubTabChange(st.id)}
+            aria-pressed={isActive}
             className={`subtab${isActive ? ' subtab--active' : ''}`}
           >
             <span className="subtab__dot" />

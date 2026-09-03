@@ -19,39 +19,16 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useFilterStore } from "@/lib/store/filterStore";
+import { useFeedStore } from "@/lib/store/feedStore";
 import { buildFeedParams } from "@/lib/utils/feedParams";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { PAGINATION, DEFAULT_LANGUAGE } from "@/lib/constants";
+import type { FeedNode } from "@/lib/types/feed";
+
+// Re-export so existing `import { FeedNode } from "@/lib/hooks/useFeed"` keeps working.
+export type { FeedNode };
 
 // ── Types ──────────────────────────────────────────────────────
-
-/** Feed node as returned by get_feed RPC — matches SQL RETURN TABLE */
-export interface FeedNode {
-  node_id: string;
-  url: string | null;
-  text_content: string | null;
-  title: string | null;
-  thumbnail_key: string | null;
-  owner_id: string;
-  language_code: string;
-  origin_user_id: string;
-  origin_created_at: string;
-  created_at: string;
-
-  avg_rating: number | null;
-  view_count: number | null;
-  share_count: number | null;
-
-  direction: "own" | "sent" | "received";
-
-  sender_id: string | null;
-  sender_name: string | null;
-  sender_avatar_key: string | null;
-
-  tags: Array<{ tag_id: string; color_hex: string; label: string }>;
-
-  total_count: number;
-}
 
 interface Cursor {
   createdAt: string;
@@ -61,6 +38,8 @@ interface Cursor {
 interface UseFeedOptions {
   userId: string;
   languageCode?: string;
+  /** Scope key for custom-order lookup (feedStore single source of truth). */
+  scopeKey?: string;
 }
 
 interface UseFeedResult {
@@ -75,13 +54,13 @@ interface UseFeedResult {
 
 // ── Pagination constants ────────────────────────────────────────
 
-const FEED_INITIAL_LOAD = 30;
+const FEED_INITIAL_LOAD = PAGINATION.initialLoadSize;
 const FEED_PAGE_SIZE = PAGINATION.defaultPageSize;
 
 // ── Hook ────────────────────────────────────────────────────────
 
 export function useFeed(options: UseFeedOptions): UseFeedResult {
-  const { userId, languageCode = DEFAULT_LANGUAGE } = options;
+  const { userId, languageCode = DEFAULT_LANGUAGE, scopeKey } = options;
 
   // Subscribe to store state for dependency tracking
   const view = useFilterStore((s) => s.view);
@@ -100,6 +79,13 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
   // Presentation state read for type completeness (not used by get_feed)
   const viewMode = useFilterStore((s) => s.viewMode);
   const zoom = useFilterStore((s) => s.zoom);
+
+  // Custom order from feedStore (single source of truth for customOrders).
+  // Only read when sort is 'custom' and scopeKey is provided.
+  const customOrderIds = useMemo(
+    () => (sort === "custom" && scopeKey ? useFeedStore.getState().getCustomOrder(scopeKey) : []),
+    [sort, scopeKey]
+  );
 
   // Memoize feed params to prevent re-render cascade
   const feedParams = useMemo(
@@ -122,9 +108,10 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
           folderStack: [],
         },
         userId,
-        languageCode
+        languageCode,
+        customOrderIds
       ),
-    [view, sort, mineSubTab, friendId, folderId, groupId, searchQuery, userId, languageCode, viewMode, zoom, tagIds, filterFriendIds, filterFolderIds]
+    [view, sort, mineSubTab, friendId, folderId, groupId, searchQuery, userId, languageCode, viewMode, zoom, tagIds, filterFriendIds, filterFolderIds, customOrderIds]
   );
 
   const [nodes, setNodes] = useState<FeedNode[]>([]);
@@ -162,7 +149,7 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
           p_limit: limit,
         }));
         if (res.error) throw res.error;
-        const data = (res.data ?? []) as unknown as FeedNode[];
+        const data = (res.data ?? []) as FeedNode[];
 
         if (!cancelled) {
           setNodes(data);
@@ -216,7 +203,7 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
         p_limit: limit,
       }));
       if (res.error) throw res.error;
-      const newNodes = (res.data ?? []) as unknown as FeedNode[];
+      const newNodes = (res.data ?? []) as FeedNode[];
       setNodes((prev) => [...prev, ...newNodes]);
       setHasMore(newNodes.length === limit);
 

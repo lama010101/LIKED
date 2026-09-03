@@ -88,7 +88,8 @@ export default function FeedGrid({
 }: FeedGridProps) {
   const router = useRouter();
 
-  const [localFolders, setLocalFolders] = useState(folders);
+  // P2-2/P2-4 fix: use `folders` prop directly (server-authoritative).
+  // No local copy — mutations call router.refresh() to re-fetch from server.
 
   // P9-T06-FIX: SSR hydration — initialize store from server-parsed state
   useFeedURLSync({ initialFilterState });
@@ -100,7 +101,7 @@ export default function FeedGrid({
     isLoading,
     error: feedError,
     refresh,
-  } = useFeed({ userId: currentUserId, languageCode });
+  } = useFeed({ userId: currentUserId, languageCode, scopeKey });
 
   const searchQuery = useFilterStore((s) => s.searchQuery);
 
@@ -210,8 +211,8 @@ export default function FeedGrid({
   }, [nodeByItemId, handleAddTag]);
 
 
-  const handleFolderDelete = useCallback((folderId: string) => {
-    setLocalFolders(prev => prev.filter(f => f.id !== folderId));
+  const handleFolderDelete = useCallback((_folderId: string) => {
+    // Deletion is server-side; refresh re-fetches folders from server (P2-4).
     router.refresh();
   }, [router]);
 
@@ -236,10 +237,10 @@ export default function FeedGrid({
 
   const visibleFolders = useMemo(() => {
     if (!activeFolderId) {
-      return localFolders.filter(f => f.parent_folder_id === null);
+      return folders.filter(f => f.parent_folder_id === null);
     }
-    return localFolders.filter(f => f.parent_folder_id === activeFolderId);
-  }, [localFolders, activeFolderId]);
+    return folders.filter(f => f.parent_folder_id === activeFolderId);
+  }, [folders, activeFolderId]);
 
   const folderGrid = visibleFolders.length > 0 ? (
     <div style={{
@@ -254,7 +255,7 @@ export default function FeedGrid({
       zIndex: 1,
     }}>
       {visibleFolders.map(f => (
-        <DroppableFolderChip key={f.id} folderId={f.id}>
+        <DroppableFolderChip key={f.id} folderId={f.id} folders={folders}>
           <FolderTile
             folder={f}
             isActive={activeFolderId === f.id}
@@ -337,7 +338,7 @@ export default function FeedGrid({
           onMoveToFolder={handleMoveToFolder}
           onAddTag={handleAddTag}
           onDelete={handleDelete}
-          folders={localFolders}
+          folders={folders}
           currentFolderId={activeFolderId}
         />
         <CardDetailSheet node={activeNode} currentUserId={currentUserId} onClose={handleClose} />
@@ -360,7 +361,7 @@ export default function FeedGrid({
           onClose={() => setMoveTarget(null)}
           nodeId={moveTarget.id}
           nodeName={moveTarget.name}
-          folders={localFolders.filter(f => !f.deleted_at)}
+          folders={folders.filter(f => !f.deleted_at)}
           currentFolderId={activeFolderId}
           onMoved={() => { refresh(); }}
         />
@@ -382,13 +383,7 @@ export default function FeedGrid({
           folderId={renameTarget.id}
           folderName={renameTarget.name}
           folderColor={renameTarget.color_hex}
-          onRenamed={(newName, newColor) => {
-            // Update local folders with new values from modal
-            setLocalFolders(prev => prev.map(f =>
-              f.id === renameTarget.id
-                ? { ...f, name: newName, color_hex: newColor }
-                : f
-            ));
+          onRenamed={() => {
             refresh();
           }}
         />
@@ -425,7 +420,7 @@ export default function FeedGrid({
           onClose={() => setMoveTarget(null)}
           nodeId={moveTarget.id}
           nodeName={moveTarget.name}
-          folders={localFolders.filter(f => !f.deleted_at)}
+          folders={folders.filter(f => !f.deleted_at)}
           currentFolderId={activeFolderId}
           onMoved={() => { refresh(); }}
         />
@@ -447,13 +442,7 @@ export default function FeedGrid({
           folderId={renameTarget.id}
           folderName={renameTarget.name}
           folderColor={renameTarget.color_hex}
-          onRenamed={(newName, newColor) => {
-            // Update local folders with new values from modal
-            setLocalFolders(prev => prev.map(f =>
-              f.id === renameTarget.id
-                ? { ...f, name: newName, color_hex: newColor }
-                : f
-            ));
+          onRenamed={() => {
             refresh();
           }}
         />
@@ -490,7 +479,7 @@ export default function FeedGrid({
           onClose={() => setMoveTarget(null)}
           nodeId={moveTarget.id}
           nodeName={moveTarget.name}
-          folders={localFolders.filter(f => !f.deleted_at)}
+          folders={folders.filter(f => !f.deleted_at)}
           currentFolderId={activeFolderId}
           onMoved={() => { refresh(); }}
         />
@@ -512,13 +501,7 @@ export default function FeedGrid({
           folderId={renameTarget.id}
           folderName={renameTarget.name}
           folderColor={renameTarget.color_hex}
-          onRenamed={(newName, newColor) => {
-            // Update local folders with new values from modal
-            setLocalFolders(prev => prev.map(f =>
-              f.id === renameTarget.id
-                ? { ...f, name: newName, color_hex: newColor }
-                : f
-            ));
+          onRenamed={() => {
             refresh();
           }}
         />
@@ -555,7 +538,7 @@ export default function FeedGrid({
           onClose={() => setMoveTarget(null)}
           nodeId={moveTarget.id}
           nodeName={moveTarget.name}
-          folders={localFolders.filter(f => !f.deleted_at)}
+          folders={folders.filter(f => !f.deleted_at)}
           currentFolderId={activeFolderId}
           onMoved={() => { refresh(); }}
         />
@@ -577,13 +560,7 @@ export default function FeedGrid({
           folderId={renameTarget.id}
           folderName={renameTarget.name}
           folderColor={renameTarget.color_hex}
-          onRenamed={(newName, newColor) => {
-            // Update local folders with new values from modal
-            setLocalFolders(prev => prev.map(f =>
-              f.id === renameTarget.id
-                ? { ...f, name: newName, color_hex: newColor }
-                : f
-            ));
+          onRenamed={() => {
             refresh();
           }}
         />
@@ -620,7 +597,7 @@ export default function FeedGrid({
           onClose={() => setMoveTarget(null)}
           nodeId={moveTarget.id}
           nodeName={moveTarget.name}
-          folders={localFolders.filter(f => !f.deleted_at)}
+          folders={folders.filter(f => !f.deleted_at)}
           currentFolderId={activeFolderId}
           onMoved={() => { refresh(); }}
         />
@@ -642,13 +619,7 @@ export default function FeedGrid({
           folderId={renameTarget.id}
           folderName={renameTarget.name}
           folderColor={renameTarget.color_hex}
-          onRenamed={(newName, newColor) => {
-            // Update local folders with new values from modal
-            setLocalFolders(prev => prev.map(f =>
-              f.id === renameTarget.id
-                ? { ...f, name: newName, color_hex: newColor }
-                : f
-            ));
+          onRenamed={() => {
             refresh();
           }}
         />
@@ -695,7 +666,7 @@ export default function FeedGrid({
           onClose={() => setMoveTarget(null)}
           nodeId={moveTarget.id}
           nodeName={moveTarget.name}
-          folders={localFolders.filter(f => !f.deleted_at)}
+          folders={folders.filter(f => !f.deleted_at)}
           currentFolderId={activeFolderId}
           onMoved={() => { refresh(); }}
         />
@@ -717,13 +688,7 @@ export default function FeedGrid({
           folderId={renameTarget.id}
           folderName={renameTarget.name}
           folderColor={renameTarget.color_hex}
-          onRenamed={(newName, newColor) => {
-            // Update local folders with new values from modal
-            setLocalFolders(prev => prev.map(f =>
-              f.id === renameTarget.id
-                ? { ...f, name: newName, color_hex: newColor }
-                : f
-            ));
+          onRenamed={() => {
             refresh();
           }}
         />
@@ -768,7 +733,7 @@ export default function FeedGrid({
           onClose={() => setMoveTarget(null)}
           nodeId={moveTarget.id}
           nodeName={moveTarget.name}
-          folders={localFolders.filter(f => !f.deleted_at)}
+          folders={folders.filter(f => !f.deleted_at)}
           currentFolderId={activeFolderId}
           onMoved={() => { refresh(); }}
         />
@@ -790,13 +755,7 @@ export default function FeedGrid({
           folderId={renameTarget.id}
           folderName={renameTarget.name}
           folderColor={renameTarget.color_hex}
-          onRenamed={(newName, newColor) => {
-            // Update local folders with new values from modal
-            setLocalFolders(prev => prev.map(f =>
-              f.id === renameTarget.id
-                ? { ...f, name: newName, color_hex: newColor }
-                : f
-            ));
+          onRenamed={() => {
             refresh();
           }}
         />

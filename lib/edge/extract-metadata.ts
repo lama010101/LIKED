@@ -47,7 +47,7 @@ export async function extractNodeMetadata(
   try {
     const headers: Record<string, string> = {
       "content-type": "application/json",
-      apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      apikey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     };
     if (accessToken) {
       headers["authorization"] = `Bearer ${accessToken}`;

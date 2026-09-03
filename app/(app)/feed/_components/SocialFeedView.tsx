@@ -10,95 +10,25 @@
  *   - Folder: color tile + name + card count
  *   - Action row: rate, share, comment (future)
  *
- * Uses useFeed hook for data (cursor pagination via get_feed RPC).
- * Folders are fetched separately and merged by created_at.
+ * Uses useSocialTimeline hook for data (cursor pagination via
+ * get_social_timeline RPC). No client-side merge, sort, or folder
+ * refresh — all done in SQL (AUDIT-06 P1-2).
  */
 
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import type { FeedNode } from "@/lib/hooks/useFeed";
-import type { Folder } from "@/lib/types/app";
-import { useFeed } from "@/lib/hooks/useFeed";
-import { supabaseBrowser } from "@/lib/supabase/client";
+import { useSocialTimeline } from "@/lib/hooks/useSocialTimeline";
+import type { SocialTimelineItem } from "@/lib/db/socialTimeline";
 import { toast } from "@/lib/store/toastStore";
 import CardDetailSheet from "@/components/modals/CardDetailSheet";
+import type { FeedNode } from "@/lib/types/feed";
 
 interface SocialFeedViewProps {
-  initialNodes: FeedNode[];
-  folders: Folder[];
+  initialItems: SocialTimelineItem[];
+  initialCursor: { createdAt: string; id: string } | null;
   currentUserId: string;
   languageCode?: string;
-}
-
-/** Unified timeline item — either a card or a folder. */
-interface TimelineItem {
-  id: string;
-  kind: "card" | "folder";
-  createdAt: string;
-  // Card fields
-  title?: string;
-  url?: string | null;
-  textContent?: string | null;
-  thumbnailKey?: string | null;
-  ownerId?: string;
-  tags?: Array<{ tag_id: string; color_hex: string; label: string }>;
-  direction?: "own" | "sent" | "received";
-  senderName?: string | null;
-  senderAvatarKey?: string | null;
-  avgRating?: number | null;
-  source?: string;
-  // Folder fields
-  folderName?: string;
-  folderColor?: string;
-  folderCount?: number;
-  folderThumbnails?: string[];
-}
-
-/** Convert FeedNode[] to TimelineItem[] */
-function nodesToTimeline(nodes: FeedNode[]): TimelineItem[] {
-  return nodes.map((n) => {
-    let source: string | undefined;
-    if (n.url) {
-      try { source = new URL(n.url).hostname.replace(/^www\./, ""); } catch { /* ignore */ }
-    }
-    return {
-      id: n.node_id,
-      kind: "card" as const,
-      createdAt: n.created_at,
-      title: n.title ?? n.url ?? "Untitled",
-      url: n.url,
-      textContent: n.text_content,
-      thumbnailKey: n.thumbnail_key,
-      ownerId: n.owner_id,
-      tags: n.tags,
-      direction: n.direction,
-      senderName: n.sender_name,
-      senderAvatarKey: n.sender_avatar_key,
-      avgRating: n.avg_rating,
-      source,
-    };
-  });
-}
-
-/** Convert Folder[] to TimelineItem[] */
-function foldersToTimeline(folders: Folder[]): TimelineItem[] {
-  return folders.map((f) => ({
-    id: f.id,
-    kind: "folder" as const,
-    createdAt: f.created_at,
-    folderName: f.name,
-    folderColor: f.color_hex || "#7c5cbf",
-    folderCount: f.node_count,
-    folderThumbnails: f.thumbnails,
-  }));
-}
-
-/** Merge and sort by created_at descending */
-function mergeTimeline(cards: TimelineItem[], folders: TimelineItem[]): TimelineItem[] {
-  return [...cards, ...folders].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
 }
 
 /** Relative time formatter — "2h ago", "just now", "3d ago" */
@@ -121,29 +51,20 @@ function timeAgo(dateStr: string): string {
 }
 
 export default function SocialFeedView({
-  initialNodes,
-  folders,
+  initialItems,
+  initialCursor,
   currentUserId,
   languageCode = "en",
 }: SocialFeedViewProps) {
   const router = useRouter();
   const [activeNodeId, setActiveNodeId] = useState<string | null>(null);
-  const [localFolders, setLocalFolders] = useState(folders);
 
-  // Use the canonical feed hook — view=all, sort=newest
-  const { nodes, isLoading, hasMore, loadMore } = useFeed({
+  const { items, isLoading, hasMore, loadMore } = useSocialTimeline({
     userId: currentUserId,
     languageCode,
+    initialItems,
+    initialCursor,
   });
-
-  // Use SSR nodes as initial data, then switch to hook data when it loads
-  const displayNodes = nodes.length > 0 ? nodes : initialNodes;
-
-  // Build timeline: merge cards + folders, sorted by recency
-  const timeline = useMemo(
-    () => mergeTimeline(nodesToTimeline(displayNodes), foldersToTimeline(localFolders)),
-    [displayNodes, localFolders]
-  );
 
   // Infinite scroll — IntersectionObserver on sentinel
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -158,7 +79,6 @@ export default function SocialFeedView({
         if (entries[0].isIntersecting && hasMore && !loadingMoreRef.current) {
           loadingMoreRef.current = true;
           loadMore();
-          // Reset flag after a short delay to allow loadMore to complete
           setTimeout(() => { loadingMoreRef.current = false; }, 500);
         }
       },
@@ -169,7 +89,7 @@ export default function SocialFeedView({
     return () => observer.disconnect();
   }, [hasMore, loadMore]);
 
-  const handleCardClick = useCallback((item: TimelineItem) => {
+  const handleCardClick = useCallback((item: SocialTimelineItem) => {
     if (item.kind === "card") {
       setActiveNodeId(item.id);
     } else if (item.kind === "folder") {
@@ -177,60 +97,39 @@ export default function SocialFeedView({
     }
   }, [router]);
 
-  const activeNode = useMemo(
-    () => displayNodes.find((n) => n.node_id === activeNodeId) ?? null,
-    [displayNodes, activeNodeId]
-  );
+  // Build a FeedNode-like object for CardDetailSheet from the timeline item
+  const activeNode = activeNodeId
+    ? items.find((i) => i.id === activeNodeId && i.kind === "card")
+    : null;
 
-  // Refresh folders periodically (in case new ones are created)
-  useEffect(() => {
-    const refreshFolders = async () => {
-      try {
-        const { data: { session } } = await supabaseBrowser.auth.getSession();
-        if (!session?.user) return;
-        const { data, error } = await supabaseBrowser
-          .from("folders")
-          .select("id, name, owner_id, parent_folder_id, is_project, color_hex, deleted_at, created_at")
-          .eq("owner_id", session.user.id)
-          .is("deleted_at", null)
-          .order("created_at", { ascending: false });
-        if (!error && data) {
-          // Fetch counts separately
-          const folderIds = data.map(f => f.id);
-          if (folderIds.length > 0) {
-            const { data: edges } = await supabaseBrowser
-              .from("folder_edges")
-              .select("folder_id")
-              .in("folder_id", folderIds);
-            const counts: Record<string, number> = {};
-            (edges ?? []).forEach(e => {
-              counts[e.folder_id] = (counts[e.folder_id] ?? 0) + 1;
-            });
-            setLocalFolders(data.map(f => ({
-              id: f.id,
-              name: f.name,
-              owner_id: f.owner_id,
-              parent_folder_id: f.parent_folder_id,
-              is_project: f.is_project,
-              color_hex: f.color_hex,
-              deleted_at: f.deleted_at,
-              created_at: f.created_at,
-              node_count: counts[f.id] ?? 0,
-              thumbnails: [],
-            })));
-          }
-        }
-      } catch {
-        // Non-fatal
+  const activeFeedNode: FeedNode | null = activeNode
+    ? {
+        node_id: activeNode.id,
+        url: activeNode.url,
+        text_content: activeNode.text_content,
+        title: activeNode.title,
+        thumbnail_key: activeNode.thumbnail_key,
+        owner_id: activeNode.owner_id ?? "",
+        language_code: languageCode,
+        origin_user_id: activeNode.owner_id ?? "",
+        origin_created_at: activeNode.created_at,
+        created_at: activeNode.created_at,
+        avg_rating: activeNode.avg_rating,
+        view_count: null,
+        share_count: null,
+        direction: (activeNode.direction as "own" | "sent" | "received") ?? "own",
+        sender_id: activeNode.sender_id,
+        sender_name: activeNode.sender_name,
+        sender_avatar_key: activeNode.sender_avatar_key,
+        tags: activeNode.tags ?? [],
+        total_count: 0,
       }
-    };
-    refreshFolders();
-  }, []);
+    : null;
 
   return (
     <div style={{ maxWidth: 600, margin: "0 auto", paddingBottom: 100 }}>
       {/* Timeline */}
-      {timeline.length === 0 && !isLoading && (
+      {items.length === 0 && !isLoading && (
         <div style={{ padding: 80, textAlign: "center" }}>
           <div style={{ fontSize: 40, marginBottom: 12, opacity: 0.3 }}>📭</div>
           <p style={{ color: "var(--text-3)", fontSize: 15, fontWeight: 600 }}>
@@ -242,9 +141,9 @@ export default function SocialFeedView({
         </div>
       )}
 
-      {timeline.map((item) => (
+      {items.map((item) => (
         <TimelinePost
-          key={item.id}
+          key={`${item.kind}-${item.id}`}
           item={item}
           currentUserId={currentUserId}
           onClick={() => handleCardClick(item)}
@@ -270,7 +169,7 @@ export default function SocialFeedView({
       )}
 
       {/* End of feed */}
-      {!hasMore && timeline.length > 0 && (
+      {!hasMore && items.length > 0 && (
         <div style={{ padding: 24, textAlign: "center" }}>
           <span style={{ fontSize: 12, color: "var(--text-3)" }}>
             You&apos;re all caught up ✓
@@ -279,9 +178,9 @@ export default function SocialFeedView({
       )}
 
       {/* Card detail sheet */}
-      {activeNode && (
+      {activeFeedNode && (
         <CardDetailSheet
-          node={activeNode}
+          node={activeFeedNode}
           currentUserId={currentUserId}
           onClose={() => setActiveNodeId(null)}
         />
@@ -297,13 +196,13 @@ function TimelinePost({
   currentUserId,
   onClick,
 }: {
-  item: TimelineItem;
+  item: SocialTimelineItem;
   currentUserId: string;
   onClick: () => void;
 }) {
-  const isOwn = item.ownerId === currentUserId;
-  const authorName = item.direction === "received" && item.senderName
-    ? item.senderName
+  const isOwn = item.owner_id === currentUserId;
+  const authorName = item.direction === "received" && item.sender_name
+    ? item.sender_name
     : isOwn
     ? "You"
     : "Someone";
@@ -320,14 +219,14 @@ function TimelinePost({
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
         <Avatar
           name={authorName}
-          color={item.kind === "folder" ? item.folderColor : undefined}
+          color={item.kind === "folder" ? (item.folder_color ?? undefined) : undefined}
         />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-1)" }}>
             {authorName}
           </div>
           <div style={{ fontSize: 12, color: "var(--text-3)" }}>
-            {item.kind === "folder" ? "created a folder" : "saved a card"} · {timeAgo(item.createdAt)}
+            {item.kind === "folder" ? "created a folder" : "saved a card"} · {timeAgo(item.created_at)}
           </div>
         </div>
         {item.direction === "received" && (
@@ -359,7 +258,7 @@ function TimelinePost({
       }}>
         <ActionButton
           icon={<StarIcon />}
-          label={item.avgRating ? `${item.avgRating.toFixed(1)}` : "Rate"}
+          label={item.avg_rating ? `${item.avg_rating.toFixed(1)}` : "Rate"}
           onClick={(e) => { e.stopPropagation(); toast.info("Rating coming soon"); }}
         />
         <ActionButton
@@ -379,15 +278,21 @@ function TimelinePost({
 
 // ── Card Content ──────────────────────────────────────────────
 
-function CardContent({ item, onClick }: { item: TimelineItem; onClick: () => void }) {
-  const thumbUrl = item.thumbnailKey
-    ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/thumbnails/${item.thumbnailKey}`
+function CardContent({ item, onClick }: { item: SocialTimelineItem; onClick: () => void }) {
+  const thumbUrl = item.thumbnail_key
+    ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/thumbnails/${item.thumbnail_key}`
     : null;
 
+  let source: string | undefined;
+  if (item.url) {
+    try { source = new URL(item.url).hostname.replace(/^www\./, ""); } catch { /* ignore */ }
+  }
+
   return (
-    <div
+    <button
+      type="button"
       onClick={onClick}
-      style={{ cursor: "pointer" }}
+      style={{ cursor: "pointer", background: "none", border: "none", padding: 0, width: "100%", textAlign: "left" }}
     >
       {/* Thumbnail */}
       {thumbUrl ? (
@@ -426,7 +331,7 @@ function CardContent({ item, onClick }: { item: TimelineItem; onClick: () => voi
             <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
           </svg>
         </div>
-      ) : item.textContent ? (
+      ) : item.text_content ? (
         // Text note
         <div style={{
           padding: 14,
@@ -441,7 +346,7 @@ function CardContent({ item, onClick }: { item: TimelineItem; onClick: () => voi
           WebkitBoxOrient: "vertical",
           overflow: "hidden",
         }}>
-          {item.textContent}
+          {item.text_content}
         </div>
       ) : null}
 
@@ -449,9 +354,9 @@ function CardContent({ item, onClick }: { item: TimelineItem; onClick: () => voi
       <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-1)", marginBottom: 4 }}>
         {item.title}
       </div>
-      {item.source && (
+      {source && (
         <div style={{ fontSize: 12, color: "var(--text-3)", marginBottom: 8 }}>
-          {item.source}
+          {source}
         </div>
       )}
 
@@ -475,19 +380,20 @@ function CardContent({ item, onClick }: { item: TimelineItem; onClick: () => voi
           ))}
         </div>
       )}
-    </div>
+    </button>
   );
 }
 
 // ── Folder Content ────────────────────────────────────────────
 
-function FolderContent({ item, onClick }: { item: TimelineItem; onClick: () => void }) {
-  const color = item.folderColor ?? "#7c5cbf";
+function FolderContent({ item, onClick }: { item: SocialTimelineItem; onClick: () => void }) {
+  const color = item.folder_color ?? "#7c5cbf";
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const hasThumbs = item.folderThumbnails && item.folderThumbnails.length > 0;
+  const thumbs = item.folder_thumbnails ?? [];
+  const hasThumbs = thumbs.length > 0;
 
   return (
-    <div onClick={onClick} style={{ cursor: "pointer" }}>
+    <button type="button" onClick={onClick} style={{ cursor: "pointer", background: "none", border: "none", padding: 0, width: "100%", textAlign: "left" }}>
       <div style={{
         width: "100%",
         aspectRatio: "16 / 9",
@@ -507,7 +413,7 @@ function FolderContent({ item, onClick }: { item: TimelineItem; onClick: () => v
             width: "100%",
             height: "100%",
           }}>
-            {item.folderThumbnails!.slice(0, 4).map((thumb, i) => (
+            {thumbs.slice(0, 4).map((thumb, i) => (
               <div key={i} style={{ position: "relative", overflow: "hidden" }}>
                 <Image
                   src={`${supabaseUrl}/storage/v1/object/public/thumbnails/${thumb}`}
@@ -520,7 +426,7 @@ function FolderContent({ item, onClick }: { item: TimelineItem; onClick: () => v
               </div>
             ))}
             {/* Fill empty slots with gradient */}
-            {Array.from({ length: Math.max(0, 4 - (item.folderThumbnails?.length ?? 0)) }).map((_, i) => (
+            {Array.from({ length: Math.max(0, 4 - thumbs.length) }).map((_, i) => (
               <div key={`empty-${i}`} style={{ background: `${color}44` }} />
             ))}
           </div>
@@ -536,19 +442,19 @@ function FolderContent({ item, onClick }: { item: TimelineItem; onClick: () => v
           <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
         </svg>
         <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-1)" }}>
-          {item.folderName}
+          {item.folder_name}
         </div>
-        {item.folderCount != null && item.folderCount > 0 && (
+        {item.folder_count != null && item.folder_count > 0 && (
           <span style={{
             fontSize: 12, color: "var(--text-3)",
             background: "var(--surface-3)",
             padding: "2px 8px", borderRadius: 999,
           }}>
-            {item.folderCount} {item.folderCount === 1 ? "card" : "cards"}
+            {item.folder_count} {item.folder_count === 1 ? "card" : "cards"}
           </span>
         )}
       </div>
-    </div>
+    </button>
   );
 }
 

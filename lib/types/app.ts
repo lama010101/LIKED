@@ -22,11 +22,6 @@ export interface Node {
   created_at: string;
 }
 
-export type NodeInput = {
-  url?: string;
-  textContent?: string;
-};
-
 // User types
 export interface User {
   id: string;
@@ -46,17 +41,6 @@ export interface Edge {
   direction: "sent" | "received";
   depth: number;
   permission: Permission;
-  created_at: string;
-}
-
-// Cause types
-export type CauseType = "direct_share" | "group_share" | "import";
-
-export interface Cause {
-  id: string;
-  cause_type: CauseType;
-  created_by: string;
-  metadata: Record<string, Json>;
   created_at: string;
 }
 
@@ -90,14 +74,6 @@ export interface Folder {
 export interface Tag {
   id: string;
   color_hex: string;
-  created_at: string;
-}
-
-// Group types
-export interface Group {
-  id: string;
-  name: string;
-  owner_id: string;
   created_at: string;
 }
 

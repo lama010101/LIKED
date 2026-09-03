@@ -12,7 +12,7 @@
 import { revalidatePath } from "next/cache";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { directShare, groupShare, createGroup, shareFolder } from "@/lib/db/sharing";
-import { addNodeToFolder, removeNodeFromFolder, createFolder, moveFolder } from "@/lib/db/folders";
+import { addNodeToFolder, moveFolder } from "@/lib/db/folders";
 import { addTagToNode, removeTagFromNode } from "@/lib/db/tags";
 import { softDeleteNode } from "@/lib/db/nodes";
 import { setCustomOrder } from "@/lib/db/nodePreferences";
@@ -87,11 +87,19 @@ export async function dndMoveNodeToFolder(
 ): Promise<DndActionResult> {
   try {
     const userId = await requireUserId();
-    // Add to target first (ensures node is never without a folder)
-    await addNodeToFolder(nodeId, targetFolderId, userId);
-    // Remove from source if different from target
-    if (sourceFolderId && sourceFolderId !== targetFolderId) {
-      await removeNodeFromFolder(nodeId, sourceFolderId, userId);
+    // Atomic: add to target + remove from source in one RPC transaction
+    // (AUDIT-06 P1-5: replaces non-atomic add-then-remove pattern).
+    const supabase = await getSupabaseServerClient();
+    const { error } = await (supabase as unknown as {
+      rpc: (fn: string, params: Record<string, unknown>) => Promise<{ error: { message: string } | null }>;
+    }).rpc("move_node_to_folder", {
+      p_node_id: nodeId,
+      p_target_folder_id: targetFolderId,
+      p_source_folder_id: sourceFolderId,
+      p_user_id: userId,
+    });
+    if (error) {
+      return { ok: false, error: error.message };
     }
     revalidatePath("/feed");
     return { ok: true };
@@ -157,12 +165,22 @@ export async function dndAutoCreateFolder(
     if (trimmed.length === 0) {
       return { ok: false, error: "Folder name is required" };
     }
-    const folder = await createFolder({ name: trimmed, parentFolderId: null });
-    for (const nodeId of nodeIds) {
-      await addNodeToFolder(nodeId, folder.id, ownerId);
+    // Atomic: create folder + folder_tree + bulk folder_edges in one RPC
+    // transaction (AUDIT-06 P1-5: replaces non-atomic create-then-loop pattern).
+    const supabase = await getSupabaseServerClient();
+    const { data, error } = await (supabase as unknown as {
+      rpc: (fn: string, params: Record<string, unknown>) => Promise<{ data: string | null; error: { message: string } | null }>;
+    }).rpc("create_folder_with_nodes", {
+      p_name: trimmed,
+      p_parent_folder_id: null,
+      p_node_ids: nodeIds,
+      p_user_id: ownerId,
+    });
+    if (error || !data) {
+      return { ok: false, error: error?.message ?? "Create folder failed" };
     }
     revalidatePath("/feed");
-    return { ok: true, folderId: folder.id };
+    return { ok: true, folderId: data };
   } catch (e) {
     return {
       ok: false,

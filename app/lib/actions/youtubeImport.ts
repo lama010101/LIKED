@@ -21,7 +21,6 @@ import { getSupabaseServiceClient } from "@/lib/supabase/service";
 import { importUrl, DuplicateNodeError } from "@/lib/db/nodes";
 import { fetchVideoCategoryName } from "@/lib/youtube/client";
 import { downloadAndUploadThumbnail } from "@/app/lib/actions/createNode";
-import { logger } from "@/lib/utils/logger";
 
 export type YouTubeImportResult =
   | { ok: true; nodeId: string }
@@ -42,65 +41,6 @@ export interface YouTubeImportInput {
   thumbnailUrl: string | null;
   /** Language code for tag/description i18n */
   languageCode?: string | null;
-}
-
-/**
- * Get or create a "YouTube" folder for the user.
- * Mirrors getOrCreateUnsortedFolder pattern from lib/db/folders.ts.
- */
-async function getOrCreateYouTubeFolder(userId: string): Promise<string> {
-  const supabase = getSupabaseServiceClient();
-
-  // Check if user already has a "YouTube" folder
-  const { data: existing } = await supabase
-    .from("folders")
-    .select("id")
-    .eq("owner_id", userId)
-    .eq("name", "YouTube")
-    .is("deleted_at", null)
-    .limit(1);
-
-  if (existing && existing.length > 0) {
-    return existing[0].id as string;
-  }
-
-  // Create "YouTube" folder
-  const { data: created, error: createError } = await supabase
-    .from("folders")
-    .insert({
-      name: "YouTube",
-      owner_id: userId,
-      parent_folder_id: null,
-      is_project: true,
-      color_hex: "#ff0000",
-      deleted_at: null,
-    })
-    .select("id")
-    .single();
-
-  if (createError || !created) {
-    // Race condition: another request may have created it concurrently.
-    const { data: retry } = await supabase
-      .from("folders")
-      .select("id")
-      .eq("owner_id", userId)
-      .eq("name", "YouTube")
-      .is("deleted_at", null)
-      .limit(1);
-    if (retry && retry.length > 0) {
-      return retry[0].id as string;
-    }
-    throw new Error(`Failed to create YouTube folder: ${createError?.message ?? "unknown"}`);
-  }
-
-  const folderId = created.id as string;
-
-  // Insert folder_tree self-reference (required by folder_tree schema)
-  await supabase
-    .from("folder_tree")
-    .insert({ folder_id: folderId, ancestor_id: folderId, depth: 0 });
-
-  return folderId;
 }
 
 export async function importYouTubeActivity(
@@ -178,16 +118,10 @@ export async function importYouTubeActivity(
     thumbnailKey = await downloadAndUploadThumbnail(thumbUrl, user.id);
   }
 
-  // 7. Get or create "YouTube" folder
-  let folderId: string | null = null;
-  try {
-    folderId = await getOrCreateYouTubeFolder(user.id);
-  } catch (err) {
-    // Non-fatal: node will go to "Unsorted" if folder creation fails.
-    logger.error("Failed to create YouTube folder:", err);
-  }
-
-  // 8. Atomic write via import_url RPC (single transaction, Rule 9 compliant)
+  // 7. Atomic write via import_url RPC (single transaction, Rule 9 compliant).
+  //    Auto-folder assignment happens inside the RPC (p_auto_folder_name="YouTube"
+  //    → folder created in the same transaction). No post-write folder call
+  //    needed (AUDIT-06 P1-4).
   try {
     const node = await importUrl(user.id, {
       url,
@@ -197,8 +131,9 @@ export async function importYouTubeActivity(
       description: input.description?.trim() || null,
       newTagLabels: tagLabels,
       existingTagIds: [],
-      folderId,
+      folderId: null,
       note: null,
+      autoFolderName: "YouTube",
     });
 
     revalidatePath("/feed");
