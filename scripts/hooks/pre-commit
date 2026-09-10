@@ -1,0 +1,29 @@
+#!/bin/sh
+# LIKED pre-commit hook — blocks hardcoded secrets before they are committed.
+# Installed automatically by `npm install` via the `prepare` script in package.json.
+# Patterns cover Supabase service-role secrets plus common provider key shapes.
+
+# Gather the staged diff, then keep ONLY added lines (lines starting with "+",
+# excluding the "+++ b/..." file header). Removed lines are not a leak risk.
+DIFF=$(git diff --cached --diff-filter=ACM --unified=0 --no-color | grep '^+' | grep -v '^+++')
+
+if [ -z "$DIFF" ]; then
+  exit 0
+fi
+
+# Patterns (extended regex). Add more provider prefixes as needed.
+PATTERNS='sb_secret_[A-Za-z0-9_-]{10,}|sk_live_[A-Za-z0-9]{10,}|sk_test_[A-Za-z0-9]{10,}|AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{36,}|xox[baprs]-[A-Za-z0-9-]{10,}|AIza[0-9A-Za-z_-]{35}'
+
+# grep -E for extended regex; -n shows line numbers in the diff.
+if printf '%s\n' "$DIFF" | grep -nE "$PATTERNS" >/dev/null 2>&1; then
+  echo "BLOCKED: hardcoded secret detected in staged changes." >&2
+  echo "" >&2
+  echo "Matching lines:" >&2
+  printf '%s\n' "$DIFF" | grep -nE "$PATTERNS" | sed 's/^/  /' >&2
+  echo "" >&2
+  echo "Secrets must be loaded from .env.local (see scripts/apply-migration-091.mjs for the pattern)." >&2
+  echo "If this is a false positive, bypass with: git commit --no-verify" >&2
+  exit 1
+fi
+
+exit 0
