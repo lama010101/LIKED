@@ -233,6 +233,18 @@ export default function SignupPage() {
           Continue with Google
         </button>
 
+        <p className="text-center text-xs" style={{ color: "var(--text-3)", lineHeight: 1.6 }}>
+          By signing up, you agree to our{" "}
+          <a href="/terms" className="font-semibold hover:underline" style={{ color: "var(--accent-light)" }}>
+            Terms of Service
+          </a>{" "}
+          and{" "}
+          <a href="/privacy" className="font-semibold hover:underline" style={{ color: "var(--accent-light)" }}>
+            Privacy Policy
+          </a>
+          .
+        </p>
+
         <p className="text-center text-sm" style={{ color: "var(--text-2)" }}>
           Already have an account?{" "}
           <a href="/login" className="font-semibold hover:underline" style={{ color: "var(--accent-light)" }}>

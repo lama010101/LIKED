@@ -21,8 +21,39 @@ const caveat = Caveat({
 });
 
 export const metadata: Metadata = {
-  title: "LIKED - Content Sharing",
-  description: "Share and discover content with friends",
+  metadataBase: new URL("https://liked-zeta.vercel.app"),
+  title: {
+    default: "LIKED — Save and share what you like",
+    template: "%s · LIKED",
+  },
+  description:
+    "LIKED is a content-sharing app where you save links and notes as cards, organize them with folders and tags, and share them with exactly the people you choose through explicit connections.",
+  applicationName: "LIKED",
+  icons: {
+    icon: [
+      { url: "/logo-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/logo-48.png", sizes: "48x48", type: "image/png" },
+      { url: "/logo-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/logo.svg", type: "image/svg+xml" },
+    ],
+    apple: [{ url: "/logo-180.png", sizes: "180x180", type: "image/png" }],
+    shortcut: ["/logo-32.png"],
+  },
+  openGraph: {
+    title: "LIKED — Save and share what you like",
+    description:
+      "Save links and notes as cards, organize them with folders and tags, and share with exactly the people you choose.",
+    siteName: "LIKED",
+    images: [{ url: "/logo-512.png", width: 512, height: 512 }],
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "LIKED — Save and share what you like",
+    description:
+      "Save links and notes as cards, organize them with folders and tags, and share with exactly the people you choose.",
+    images: ["/logo-512.png"],
+  },
 };
 
 export default function RootLayout({
