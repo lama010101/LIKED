@@ -3,6 +3,8 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { backfillFriendInvites } from "@/lib/db/friends";
 import { logger } from "@/lib/utils/logger";
+import { encryptToken } from "@/lib/youtube/token-crypto";
+import { getSupabaseServiceClient } from "@/lib/supabase/service";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -96,6 +98,83 @@ export async function GET(request: Request) {
       scope: tokenData.scope,
     });
 
+    // --- A5b: persist encrypted tokens to youtube_connections ---
+
+    const accessToken = tokenData.access_token!;
+    const encryptedAccessToken = encryptToken(accessToken);
+    const tokenExpiresAt = new Date(
+      Date.now() + (tokenData.expires_in ?? 3600) * 1000
+    ).toISOString();
+
+    // Fetch the Google account email. Under Option B, user.email is the LIKED
+    // account (could be email/password or another provider), NOT necessarily
+    // the Google account — so we must ask Google directly.
+    let googleEmail = user.email ?? "unknown@gmail.com";
+    try {
+      const userinfoRes = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (userinfoRes.ok) {
+        const userinfo = (await userinfoRes.json()) as { email?: string };
+        if (userinfo.email) googleEmail = userinfo.email;
+      } else {
+        logger.warn("[youtube/callback] Google userinfo returned non-OK; falling back to user.email");
+      }
+    } catch {
+      logger.warn("[youtube/callback] Google userinfo fetch failed; falling back to user.email");
+    }
+
+    // Fetch YouTube channel metadata (enrichment — non-critical path).
+    let channelId: string | null = null;
+    let channelTitle: string | null = null;
+    try {
+      const channelsRes = await fetch(
+        "https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true",
+        { headers: { Authorization: `Bearer ${accessToken}` } }
+      );
+      if (channelsRes.ok) {
+        const channelsData = (await channelsRes.json()) as {
+          items?: { id: string; snippet?: { title?: string } }[];
+        };
+        channelId = channelsData.items?.[0]?.id ?? null;
+        channelTitle = channelsData.items?.[0]?.snippet?.title ?? null;
+      } else {
+        logger.warn("[youtube/callback] YouTube channels API returned non-OK; channel metadata will be null");
+      }
+    } catch {
+      logger.warn("[youtube/callback] YouTube channels fetch failed; channel metadata will be null");
+    }
+
+    // Build upsert payload. refresh_token is only included when Google
+    // returned a new one — omitting it from the payload preserves the existing
+    // stored value on re-auth (PostgREST upsert only SETs columns in the payload).
+    const upsertPayload: Record<string, unknown> = {
+      user_id: user.id,
+      google_account_email: googleEmail,
+      connected_at: new Date().toISOString(),
+      revoked_at: null,
+      access_token: encryptedAccessToken,
+      token_expires_at: tokenExpiresAt,
+      scopes: tokenData.scope?.split(" ") ?? [],
+      channel_id: channelId,
+      channel_title: channelTitle,
+      last_synced_at: null,
+      last_sync_error: null,
+    };
+    if (tokenData.refresh_token) {
+      upsertPayload.refresh_token = encryptToken(tokenData.refresh_token);
+    }
+
+    const serviceClient = getSupabaseServiceClient();
+    const { error: upsertErr } = await serviceClient
+      .from("youtube_connections")
+      .upsert(upsertPayload as never, { onConflict: "user_id" });
+
+    if (upsertErr) {
+      logger.error("[youtube/callback] Failed to upsert YouTube connection:", upsertErr.message);
+      return NextResponse.redirect(`${origin}/feed?youtube_error=connection_save_failed`);
+    }
+
     // Backfill any pending friend invites for this user's email.
     if (user.email) {
       try {
@@ -105,7 +184,7 @@ export async function GET(request: Request) {
       }
     }
 
-    return NextResponse.redirect(`${origin}${next}?oauth_step=a5a_success`);
+    return NextResponse.redirect(`${origin}${next}`);
   } catch (err) {
     const message = err instanceof Error ? err.message : "YouTube connection failed";
     return NextResponse.redirect(`${origin}/feed?youtube_error=${encodeURIComponent(message)}`);
