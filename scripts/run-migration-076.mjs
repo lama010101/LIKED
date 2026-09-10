@@ -2,10 +2,35 @@
  * Run migration 076 via Supabase REST API.
  * Creates "Unsorted" folder for each user with unassigned nodes,
  * then backfills all unassigned nodes into that folder.
+ *
+ * Uses .env.local credentials. Guards against wrong project.
+ *
+ * Usage: node scripts/run-migration-076.mjs
  */
 
-const SUPABASE_URL = "https://lzkzfqshnjvlzosnntfx.supabase.co";
-const SERVICE_KEY = "sb_secret_c9c26MCCVj-8hLbQT-fsNg_V5QgnBni";
+import { config } from "dotenv";
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const root = join(__dirname, "..");
+config({ path: join(root, ".env.local") });
+
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const SERVICE_KEY = process.env.SUPABASE_SECRET_KEY;
+const LIKED_REF = "lzkzfqshnjvlzosnntfx";
+
+if (!SUPABASE_URL || !SERVICE_KEY) {
+  console.error("Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SECRET_KEY in .env.local");
+  process.exit(1);
+}
+if (!SUPABASE_URL.includes(LIKED_REF)) {
+  console.error(`ABORT: URL does not match LIKED project (${LIKED_REF}). Got: ${SUPABASE_URL}`);
+  process.exit(3);
+}
+
+console.log(`OK: Target is LIKED project (${LIKED_REF}).`);
+
 const HEADERS = {
   "apikey": SERVICE_KEY,
   "Authorization": `Bearer ${SERVICE_KEY}`,
