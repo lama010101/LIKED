@@ -5,17 +5,21 @@
  */
 
 import type { ViewProps, FeedItem } from "@/lib/types/feed";
+import type { Folder } from "@/lib/types/app";
 import VideoCard from "../VideoCard";
 
 interface MasonViewProps extends ViewProps {
   currentUserId?: string;
+  folders?: Folder[];
+  sourceFolderId?: string | null;
+  onChanged?: () => void;
   onCardShare?: (item: FeedItem) => void;
   onCardMoveToFolder?: (item: FeedItem) => void;
   onCardAddTag?: (item: FeedItem) => void;
   onCardDelete?: (nodeId: string) => void;
 }
 
-export default function MasonView({ items, onItemClick, currentUserId, onCardShare, onCardMoveToFolder, onCardAddTag, onCardDelete }: MasonViewProps) {
+export default function MasonView({ items, onItemClick, currentUserId, folders, sourceFolderId, onChanged, onCardShare, onCardMoveToFolder, onCardAddTag, onCardDelete }: MasonViewProps) {
   return (
     <div
       className="mason-cols"
@@ -27,7 +31,7 @@ export default function MasonView({ items, onItemClick, currentUserId, onCardSha
         @media (min-width: 1400px) { .mason-cols { columns: 4; } }
       `}</style>
       {items.map((item) => (
-        <VideoCard key={item.id} item={item} onClick={onItemClick} currentUserId={currentUserId} onCardShare={onCardShare} onCardMoveToFolder={onCardMoveToFolder} onCardAddTag={onCardAddTag} onCardDelete={onCardDelete} variant="mason" />
+        <VideoCard key={item.id} item={item} onClick={onItemClick} currentUserId={currentUserId} folders={folders} sourceFolderId={sourceFolderId} onChanged={onChanged} onCardShare={onCardShare} onCardMoveToFolder={onCardMoveToFolder} onCardAddTag={onCardAddTag} onCardDelete={onCardDelete} variant="mason" />
       ))}
     </div>
   );

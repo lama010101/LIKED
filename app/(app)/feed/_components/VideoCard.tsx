@@ -8,10 +8,15 @@
  * Keeps prod behaviors: direction dot, owner CardMenu, delete API.
  */
 
+import { useState } from 'react';
 import Image from 'next/image';
 import type { FeedItem } from '@/lib/types/feed';
+import type { Folder } from '@/lib/types/app';
 import { toast } from '@/lib/store/toastStore';
 import { CardMenu, ShareIcon, MoveFolderIcon, TagIcon, DeleteIcon } from '@/components/modals/CardMenu';
+import CardActionSheet from '@/components/sheets/CardActionSheet';
+import FolderTreePicker from '@/components/sheets/FolderTreePicker';
+import { useIsMobile } from '@/app/(app)/_lib/useIsMobile';
 
 const StarGlyph = (
   <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -68,6 +73,12 @@ export interface VideoCardProps {
   onCardMoveToFolder?: (item: FeedItem) => void;
   onCardAddTag?: (item: FeedItem) => void;
   onCardDelete?: (nodeId: string) => void;
+  /** Folders for the mobile move/copy tree picker. */
+  folders?: Folder[];
+  /** Folder the card currently sits in (move source). */
+  sourceFolderId?: string | null;
+  /** Called after move/copy completes (e.g. feed refresh). */
+  onChanged?: () => void;
   /** 'mason' → break-inside avoid; 'horiz' → fixed strip width. */
   variant?: 'grid' | 'mason' | 'horiz';
 }
@@ -80,8 +91,14 @@ export default function VideoCard({
   onCardMoveToFolder,
   onCardAddTag,
   onCardDelete,
+  folders,
+  sourceFolderId = null,
+  onChanged,
   variant = 'grid',
 }: VideoCardProps) {
+  const isMobile = useIsMobile();
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [pickerMode, setPickerMode] = useState<'move' | 'copy' | null>(null);
   const handleCardDelete = async () => {
     const res = await fetch(`/api/nodes/${item.id}`, {
       method: 'DELETE',
@@ -177,7 +194,44 @@ export default function VideoCard({
             }}
           />
         )}
-        <CardMenu items={menuItems} ariaLabel="Card menu" show={!!isOwned} />
+        {isOwned && (
+          isMobile ? (
+            <button
+              type="button"
+              aria-label="Card menu"
+              onClick={(e) => {
+                e.stopPropagation();
+                setSheetOpen(true);
+              }}
+              onPointerDown={(e) => e.stopPropagation()}
+              style={{
+                position: 'absolute',
+                top: 8,
+                right: 8,
+                width: 28,
+                height: 28,
+                borderRadius: 9999,
+                background: 'rgba(0,0,0,0.35)',
+                backdropFilter: 'blur(8px)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 4,
+                cursor: 'pointer',
+                border: 'none',
+                padding: 0,
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff" aria-hidden="true">
+                <circle cx="12" cy="6" r="2" />
+                <circle cx="12" cy="12" r="2" />
+                <circle cx="12" cy="18" r="2" />
+              </svg>
+            </button>
+          ) : (
+            <CardMenu items={menuItems} ariaLabel="Card menu" show />
+          )
+        )}
       </div>
 
       <div className="video-info">
@@ -211,6 +265,29 @@ export default function VideoCard({
           </div>
         )}
       </div>
+
+      {/* Mobile: bottom action sheet + folder tree picker (UIX-10) */}
+      {sheetOpen && (
+        <CardActionSheet
+          title={item.title}
+          onClose={() => setSheetOpen(false)}
+          onShare={onCardShare ? () => onCardShare(item) : undefined}
+          onMove={folders ? () => setPickerMode('move') : onCardMoveToFolder ? () => onCardMoveToFolder(item) : undefined}
+          onCopy={folders ? () => setPickerMode('copy') : undefined}
+          onAddTag={onCardAddTag ? () => onCardAddTag(item) : undefined}
+          onDelete={handleCardDelete}
+        />
+      )}
+      {pickerMode && folders && (
+        <FolderTreePicker
+          nodeId={item.id}
+          mode={pickerMode}
+          folders={folders}
+          sourceFolderId={sourceFolderId}
+          onClose={() => setPickerMode(null)}
+          onDone={onChanged}
+        />
+      )}
     </div>
   );
 }

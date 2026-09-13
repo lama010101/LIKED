@@ -2,6 +2,7 @@
 
 import { useCallback, useRef, useState, useEffect, useMemo } from "react";
 import type { FeedNode } from "@/lib/hooks/useFeed";
+import type { Folder } from "@/lib/types/app";
 import NodeCard from "./NodeCard";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { upsertCardPositionAction, type CardPosition } from "@/app/lib/actions/cardPositions";
@@ -20,6 +21,8 @@ interface FreeGridProps {
   onCardClick: (node: FeedNode) => void;
   currentUserId: string;
   activeFolderId: string | null;
+  folders?: Folder[];
+  onChanged?: () => void;
   onShare?: (node: FeedNode) => void;
   onMoveToFolder?: (node: FeedNode) => void;
   onAddTag?: (node: FeedNode) => void;
@@ -39,6 +42,8 @@ export default function FreeGrid({
   onCardClick,
   currentUserId,
   activeFolderId,
+  folders,
+  onChanged,
   onShare,
   onMoveToFolder,
   onAddTag,
@@ -302,6 +307,9 @@ export default function FreeGrid({
                     node={node}
                     onClick={onCardClick}
                     currentUserId={currentUserId}
+                    folders={folders}
+                    sourceFolderId={activeFolderId}
+                    onChanged={onChanged}
                     onShare={onShare}
                     onMoveToFolder={onMoveToFolder}
                     onAddTag={onAddTag}
