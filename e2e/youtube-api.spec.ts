@@ -13,8 +13,8 @@ import { TEST_EMAIL, TEST_PASSWORD } from "./helpers/auth";
  * The test user (e2e-test@liked.app) does NOT have a YouTube connection,
  * so we test the "not connected" state:
  *   - status → { connected: false }
- *   - likes → 401 (no provider_token)
- *   - subscriptions → 401 (no provider_token)
+ *   - likes → 401 (no stored YouTube connection)
+ *   - subscriptions → 401 (no stored YouTube connection)
  *
  * We also test the YouTube page UI:
  *   - Renders without error
@@ -68,24 +68,24 @@ test.describe("YouTube API — authenticated (not connected)", () => {
     expect(body.connected).toBe(false);
   });
 
-  test("GET /api/youtube/likes returns 401 (no provider_token)", async ({ request }) => {
+  test("GET /api/youtube/likes returns 401 (not connected)", async ({ request }) => {
     const res = await request.get("/api/youtube/likes", makeRequest());
     expect(res.status()).toBe(401);
     const body = await res.json();
     expect(body.error).toBeTruthy();
     // Error should mention YouTube connection
-    expect(body.error.toLowerCase()).toMatch(/youtube|connect|provider/);
+    expect(body.error.toLowerCase()).toMatch(/youtube|connect/);
   });
 
-  test("GET /api/youtube/subscriptions returns 401 (no provider_token)", async ({ request }) => {
+  test("GET /api/youtube/subscriptions returns 401 (not connected)", async ({ request }) => {
     const res = await request.get("/api/youtube/subscriptions", makeRequest());
     expect(res.status()).toBe(401);
     const body = await res.json();
     expect(body.error).toBeTruthy();
-    expect(body.error.toLowerCase()).toMatch(/youtube|connect|provider/);
+    expect(body.error.toLowerCase()).toMatch(/youtube|connect/);
   });
 
-  test("DELETE /api/youtube/likes/:videoId returns 401 (no provider_token)", async ({ request }) => {
+  test("DELETE /api/youtube/likes/:videoId returns 401 (not connected)", async ({ request }) => {
     const res = await request.fetch("/api/youtube/likes/dQw4w9WgXcQ", {
       method: "DELETE",
       ...makeRequest(),
@@ -93,7 +93,7 @@ test.describe("YouTube API — authenticated (not connected)", () => {
     expect(res.status()).toBe(401);
   });
 
-  test("DELETE /api/youtube/subscriptions/:id returns 401 (no provider_token)", async ({ request }) => {
+  test("DELETE /api/youtube/subscriptions/:id returns 401 (not connected)", async ({ request }) => {
     const res = await request.fetch("/api/youtube/subscriptions/sub123", {
       method: "DELETE",
       ...makeRequest(),
@@ -196,8 +196,8 @@ test.describe("YouTube API — unauthenticated", () => {
     expect(res.status()).toBe(401);
   });
 
-  test("POST /api/youtube/connect returns 401 without auth", async ({ request }) => {
-    const res = await request.post("/api/youtube/connect");
+  test("GET /api/youtube/connect returns 401 without auth", async ({ request }) => {
+    const res = await request.get("/api/youtube/connect");
     expect(res.status()).toBe(401);
   });
 });
