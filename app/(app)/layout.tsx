@@ -1,27 +1,23 @@
 'use client';
 
 import { useEffect, useMemo, useState, Suspense, useCallback } from 'react';
-import TopBar from '@/components/bars/TopBar';
-import BottomBar from '@/components/bars/BottomBar';
 import AddCardSheet from '@/components/sheets/AddCardSheet';
 import AddFolderSheet from '@/components/sheets/AddFolderSheet';
 import ProfileModal from '@/components/modals/ProfileModal';
-import DesktopSidebar from '@/components/sidebar/DesktopSidebar';
+import Sidebar from '@/components/sidebar/Sidebar';
+import AppHeader from '@/components/bars/AppHeader';
+import StoriesBar from '@/components/bars/StoriesBar';
+import FriendManagerModal from '@/components/modals/FriendManagerModal';
+import FriendActionSheet, { type FriendSheetTarget } from '@/components/sheets/FriendActionSheet';
 import DndProvider from '@/lib/dnd/DndProvider';
 import SelectionOverlay from '@/components/selection/SelectionOverlay';
-import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useLocalStorage } from '@/lib/hooks/useLocalStorage';
-import { getTrashCount } from '@/app/lib/actions/trash';
 import { useFilterStore, getContextKey } from '@/lib/store/filterStore';
 import { useFeedURLSync } from '@/lib/hooks/useFeedURLSync';
-import FeedTabs, { TabId } from '@/components/bars/FeedTabs';
-import MineSubTabs, { MineSubTab } from '@/components/bars/MineSubTabs';
-import SortViewRow from '@/components/bars/SortViewRow';
 import TagsStrip from '@/components/bars/TagsStrip';
 import ContextStrip, { ContextPill } from '@/components/bars/ContextStrip';
 import FabSpeedDial from '@/components/bars/FabSpeedDial';
-import FolderPathBar from '@/components/bars/FolderPathBar';
-import DesktopToolbar from '@/components/bars/DesktopToolbar';
 import NotificationPanel from '@/components/modals/NotificationPanel';
 import { getSessionUser, getFriendBarAction, getGroupBarAction, type SessionUser } from '@/app/lib/actions/session';
 import { getUserFoldersAction } from '@/app/lib/actions/getFolders';
@@ -31,14 +27,11 @@ import { useRealtime } from '@/lib/hooks/useRealtime';
 import { toast as showToast } from '@/lib/store/toastStore';
 import { useIsMobile } from './_lib/useIsMobile';
 import { friendBarToBottomBarItems, type BottomBarItem } from './_lib/friendBarToBottomBarItems';
+import type { SidebarTag } from '@/components/sidebar/Sidebar';
 
 function AppShell({ children }: { children: React.ReactNode }) {
   // P9-T03: Filter state from store (URL is source of truth via useFeedURLSync)
   useFeedURLSync();
-  const filterView = useFilterStore((s) => s.view);
-  const setFilterView = useFilterStore((s) => s.setView);
-  const setMineSubTabStore = useFilterStore((s) => s.setMineSubTab);
-  const mineSubTabStore = useFilterStore((s) => s.mineSubTab);
   const tagIds = useFilterStore((s) => s.tagIds);
   const filterFriendIds = useFilterStore((s) => s.filterFriendIds);
   const filterFolderIds = useFilterStore((s) => s.filterFolderIds);
@@ -50,10 +43,12 @@ function AppShell({ children }: { children: React.ReactNode }) {
   const setSearch = useFilterStore((s) => s.setSearch);
   const clearFilters = useFilterStore((s) => s.clearFilters);
   const clearAll = useFilterStore((s) => s.clearAll);
+  const setContext = useFilterStore((s) => s.setContext);
 
   // Tag label/color lookup for Context Strip — populated from real tag data
   const [tagLabelMap, setTagLabelMap] = useState<Record<string, string>>({});
   const [tagColorMap, setTagColorMap] = useState<Record<string, string>>({});
+  const [layoutTags, setLayoutTags] = useState<SidebarTag[]>([]);
 
   const [sessionUser, setSessionUser] = useState<SessionUser | null>(null);
   const [bottomBarItems, setBottomBarItems] = useState<BottomBarItem[]>([]);
@@ -85,6 +80,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
           });
           setTagLabelMap(labels);
           setTagColorMap(colors);
+          setLayoutTags(tags);
         }
       }).catch(() => {
         if (!cancelled) showToast.error('Failed to load sidebar data. Please refresh the page.');
@@ -158,31 +154,16 @@ function AppShell({ children }: { children: React.ReactNode }) {
     return pills;
   }, [tagIds, filterFriendIds, filterFolderIds, searchQuery, bottomBarItems, tagLabelMap, tagColorMap, layoutFolders]);
 
-  // Map store view to layout TabId
-  const tab = filterView as TabId;
-  const setTab = (next: TabId) => {
-    setFilterView(next as typeof filterView);
-    if (next !== 'mine') setMineSubTabStore('all');
-  };
-  const mineSubTab = mineSubTabStore === 'not_shared' ? 'not-shared' : mineSubTabStore === 'shared' ? 'shared' : 'all';
-  const setMineSubTab = (next: MineSubTab) => {
-    setMineSubTabStore(next === 'not-shared' ? 'not_shared' : next === 'shared' ? 'shared' : 'all');
-  };
-  // View/zoom presentation state — read from shared Zustand store (reactive across components)
-  const view = useFilterStore((s) => s.viewMode);
-  const zoom = useFilterStore((s) => s.zoom);
-  const setViewMode = useFilterStore((s) => s.setViewMode);
-  const setZoom = useFilterStore((s) => s.setZoom);
   const [theme, setThemeState] = useLocalStorage<'dark' | 'light'>('liked.theme', 'light');
-  const [folderPath, setFolderPath] = useState<string[]>([]);
-  const [friendsState, setFriendsState] = useLocalStorage<'hidden' | 'strip' | 'expanded'>('liked.friendsStripState', 'strip');
+  const [sidebarClosed, setSidebarClosed] = useLocalStorage<boolean>('liked.sidebarClosed', false);
   const [tagsStripOpen, setTagsStripOpen] = useState(false);
-  const [folderPathBarVisible, setFolderPathBarVisible] = useState(true);
-  const [, setOpenFilter] = useState(false);
   const [openAdd, setOpenAdd] = useState(false);
   const [openFolder, setOpenFolder] = useState(false);
   const [speedDialOpen, setSpeedDialOpen] = useState(false);
   const [openProfile, setOpenProfile] = useState(false);
+  const [fmOpen, setFmOpen] = useState(false);
+  const [fmTab, setFmTab] = useState<'friends' | 'groups'>('friends');
+  const [friendSheet, setFriendSheet] = useState<FriendSheetTarget | null>(null);
   const [notificationCount, setNotificationCount] = useState(0);
   const [notificationPanelOpen, setNotificationPanelOpen] = useState(false);
 
@@ -190,10 +171,8 @@ function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     getUnreadNotificationCountAction().then(setNotificationCount).catch(() => {});
   }, []);
-  const [trashCount, setTrashCount] = useState<number>(0);
   const isMobile = useIsMobile();
   const router = useRouter();
-  const pathname = usePathname();
   const searchParams = useSearchParams();
   const hydrateFromStorage = useFilterStore((s) => s.hydrateFromStorage);
   const setCurrentContextKey = useFilterStore((s) => s.setCurrentContextKey);
@@ -228,19 +207,6 @@ function AppShell({ children }: { children: React.ReactNode }) {
     onNodeTitleChange: handleNodeTitleChange,
   });
 
-  // Refresh the trash-icon badge count (PRD §20.1) whenever the route
-  // changes, so restoring or leaving /trash reflects in the top bar.
-  useEffect(() => {
-    let cancelled = false;
-    getTrashCount().then((n) => {
-      if (!cancelled) setTrashCount(n);
-    }).catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, [pathname]);
-
-
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
@@ -258,265 +224,157 @@ function AppShell({ children }: { children: React.ReactNode }) {
     document.documentElement.setAttribute('data-theme', t);
   };
 
-  const isInFolder = !!activeFolderId;
-
-  const breadcrumbPath = folderStack.map(f => ({
-    id: f.id,
-    name: f.name,
-    colors: [f.color_hex],
-  }));
+  // Story rail tap semantics: Me → personal feed; friend → friend-context
+  // feed; group → group-context feed (tap again clears). Mirrors the old
+  // BottomBar onAvatarClick routing, minus the multi-filter toggle which
+  // moved to the proto context model.
+  const handleAvatarClick = (id: string, type: 'me' | 'friend' | 'group') => {
+    if (type === 'me') {
+      clearAll();
+      router.push('/feed?view=all');
+      return;
+    }
+    if (type === 'friend') {
+      const current = useFilterStore.getState().friendId;
+      if (current === id) {
+        setContext({ friendId: null });
+        router.push('/feed?view=all');
+      } else {
+        setContext({ friendId: id });
+        router.push(`/feed?friend=${id}`);
+      }
+      return;
+    }
+    // group
+    const currentGroupId = useFilterStore.getState().groupId;
+    if (currentGroupId === id) {
+      setContext({ groupId: null });
+      router.push('/feed?view=all');
+    } else {
+      setContext({ groupId: id });
+      router.push(`/feed?group=${id}`);
+    }
+  };
 
   return (
     <DndProvider>
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
-      {/* DESKTOP SIDEBAR — hidden below lg */}
-      <nav aria-label="Main navigation" className="hidden lg:flex" style={{ flexShrink: 0 }}>
-        <DesktopSidebar items={bottomBarItems} displayName={profileDisplayName} />
-      </nav>
+    <div className={`v2-app${sidebarClosed ? ' sidebar-closed' : ''}`}>
+      {/* Sidebar — collapsible 260px → 72px rail (hidden ≤700px by CSS) */}
+      <Sidebar
+        collapsed={sidebarClosed}
+        onToggle={() => setSidebarClosed(!sidebarClosed)}
+        folders={layoutFolders}
+        tags={layoutTags}
+      />
 
       {/* MAIN COLUMN */}
-      <main
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          height: '100vh',
-          overflow: 'hidden',
-          minWidth: 0,
-        }}
-      >
-      {/* TopBar — mobile only; desktop has wordmark in sidebar */}
-      <div className="lg:hidden">
-        <TopBar
+      <div className="main">
+        {/* Header — search pill + notifications + avatar (all breakpoints) */}
+        <AppHeader
           notificationCount={notificationCount}
-          userId={sessionUser?.id ?? ''}
+          onBell={() => setNotificationPanelOpen(true)}
+          onProfile={() => setOpenProfile(true)}
+          onTags={() => setTagsStripOpen((v) => !v)}
           avatarKey={sessionUser?.avatar_key ?? null}
-          displayName={profileDisplayName}
-          onNotificationClick={() => setNotificationPanelOpen(true)}
-          onProfileClick={() => setOpenProfile(true)}
-          onTrashClick={() => router.push('/trash')}
-          trashCount={trashCount}
-          folderName={isInFolder ? 'Current Folder' : undefined}
-          folderColor={isInFolder ? 'var(--accent)' : undefined}
-          onBackClick={() => setFolderPath((p) => p.slice(0, -1))}
-          activeTagCount={useFilterStore((s) => s.tagIds.length)}
-          onTagsClick={() => setTagsStripOpen((v) => !v)}
+          displayName={profileDisplayName || null}
         />
-      </div>
 
-      {/* Tags Strip — collapsible, between TopBar and feed tabs (PRD §11.3f) */}
-      {tagsStripOpen && (
-        <TagsStrip 
-          visible={tagsStripOpen} 
-          userId={sessionUser?.id ?? ''} 
-          languageCode={sessionUser?.language_code || 'en'} 
+        {/* Stories rail — Me + friends + groups + Manage/New group */}
+        <StoriesBar
+          items={bottomBarItems}
+          onAvatarClick={handleAvatarClick}
+          onFriendLongPress={(item) =>
+            setFriendSheet({ userId: item.id, displayName: item.displayName })
+          }
+          onManage={() => {
+            setFmTab('friends');
+            setFmOpen(true);
+          }}
+          onNewGroup={() => {
+            setFmTab('groups');
+            setFmOpen(true);
+          }}
         />
-      )}
 
-      {/* Desktop Toolbar — unified toolbar for lg+ screens (PRD §11.8) */}
-      <DesktopToolbar
-        className="hidden lg:flex"
-        tab={tab}
-        onTabChange={setTab}
-        mineSubTab={mineSubTab}
-        onMineSubTabChange={setMineSubTab}
-        view={view}
-        onViewChange={setViewMode}
-        zoom={zoom}
-        onZoomChange={setZoom}
-        sortLabel="Newest"
-        onSortClick={() => setOpenFilter(true)}
-        notificationCount={notificationCount}
-        onNotificationClick={() => setNotificationPanelOpen(true)}
-        isInFolder={isInFolder}
-        folderName={isInFolder ? 'Current Folder' : undefined}
-        onBackClick={() => setFolderPath((p) => p.slice(0, -1))}
-        onProfileClick={() => setOpenProfile(true)}
-        userDisplayName={profileDisplayName}
-      />
-
-      {/* Feed filter tabs — mobile only, hidden on desktop */}
-      <div className="lg:hidden">
-        {!isInFolder && (
-          <FeedTabs activeTab={tab} onTabChange={setTab} />
-        )}
-        {/* Activity feed link — mobile only */}
-        {!isInFolder && (
-          <div style={{ padding: '4px 16px 0', display: 'flex', justifyContent: 'flex-end' }}>
-            <a
-              href="/social"
-              style={{
-                display: 'flex', alignItems: 'center', gap: 4,
-                fontSize: 11, fontWeight: 600,
-                color: 'var(--text-3)',
-                textDecoration: 'none',
-                padding: '4px 10px',
-                background: 'var(--surface-3)',
-                borderRadius: 999,
-                border: '1px solid var(--border-1)',
-              }}
-            >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-              </svg>
-              Activity Feed
-            </a>
+        {/* Tags Strip — collapsible, toggled from the header Tags icon (<lg) */}
+        {tagsStripOpen && (
+          <div className="lg:hidden">
+            <TagsStrip
+              visible={tagsStripOpen}
+              userId={sessionUser?.id ?? ''}
+              languageCode={sessionUser?.language_code || 'en'}
+            />
           </div>
         )}
-      </div>
 
-      {/* Mine sub-tabs — mobile only, hidden on desktop */}
-      <div className="lg:hidden">
-        {!isInFolder && tab === 'mine' && (
-          <MineSubTabs activeSubTab={mineSubTab} onSubTabChange={setMineSubTab} scope="mine" />
-        )}
-      </div>
-
-      {/* Context Strip — active filter pills (PRD §11.3g) — mobile only, desktop filters in sidebar */}
-      <div className="lg:hidden">
-      <ContextStrip
-        pills={contextPills}
-        onRemove={(id, type) => {
-          if (type === 'tag') toggleTagFilter(id);
-          else if (type === 'friend') toggleFriendFilter(id);
-          else if (type === 'folder') toggleFolderFilter(id);
-          else if (type === 'search') setSearch(null);
-        }}
-        onClearAll={clearFilters}
-      />
-      </div>
-
-      {/* Sort / View Row — mobile only, hidden on desktop (unified in DesktopToolbar) */}
-      <div className="lg:hidden">
-        <SortViewRow
-          view={view}
-          onViewChange={setViewMode}
-          zoom={zoom}
-          onZoomChange={setZoom}
-          sortLabel="Newest"
-          onSortClick={() => setOpenFilter(true)}
-        />
-      </div>
-
-      {/* Folder Path Bar — above content */}
-      <div>
-        {friendsState !== 'expanded' && (
-          <FolderPathBar
-            path={breadcrumbPath}
-            totalCount={layoutFolders.length}
-            onNavigate={(id) => {
-              if (id === 'root') {
-                useFilterStore.getState().clearContext();
-              } else {
-                // Navigate to a specific crumb — truncate stack to that point
-                const idx = folderStack.findIndex(f => f.id === id);
-                if (idx >= 0) {
-                  useFilterStore.getState().setFolderStack(folderStack.slice(0, idx + 1));
-                  useFilterStore.getState().setContext({ folderId: id });
-                }
-              }
+        {/* Context Strip — active filter pills (mobile only) */}
+        <div className="lg:hidden">
+          <ContextStrip
+            pills={contextPills}
+            onRemove={(id, type) => {
+              if (type === 'tag') toggleTagFilter(id);
+              else if (type === 'friend') toggleFriendFilter(id);
+              else if (type === 'folder') toggleFolderFilter(id);
+              else if (type === 'search') setSearch(null);
             }}
-            onBack={() => {
-              if (folderStack.length <= 1) {
-                useFilterStore.getState().clearContext();
-              } else {
-                const next = folderStack.slice(0, -1);
-                useFilterStore.getState().setFolderStack(next);
-                useFilterStore.getState().setContext({ folderId: next[next.length - 1].id });
-              }
-            }}
-            visible={folderPathBarVisible}
-            onToggleVisibility={() => setFolderPathBarVisible(v => !v)}
+            onClearAll={clearFilters}
           />
-        )}
+        </div>
+
+        {/* Scrollable content — folder chrome + feed live inside FeedGrid */}
+        <div className="v2-content">
+          {children}
+        </div>
+
+        {/* Bottom area — FAB only (story rail lives at top in V2) */}
+        <div className="bottom-area">
+          <FabSpeedDial
+            open={speedDialOpen}
+            onToggle={() => setSpeedDialOpen((v) => !v)}
+            onAction={(id) => {
+              setSpeedDialOpen(false);
+              if (id === 'card') setOpenAdd(true);
+              else if (id === 'folder') setOpenFolder(true);
+              else showToast.info('Coming soon');
+            }}
+          />
+        </div>
       </div>
-
-      {/* Main content area */}
-      <div
-        style={{
-          flex: 1,
-          overflowY: 'auto',
-          background: 'var(--bg)',
-          position: 'relative',
-          minHeight: 0,
-        }}
-      >
-        {children}
-      </div>
-
-      {/* Bottom area — prototype: sticky bottom container with FAB overlapping */}
-      <div className="bottom-area">
-        {/* FAB Speed-Dial (PRD §11.3) */}
-        <FabSpeedDial
-          open={speedDialOpen}
-          onToggle={() => setSpeedDialOpen((v) => !v)}
-          onAction={(id) => {
-            setSpeedDialOpen(false);
-            if (id === 'card') setOpenAdd(true);
-            else if (id === 'folder') setOpenFolder(true);
-            else showToast.info('Coming soon');
-          }}
-        />
-
-        {/* Bottom dock: folders + friends (PRD §11.8) */}
-        <nav aria-label="Bottom navigation" className="bottom-dock lg:hidden">
-          {/* BottomBar */}
-          <BottomBar
-          items={bottomBarItems}
-          state={friendsState}
-          onStateChange={setFriendsState}
-          currentUserId={sessionUser?.id}
-          onRefresh={refreshFriends}
-          onAvatarClick={(id, type) => {
-            // Clicking Me clears all filters and returns to personal feed
-            if (type === 'me') {
-              clearAll();
-              setFolderPath([]);
-              router.push('/feed?view=all');
-              return;
-            }
-            // Friends: toggle friend filter (AND logic per PRD §16)
-            if (type === 'friend') {
-              toggleFriendFilter(id);
-              return;
-            }
-            // Groups: toggle group context (navigate to group feed view)
-            if (type === 'group') {
-              const currentGroupId = useFilterStore.getState().groupId;
-              if (currentGroupId === id) {
-                // Clicking the active group again clears it
-                useFilterStore.getState().setContext({ groupId: null });
-                router.push('/feed?view=all');
-              } else {
-                useFilterStore.getState().setContext({ groupId: id });
-                router.push(`/feed?group=${id}`);
-              }
-              return;
-            }
-          }}
-        />
-      </nav>
-      </div>
-
-      </main>
 
       {/* Add Card Sheet */}
-      <AddCardSheet 
-        open={openAdd} 
-        onClose={() => setOpenAdd(false)} 
-        userId={sessionUser?.id ?? ''} 
-        languageCode={sessionUser?.language_code || 'en'} 
+      <AddCardSheet
+        open={openAdd}
+        onClose={() => setOpenAdd(false)}
+        userId={sessionUser?.id ?? ''}
+        languageCode={sessionUser?.language_code || 'en'}
       />
 
-      {/* Add Folder Sheet — mobile only */}
-      {isMobile && (
-        <AddFolderSheet
-          open={openFolder}
-          onClose={() => setOpenFolder(false)}
-          parentFolderId={activeFolderId ?? null}
-          onFolderCreated={refreshFolders}
-        />
-      )}
+      {/* Add Folder Sheet */}
+      <AddFolderSheet
+        open={openFolder}
+        onClose={() => setOpenFolder(false)}
+        parentFolderId={activeFolderId ?? null}
+        onFolderCreated={refreshFolders}
+      />
+
+      {/* Friends & Groups manager (proto friend-manager overlay) */}
+      <FriendManagerModal
+        open={fmOpen}
+        onClose={() => setFmOpen(false)}
+        initialTab={fmTab}
+        onChanged={refreshFriends}
+      />
+
+      {/* Friend action sheet (long-press / right-click on a friend ring) */}
+      <FriendActionSheet
+        friend={friendSheet}
+        onClose={() => setFriendSheet(null)}
+        onViewFeed={(f) => {
+          setContext({ friendId: f.userId });
+          router.push(`/feed?friend=${f.userId}`);
+        }}
+        onChanged={refreshFriends}
+      />
 
       {/* Profile Modal */}
       <ProfileModal
@@ -542,7 +400,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
       {/* Multi-select context menu + undo toast (P7-T03) */}
       <SelectionOverlay
         isMobile={isMobile}
-        activeFolderId={folderPath.length > 0 ? folderPath[folderPath.length - 1] : null}
+        activeFolderId={folderStack.length > 0 ? folderStack[folderStack.length - 1].id : null}
         onToast={(msg, kind) => {
           if (kind === 'err') showToast.error(msg);
           else showToast.success(msg);
