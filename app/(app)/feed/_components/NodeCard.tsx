@@ -1,5 +1,13 @@
 "use client";
 
+/**
+ * NodeCard — draggable/droppable/selection card (UIX-08 restyle:
+ * PROTO V2 .video-card anatomy — 16:9 thumb-wrap + video-info).
+ * Behavior preserved: drag source, node→node drop target, long-press
+ * multi-select + wobble + (×) close, text-note variant, owner ⋯ menu
+ * (Share / Move to folder / Add tag / Delete), direction dot.
+ */
+
 import { useCallback, useState, useEffect } from "react";
 import { useDraggable, useDroppable, useDndContext } from "@dnd-kit/core";
 import type { DraggableSyntheticListeners } from "@dnd-kit/core";
@@ -29,13 +37,30 @@ function formatDate(iso: string): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
+const StarGlyph = (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+  </svg>
+);
+const ShareGlyph = (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+    <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
+    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+  </svg>
+);
+const EyeGlyph = (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
+  </svg>
+);
+
 export default function NodeCard({ node, onClick, currentUserId, dragListeners, onShare, onMoveToFolder, onAddTag, onDelete }: NodeCardProps) {
   const isTextCard = !node.url && !!node.text_content;
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // P9-T01: Direction badge — amber for mine, blue for received (PRD §11.3)
+  // P9-T01: Direction badge — red for mine, blue for received (PRD §11.3)
   const isMine = node.direction === 'own' || node.direction === 'sent';
-  const badgeColor = isMine ? 'var(--accent)' : 'var(--tab-received)';
+  const badgeColor = isMine ? 'var(--accent)' : 'var(--blue)';
 
   // Ownership check for menu button
   const isOwned = node.owner_id === currentUserId;
@@ -127,12 +152,26 @@ export default function NodeCard({ node, onClick, currentUserId, dragListeners, 
     return "Untitled";
   })();
 
+  const creator = (() => {
+    if (node.sender_name) return node.sender_name;
+    if (node.url) {
+      try { return new URL(node.url).hostname.replace(/^www\./, ''); } catch { /* ignore */ }
+    }
+    if (isTextCard) return 'Text note';
+    return '';
+  })();
+
   const cardGradient = (() => {
     const hue = Math.abs(
       node.node_id.split('').reduce((h, c) => ((h << 5) - h + c.charCodeAt(0)) | 0, 0)
     ) % 360;
     return `linear-gradient(135deg, hsl(${hue}, 35%, 28%), hsl(${(hue + 55) % 360}, 45%, 18%))`;
   })();
+
+  const hasStats =
+    (node.avg_rating != null && node.avg_rating > 0) ||
+    (node.share_count != null && node.share_count > 0) ||
+    (node.view_count != null && node.view_count > 0);
 
   return (
     <div style={{ position: "relative" }}>
@@ -154,8 +193,11 @@ export default function NodeCard({ node, onClick, currentUserId, dragListeners, 
       {...(selectionActive ? {} : listeners)}
       style={{
         opacity: isDragging ? 0.4 : 1,
+        width: '100%',
+        textAlign: 'left',
+        padding: 0,
+        font: 'inherit',
         touchAction: "manipulation",
-        aspectRatio: '1 / 1',
         position: 'relative',
         outline:
           isSelected || (isOver && isOtherNodeDragging)
@@ -166,7 +208,7 @@ export default function NodeCard({ node, onClick, currentUserId, dragListeners, 
           isOver && isOtherNodeDragging && !selectionActive ? "scale(1.02)" : undefined,
         transition: "transform 0.12s, outline-offset 0.12s, box-shadow 0.15s",
       }}
-      className={`w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 cursor-pointer${isSelected ? " liked-wobble" : ""}${isTextCard ? " note-card" : " rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-px active:scale-[0.97] active:shadow-none transition-all duration-150"}`}
+      className={`${isTextCard ? 'note-card' : 'video-card'} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50${isSelected ? " liked-wobble" : ""}`}
     >
       {isTextCard ? (
         /* Text card — sticky-note style */
@@ -181,16 +223,9 @@ export default function NodeCard({ node, onClick, currentUserId, dragListeners, 
         </>
       ) : (
         <>
-          {/* Full-bleed thumbnail */}
+          {/* 16:9 thumb area */}
           <div
-            className="absolute inset-0 flex items-center justify-center"
-            style={{
-              position: 'relative',
-              width: '100%',
-              height: '100%',
-              overflow: 'hidden',
-              background: node.thumbnail_key ? 'var(--surface-3)' : cardGradient,
-            }}
+            className="thumb-wrap"
             {...(dragListeners ?? {})}
           >
             {node.thumbnail_key ? (
@@ -198,111 +233,88 @@ export default function NodeCard({ node, onClick, currentUserId, dragListeners, 
                 src={getStorageUrl('thumbnails', node.thumbnail_key)}
                 alt={title}
                 fill
-                sizes="200px"
-                className="w-full h-full object-cover"
+                sizes="(max-width: 700px) 50vw, 25vw"
+                style={{ objectFit: 'cover' }}
               />
             ) : (
-              <svg
-                className="w-8 h-8"
-                style={{ color: 'var(--text-3)' }}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={1.5}
-                aria-hidden="true"
+              <div
+                className="thumb"
+                style={{
+                  background: cardGradient,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3 19.5h18a.75.75 0 0 0 .75-.75v-15A.75.75 0 0 0 21 3H3a.75.75 0 0 0-.75.75v15c0 .414.336.75.75.75Z"
-                />
-              </svg>
-            )}
-          </div>
-
-          {/* Bottom gradient overlay with title + tags */}
-          <div
-            style={{
-              position: 'absolute',
-              bottom: 0,
-              left: 0,
-              right: 0,
-              padding: 8,
-              background:
-                'linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.35) 60%, transparent 100%)',
-              zIndex: 2,
-            }}
-          >
-            <div
-              style={{
-                fontSize: 'var(--text-sm, 12px)',
-                fontWeight: 700,
-                color: '#fff',
-                lineHeight: 1.3,
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                marginBottom: 3,
-              }}
-            >
-              {title}
-            </div>
-            {node.tags && node.tags.length > 0 && (
-              <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
-                {node.tags.slice(0, 3).map((tag) => (
-                  <span
-                    key={tag.tag_id}
-                    style={{
-                      fontSize: 9,
-                      padding: '2px 8px',
-                      borderRadius: 4,
-                      fontWeight: 700,
-                      whiteSpace: 'nowrap',
-                      background: tag.color_hex,
-                      color: '#fff',
-                      backdropFilter: 'blur(4px)',
-                    }}
-                  >
-                    {tag.label}
-                  </span>
-                ))}
+                <svg
+                  className="w-8 h-8"
+                  style={{ color: 'rgba(255,255,255,0.6)' }}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3 19.5h18a.75.75 0 0 0 .75-.75v-15A.75.75 0 0 0 21 3H3a.75.75 0 0 0-.75.75v15c0 .414.336.75.75.75Z"
+                  />
+                </svg>
               </div>
             )}
-          </div>
 
-          {/* Menu button (top-right) - only show if owned */}
-          {isOwned && (
+            {/* Menu button (top-right) - only show if owned */}
+            {isOwned && (
+              <span
+                role="button"
+                aria-label="Card menu"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setMenuOpen(true);
+                }}
+                onPointerDown={(e) => e.stopPropagation()}
+                style={{
+                  position: 'absolute',
+                  top: 8,
+                  right: 8,
+                  width: 28,
+                  height: 28,
+                  borderRadius: 9999,
+                  background: 'rgba(0,0,0,0.35)',
+                  backdropFilter: 'blur(8px)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  zIndex: 4,
+                  cursor: 'pointer',
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff" aria-hidden="true">
+                  <circle cx="12" cy="6" r="2" />
+                  <circle cx="12" cy="12" r="2" />
+                  <circle cx="12" cy="18" r="2" />
+                </svg>
+              </span>
+            )}
+
+            {/* Direction dot (top-left — clear of menu trigger) */}
             <span
-              role="button"
-              aria-label="Card menu"
-              onClick={(e) => {
-                e.stopPropagation();
-                setMenuOpen(true);
-              }}
-              onPointerDown={(e) => e.stopPropagation()}
+              aria-label={isMine ? 'Mine' : 'Received'}
+              title={isMine ? 'Mine' : 'Received'}
               style={{
                 position: 'absolute',
                 top: 8,
-                right: 8,
-                width: 28,
-                height: 28,
-                borderRadius: 9999,
-                background: 'rgba(0,0,0,0.35)',
-                backdropFilter: 'blur(8px)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                zIndex: 4,
-                cursor: 'pointer',
+                left: 8,
+                width: 10,
+                height: 10,
+                borderRadius: '50%',
+                background: badgeColor,
+                border: '2px solid rgba(255,255,255,0.5)',
+                zIndex: 3,
               }}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff" aria-hidden="true">
-                <circle cx="12" cy="6" r="2" />
-                <circle cx="12" cy="12" r="2" />
-                <circle cx="12" cy="18" r="2" />
-              </svg>
-            </span>
-          )}
+            />
+          </div>
 
           {/* Menu popover */}
           {menuOpen && (
@@ -373,22 +385,53 @@ export default function NodeCard({ node, onClick, currentUserId, dragListeners, 
             </>
           )}
 
-          {/* Direction dot (bottom-right) */}
-          <span
-            aria-label={isMine ? 'Mine' : 'Received'}
-            title={isMine ? 'Mine' : 'Received'}
-            style={{
-              position: 'absolute',
-              bottom: 8,
-              right: 8,
-              width: 10,
-              height: 10,
-              borderRadius: '50%',
-              background: badgeColor,
-              border: '2px solid rgba(255,255,255,0.5)',
-              zIndex: 3,
-            }}
-          />
+          {/* Info block: title + creator + real stats + tags */}
+          <div className="video-info">
+            <div className="video-title">{title}</div>
+            {creator && <div className="video-creator">{creator}</div>}
+            {hasStats && (
+              <div className="video-stats">
+                {node.avg_rating != null && node.avg_rating > 0 && (
+                  <span className="stat" style={{ color: 'var(--orange)' }}>
+                    {StarGlyph}
+                    {node.avg_rating}
+                  </span>
+                )}
+                {node.share_count != null && node.share_count > 0 && (
+                  <span className="stat">
+                    {ShareGlyph}
+                    {node.share_count}
+                  </span>
+                )}
+                {node.view_count != null && node.view_count > 0 && (
+                  <span className="stat">
+                    {EyeGlyph}
+                    {node.view_count}
+                  </span>
+                )}
+              </div>
+            )}
+            {node.tags && node.tags.length > 0 && (
+              <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center', marginTop: 6 }}>
+                {node.tags.slice(0, 3).map((tag) => (
+                  <span
+                    key={tag.tag_id}
+                    style={{
+                      fontSize: 9,
+                      padding: '2px 8px',
+                      borderRadius: 4,
+                      fontWeight: 700,
+                      whiteSpace: 'nowrap',
+                      background: tag.color_hex,
+                      color: '#fff',
+                    }}
+                  >
+                    {tag.label}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
         </>
       )}
     </button>
