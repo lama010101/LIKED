@@ -173,7 +173,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
   const zoom = useFilterStore((s) => s.zoom);
   const setViewMode = useFilterStore((s) => s.setViewMode);
   const setZoom = useFilterStore((s) => s.setZoom);
-  const [theme, setThemeState] = useLocalStorage<'dark' | 'light'>('liked.theme', 'dark');
+  const [theme, setThemeState] = useLocalStorage<'dark' | 'light'>('liked.theme', 'light');
   const [folderPath, setFolderPath] = useState<string[]>([]);
   const [friendsState, setFriendsState] = useLocalStorage<'hidden' | 'strip' | 'expanded'>('liked.friendsStripState', 'strip');
   const [tagsStripOpen, setTagsStripOpen] = useState(false);
