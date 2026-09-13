@@ -8,7 +8,7 @@ import { TEST_EMAIL, TEST_PASSWORD } from "./helpers/auth";
  *   - Auto-tags ("YouTube", channel name, category)
  *   - Auto-folder ("YouTube")
  *
- * Since the test user has no YouTube OAuth connection (no provider_token),
+ * Since the test user has no YouTube OAuth connection (no stored tokens),
  * we can't test the full YouTube → importYouTubeActivity flow. Instead we
  * test the same import_url RPC via the /api/import endpoint (which uses
  * the same atomic RPC) with YouTube-like data, verifying:
