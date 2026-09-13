@@ -38,9 +38,10 @@ test.describe("Trash page — authenticated user", () => {
     await page.goto("/feed");
     await expect(page).toHaveURL(/\/feed/);
 
-    // The trash nav button should be visible
-    const trashBtn = page.getByRole("button", { name: /^trash$/i });
-    await expect(trashBtn).toBeVisible();
+    // The V2 sidebar's Trash nav item is a link (Library section);
+    // on mobile the AppHeader Trash icon link has aria-label="Trash".
+    const trashLink = page.getByRole("link", { name: /^trash$/i }).first();
+    await expect(trashLink).toBeVisible();
   });
 
   test("navigate to trash from sidebar", async ({ page }) => {
