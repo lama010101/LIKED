@@ -19,7 +19,7 @@ import { revalidatePath } from "next/cache";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { getSupabaseServiceClient } from "@/lib/supabase/service";
 import { importUrl, DuplicateNodeError } from "@/lib/db/nodes";
-import { fetchVideoCategoryName } from "@/lib/youtube/client";
+import { getStoredYouTubeToken, fetchVideoCategoryName } from "@/lib/youtube/client";
 import { downloadAndUploadThumbnail } from "@/app/lib/actions/createNode";
 
 export type YouTubeImportResult =
@@ -56,10 +56,6 @@ export async function importYouTubeActivity(
     return { ok: false, error: "Not authenticated", code: "unauthenticated" };
   }
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
   // 2. Validate URL
   const url = input.url?.trim() || "";
   if (!url) {
@@ -92,11 +88,14 @@ export async function importYouTubeActivity(
 
   // 4. Fetch video category name from YouTube API (for auto-tagging)
   let categoryTagName: string | null = null;
-  if (input.categoryId && session?.provider_token) {
-    categoryTagName = await fetchVideoCategoryName(
-      session.provider_token,
-      input.categoryId
-    );
+  if (input.categoryId) {
+    const tokenResult = await getStoredYouTubeToken(user.id);
+    if (tokenResult.ok) {
+      categoryTagName = await fetchVideoCategoryName(
+        tokenResult.token.accessToken,
+        input.categoryId
+      );
+    }
   }
 
   // 5. Build auto-tags: "YouTube" + channel name + category name (deduped)
