@@ -84,6 +84,11 @@ export interface FeedItem {
   daysAgo?: number;
   folderColor?: string;
   folderCount?: number;
+  /** PROTO V2 card: real feed fields only (no fabricated duration/likes). */
+  shareCount?: number;
+  viewCount?: number;
+  senderName?: string | null;
+  isText?: boolean;
 }
 
 export interface ViewProps {
