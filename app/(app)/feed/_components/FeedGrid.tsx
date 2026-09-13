@@ -17,6 +17,12 @@
  * - Call supabaseBrowser.rpc directly for feed data
  * - Add client-side filtering/sorting logic
  * - Use get_visible_nodes, search_nodes, or get_nodes_in_folder
+ *
+ * UIX-PORT-00 / UIX-09: folder chrome = FolderSection (proto row cards
+ * + per-level sub-tabs + mobile drill), feed controls = FeedControlsBar
+ * (feed pill + sort + 5-view switcher + column stepper). The legacy
+ * FolderView/folderContext branch was dead code (prop never passed) —
+ * folder drill flows through folderId context + folderStack.
  */
 
 import { useState, useCallback, useMemo, useEffect } from "react";
@@ -32,33 +38,23 @@ import { SharePickerModal } from "@/components/modals/SharePickerModal";
 import { MoveToFolderModal } from "@/components/modals/MoveToFolderModal";
 import { AddTagModal } from "@/components/modals/AddTagModal";
 import { RenameFolderModal } from "@/components/modals/RenameFolderModal";
+import AddFolderSheet from "@/components/sheets/AddFolderSheet";
 import { getFriendBarAction } from "@/app/lib/actions/session";
 import FreeGrid from "./FreeGrid";
-import FolderView from "./FolderView";
-import FolderTile from "./FolderTile";
+import FolderSection from "./FolderSection";
+import FeedControlsBar from "@/components/bars/FeedControlsBar";
 import { toFeedItems } from "./toFeedItems";
 import ColView from "./views/ColView";
 import MasonView from "./views/MasonView";
 import ListView from "./views/ListView";
 import HorizView from "./views/HorizView";
 import SortableNodeGrid from "./SortableNodeGrid";
-import DroppableFolderChip from "@/components/dnd/DroppableFolderChip";
-
-interface FolderContext {
-  id: string;
-  name: string;
-  color: string;
-  breadcrumb: string[];
-}
 
 interface FeedGridProps {
   /** SSR-rendered nodes from server component (initial page load) */
   nodes: FeedNode[];
   currentUserId: string;
   scopeKey?: string;
-  folderContext?: FolderContext | null;
-  onExitFolder?: () => void;
-  onFolderFilterClick?: () => void;
   /** User's language code for search (e.g., 'en', 'fr', 'th') */
   languageCode?: string;
   /** Server-parsed initial filter state for SSR hydration */
@@ -72,18 +68,13 @@ interface FeedGridProps {
 }
 
 
-/** Convert FeedNode[] (from get_feed RPC) to FeedItem[] for view components */
-
-
 export default function FeedGrid({
   nodes: ssrNodes,
   currentUserId,
   scopeKey = "default",
-  folderContext = null,
-  onExitFolder,
-  onFolderFilterClick,
   languageCode = 'en',
   initialFilterState,
+  totalCount,
   folders = [],
 }: FeedGridProps) {
   const router = useRouter();
@@ -112,6 +103,7 @@ export default function FeedGrid({
 
   const [activeNode, setActiveNode] = useState<FeedNode | null>(null);
   const [pendingFolderSwitch, setPendingFolderSwitch] = useState(false);
+  const [addFolderOpen, setAddFolderOpen] = useState(false);
 
   // Modal state for card/folder actions
   const [shareTarget, setShareTarget] = useState<{ id: string; name: string; type: "node" | "folder" } | null>(null);
@@ -164,14 +156,26 @@ export default function FeedGrid({
     if (node) handleOpen(node);
   }, [nodeByItemId, handleOpen]);
 
-  // P9-T01 TODO: Folder filter chips do not exist yet. When implemented, add onClick handler:
-  // toggleFolderFilter(folderId) from filterStore, show active state with accent border.
-  // Current folder tiles are for navigation (context), not multi-filter.
-
-  const handleFolderClick = useCallback((folder: Folder) => {
+  // Enter a folder: push onto stack + switch context (immediate clear
+  // via pendingFolderSwitch while useFeed re-fetches).
+  const handleFolderEnter = useCallback((folder: { id: string; name: string; color_hex: string }) => {
     useFilterStore.getState().pushFolder({ id: folder.id, name: folder.name, color_hex: folder.color_hex });
     setPendingFolderSwitch(true);
     useFilterStore.getState().setContext({ folderId: folder.id });
+  }, []);
+
+  // Breadcrumb nav: index i → pop to that stack level; null → Everything.
+  const handleCrumbClick = useCallback((index: number | null) => {
+    const store = useFilterStore.getState();
+    setPendingFolderSwitch(true);
+    if (index === null) {
+      store.clearContext();
+      return;
+    }
+    const crumb = store.folderStack[index];
+    if (!crumb) return;
+    store.setFolderStack(store.folderStack.slice(0, index + 1));
+    store.setContext({ folderId: crumb.id });
   }, []);
 
   // Card menu callbacks — open modals instead of "Coming soon" toasts
@@ -234,42 +238,32 @@ export default function FeedGrid({
     if (!isLoading) queueMicrotask(() => setPendingFolderSwitch(false));
   }, [clientNodes, isLoading]);
 
+  const activeFolder = useMemo(
+    () => folders.find((f) => f.id === activeFolderId) ?? null,
+    [folders, activeFolderId]
+  );
 
-  const visibleFolders = useMemo(() => {
-    if (!activeFolderId) {
-      return folders.filter(f => f.parent_folder_id === null);
-    }
-    return folders.filter(f => f.parent_folder_id === activeFolderId);
-  }, [folders, activeFolderId]);
+  /* ── Shared chrome + modal fragments (identical across all views) ── */
 
-  const folderGrid = visibleFolders.length > 0 ? (
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: `repeat(auto-fill, minmax(${Math.max(80, 140 - zoom * 8)}px, 1fr))`,
-      gap: 3,
-      padding: '4px 4px 0',
-      borderBottom: '1px solid var(--border-1)',
-      paddingBottom: 4,
-      pointerEvents: 'auto',
-      position: 'relative',
-      zIndex: 1,
-    }}>
-      {visibleFolders.map(f => (
-        <DroppableFolderChip key={f.id} folderId={f.id} folders={folders}>
-          <FolderTile
-            folder={f}
-            isActive={activeFolderId === f.id}
-            onClick={handleFolderClick}
-            currentUserId={currentUserId}
-            onFolderDelete={handleFolderDelete}
-            onFolderRename={handleFolderRename}
-            onFolderShare={handleFolderShare}
-          />
-        </DroppableFolderChip>
-      ))}
-    </div>
-  ) : null;
+  const folderChrome = (
+    <FolderSection
+      folders={folders}
+      totalCount={totalCount ?? 0}
+      onNewFolder={() => setAddFolderOpen(true)}
+      onFolderEnter={handleFolderEnter}
+      onCrumbClick={handleCrumbClick}
+      onFolderDelete={handleFolderDelete}
+      onFolderRename={handleFolderRename}
+      onFolderShare={handleFolderShare}
+    />
+  );
 
+  const controlsChrome = (
+    <FeedControlsBar
+      folderName={activeFolder?.name ?? null}
+      folderColor={activeFolder?.color_hex ?? null}
+    />
+  );
 
   // Search-specific empty state
   const emptyState = (
@@ -295,14 +289,12 @@ export default function FeedGrid({
     </div>
   );
 
-  // Loading state — show folder grid on home page while loading
   const loadingState = (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "128px 0" }}>
       <p style={{ color: "var(--text-3)", fontSize: 14 }}>Loading...</p>
     </div>
   );
 
-  // Error state — show folder grid on home page with error
   const errorState = (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "128px 0" }}>
       <p style={{ color: "var(--red, #dc2626)", fontSize: 14 }}>Failed to load feed</p>
@@ -310,9 +302,6 @@ export default function FeedGrid({
     </div>
   );
 
-  // On home page (no folder context): show folder grid + loading/empty/error below it.
-  // Inside a folder: show loading/error as full-page (folder grid is hidden in folder view).
-  const isHomePage = !activeFolderId && !folderContext;
   const cardArea = isLoading && displayNodes.length === 0
     ? loadingState
     : feedError && displayNodes.length === 0
@@ -321,29 +310,9 @@ export default function FeedGrid({
     ? emptyState
     : null;
 
-  /* ── Folder view: hides top bar, shows folder header + breadcrumb ── */
-  if (folderContext) {
-    return (
-      <>
-        <FolderView
-          folderName={folderContext.name}
-          folderColor={folderContext.color}
-          breadcrumb={folderContext.breadcrumb}
-          nodes={displayNodes}
-          onBack={onExitFolder ?? (() => {})}
-          onFilterClick={onFolderFilterClick ?? (() => {})}
-          onCardClick={handleOpen}
-          currentUserId={currentUserId}
-          onShare={handleShare}
-          onMoveToFolder={handleMoveToFolder}
-          onAddTag={handleAddTag}
-          onDelete={handleDelete}
-          folders={folders}
-          currentFolderId={activeFolderId}
-        />
-        <CardDetailSheet node={activeNode} currentUserId={currentUserId} onClose={handleClose} />
-
-      {/* Action modals */}
+  const modals = (
+    <>
+      <CardDetailSheet node={activeNode} currentUserId={currentUserId} onClose={handleClose} />
       {shareTarget && (
         <SharePickerModal
           isOpen={!!shareTarget}
@@ -388,378 +357,68 @@ export default function FeedGrid({
           }}
         />
       )}
-      </>
-    );
-  }
+      <AddFolderSheet
+        open={addFolderOpen}
+        onClose={() => setAddFolderOpen(false)}
+        parentFolderId={activeFolderId}
+        onFolderCreated={() => router.refresh()}
+      />
+    </>
+  );
 
-  /* ── Free / canvas view ── */
-  if (view === "free") {
-    return (
-      <div style={{ minHeight: '100%', position: 'relative' }}>
-        {folderGrid}
-        {cardArea && isHomePage ? cardArea : displayNodes.length === 0 ? emptyState : (
+  const content = (() => {
+    switch (view) {
+      case 'free':
+        return displayNodes.length === 0 ? emptyState : (
           <FreeGrid nodes={displayNodes} scopeKey={scopeKey} onCardClick={handleOpen} currentUserId={currentUserId} activeFolderId={activeFolderId} onShare={handleShare} onMoveToFolder={handleMoveToFolder} onAddTag={handleAddTag} onDelete={handleDelete} />
-        )}
-        <CardDetailSheet node={activeNode} currentUserId={currentUserId} onClose={handleClose} />
-
-      {/* Action modals */}
-      {shareTarget && (
-        <SharePickerModal
-          isOpen={!!shareTarget}
-          onClose={() => setShareTarget(null)}
-          shareType={shareTarget.type}
-          itemId={shareTarget.id}
-          itemName={shareTarget.name}
-          availableUsers={availableUsers}
-          onShareComplete={() => { refresh(); }}
-        />
-      )}
-      {moveTarget && (
-        <MoveToFolderModal
-          isOpen={!!moveTarget}
-          onClose={() => setMoveTarget(null)}
-          nodeId={moveTarget.id}
-          nodeName={moveTarget.name}
-          folders={folders.filter(f => !f.deleted_at)}
-          currentFolderId={activeFolderId}
-          onMoved={() => { refresh(); }}
-        />
-      )}
-      {tagTarget && (
-        <AddTagModal
-          isOpen={!!tagTarget}
-          onClose={() => setTagTarget(null)}
-          nodeId={tagTarget.id}
-          nodeName={tagTarget.name}
-          languageCode={languageCode}
-          onTagAdded={() => { refresh(); }}
-        />
-      )}
-      {renameTarget && (
-        <RenameFolderModal
-          isOpen={!!renameTarget}
-          onClose={() => setRenameTarget(null)}
-          folderId={renameTarget.id}
-          folderName={renameTarget.name}
-          folderColor={renameTarget.color_hex}
-          onRenamed={() => {
-            refresh();
-          }}
-        />
-      )}
-      </div>
-    );
-  }
-
-  /* ── Col view ── */
-  if (view === "col") {
-    return (
-      <div style={{ minHeight: '100%', position: 'relative' }}>
-        {folderGrid}
-        {cardArea && isHomePage ? cardArea : (
+        );
+      case 'col':
+        return cardArea ?? (
           <ColView items={feedItems} zoom={zoom} scopeKey={scopeKey} onItemClick={handleItemClick} currentUserId={currentUserId} onCardShare={handleShareItem} onCardMoveToFolder={handleMoveToFolderItem} onCardAddTag={handleAddTagItem} onCardDelete={handleDelete} />
-        )}
-        <CardDetailSheet node={activeNode} currentUserId={currentUserId} onClose={handleClose} />
-
-      {/* Action modals */}
-      {shareTarget && (
-        <SharePickerModal
-          isOpen={!!shareTarget}
-          onClose={() => setShareTarget(null)}
-          shareType={shareTarget.type}
-          itemId={shareTarget.id}
-          itemName={shareTarget.name}
-          availableUsers={availableUsers}
-          onShareComplete={() => { refresh(); }}
-        />
-      )}
-      {moveTarget && (
-        <MoveToFolderModal
-          isOpen={!!moveTarget}
-          onClose={() => setMoveTarget(null)}
-          nodeId={moveTarget.id}
-          nodeName={moveTarget.name}
-          folders={folders.filter(f => !f.deleted_at)}
-          currentFolderId={activeFolderId}
-          onMoved={() => { refresh(); }}
-        />
-      )}
-      {tagTarget && (
-        <AddTagModal
-          isOpen={!!tagTarget}
-          onClose={() => setTagTarget(null)}
-          nodeId={tagTarget.id}
-          nodeName={tagTarget.name}
-          languageCode={languageCode}
-          onTagAdded={() => { refresh(); }}
-        />
-      )}
-      {renameTarget && (
-        <RenameFolderModal
-          isOpen={!!renameTarget}
-          onClose={() => setRenameTarget(null)}
-          folderId={renameTarget.id}
-          folderName={renameTarget.name}
-          folderColor={renameTarget.color_hex}
-          onRenamed={() => {
-            refresh();
-          }}
-        />
-      )}
-      </div>
-    );
-  }
-
-  /* ── Mason view ── */
-  if (view === "mason") {
-    return (
-      <div style={{ minHeight: '100%', position: 'relative' }}>
-        {folderGrid}
-        {cardArea && isHomePage ? cardArea : (
+        );
+      case 'mason':
+        return cardArea ?? (
           <MasonView items={feedItems} scopeKey={scopeKey} onItemClick={handleItemClick} currentUserId={currentUserId} onCardShare={handleShareItem} onCardMoveToFolder={handleMoveToFolderItem} onCardAddTag={handleAddTagItem} onCardDelete={handleDelete} />
-        )}
-        <CardDetailSheet node={activeNode} currentUserId={currentUserId} onClose={handleClose} />
-
-      {/* Action modals */}
-      {shareTarget && (
-        <SharePickerModal
-          isOpen={!!shareTarget}
-          onClose={() => setShareTarget(null)}
-          shareType={shareTarget.type}
-          itemId={shareTarget.id}
-          itemName={shareTarget.name}
-          availableUsers={availableUsers}
-          onShareComplete={() => { refresh(); }}
-        />
-      )}
-      {moveTarget && (
-        <MoveToFolderModal
-          isOpen={!!moveTarget}
-          onClose={() => setMoveTarget(null)}
-          nodeId={moveTarget.id}
-          nodeName={moveTarget.name}
-          folders={folders.filter(f => !f.deleted_at)}
-          currentFolderId={activeFolderId}
-          onMoved={() => { refresh(); }}
-        />
-      )}
-      {tagTarget && (
-        <AddTagModal
-          isOpen={!!tagTarget}
-          onClose={() => setTagTarget(null)}
-          nodeId={tagTarget.id}
-          nodeName={tagTarget.name}
-          languageCode={languageCode}
-          onTagAdded={() => { refresh(); }}
-        />
-      )}
-      {renameTarget && (
-        <RenameFolderModal
-          isOpen={!!renameTarget}
-          onClose={() => setRenameTarget(null)}
-          folderId={renameTarget.id}
-          folderName={renameTarget.name}
-          folderColor={renameTarget.color_hex}
-          onRenamed={() => {
-            refresh();
-          }}
-        />
-      )}
-      </div>
-    );
-  }
-
-  /* ── List view ── */
-  if (view === "list") {
-    return (
-      <div style={{ minHeight: '100%', position: 'relative' }}>
-        {folderGrid}
-        {cardArea && isHomePage ? cardArea : (
+        );
+      case 'list':
+        return cardArea ?? (
           <ListView items={feedItems} scopeKey={scopeKey} onItemClick={handleItemClick} currentUserId={currentUserId} onCardShare={handleShareItem} onCardMoveToFolder={handleMoveToFolderItem} onCardAddTag={handleAddTagItem} onCardDelete={handleDelete} />
-        )}
-        <CardDetailSheet node={activeNode} currentUserId={currentUserId} onClose={handleClose} />
-
-      {/* Action modals */}
-      {shareTarget && (
-        <SharePickerModal
-          isOpen={!!shareTarget}
-          onClose={() => setShareTarget(null)}
-          shareType={shareTarget.type}
-          itemId={shareTarget.id}
-          itemName={shareTarget.name}
-          availableUsers={availableUsers}
-          onShareComplete={() => { refresh(); }}
-        />
-      )}
-      {moveTarget && (
-        <MoveToFolderModal
-          isOpen={!!moveTarget}
-          onClose={() => setMoveTarget(null)}
-          nodeId={moveTarget.id}
-          nodeName={moveTarget.name}
-          folders={folders.filter(f => !f.deleted_at)}
-          currentFolderId={activeFolderId}
-          onMoved={() => { refresh(); }}
-        />
-      )}
-      {tagTarget && (
-        <AddTagModal
-          isOpen={!!tagTarget}
-          onClose={() => setTagTarget(null)}
-          nodeId={tagTarget.id}
-          nodeName={tagTarget.name}
-          languageCode={languageCode}
-          onTagAdded={() => { refresh(); }}
-        />
-      )}
-      {renameTarget && (
-        <RenameFolderModal
-          isOpen={!!renameTarget}
-          onClose={() => setRenameTarget(null)}
-          folderId={renameTarget.id}
-          folderName={renameTarget.name}
-          folderColor={renameTarget.color_hex}
-          onRenamed={() => {
-            refresh();
-          }}
-        />
-      )}
-      </div>
-    );
-  }
-
-  /* ── Horiz view ── */
-  if (view === "horiz") {
-    return (
-      <div style={{ minHeight: '100%', position: 'relative' }}>
-        {folderGrid}
-        {cardArea && isHomePage ? cardArea : (
+        );
+      case 'horiz':
+        return cardArea ?? (
           <HorizView
             items={feedItems}
             scopeKey={scopeKey}
             onItemClick={handleItemClick}
-            folderContext={folderContext}
             currentUserId={currentUserId}
             onCardShare={handleShareItem}
             onCardMoveToFolder={handleMoveToFolderItem}
             onCardAddTag={handleAddTagItem}
             onCardDelete={handleDelete}
           />
-        )}
-        <CardDetailSheet node={activeNode} currentUserId={currentUserId} onClose={handleClose} />
+        );
+      default:
+        return displayNodes.length === 0 ? emptyState : (
+          <SortableNodeGrid
+            nodes={displayNodes}
+            scopeKey={scopeKey}
+            onCardClick={handleOpen}
+            currentUserId={currentUserId}
+            onShare={handleShare}
+            onMoveToFolder={handleMoveToFolder}
+            onAddTag={handleAddTag}
+            onDelete={handleDelete}
+          />
+        );
+    }
+  })();
 
-      {/* Action modals */}
-      {shareTarget && (
-        <SharePickerModal
-          isOpen={!!shareTarget}
-          onClose={() => setShareTarget(null)}
-          shareType={shareTarget.type}
-          itemId={shareTarget.id}
-          itemName={shareTarget.name}
-          availableUsers={availableUsers}
-          onShareComplete={() => { refresh(); }}
-        />
-      )}
-      {moveTarget && (
-        <MoveToFolderModal
-          isOpen={!!moveTarget}
-          onClose={() => setMoveTarget(null)}
-          nodeId={moveTarget.id}
-          nodeName={moveTarget.name}
-          folders={folders.filter(f => !f.deleted_at)}
-          currentFolderId={activeFolderId}
-          onMoved={() => { refresh(); }}
-        />
-      )}
-      {tagTarget && (
-        <AddTagModal
-          isOpen={!!tagTarget}
-          onClose={() => setTagTarget(null)}
-          nodeId={tagTarget.id}
-          nodeName={tagTarget.name}
-          languageCode={languageCode}
-          onTagAdded={() => { refresh(); }}
-        />
-      )}
-      {renameTarget && (
-        <RenameFolderModal
-          isOpen={!!renameTarget}
-          onClose={() => setRenameTarget(null)}
-          folderId={renameTarget.id}
-          folderName={renameTarget.name}
-          folderColor={renameTarget.color_hex}
-          onRenamed={() => {
-            refresh();
-          }}
-        />
-      )}
-      </div>
-    );
-  }
-
-  /* ── Fallback masonry (legacy viewMode prop not passed) ── */
   return (
     <div style={{ minHeight: '100%', position: 'relative' }}>
-      {folderGrid}
-      {cardArea && isHomePage ? cardArea : displayNodes.length === 0 ? emptyState : (
-        <SortableNodeGrid
-          nodes={displayNodes}
-          scopeKey={scopeKey}
-          onCardClick={handleOpen}
-          currentUserId={currentUserId}
-          onShare={handleShare}
-          onMoveToFolder={handleMoveToFolder}
-          onAddTag={handleAddTag}
-          onDelete={handleDelete}
-        />
-      )}
-      <CardDetailSheet node={activeNode} currentUserId={currentUserId} onClose={handleClose} />
-
-      {/* Action modals */}
-      {shareTarget && (
-        <SharePickerModal
-          isOpen={!!shareTarget}
-          onClose={() => setShareTarget(null)}
-          shareType={shareTarget.type}
-          itemId={shareTarget.id}
-          itemName={shareTarget.name}
-          availableUsers={availableUsers}
-          onShareComplete={() => { refresh(); }}
-        />
-      )}
-      {moveTarget && (
-        <MoveToFolderModal
-          isOpen={!!moveTarget}
-          onClose={() => setMoveTarget(null)}
-          nodeId={moveTarget.id}
-          nodeName={moveTarget.name}
-          folders={folders.filter(f => !f.deleted_at)}
-          currentFolderId={activeFolderId}
-          onMoved={() => { refresh(); }}
-        />
-      )}
-      {tagTarget && (
-        <AddTagModal
-          isOpen={!!tagTarget}
-          onClose={() => setTagTarget(null)}
-          nodeId={tagTarget.id}
-          nodeName={tagTarget.name}
-          languageCode={languageCode}
-          onTagAdded={() => { refresh(); }}
-        />
-      )}
-      {renameTarget && (
-        <RenameFolderModal
-          isOpen={!!renameTarget}
-          onClose={() => setRenameTarget(null)}
-          folderId={renameTarget.id}
-          folderName={renameTarget.name}
-          folderColor={renameTarget.color_hex}
-          onRenamed={() => {
-            refresh();
-          }}
-        />
-      )}
+      {folderChrome}
+      {controlsChrome}
+      {cardArea ?? content}
+      {modals}
     </div>
   );
 }
