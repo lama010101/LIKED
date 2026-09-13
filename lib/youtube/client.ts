@@ -1,64 +1,20 @@
 /**
  * YouTube Data API v3 client helper
  *
- * Auth model: Option A — uses the Google provider_token from the
- * Supabase session (stored when user signs in with Google + YouTube scopes).
+ * Auth model: Option B — standalone OAuth. Encrypted tokens are stored in
+ * `youtube_connections` and read/refreshed via getStoredYouTubeToken().
  *
- * All YouTube API calls are server-side only. The provider_token is never
- * sent to the client.
+ * All YouTube API calls are server-side only. Tokens are never sent to
+ * the client.
  *
  * Ref: docs/Youtube_Activity_Amendment.md §41.6
  */
 
-import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { getSupabaseServiceClient } from "@/lib/supabase/service";
 import { encryptToken, decryptToken } from "@/lib/youtube/token-crypto";
 import { logger } from "@/lib/utils/logger";
 
 const YOUTUBE_API_BASE = "https://www.googleapis.com/youtube/v3";
-
-export interface YouTubeAuthResult {
-  ok: boolean;
-  accessToken: string | null;
-  error?: string;
-}
-
-/**
- * Get the Google provider_token (with YouTube scopes) from the Supabase session.
- * Verifies user identity via getUser() first (server-side verification), then
- * reads provider_token from the session. Returns null if not authenticated or
- * no provider token.
- */
-export async function getYouTubeAccessToken(): Promise<YouTubeAuthResult> {
-  try {
-    const supabase = await getSupabaseServerClient();
-
-    // Verify identity server-side via getUser() (per Supabase security docs)
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
-      return { ok: false, accessToken: null, error: "Not authenticated" };
-    }
-
-    // Read provider_token from session (only available via getSession)
-    const { data: { session } } = await supabase.auth.getSession();
-    const providerToken = session?.provider_token;
-    if (!providerToken) {
-      return {
-        ok: false,
-        accessToken: null,
-        error: "No YouTube connection. Please connect your YouTube account first.",
-      };
-    }
-
-    return { ok: true, accessToken: providerToken };
-  } catch (err) {
-    return {
-      ok: false,
-      accessToken: null,
-      error: (err as Error).message,
-    };
-  }
-}
 
 interface StoredConnectionRow {
   access_token: string | null;
