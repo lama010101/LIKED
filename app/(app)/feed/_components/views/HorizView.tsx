@@ -7,6 +7,7 @@
  */
 
 import type { ViewProps, FeedItem } from "@/lib/types/feed";
+import type { Folder } from "@/lib/types/app";
 import VideoCard from "../VideoCard";
 
 interface FolderContext {
@@ -19,6 +20,9 @@ interface HorizViewProps extends ViewProps {
   folderContext?: FolderContext | null;
   activeTag?: string | null;
   currentUserId?: string;
+  folders?: Folder[];
+  sourceFolderId?: string | null;
+  onChanged?: () => void;
   onCardShare?: (item: FeedItem) => void;
   onCardMoveToFolder?: (item: FeedItem) => void;
   onCardAddTag?: (item: FeedItem) => void;
@@ -104,7 +108,7 @@ function groupItems(
     .map(([label, g]) => ({ label, items: g }));
 }
 
-export default function HorizView({ items, onItemClick, folderContext, activeTag, currentUserId, onCardShare, onCardMoveToFolder, onCardAddTag, onCardDelete }: HorizViewProps) {
+export default function HorizView({ items, onItemClick, folderContext, activeTag, currentUserId, folders, sourceFolderId, onChanged, onCardShare, onCardMoveToFolder, onCardAddTag, onCardDelete }: HorizViewProps) {
   const groups = groupItems(items, folderContext, activeTag);
 
   return (
@@ -135,7 +139,7 @@ export default function HorizView({ items, onItemClick, folderContext, activeTag
             }}
           >
             {group.items.map((item) => (
-              <VideoCard key={item.id} item={item} onClick={onItemClick} currentUserId={currentUserId} onCardShare={onCardShare} onCardMoveToFolder={onCardMoveToFolder} onCardAddTag={onCardAddTag} onCardDelete={onCardDelete} variant="horiz" />
+              <VideoCard key={item.id} item={item} onClick={onItemClick} currentUserId={currentUserId} folders={folders} sourceFolderId={sourceFolderId} onChanged={onChanged} onCardShare={onCardShare} onCardMoveToFolder={onCardMoveToFolder} onCardAddTag={onCardAddTag} onCardDelete={onCardDelete} variant="horiz" />
             ))}
           </div>
         </div>

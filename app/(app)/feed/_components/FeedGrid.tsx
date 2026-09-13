@@ -370,19 +370,19 @@ export default function FeedGrid({
     switch (view) {
       case 'free':
         return displayNodes.length === 0 ? emptyState : (
-          <FreeGrid nodes={displayNodes} scopeKey={scopeKey} onCardClick={handleOpen} currentUserId={currentUserId} activeFolderId={activeFolderId} onShare={handleShare} onMoveToFolder={handleMoveToFolder} onAddTag={handleAddTag} onDelete={handleDelete} />
+          <FreeGrid nodes={displayNodes} scopeKey={scopeKey} onCardClick={handleOpen} currentUserId={currentUserId} activeFolderId={activeFolderId} folders={folders} onChanged={refresh} onShare={handleShare} onMoveToFolder={handleMoveToFolder} onAddTag={handleAddTag} onDelete={handleDelete} />
         );
       case 'col':
         return cardArea ?? (
-          <ColView items={feedItems} zoom={zoom} scopeKey={scopeKey} onItemClick={handleItemClick} currentUserId={currentUserId} onCardShare={handleShareItem} onCardMoveToFolder={handleMoveToFolderItem} onCardAddTag={handleAddTagItem} onCardDelete={handleDelete} />
+          <ColView items={feedItems} zoom={zoom} scopeKey={scopeKey} onItemClick={handleItemClick} currentUserId={currentUserId} folders={folders} sourceFolderId={activeFolderId} onChanged={refresh} onCardShare={handleShareItem} onCardMoveToFolder={handleMoveToFolderItem} onCardAddTag={handleAddTagItem} onCardDelete={handleDelete} />
         );
       case 'mason':
         return cardArea ?? (
-          <MasonView items={feedItems} scopeKey={scopeKey} onItemClick={handleItemClick} currentUserId={currentUserId} onCardShare={handleShareItem} onCardMoveToFolder={handleMoveToFolderItem} onCardAddTag={handleAddTagItem} onCardDelete={handleDelete} />
+          <MasonView items={feedItems} scopeKey={scopeKey} onItemClick={handleItemClick} currentUserId={currentUserId} folders={folders} sourceFolderId={activeFolderId} onChanged={refresh} onCardShare={handleShareItem} onCardMoveToFolder={handleMoveToFolderItem} onCardAddTag={handleAddTagItem} onCardDelete={handleDelete} />
         );
       case 'list':
         return cardArea ?? (
-          <ListView items={feedItems} scopeKey={scopeKey} onItemClick={handleItemClick} currentUserId={currentUserId} onCardShare={handleShareItem} onCardMoveToFolder={handleMoveToFolderItem} onCardAddTag={handleAddTagItem} onCardDelete={handleDelete} />
+          <ListView items={feedItems} scopeKey={scopeKey} onItemClick={handleItemClick} currentUserId={currentUserId} folders={folders} sourceFolderId={activeFolderId} onChanged={refresh} onCardShare={handleShareItem} onCardMoveToFolder={handleMoveToFolderItem} onCardAddTag={handleAddTagItem} onCardDelete={handleDelete} />
         );
       case 'horiz':
         return cardArea ?? (
@@ -391,6 +391,9 @@ export default function FeedGrid({
             scopeKey={scopeKey}
             onItemClick={handleItemClick}
             currentUserId={currentUserId}
+            folders={folders}
+            sourceFolderId={activeFolderId}
+            onChanged={refresh}
             onCardShare={handleShareItem}
             onCardMoveToFolder={handleMoveToFolderItem}
             onCardAddTag={handleAddTagItem}
@@ -404,6 +407,9 @@ export default function FeedGrid({
             scopeKey={scopeKey}
             onCardClick={handleOpen}
             currentUserId={currentUserId}
+            folders={folders}
+            sourceFolderId={activeFolderId}
+            onChanged={refresh}
             onShare={handleShare}
             onMoveToFolder={handleMoveToFolder}
             onAddTag={handleAddTag}

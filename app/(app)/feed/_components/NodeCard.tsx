@@ -20,6 +20,10 @@ import { toast } from "@/lib/store/toastStore";
 import SelectionCloseButton from "@/components/selection/SelectionCloseButton";
 import { trashNode } from "@/app/lib/actions/selection";
 import { getStorageUrl } from "@/lib/utils/avatar";
+import type { Folder } from "@/lib/types/app";
+import CardActionSheet from "@/components/sheets/CardActionSheet";
+import FolderTreePicker from "@/components/sheets/FolderTreePicker";
+import { useIsMobile } from "@/app/(app)/_lib/useIsMobile";
 
 interface NodeCardProps {
   node: FeedNode;
@@ -30,6 +34,12 @@ interface NodeCardProps {
   onMoveToFolder?: (node: FeedNode) => void;
   onAddTag?: (node: FeedNode) => void;
   onDelete?: (nodeId: string) => void;
+  /** Folders for the mobile move/copy tree picker. */
+  folders?: Folder[];
+  /** Folder the card currently sits in (move source). */
+  sourceFolderId?: string | null;
+  /** Called after move/copy completes (e.g. feed refresh). */
+  onChanged?: () => void;
 }
 
 function formatDate(iso: string): string {
@@ -54,9 +64,12 @@ const EyeGlyph = (
   </svg>
 );
 
-export default function NodeCard({ node, onClick, currentUserId, dragListeners, onShare, onMoveToFolder, onAddTag, onDelete }: NodeCardProps) {
+export default function NodeCard({ node, onClick, currentUserId, dragListeners, onShare, onMoveToFolder, onAddTag, onDelete, folders, sourceFolderId = null, onChanged }: NodeCardProps) {
   const isTextCard = !node.url && !!node.text_content;
   const [menuOpen, setMenuOpen] = useState(false);
+  const isMobile = useIsMobile();
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [pickerMode, setPickerMode] = useState<'move' | 'copy' | null>(null);
 
   // P9-T01: Direction badge — red for mine, blue for received (PRD §11.3)
   const isMine = node.direction === 'own' || node.direction === 'sent';
@@ -271,7 +284,8 @@ export default function NodeCard({ node, onClick, currentUserId, dragListeners, 
                 aria-label="Card menu"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setMenuOpen(true);
+                  if (isMobile) setSheetOpen(true);
+                  else setMenuOpen(true);
                 }}
                 onPointerDown={(e) => e.stopPropagation()}
                 style={{
@@ -435,6 +449,29 @@ export default function NodeCard({ node, onClick, currentUserId, dragListeners, 
         </>
       )}
     </button>
+
+    {/* Mobile: bottom action sheet + folder tree picker (UIX-10) */}
+    {sheetOpen && (
+      <CardActionSheet
+        title={title}
+        onClose={() => setSheetOpen(false)}
+        onShare={onShare ? () => onShare(node) : undefined}
+        onMove={folders ? () => setPickerMode('move') : onMoveToFolder ? () => onMoveToFolder(node) : undefined}
+        onCopy={folders ? () => setPickerMode('copy') : undefined}
+        onAddTag={onAddTag ? () => onAddTag(node) : undefined}
+        onDelete={handleDelete}
+      />
+    )}
+    {pickerMode && folders && (
+      <FolderTreePicker
+        nodeId={node.node_id}
+        mode={pickerMode}
+        folders={folders}
+        sourceFolderId={sourceFolderId}
+        onClose={() => setPickerMode(null)}
+        onDone={onChanged}
+      />
+    )}
     </div>
   );
 }

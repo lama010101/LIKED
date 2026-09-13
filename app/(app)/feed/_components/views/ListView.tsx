@@ -5,10 +5,15 @@
  * 160px 16:9 thumb + title + creator + real stats footer.
  */
 
+import { useState } from "react";
 import Image from "next/image";
 import type { ViewProps, FeedItem } from "@/lib/types/feed";
+import type { Folder } from "@/lib/types/app";
 import { toast } from "@/lib/store/toastStore";
 import { CardMenu, ShareIcon, MoveFolderIcon, TagIcon, DeleteIcon } from "@/components/modals/CardMenu";
+import CardActionSheet from "@/components/sheets/CardActionSheet";
+import FolderTreePicker from "@/components/sheets/FolderTreePicker";
+import { useIsMobile } from "@/app/(app)/_lib/useIsMobile";
 
 const StarGlyph = (
   <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -27,7 +32,10 @@ const EyeGlyph = (
   </svg>
 );
 
-function ListRow({ item, onClick, currentUserId, onCardShare, onCardMoveToFolder, onCardAddTag, onCardDelete }: { item: FeedItem; onClick: (item: FeedItem) => void; currentUserId?: string; onCardShare?: (item: FeedItem) => void; onCardMoveToFolder?: (item: FeedItem) => void; onCardAddTag?: (item: FeedItem) => void; onCardDelete?: (nodeId: string) => void; }) {
+function ListRow({ item, onClick, currentUserId, folders, sourceFolderId, onChanged, onCardShare, onCardMoveToFolder, onCardAddTag, onCardDelete }: { item: FeedItem; onClick: (item: FeedItem) => void; currentUserId?: string; folders?: Folder[]; sourceFolderId?: string | null; onChanged?: () => void; onCardShare?: (item: FeedItem) => void; onCardMoveToFolder?: (item: FeedItem) => void; onCardAddTag?: (item: FeedItem) => void; onCardDelete?: (nodeId: string) => void; }) {
+  const isMobile = useIsMobile();
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [pickerMode, setPickerMode] = useState<'move' | 'copy' | null>(null);
   const handleCardDelete = async () => {
     const res = await fetch(`/api/nodes/${item.id}`, {
       method: 'DELETE',
@@ -150,24 +158,84 @@ function ListRow({ item, onClick, currentUserId, onCardShare, onCardMoveToFolder
         <polyline points="15 18 9 12 15 6" />
       </svg>
 
-      <CardMenu items={menuItems} ariaLabel="Card menu" show={!!isOwned} />
+      {isOwned && (
+        isMobile ? (
+          <button
+            type="button"
+            aria-label="Card menu"
+            onClick={(e) => {
+              e.stopPropagation();
+              setSheetOpen(true);
+            }}
+            onPointerDown={(e) => e.stopPropagation()}
+            style={{
+              width: 28,
+              height: 28,
+              borderRadius: 9999,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              border: 'none',
+              padding: 0,
+              background: 'transparent',
+              color: 'var(--text-3)',
+              flexShrink: 0,
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <circle cx="12" cy="6" r="2" />
+              <circle cx="12" cy="12" r="2" />
+              <circle cx="12" cy="18" r="2" />
+            </svg>
+          </button>
+        ) : (
+          <CardMenu items={menuItems} ariaLabel="Card menu" show />
+        )
+      )}
+
+      {/* Mobile: bottom action sheet + folder tree picker (UIX-10) */}
+      {sheetOpen && (
+        <CardActionSheet
+          title={item.title}
+          onClose={() => setSheetOpen(false)}
+          onShare={onCardShare ? () => onCardShare(item) : undefined}
+          onMove={folders ? () => setPickerMode('move') : onCardMoveToFolder ? () => onCardMoveToFolder(item) : undefined}
+          onCopy={folders ? () => setPickerMode('copy') : undefined}
+          onAddTag={onCardAddTag ? () => onCardAddTag(item) : undefined}
+          onDelete={handleCardDelete}
+        />
+      )}
+      {pickerMode && folders && (
+        <FolderTreePicker
+          nodeId={item.id}
+          mode={pickerMode}
+          folders={folders}
+          sourceFolderId={sourceFolderId}
+          onClose={() => setPickerMode(null)}
+          onDone={onChanged}
+        />
+      )}
     </div>
   );
 }
 
 interface ListViewProps extends ViewProps {
   currentUserId?: string;
+  folders?: Folder[];
+  sourceFolderId?: string | null;
+  onChanged?: () => void;
   onCardShare?: (item: FeedItem) => void;
   onCardMoveToFolder?: (item: FeedItem) => void;
   onCardAddTag?: (item: FeedItem) => void;
   onCardDelete?: (nodeId: string) => void;
 }
 
-export default function ListView({ items, onItemClick, currentUserId, onCardShare, onCardMoveToFolder, onCardAddTag, onCardDelete }: ListViewProps) {
+export default function ListView({ items, onItemClick, currentUserId, folders, sourceFolderId, onChanged, onCardShare, onCardMoveToFolder, onCardAddTag, onCardDelete }: ListViewProps) {
   return (
     <div className="video-grid list-view">
       {items.map((item) => (
-        <ListRow key={item.id} item={item} onClick={onItemClick} currentUserId={currentUserId} onCardShare={onCardShare} onCardMoveToFolder={onCardMoveToFolder} onCardAddTag={onCardAddTag} onCardDelete={onCardDelete} />
+        <ListRow key={item.id} item={item} onClick={onItemClick} currentUserId={currentUserId} folders={folders} sourceFolderId={sourceFolderId} onChanged={onChanged} onCardShare={onCardShare} onCardMoveToFolder={onCardMoveToFolder} onCardAddTag={onCardAddTag} onCardDelete={onCardDelete} />
       ))}
     </div>
   );

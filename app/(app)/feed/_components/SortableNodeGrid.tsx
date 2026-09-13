@@ -37,12 +37,16 @@ import { useFeedStore } from "@/lib/store/feedStore";
 import { useFilterStore } from "@/lib/store/filterStore";
 import { dndReorderFeed } from "@/app/lib/actions/dnd";
 import NodeCardInner from "./NodeCard";
+import type { Folder } from "@/lib/types/app";
 
 interface SortableNodeGridProps {
   nodes: FeedNode[];
   scopeKey: string;
   onCardClick: (node: FeedNode) => void;
   currentUserId: string;
+  folders?: Folder[];
+  sourceFolderId?: string | null;
+  onChanged?: () => void;
   onShare?: (node: FeedNode) => void;
   onMoveToFolder?: (node: FeedNode) => void;
   onAddTag?: (node: FeedNode) => void;
@@ -59,6 +63,9 @@ function SortableCard({
   node,
   onClick,
   currentUserId,
+  folders,
+  sourceFolderId,
+  onChanged,
   onShare,
   onMoveToFolder,
   onAddTag,
@@ -67,6 +74,9 @@ function SortableCard({
   node: FeedNode;
   onClick: (node: FeedNode) => void;
   currentUserId: string;
+  folders?: Folder[];
+  sourceFolderId?: string | null;
+  onChanged?: () => void;
   onShare?: (node: FeedNode) => void;
   onMoveToFolder?: (node: FeedNode) => void;
   onAddTag?: (node: FeedNode) => void;
@@ -95,7 +105,7 @@ function SortableCard({
       {...attributes}
       className="break-inside-avoid mb-4"
     >
-      <NodeCardInner node={node} onClick={onClick} currentUserId={currentUserId} dragListeners={listeners} onShare={onShare} onMoveToFolder={onMoveToFolder} onAddTag={onAddTag} onDelete={onDelete} />
+      <NodeCardInner node={node} onClick={onClick} currentUserId={currentUserId} dragListeners={listeners} folders={folders} sourceFolderId={sourceFolderId} onChanged={onChanged} onShare={onShare} onMoveToFolder={onMoveToFolder} onAddTag={onAddTag} onDelete={onDelete} />
     </div>
   );
 }
@@ -105,6 +115,9 @@ export default function SortableNodeGrid({
   scopeKey,
   onCardClick,
   currentUserId,
+  folders,
+  sourceFolderId,
+  onChanged,
   onShare,
   onMoveToFolder,
   onAddTag,
@@ -171,7 +184,7 @@ export default function SortableNodeGrid({
           {ids.map((id) => {
             const node = nodeById.get(id);
             if (!node) return null;
-            return <SortableCard key={id} node={node} onClick={onCardClick} currentUserId={currentUserId} onShare={onShare} onMoveToFolder={onMoveToFolder} onAddTag={onAddTag} onDelete={onDelete} />;
+            return <SortableCard key={id} node={node} onClick={onCardClick} currentUserId={currentUserId} folders={folders} sourceFolderId={sourceFolderId} onChanged={onChanged} onShare={onShare} onMoveToFolder={onMoveToFolder} onAddTag={onAddTag} onDelete={onDelete} />;
           })}
         </div>
       </SortableContext>
