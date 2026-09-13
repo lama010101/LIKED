@@ -77,20 +77,11 @@ export default function YouTubeActivityPage() {
     return () => { cancelled = true; };
   }, []);
 
-  // Connect YouTube — trigger OAuth with YouTube scopes
-  const handleConnect = useCallback(async () => {
+  // Connect YouTube — navigate to the standalone OAuth initiation route,
+  // which sets the CSRF state cookie and 302-redirects to Google consent.
+  const handleConnect = useCallback(() => {
     setConnecting(true);
-    const { error } = await supabaseBrowser.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        scopes: "https://www.googleapis.com/auth/youtube",
-        redirectTo: `${window.location.origin}/api/youtube/callback?next=/youtube`,
-      },
-    });
-    if (error) {
-      setConnecting(false);
-      toast.error(error.message || "Failed to connect YouTube. Please try again.");
-    }
+    window.location.assign("/api/youtube/connect");
   }, []);
 
   // Disconnect
