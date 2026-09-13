@@ -9,6 +9,8 @@ interface DroppableFolderChipProps {
   children: React.ReactNode;
   /** All folders — used for ancestry cycle prevention (P3-6). */
   folders?: Array<{ id: string; parent_folder_id: string | null }>;
+  /** Optional wrapper style override (e.g. display:block for full-width rows). */
+  style?: React.CSSProperties;
 }
 
 /**
@@ -31,7 +33,7 @@ function isDescendant(
   return false;
 }
 
-export default function DroppableFolderChip({ folderId, children, folders = [] }: DroppableFolderChipProps) {
+export default function DroppableFolderChip({ folderId, children, folders = [], style }: DroppableFolderChipProps) {
   const { active } = useDndContext();
   const activeSource = active?.data.current?.dragSource;
 
@@ -65,6 +67,7 @@ export default function DroppableFolderChip({ folderId, children, folders = [] }
       ref={setNodeRef}
       style={{
         display: 'inline-block',
+        ...style,
         transition: 'outline 0.15s ease, transform 0.15s ease',
         outline: isOver ? '2px solid var(--accent)' : undefined,
         outlineOffset: isOver ? 2 : undefined,
