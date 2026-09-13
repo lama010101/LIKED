@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { getYouTubeAccessToken, unsubscribeFromChannel } from "@/lib/youtube/client";
+import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { getStoredYouTubeToken, unsubscribeFromChannel } from "@/lib/youtube/client";
 
 export async function DELETE(
   _request: Request,
@@ -12,12 +13,18 @@ export async function DELETE(
       return NextResponse.json({ error: "Missing subscriptionId" }, { status: 400 });
     }
 
-    const auth = await getYouTubeAccessToken();
-    if (!auth.ok || !auth.accessToken) {
-      return NextResponse.json({ error: auth.error }, { status: 401 });
+    const supabase = await getSupabaseServerClient();
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error || !user) {
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    const result = await unsubscribeFromChannel(auth.accessToken, subscriptionId);
+    const auth = await getStoredYouTubeToken(user.id);
+    if (!auth.ok) {
+      return NextResponse.json({ error: auth.message }, { status: 401 });
+    }
+
+    const result = await unsubscribeFromChannel(auth.token.accessToken, subscriptionId);
 
     if (!result.ok) {
       return NextResponse.json({ error: result.error }, { status: 502 });
