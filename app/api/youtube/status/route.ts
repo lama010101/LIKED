@@ -9,24 +9,29 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // New token columns are not in the generated Database type yet.
     const { data } = await supabase
       .from("youtube_connections")
-      .select("google_account_email, connected_at, revoked_at")
+      .select("google_account_email, connected_at, revoked_at, refresh_token")
       .eq("user_id", user.id)
       .single();
+    const row = data as unknown as {
+      google_account_email: string;
+      connected_at: string;
+      revoked_at: string | null;
+      refresh_token: string | null;
+    } | null;
 
-    if (!data || data.revoked_at) {
+    // A connection is only usable when it holds a stored refresh token.
+    const hasToken = !!row?.refresh_token;
+    if (!row || row.revoked_at || !hasToken) {
       return NextResponse.json({ connected: false });
     }
 
-    // Also check if the session has a provider_token
-    const { data: { session } } = await supabase.auth.getSession();
-    const hasToken = !!session?.provider_token;
-
     return NextResponse.json({
       connected: true,
-      email: data.google_account_email,
-      connectedAt: data.connected_at,
+      email: row.google_account_email,
+      connectedAt: row.connected_at,
       hasToken,
     });
   } catch (err) {
