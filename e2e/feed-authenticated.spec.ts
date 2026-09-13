@@ -67,11 +67,12 @@ test.describe("Feed page — authenticated user", () => {
     if ((page.viewportSize()?.width ?? 1280) < 701) {
       test.skip(true, "Sidebar is hidden on mobile (<701px) in the V2 shell");
     }
-    await expect(page.getByRole("button", { name: /^folders$/i })).toBeVisible();
-    await expect(page.getByRole("button", { name: /^everything$/i })).toBeVisible();
-    await expect(page.getByRole("link", { name: /^activity$/i })).toBeVisible();
-    await expect(page.getByRole("link", { name: /^trash$/i })).toBeVisible();
-    await expect(page.getByRole("link", { name: /^youtube$/i })).toBeVisible();
+    const sidebar = page.locator(".sidebar");
+    await expect(sidebar.getByRole("button", { name: /^folders$/i })).toBeVisible();
+    await expect(sidebar.getByRole("button", { name: /^everything$/i })).toBeVisible();
+    await expect(sidebar.getByRole("link", { name: /^activity$/i })).toBeVisible();
+    await expect(sidebar.getByRole("link", { name: /^trash$/i })).toBeVisible();
+    await expect(sidebar.getByRole("link", { name: /^youtube$/i })).toBeVisible();
   });
 
   test("profile modal opens with all options", async ({ page }) => {

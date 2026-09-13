@@ -194,8 +194,8 @@ test.describe("DnD & multi-select — authenticated user", () => {
     // Wait for feed to load — folders render in the folder grid at the top
     await page.waitForTimeout(2000);
 
-    // Folder tiles have class 'folder-tile'
-    const folderTiles = page.locator(".folder-tile").filter({ visible: true });
+    // Folder tiles have class 'folder-card'
+    const folderTiles = page.locator(".folder-card").filter({ visible: true });
     const folderCount = await folderTiles.count();
     if (folderCount === 0) {
       test.skip(true, "No folders available to test folder DnD");
@@ -229,7 +229,7 @@ test.describe("DnD & multi-select — authenticated user", () => {
     await page.waitForTimeout(2000);
 
     // Need at least 2 folders for this test
-    const folderTiles = page.locator(".folder-tile").filter({ visible: true });
+    const folderTiles = page.locator(".folder-card").filter({ visible: true });
     const folderCount = await folderTiles.count();
     if (folderCount < 2) {
       test.skip(true, "Need at least 2 folders to test folder-to-folder DnD");
