@@ -60,16 +60,16 @@ Target: production Next.js app. **Presentation-layer port only.**
 | Task | Status | Verification |
 |------|--------|--------------|
 | UIX-01 | ✅ done (bf90dde) | tsc+lint+build clean; frozen diff empty |
-| UIX-02 | pending | — |
-| UIX-03 | pending | — |
-| UIX-04 | pending | — |
-| UIX-05 | pending | — |
-| UIX-06 | pending | — |
-| UIX-07 | pending | — |
-| UIX-08 | pending | — |
-| UIX-09 | pending | — |
-| UIX-10 | pending | — |
-| UIX-11 | pending | — |
-| UIX-12 | pending | — |
-| UIX-13 | pending | — |
-| UIX-14 | pending | — |
+| UIX-02 | ✅ done (07cb82d) | tsc+lint+build clean; additive-only |
+| UIX-03 | ✅ done (5552a62) | tsc+lint+build clean |
+| UIX-04 | ✅ done (cbb5b6d) | tsc+lint+build clean |
+| UIX-05 | ✅ done (f55ce66) | tsc+lint+build clean |
+| UIX-06 | ✅ done (50f14de) | tsc+lint+build clean |
+| UIX-07 | ✅ done (b963e74) | tsc+lint+build clean; frozen diff empty |
+| UIX-08 | ✅ done (0caf788) | tsc+lint+build clean |
+| UIX-09 | ✅ done (a02e6a4) | tsc+lint+build clean |
+| UIX-10 | ✅ done (1ca08c7) | tsc+lint+build clean |
+| UIX-11 | ✅ done (b1e81c5) | tsc+lint+build clean |
+| UIX-12 | ✅ done (4a3d6cb) | tsc+lint+build clean; frozen diff empty |
+| UIX-13 | ✅ done (3ddd3e6) | tsc+lint+build clean; 0 remaining refs |
+| UIX-14 | ✅ done (75a14cd) | vitest 79/79; playwright 94 pass / 3 pre-existing fails |
