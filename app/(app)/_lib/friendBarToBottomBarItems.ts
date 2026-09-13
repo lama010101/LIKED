@@ -16,6 +16,7 @@ export interface BottomBarItem {
   memberCount?: number;
   is_pending?: boolean;
   user_id?: string;
+  avatarKey?: string | null;
 }
 
 export function friendBarToBottomBarItems(
@@ -32,6 +33,7 @@ export function friendBarToBottomBarItems(
     displayName: sessionUser.display_name ?? "Me",
     initial: initial(sessionUser.display_name),
     bg: "linear-gradient(135deg,#f5a623,#ff6b6b)",
+    avatarKey: sessionUser.avatar_key ?? null,
   };
 
   const friendItems: BottomBarItem[] = friends.map((f) => ({
@@ -43,6 +45,7 @@ export function friendBarToBottomBarItems(
     hasNew: false,
     is_pending: f.is_pending,
     user_id: f.user_id ?? undefined,
+    avatarKey: f.avatar_key,
   }));
 
   const groupItems: BottomBarItem[] = groups.map((g) => ({
