@@ -15,8 +15,7 @@ import { test, expect } from "@playwright/test";
  *
  * Storage state is injected by the "authed" project in playwright.config.ts.
  *
- * NOTE: The Profile button exists in both TopBar (mobile, lg:hidden) and
- * DesktopToolbar (desktop, hidden lg:flex). We must click the visible one.
+ * NOTE: The Profile button lives in AppHeader (all breakpoints, UIX-PORT-00).
  */
 test.use({ storageState: "e2e/.auth/storageState.json" });
 
@@ -39,7 +38,7 @@ async function openProfileModal(page: import("@playwright/test").Page) {
     }
   }
 
-  // Find the visible Profile button (TopBar on mobile, DesktopToolbar on desktop)
+  // Profile button is in AppHeader (visible at every breakpoint)
   const profileBtn = page.locator('button[aria-label="Profile"]').filter({ visible: true }).first();
   await profileBtn.click({ timeout: 10_000 });
 
@@ -58,15 +57,21 @@ test.describe("Feed page — authenticated user", () => {
     expect(bodyText).not.toContain("Internal Server Error");
   });
 
-  test("sidebar shows Feed / Folders / Trash navigation items", async ({ page }) => {
+  test("sidebar shows Folders / Everything / Library navigation items", async ({ page }) => {
     await page.goto("/feed");
     await expect(page).toHaveURL(/\/feed/);
 
-    // Feed and Activity are <a> tags; Folders and Trash are <button> tags
-    await expect(page.getByRole("link", { name: /^feed$/i })).toBeVisible();
-    await expect(page.getByRole("link", { name: /^activity$/i })).toBeVisible();
+    // PROTO V2 sidebar (UIX-PORT-00): collapsible "Folders" section header
+    // (role=button), "Everything" folder button, and My Library links.
+    // Sidebar is desktop-only — hidden ≤700px.
+    if ((page.viewportSize()?.width ?? 1280) < 701) {
+      test.skip(true, "Sidebar is hidden on mobile (<701px) in the V2 shell");
+    }
     await expect(page.getByRole("button", { name: /^folders$/i })).toBeVisible();
-    await expect(page.getByRole("button", { name: /^trash$/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /^everything$/i })).toBeVisible();
+    await expect(page.getByRole("link", { name: /^activity$/i })).toBeVisible();
+    await expect(page.getByRole("link", { name: /^trash$/i })).toBeVisible();
+    await expect(page.getByRole("link", { name: /^youtube$/i })).toBeVisible();
   });
 
   test("profile modal opens with all options", async ({ page }) => {
@@ -141,7 +146,7 @@ test.describe("Feed page — authenticated user", () => {
     await page.waitForTimeout(2000);
 
     // View buttons have aria-label: "col view", "mason view", "list view", "horiz view", "free view"
-    // They are in SortViewRow (mobile) and DesktopToolbar (desktop)
+    // They live in FeedControlsBar (.all-videos-header) inside the feed content
     const viewModes = ["col", "mason", "list", "horiz", "free"] as const;
 
     for (const mode of viewModes) {
