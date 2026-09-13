@@ -59,7 +59,7 @@ Target: production Next.js app. **Presentation-layer port only.**
 
 | Task | Status | Verification |
 |------|--------|--------------|
-| UIX-01 | pending | — |
+| UIX-01 | ✅ done (bf90dde) | tsc+lint+build clean; frozen diff empty |
 | UIX-02 | pending | — |
 | UIX-03 | pending | — |
 | UIX-04 | pending | — |

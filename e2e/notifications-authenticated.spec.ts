@@ -18,8 +18,7 @@ test.describe("Notifications — authenticated user", () => {
     await page.goto("/feed");
     await expect(page).toHaveURL(/\/feed/);
 
-    // The TopBar (mobile) has a bell button with aria-label="Notifications"
-    // The DesktopToolbar also has a bell button
+    // The V2 AppHeader has a bell button with aria-label="Notifications"
     const bellBtn = page.getByRole("button", { name: /notifications/i }).first();
     await expect(bellBtn).toBeVisible({ timeout: 10_000 });
   });
