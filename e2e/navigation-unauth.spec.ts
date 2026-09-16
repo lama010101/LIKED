@@ -9,9 +9,13 @@ import { test, expect } from "@playwright/test";
 test.describe("Navigation — unauthenticated redirects", () => {
   test.use({ storageState: undefined });
 
-  test("/ redirects to /login", async ({ page }) => {
+  test("/ shows the public landing page", async ({ page }) => {
     await page.goto("/");
-    await expect(page).toHaveURL(/\/login/);
+    // `/` is now a public landing page (uncommitted landing-page work):
+    // unauth users stay on `/` and see Sign in / Get started links.
+    await expect(page).toHaveURL(/\/$/);
+    await expect(page.getByRole("link", { name: /sign in/i }).first()).toBeVisible();
+    await expect(page.getByRole("link", { name: /get started/i }).first()).toBeVisible();
   });
 
   test("/feed redirects to /login", async ({ page }) => {
