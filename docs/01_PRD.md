@@ -1,8 +1,9 @@
 # LIKED — Unified Product Requirements Document
 
-**Version: 27.2**  
+**Version: 28.0**  
 **Status: AUTHORITATIVE**  
 **This is the complete single merged document integrating PRD v25.0 and UIX Amendment v26.0. The UIX Amendment v26.0 fully supersedes §11, §12 (drag contract additions), §13, §14 (card detail), and §39 (checklist) of PRD v25.0 on all UI/UX matters. All other sections of PRD v25.0 remain unchanged and authoritative. No information has been lost or summarized.**  
+**v28.0 adds §41 (Vision Amendment — YouTube-Core Pivot), which supersedes the auth method in §23 and adds new scope not previously specified. All other sections unchanged.**  
 **Reference prototype updated: LIKED_Prototype (React, multi-file JSX). Supersedes liked-ux-redesign-v4.html as of this version.**  
 **Built for: Windsurf Editor (https://windsurf.com) + Cascade AI agent (Next.js 15 / React (https://react.dev) + Tailwind (https://tailwindcss.com) + Supabase (https://supabase.com))**
 
@@ -58,6 +59,7 @@ This document replaces the following sections of PRD v25.0:
 | §13.2 | Folder Card Anatomy | **Replaced** |
 | §14 | Card Detail Modal | **Replaced** |
 | §39 | v25 Validation Checklist | **Replaced** |
+| §41 | (new) | **Added by v28.0** |
 
 Sections **not changed**: §1–10, §11.2 (five view modes), §15–38, §40.
 
@@ -2341,6 +2343,114 @@ CREATE TABLE translations ( ... );  -- per §35
 ## 40. CHAT SYSTEM (DEFERRED — LAST PHASE)
 
 Not part of core. Implement only after §29 passes entirely.
+
+---
+
+## 41. VISION AMENDMENT v28.0 — YOUTUBE-CORE PIVOT (Sep 2026)
+
+**Status: AUTHORITATIVE. Supersedes §23 (Auth & Persistence) auth method.
+Extends §33.5 (Search) status. Adds new scope not previously specified.**
+
+### 41.1 Product vision restatement
+
+LIKED's core wedge is YouTube activity management. Every user's
+first experience is: connect Google → see YouTube activity (likes,
+subscriptions) instantly structured into LIKED's folder/card UI →
+pick a content template → search YouTube in-app to add more →
+share one folder with one friend. This sequence is the onboarding
+flow and the primary growth loop. General use beyond onboarding
+(any URL/text/image card, folders as shareable collaborative
+boards, notes-on-board) remains as specified in §1-§40, unchanged.
+
+### 41.2 Auth — supersedes §23
+
+- **Google OAuth is the only signup/login method.** No email/password
+  path. §23's "(or Clerk)" alternative is moot; provider is Google only.
+- This replaces the currently-implemented email/password flow
+  (`app/(auth)/signup`, `app/(auth)/login`) entirely — not additive.
+- The existing standalone YouTube-connection OAuth flow
+  (`youtube_connections` table, token-crypto, Option B) becomes
+  the *same* OAuth grant used for signup — scopes must be requested
+  at signup time (YouTube readonly + login), not as a separate
+  later step.
+- Existing email/password accounts (`laurent.martenot`, `a@a.com`,
+  any other current users): no migration path required. Accounts
+  may be kept as-is or disposed of at implementation time — not a
+  blocking concern.
+
+### 41.3 YouTube — new scope, no prior PRD section
+
+**41.3.1 Comments import (net-new)**
+- Import user's own written comments and liked comments via YouTube
+  Data API `commentThreads.list` / `comments.list`.
+- Comments are modeled as nodes (see §41.5 for schema decision), not
+  a separate table.
+- Subject to same review-before-write gate as liked-video
+  categorization (per existing Phase B policy).
+
+**41.3.2 In-app YouTube search-and-add (net-new)**
+- New UI surface: search YouTube (via YouTube Data API `search.list`)
+  from inside LIKED.
+- Results addable directly into a folder as a node (same node-creation
+  path as any other YouTube URL add — reuse existing node-creation
+  RPC, do not create a parallel write path).
+
+**41.3.3 Auto-categorization**
+- Unchanged from existing Phase B plan: Gemini-based, review-before-write,
+  liked-videos-only scope for initial ship. Comments import (41.3.1)
+  categorization is out of scope for Phase B initial ship — separate
+  future phase.
+
+### 41.4 Onboarding flow — new scope, no prior PRD section
+
+1. Signup = Google OAuth (§41.2).
+2. On first login, background-import liked videos + subscriptions.
+3. Present template picker (reuses existing folder-template mechanism
+   per §11.3d) — templates: "Funny videos," "Music," "Movies & TV,"
+   others TBD.
+4. Selected template folder pre-populates from imported likes where
+   category/tag match exists.
+5. Prompt: search YouTube in-app (§41.3.2) to add more to the folder.
+6. Prompt: share the folder with one friend (reuses existing
+   direct-share mechanism, §17).
+7. Steps 3-6 are skippable at every step; skipping lands user on
+   empty-state feed (existing behavior).
+
+### 41.5 Resolved decisions (CTO-decided, 2026-09-15, verified against repo)
+
+- **Comment node subtype:** `nodes` currently has NO type discriminator
+  column — card type (link / text / image) is inferred implicitly from
+  `url IS NULL` and URL pattern matching (verified against
+  supabase/migrations/001_initial_schema.sql). Introducing `node_type`
+  is therefore a genuinely new column, not a repurposed one, and
+  touches every node-creation write path (manual add, YouTube import,
+  extension save) plus any read-path type inference logic currently
+  doing URL pattern matching. Planned columns (NOT part of this
+  documentation task — implementation to follow in a separate,
+  dedicated migration task):
+  - `node_type TEXT` — nullable initially (backward-compatible), with
+    a follow-up backfill migration inferring existing rows
+    ('text' | 'link' | 'image' | 'video') from current `url`/pattern
+    logic, before making it NOT NULL with a CHECK constraint including
+    'comment'.
+  - `parent_node_id UUID NULL REFERENCES nodes(id)` — points to the
+    parent video node for a comment node; NULL if parent video isn't
+    saved in LIKED.
+  - This is a larger, riskier migration than comments-import alone —
+    it touches every node write path. Must be its own investigation +
+    implementation task, separate from comments-import itself, and
+    completed first.
+- **Existing email/password accounts:** no migration path required;
+  see §41.2.
+
+### 41.6 Explicitly deferred (not in this amendment's scope)
+
+- Google Takeout / Maps-likes import
+- Follow model, public/followable boards, discovery feed
+- Semantic/AI search (chat-based Q&A over saved content) — §33.5
+  keyword search remains v1; this is Stage 2, separate future amendment
+- Multi-dimensional ratings
+- §40 Chat System — deferral unchanged
 
 ---
 
