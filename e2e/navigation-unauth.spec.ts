@@ -33,4 +33,9 @@ test.describe("Navigation — unauthenticated redirects", () => {
     // /youtube has a client-side auth guard that redirects to /login
     await expect(page).toHaveURL(/\/login/, { timeout: 15_000 });
   });
+
+  test("/social redirects to /login", async ({ page }) => {
+    await page.goto("/social");
+    await expect(page).toHaveURL(/\/login/);
+  });
 });
