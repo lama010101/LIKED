@@ -30,6 +30,8 @@ export interface VisibleNode {
   origin_created_at: string;
   deleted_at: string | null;
   created_at: string;
+  node_type: "text" | "link" | "image" | "video" | null;
+  parent_node_id: string | null;
 }
 
 /**

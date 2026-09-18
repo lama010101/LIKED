@@ -160,6 +160,7 @@ export async function POST(req: NextRequest) {
     existingTagIds,
     folderId: body.folderId ?? null,
     note: body.note?.trim() || null,
+    nodeType: "link",
   };
 
   // 4. Atomic write via import_url RPC (single transaction, no partial writes).

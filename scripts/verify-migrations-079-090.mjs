@@ -87,7 +87,7 @@ const PROBES = [
   // 090: hard_delete_node(p_node_id, p_user_id)
   { name: "hard_delete_node", params: { p_node_id: NIL, p_user_id: NIL } },
   // 082: create_node_with_metadata(p_owner_id, p_url, p_text_content, p_title, p_thumbnail_key, p_language_code, p_tag_labels, p_description, p_auto_folder_name)
-  { name: "create_node_with_metadata", params: { p_owner_id: NIL, p_url: null, p_text_content: "__audit_probe__", p_title: null, p_thumbnail_key: null, p_language_code: "en", p_tag_labels: [], p_description: null, p_auto_folder_name: null } },
+  { name: "create_node_with_metadata", params: { p_owner_id: NIL, p_url: null, p_text_content: "__audit_probe__", p_title: null, p_thumbnail_key: null, p_language_code: "en", p_tag_labels: [], p_node_type: "text", p_description: null, p_auto_folder_name: null } },
   // 086: get_feed(p_user_id, p_language_code, p_view, p_friend_id, p_folder_id, p_group_id, p_filter_tag_ids, p_filter_friend_ids, p_filter_folder_ids, p_search_query, p_sort, p_cursor_created_at, p_cursor_node_id, p_limit, p_exclude_foldered, p_custom_order_ids)
   { name: "get_feed", params: { p_user_id: NIL, p_limit: 1, p_sort: "newest", p_view: "all", p_search_query: null, p_filter_tag_ids: null, p_cursor_created_at: null, p_cursor_node_id: null, p_custom_order_ids: null } },
 ];

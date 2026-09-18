@@ -47,7 +47,7 @@ for (const [label, call] of [
 
 // Write RPCs — previously could impersonate any user unauthenticated
 const writes = [
-  ["create_node_with_metadata(victim owner)", () => anon.rpc("create_node_with_metadata", { p_owner_id: VICTIM, p_title: "anon-test", p_language_code: "en", p_tag_labels: [] })],
+  ["create_node_with_metadata(victim owner)", () => anon.rpc("create_node_with_metadata", { p_owner_id: VICTIM, p_title: "anon-test", p_language_code: "en", p_tag_labels: [], p_node_type: "text" })],
   ["update_display_name(victim)", () => anon.rpc("update_display_name", { p_user_id: VICTIM, p_display_name: "HACKED" })],
   ["upsert_rating(victim)", () => anon.rpc("upsert_rating", { p_user_id: VICTIM, p_node_id: "00000000-0000-0000-0000-000000000001", p_score: 10 })],
   ["delete_folder(any)", () => anon.rpc("delete_folder", { p_folder_id: "00000000-0000-0000-0000-000000000001" })],

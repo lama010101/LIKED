@@ -132,6 +132,7 @@ export async function importYouTubeActivity(
       existingTagIds: [],
       folderId: null,
       note: null,
+      nodeType: "video",
       autoFolderName: "YouTube",
     });
 

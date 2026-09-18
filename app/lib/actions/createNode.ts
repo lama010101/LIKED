@@ -23,6 +23,7 @@ import {
   createNode,
   DuplicateNodeError,
   type NodeMetadata,
+  type NodeType,
 } from "@/lib/db/nodes";
 import { extractNodeMetadata } from "@/lib/edge/extract-metadata";
 
@@ -33,6 +34,8 @@ export type CreateNodeResult =
 export interface CreateNodeInput {
   url?: string | null;
   textContent?: string | null;
+  /** Caller-supplied node_type — written verbatim to the row (IMPL-NODE-TYPE-01). */
+  nodeType: NodeType;
   languageCode?: string | null;
   /** Pre-known title from the caller (e.g. YouTube Data API). Priority over Edge Function. */
   title?: string | null;
@@ -107,6 +110,10 @@ export async function createNodeAction(
 
   const url = input.url?.trim() || null;
   const text = input.textContent?.trim() || null;
+  const NODE_TYPES: NodeType[] = ["text", "link", "image", "video"];
+  if (!NODE_TYPES.includes(input.nodeType)) {
+    return { ok: false, error: "Invalid card type.", code: "invalid" };
+  }
   if (!url && !text) {
     return { ok: false, error: "Please enter a URL or text.", code: "invalid" };
   }
@@ -155,7 +162,7 @@ export async function createNodeAction(
   try {
     const node = await createNode(
       user.id,
-      { url: url ?? undefined, textContent: text ?? undefined },
+      { url: url ?? undefined, textContent: text ?? undefined, nodeType: input.nodeType },
       metadata
     );
 

@@ -18,6 +18,12 @@ export class DuplicateNodeError extends Error {
 }
 
 /**
+ * Allowed node_type values — enforced by nodes_node_type_check (migration 098).
+ * Caller-supplied at write time; read paths consume it directly.
+ */
+export type NodeType = "text" | "link" | "image" | "video";
+
+/**
  * Node type matching the database schema
  */
 export interface Node {
@@ -32,6 +38,8 @@ export interface Node {
   origin_created_at: string;
   deleted_at: string | null;
   created_at: string;
+  node_type: NodeType | null;
+  parent_node_id: string | null;
 }
 
 /**
@@ -40,6 +48,7 @@ export interface Node {
 export interface NodeInput {
   url?: string;
   textContent?: string;
+  nodeType: NodeType;
 }
 
 /**
@@ -135,6 +144,7 @@ export async function createNode(
     p_thumbnail_key: finalThumb,
     p_language_code: finalLang,
     p_tag_labels: tagLabels,
+    p_node_type: input.nodeType,
     p_description: finalDescription,
     p_auto_folder_name: null,
   });
@@ -181,6 +191,8 @@ export interface ImportUrlInput {
   existingTagIds: string[];
   folderId: string | null;
   note: string | null;
+  /** Caller-supplied node_type ('link' for extension saves, 'video' for YouTube). */
+  nodeType: NodeType;
   /** Auto-folder name when folderId is null (e.g. "YouTube"). NULL → "Unsorted". */
   autoFolderName?: string | null;
 }
@@ -206,6 +218,7 @@ export async function importUrl(
     p_title: input.title,
     p_thumbnail_key: input.thumbnailKey,
     p_language_code: input.languageCode,
+    p_node_type: input.nodeType,
     p_description: input.description,
     p_new_tag_labels: input.newTagLabels.length > 0 ? input.newTagLabels : null,
     p_existing_tag_ids: input.existingTagIds.length > 0 ? input.existingTagIds : null,
