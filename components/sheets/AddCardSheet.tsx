@@ -196,9 +196,16 @@ export default function AddCardSheet({ open, onClose, userId, languageCode }: Ad
       const isUrl = trimmedInput.startsWith('http://') || trimmedInput.startsWith('https://');
       const effectiveType = selectedType === 'auto' ? (isUrl ? 'link' : 'note') : selectedType;
 
+      // IMPL-NODE-TYPE-01: map chip -> node_type (fixes image chip writing 'link' rows)
+      const nodeType =
+        effectiveType === 'link' ? 'link' :
+        effectiveType === 'image' ? 'image' :
+        'text';
+
       const result = await createNodeAction({
         url: (effectiveType === 'link' || effectiveType === 'image') ? trimmedInput : null,
         textContent: (effectiveType === 'link' || effectiveType === 'image') ? null : trimmedInput,
+        nodeType,
       });
       if (result.ok) {
         // Auto-assign to active folder if one is selected, otherwise use selectedFolder

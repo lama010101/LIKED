@@ -458,6 +458,8 @@ export interface Database {
           origin_created_at: string
           deleted_at: string | null
           created_at: string
+          node_type: string | null
+          parent_node_id: string | null
         }
         Insert: {
           url: string | null
@@ -467,6 +469,8 @@ export interface Database {
           owner_id: string
           origin_user_id: string
           deleted_at: string | null
+          node_type: string | null
+          parent_node_id?: string | null
         }
         Update: {
           id?: string | null
@@ -480,6 +484,8 @@ export interface Database {
           origin_created_at?: string | null
           deleted_at?: string | null
           created_at?: string | null
+          node_type?: string | null
+          parent_node_id?: string | null
         }
         Relationships: []
       }
@@ -997,6 +1003,7 @@ export interface Database {
           p_thumbnail_key: string | null
           p_language_code: string
           p_tag_labels: string[] | null
+          p_node_type: string
           p_description: string | null
           p_auto_folder_name?: string | null
         }
@@ -1021,6 +1028,7 @@ export interface Database {
           p_title: string | null
           p_thumbnail_key: string | null
           p_language_code: string
+          p_node_type: string
           p_description: string | null
           p_new_tag_labels: string[] | null
           p_existing_tag_ids: string[] | null
