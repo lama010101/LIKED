@@ -337,6 +337,87 @@ export async function unsubscribeFromChannel(
  *
  * Returns null on any failure (non-fatal — category tag is optional).
  */
+/**
+ * Search YouTube for videos matching a query.
+ * GET /search?part=snippet&type=video&q=... then a single batched
+ * GET /videos?part=snippet&id=... to obtain full snippets
+ * (description, categoryId, channelId, medium thumbnails) needed by
+ * importYouTubeActivity.
+ */
+export async function searchYouTubeVideos(
+  accessToken: string,
+  query: string
+): Promise<{ videos: YouTubeVideo[]; error?: string }> {
+  const searchParams = new URLSearchParams({
+    part: "snippet",
+    type: "video",
+    maxResults: "10",
+    q: query,
+  });
+
+  try {
+    const res = await fetch(`${YOUTUBE_API_BASE}/search?${searchParams}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    const data = await res
+      .json()
+      .catch(() => null) as {
+      items?: { id?: { videoId?: string } }[];
+      error?: { message: string; code: number };
+    } | null;
+
+    if (!res.ok) {
+      if (res.status === 403) {
+        return { videos: [], error: "YouTube API access forbidden. Your connection may have expired — try reconnecting your YouTube account." };
+      }
+      if (res.status === 429) {
+        return { videos: [], error: "YouTube API quota exceeded. Please try again later." };
+      }
+      return { videos: [], error: data?.error?.message ?? `YouTube API error: ${res.status}` };
+    }
+
+    const ids = (data?.items ?? [])
+      .map((item) => item.id?.videoId)
+      .filter((id): id is string => typeof id === "string" && id.length > 0);
+    if (ids.length === 0) return { videos: [] };
+
+    const videosParams = new URLSearchParams({
+      part: "snippet",
+      id: ids.join(","),
+    });
+    const vidsRes = await fetch(`${YOUTUBE_API_BASE}/videos?${videosParams}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    const vidsData = await vidsRes
+      .json()
+      .catch(() => null) as YouTubeListResponse<{
+      id: string;
+      snippet: { title: string; thumbnails: { medium?: { url: string } }; channelTitle: string; channelId: string; description: string; categoryId: string };
+    }> | null;
+
+    if (!vidsRes.ok) {
+      const apiMsg = vidsData?.error?.message ?? `YouTube API error: ${vidsRes.status}`;
+      return { videos: [], error: apiMsg };
+    }
+
+    const videos: YouTubeVideo[] = (vidsData?.items ?? []).map((item) => ({
+      id: item.id,
+      title: item.snippet?.title ?? "Unknown",
+      thumbnail: item.snippet?.thumbnails?.medium?.url ?? "",
+      channelTitle: item.snippet?.channelTitle ?? "",
+      channelId: item.snippet?.channelId ?? "",
+      description: item.snippet?.description ?? "",
+      categoryId: item.snippet?.categoryId ?? "",
+    }));
+
+    return { videos };
+  } catch {
+    return { videos: [], error: "Failed to search YouTube. Please check your connection and try again." };
+  }
+}
+
 export async function fetchVideoCategoryName(
   accessToken: string,
   categoryId: string

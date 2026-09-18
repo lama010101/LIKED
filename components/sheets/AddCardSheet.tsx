@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState, useCallback, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { createNodeAction } from '@/app/lib/actions/createNode';
+import { importYouTubeActivity } from '@/app/lib/actions/youtubeImport';
 import { directShareAction } from '@/app/lib/actions/sharing';
 import { useFilterStore } from '@/lib/store/filterStore';
 import { addNodeToFolderAction } from '@/app/lib/actions/addNodeToFolder';
@@ -25,10 +27,20 @@ interface AddCardSheetProps {
   languageCode: string;
 }
 
+interface YouTubeSearchResult {
+  id: string;
+  title: string;
+  thumbnail: string;
+  channelTitle: string;
+  channelId: string;
+  description: string;
+  categoryId: string;
+}
+
 export default function AddCardSheet({ open, onClose, userId, languageCode }: AddCardSheetProps) {
   const isDesktop = useIsDesktop();
   const [input, setInput] = useState('');
-  const [selectedType, setSelectedType] = useState<'auto' | 'link' | 'image' | 'note'>('auto');
+  const [selectedType, setSelectedType] = useState<'auto' | 'link' | 'image' | 'note' | 'youtube'>('auto');
   const [previewType, setPreviewType] = useState<'empty' | 'link' | 'note'>('empty');
   const [previewData, setPreviewData] = useState<{ title?: string; domain?: string; text?: string } | null>(null);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
@@ -36,6 +48,11 @@ export default function AddCardSheet({ open, onClose, userId, languageCode }: Ad
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [urlWarning, setUrlWarning] = useState<string | null>(null);
+  const [ytResults, setYtResults] = useState<YouTubeSearchResult[]>([]);
+  const [ytSearching, setYtSearching] = useState(false);
+  const [ytError, setYtError] = useState<string | null>(null);
+  const [ytNotConnected, setYtNotConnected] = useState(false);
+  const [ytSavingId, setYtSavingId] = useState<string | null>(null);
   const [isSaving, startSaving] = useTransition();
   const [showSuccess, setShowSuccess] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -62,6 +79,11 @@ export default function AddCardSheet({ open, onClose, userId, languageCode }: Ad
         setSelectedFriends(new Set());
         setSelectedFolder(null);
         setSaveError(null);
+        setYtResults([]);
+        setYtSearching(false);
+        setYtError(null);
+        setYtNotConnected(false);
+        setYtSavingId(null);
       });
     }
   }, [open]);
@@ -135,8 +157,51 @@ export default function AddCardSheet({ open, onClose, userId, languageCode }: Ad
     }
   }, [input, selectedType]);
 
+  // YouTube mode: debounced search against /api/youtube/search
+  useEffect(() => {
+    if (selectedType !== 'youtube') return;
+    const q = input.trim();
+    if (q.length < 2) {
+      queueMicrotask(() => {
+        setYtResults([]);
+        setYtError(null);
+        setYtSearching(false);
+      });
+      return;
+    }
+    const t = setTimeout(async () => {
+      setYtSearching(true);
+      setYtError(null);
+      setYtNotConnected(false);
+      try {
+        const res = await fetch(`/api/youtube/search?q=${encodeURIComponent(q)}`);
+        const data = await res.json().catch(() => null);
+        if (res.status === 401 && data?.code === 'not_connected') {
+          setYtNotConnected(true);
+          setYtResults([]);
+        } else if (!res.ok) {
+          setYtError(data?.error ?? 'YouTube search failed.');
+          setYtResults([]);
+        } else {
+          setYtResults(Array.isArray(data?.videos) ? data.videos : []);
+        }
+      } catch {
+        setYtError('Network error. Please try again.');
+        setYtResults([]);
+      } finally {
+        setYtSearching(false);
+      }
+    }, 400);
+    return () => clearTimeout(t);
+  }, [input, selectedType]);
+
   const handleInputChange = (value: string) => {
     setInput(value);
+
+    if (selectedType === 'youtube') {
+      setUrlWarning(null);
+      return;
+    }
 
     const trimmed = value.trim();
     // YouTube URL validation
@@ -187,6 +252,82 @@ export default function AddCardSheet({ open, onClose, userId, languageCode }: Ad
     setSelectedFolder((prev) => (prev === id ? null : id));
   };
 
+  // Shared post-save applications: folder assignment, tag, friend shares.
+  // All non-fatal — the card is already saved when these run.
+  const applyPostSaveSelections = async (nodeId: string) => {
+    const folderIdToAssign = activeFolderId || selectedFolder;
+    if (folderIdToAssign) {
+      try {
+        await addNodeToFolderAction({ nodeId, folderId: folderIdToAssign });
+      } catch {
+        // Non-fatal — card is saved, folder assignment failed silently
+      }
+    }
+    if (selectedTag) {
+      try {
+        await applyTagToNodeAction(selectedTag, nodeId);
+      } catch {
+        // Non-fatal — card is saved, tag assignment failed silently
+      }
+    }
+    if (selectedFriends.size > 0) {
+      const friendIds = Array.from(selectedFriends);
+      const shareResults = await Promise.allSettled(
+        friendIds.map((fid) =>
+          directShareAction({ nodeId, targetUserId: fid, permission: 'view' })
+        )
+      );
+      const failedCount = shareResults.filter((r) => r.status === 'rejected' || (r.status === 'fulfilled' && !r.value.ok)).length;
+      if (failedCount > 0) {
+        toast.error(`Shared with ${friendIds.length - failedCount} friend(s), ${failedCount} failed`);
+      } else {
+        toast.success(`Shared with ${friendIds.length} friend(s)`);
+      }
+    }
+  };
+
+  const finishSave = () => {
+    setInput('');
+    setSelectedType('auto');
+    setSelectedFriends(new Set());
+    setSaveError(null);
+    setUrlWarning(null);
+    onClose();
+    router.refresh();
+    setShowSuccess(true);
+    setTimeout(() => setShowSuccess(false), 2000);
+  };
+
+  const handlePickYouTube = async (video: YouTubeSearchResult) => {
+    if (ytSavingId) return;
+    setYtSavingId(video.id);
+    setYtError(null);
+    try {
+      const result = await importYouTubeActivity({
+        url: `https://www.youtube.com/watch?v=${video.id}`,
+        title: video.title,
+        description: video.description,
+        channelTitle: video.channelTitle,
+        categoryId: video.categoryId,
+        thumbnailUrl: video.thumbnail || null,
+      });
+      if (result.ok) {
+        await applyPostSaveSelections(result.nodeId);
+        toast.success('Saved to your YouTube folder!');
+        finishSave();
+      } else if (result.code === 'duplicate') {
+        toast.success('Already in your feed.');
+        finishSave();
+      } else {
+        setYtError(result.error || 'Failed to save video.');
+      }
+    } catch {
+      setYtError('Failed to save video.');
+    } finally {
+      setYtSavingId(null);
+    }
+  };
+
   const handleSave = () => {
     const trimmedInput = input.trim();
     if (!trimmedInput) return;
@@ -196,10 +337,11 @@ export default function AddCardSheet({ open, onClose, userId, languageCode }: Ad
       const isUrl = trimmedInput.startsWith('http://') || trimmedInput.startsWith('https://');
       const effectiveType = selectedType === 'auto' ? (isUrl ? 'link' : 'note') : selectedType;
 
-      // IMPL-NODE-TYPE-01: map chip -> node_type (fixes image chip writing 'link' rows)
+      // IMPL-NODE-TYPE-01: map chip → node_type (fixes image chip writing 'link' rows)
       const nodeType =
         effectiveType === 'link' ? 'link' :
         effectiveType === 'image' ? 'image' :
+        effectiveType === 'youtube' ? 'video' :
         'text';
 
       const result = await createNodeAction({
@@ -208,47 +350,8 @@ export default function AddCardSheet({ open, onClose, userId, languageCode }: Ad
         nodeType,
       });
       if (result.ok) {
-        // Auto-assign to active folder if one is selected, otherwise use selectedFolder
-        const folderIdToAssign = activeFolderId || selectedFolder;
-        if (folderIdToAssign) {
-          try {
-            await addNodeToFolderAction({ nodeId: result.nodeId, folderId: folderIdToAssign });
-          } catch {
-            // Non-fatal — card is saved, folder assignment failed silently
-          }
-        }
-        // Apply selected tag if any
-        if (selectedTag) {
-          try {
-            await applyTagToNodeAction(selectedTag, result.nodeId);
-          } catch {
-            // Non-fatal — card is saved, tag assignment failed silently
-          }
-        }
-        // Share with selected friends (non-fatal — card is saved even if share fails)
-        if (selectedFriends.size > 0) {
-          const friendIds = Array.from(selectedFriends);
-          const shareResults = await Promise.allSettled(
-            friendIds.map((fid) =>
-              directShareAction({ nodeId: result.nodeId, targetUserId: fid, permission: 'view' })
-            )
-          );
-          const failedCount = shareResults.filter((r) => r.status === 'rejected' || (r.status === 'fulfilled' && !r.value.ok)).length;
-          if (failedCount > 0) {
-            toast.error(`Shared with ${friendIds.length - failedCount} friend(s), ${failedCount} failed`);
-          } else {
-            toast.success(`Shared with ${friendIds.length} friend(s)`);
-          }
-        }
-        setInput('');
-        setSelectedType('auto');
-        setSelectedFriends(new Set());
-        setSaveError(null);
-        setUrlWarning(null);
-        onClose();
-        router.refresh();
-        setShowSuccess(true);
-        setTimeout(() => setShowSuccess(false), 2000);
+        await applyPostSaveSelections(result.nodeId);
+        finishSave();
       } else {
         setSaveError(result.error);
       }
@@ -423,8 +526,120 @@ export default function AddCardSheet({ open, onClose, userId, languageCode }: Ad
             })}
           </div>
 
-          {/* Live preview */}
-          <AddCardPreview previewType={previewType} previewData={previewData} />
+          {/* Live preview (non-YouTube modes) / YouTube search results */}
+          {selectedType === 'youtube' ? (
+            <div style={{ marginBottom: 16 }}>
+              {ytNotConnected ? (
+                <div style={{
+                  padding: 16,
+                  background: 'var(--surface-3)',
+                  borderRadius: 10,
+                  border: '1px solid var(--border-1)',
+                  textAlign: 'center',
+                }}>
+                  <p style={{ fontSize: 13, color: 'var(--text-2)', margin: '0 0 10px' }}>
+                    Connect your YouTube account to search videos.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => window.location.assign('/api/youtube/connect')}
+                    style={{
+                      padding: '8px 16px',
+                      background: 'var(--accent)',
+                      color: 'var(--accent-ink)',
+                      border: 'none',
+                      borderRadius: 8,
+                      fontSize: 13,
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Connect YouTube
+                  </button>
+                </div>
+              ) : ytSearching ? (
+                <div style={{ padding: 16, fontSize: 13, color: 'var(--text-3)', textAlign: 'center' }}>
+                  Searching YouTube…
+                </div>
+              ) : ytError ? (
+                <div
+                  role="alert"
+                  style={{
+                    padding: 12,
+                    fontSize: 12,
+                    color: 'var(--red, #ef4444)',
+                    background: 'rgba(239,68,68,0.08)',
+                    borderRadius: 8,
+                  }}
+                >
+                  {ytError}
+                </div>
+              ) : ytResults.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 260, overflowY: 'auto' }}>
+                  {ytResults.map((v) => (
+                    <button
+                      key={v.id}
+                      type="button"
+                      onClick={() => handlePickYouTube(v)}
+                      disabled={!!ytSavingId}
+                      style={{
+                        display: 'flex',
+                        gap: 10,
+                        alignItems: 'center',
+                        padding: 8,
+                        borderRadius: 10,
+                        background: 'var(--surface-3)',
+                        border: '1px solid var(--border-1)',
+                        cursor: ytSavingId ? 'default' : 'pointer',
+                        textAlign: 'left',
+                        opacity: ytSavingId && ytSavingId !== v.id ? 0.5 : 1,
+                      }}
+                    >
+                      {v.thumbnail && (
+                        <Image
+                          src={v.thumbnail}
+                          alt=""
+                          width={72}
+                          height={40}
+                          unoptimized
+                          style={{ width: 72, height: 40, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }}
+                        />
+                      )}
+                      <span style={{ flex: 1, minWidth: 0 }}>
+                        <span style={{
+                          display: 'block',
+                          fontSize: 13,
+                          fontWeight: 600,
+                          color: 'var(--text-1)',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}>
+                          {v.title}
+                        </span>
+                        <span style={{ display: 'block', fontSize: 11, color: 'var(--text-3)', marginTop: 2 }}>
+                          {v.channelTitle}
+                        </span>
+                      </span>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent)', flexShrink: 0 }}>
+                        {ytSavingId === v.id ? 'Saving…' : 'Add'}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              ) : input.trim().length >= 2 ? (
+                <div style={{ padding: 16, fontSize: 13, color: 'var(--text-3)', textAlign: 'center' }}>
+                  No videos found
+                </div>
+              ) : (
+                <div style={{ padding: 16, fontSize: 13, color: 'var(--text-3)', textAlign: 'center' }}>
+                  Type to search YouTube videos
+                </div>
+              )}
+            </div>
+          ) : (
+            <AddCardPreview previewType={previewType} previewData={previewData} />
+          )}
 
           {/* Big input textarea */}
           <div style={{ marginBottom: 16 }}>
@@ -436,7 +651,7 @@ export default function AddCardSheet({ open, onClose, userId, languageCode }: Ad
                 handleInputChange(e.target.value);
               }}
               onInput={handleNoteInput}
-              placeholder="Paste a URL, drop a thought, or share a note…"
+              placeholder={selectedType === 'youtube' ? 'Search YouTube videos…' : 'Paste a URL, drop a thought, or share a note…'}
               style={{
                 width: '100%',
                 minHeight: 80,
@@ -509,7 +724,8 @@ export default function AddCardSheet({ open, onClose, userId, languageCode }: Ad
             </div>
           )}
 
-          {/* Save Button */}
+          {/* Save Button (hidden in YouTube mode — picking a result saves directly) */}
+          {selectedType !== 'youtube' && (
           <button
             onClick={handleSave}
             disabled={!canSave || isSaving}
@@ -530,6 +746,7 @@ export default function AddCardSheet({ open, onClose, userId, languageCode }: Ad
           >
             {isSaving ? 'Saving…' : saveLabel}
           </button>
+          )}
         </div>
 
         {/* Safe area padding */}
