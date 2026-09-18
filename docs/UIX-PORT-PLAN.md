@@ -72,4 +72,4 @@ Target: production Next.js app. **Presentation-layer port only.**
 | UIX-11 | ✅ done (b1e81c5) | tsc+lint+build clean |
 | UIX-12 | ✅ done (4a3d6cb) | tsc+lint+build clean; frozen diff empty |
 | UIX-13 | ✅ done (3ddd3e6) | tsc+lint+build clean; 0 remaining refs |
-| UIX-14 | ✅ done (75a14cd) | vitest 79/79; playwright 94 pass / 3 pre-existing fails |
+| UIX-14 | ✅ done (75a14cd) | vitest 79/79; playwright 94 pass / 3 pre-existing fails (unrelated) |
