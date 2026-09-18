@@ -39,6 +39,8 @@ Each stage is a filter or transform applied in strict order. No stage can be ski
 | dedup | Collapse duplicate node_ids | No |
 | limit | Page size cap | No |
 
+> **Implementation note (FEED-ORDER-001):** Migration `101_feed_pipeline_order.sql` (commit `62dd9ca`) has been deployed to prod and live-verified — `get_feed` now executes the cursor → ordering → dedup → limit pipeline documented here (see `docs/00_PROGRESS.md`, FEED-ORDER-001-DEPLOY entry). This document remains authoritative.
+
 ---
 
 ## 2. MASTER FEED QUERY
