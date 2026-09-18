@@ -40,7 +40,7 @@ export async function proxy(request: NextRequest) {
   const isAuthRoute =
     pathname.startsWith("/login") || pathname.startsWith("/signup");
   const isCallbackRoute = pathname.startsWith("/callback");
-  const isProtectedRoute = pathname.startsWith("/feed") || pathname.startsWith("/trash") || pathname.startsWith("/youtube");
+  const isProtectedRoute = pathname.startsWith("/feed") || pathname.startsWith("/trash") || pathname.startsWith("/youtube") || pathname.startsWith("/social");
 
   if (isProtectedRoute && !user && !isCallbackRoute) {
     const loginUrl = new URL("/login", request.url);
