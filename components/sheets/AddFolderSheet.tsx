@@ -100,13 +100,17 @@ export default function AddFolderSheet({ open, onClose, parentFolderId, onFolder
           maxHeight: '90vh',
           overflowY: 'auto',
           boxShadow: isDesktop ? '0 8px 32px rgba(0,0,0,0.25)' : '0 -8px 32px rgba(0,0,0,0.25)',
+          pointerEvents: open ? 'auto' : 'none',
+          visibility: open ? 'visible' : 'hidden',
           ...(isDesktop
             ? {
+                top: '50%',
+                left: '50%',
                 width: 'min(480px, 90vw)',
                 borderRadius: '18px',
                 border: '1px solid var(--border-2)',
-                transform: open ? 'translateY(0) scale(1)' : 'translateY(20px) scale(0.95)',
-                transition: 'transform 0.2s ease-out, opacity 0.2s ease-out',
+                transform: open ? 'translate(-50%, -50%) scale(1)' : 'translate(-50%, calc(-50% + 20px)) scale(0.95)',
+                transition: 'transform 0.2s ease-out, opacity 0.2s ease-out, visibility 0.2s ease-out',
                 opacity: open ? 1 : 0,
               }
             : {
@@ -115,7 +119,7 @@ export default function AddFolderSheet({ open, onClose, parentFolderId, onFolder
                 right: 0,
                 borderRadius: '18px 18px 0 0',
                 borderTop: '1px solid var(--border-2)',
-                transition: 'bottom 0.25s ease-out',
+                transition: 'bottom 0.25s ease-out, visibility 0.25s ease-out',
               }),
         }}
       >

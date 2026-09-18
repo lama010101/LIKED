@@ -174,6 +174,18 @@ function AppShell({ children }: { children: React.ReactNode }) {
   const isMobile = useIsMobile();
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  // Surface YouTube OAuth callback failures (?youtube_error=...) as a toast,
+  // then strip the param so it doesn't re-fire.
+  useEffect(() => {
+    const err = searchParams.get('youtube_error');
+    if (!err) return;
+    showToast.error(`YouTube connection failed (${err.replaceAll('_', ' ')}).`);
+    const next = new URLSearchParams(searchParams.toString());
+    next.delete('youtube_error');
+    const qs = next.toString();
+    router.replace(`${window.location.pathname}${qs ? `?${qs}` : ''}`);
+  }, [searchParams, router]);
   const hydrateFromStorage = useFilterStore((s) => s.hydrateFromStorage);
   const setCurrentContextKey = useFilterStore((s) => s.setCurrentContextKey);
 
