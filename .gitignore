@@ -66,3 +66,6 @@ supabase/.temp/
 
 # extension zip (built artifact — run npm run zip:extension to generate)
 /public/liked-extension.zip
+
+# local editor workspace
+LIKED.code-workspace
