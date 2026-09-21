@@ -18,7 +18,7 @@
  *    and when sortable reorder is not active.
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   DndContext,
   DragEndEvent,
@@ -131,7 +131,13 @@ export default function SortableNodeGrid({
   // SQL order whenever `nodes` changes (AUDIT-06 P2-1 — no local reorder).
   const orderedIds = useMemo(() => nodes.map((n) => n.node_id), [nodes]);
   const [ids, setIds] = useState<string[]>(orderedIds);
-  useEffect(() => setIds(orderedIds), [orderedIds]);
+  // Reset drop-preview ids when the SQL-ordered input changes — "adjust
+  // state during render" pattern (setState in an effect is disallowed).
+  const [lastOrdered, setLastOrdered] = useState(orderedIds);
+  if (lastOrdered !== orderedIds) {
+    setLastOrdered(orderedIds);
+    setIds(orderedIds);
+  }
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),

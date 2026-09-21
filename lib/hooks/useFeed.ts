@@ -89,26 +89,38 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
   const [refreshTick, setRefreshTick] = useState(0);
 
   // Custom order from DB (user_node_preferences — single source of truth,
-  // AUDIT-06 P2-1). Resolved async only when sort is 'custom' and scopeKey
-  // is provided; null = not yet resolved (feed fetch waits for it).
-  const [customOrderIds, setCustomOrderIds] = useState<string[] | null>(null);
+  // AUDIT-06 P2-1). Resolved async, keyed to the current
+  // (sort, scopeKey, refreshTick) — a stale resolved value is never used.
+  const orderKey = `${sort}|${scopeKey ?? ""}|${refreshTick}`;
+  const [customOrder, setCustomOrder] = useState<{ key: string; ids: string[] } | null>(null);
   useEffect(() => {
-    if (sort !== "custom" || !scopeKey) {
-      setCustomOrderIds([]);
-      return;
-    }
+    if (sort !== "custom" || !scopeKey) return;
     let cancelled = false;
     getCustomOrderAction(scopeKey)
       .then((ids) => {
-        if (!cancelled) setCustomOrderIds(ids);
+        if (!cancelled) setCustomOrder({ key: orderKey, ids });
       })
       .catch(() => {
-        if (!cancelled) setCustomOrderIds([]);
+        if (!cancelled) setCustomOrder({ key: orderKey, ids: [] });
       });
     return () => {
       cancelled = true;
     };
-  }, [sort, scopeKey, refreshTick]);
+  }, [orderKey, sort, scopeKey]);
+  // null = not yet resolved for the current key → feed fetch waits for it.
+  const customOrderIds = useMemo(
+    () =>
+      sort === "custom" && scopeKey
+        ? customOrder?.key === orderKey
+          ? customOrder.ids
+          : null
+        : [],
+    [sort, scopeKey, customOrder, orderKey]
+  );
+
+  // Stable identity for the params builder — [] fallback memoized so the
+  // feedParams useMemo doesn't see a new array every render.
+  const resolvedCustomOrderIds = useMemo(() => customOrderIds ?? [], [customOrderIds]);
 
   // Memoize feed params to prevent re-render cascade
   const feedParams = useMemo(
@@ -132,9 +144,9 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
         },
         userId,
         languageCode,
-        customOrderIds ?? []
+        resolvedCustomOrderIds
       ),
-    [view, sort, mineSubTab, friendId, folderId, groupId, searchQuery, userId, languageCode, viewMode, zoom, tagIds, filterFriendIds, filterFolderIds, customOrderIds]
+    [view, sort, mineSubTab, friendId, folderId, groupId, searchQuery, userId, languageCode, viewMode, zoom, tagIds, filterFriendIds, filterFolderIds, resolvedCustomOrderIds]
   );
 
   // Cursor tracking for pagination
@@ -187,7 +199,7 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
     return () => {
       cancelled = true;
     };
-  }, [feedParams, refreshTick, userId]);
+  }, [feedParams, refreshTick, userId, sort, scopeKey, customOrderIds]);
 
   // Load more (next page via cursor)
   const loadMore = useCallback(async () => {
