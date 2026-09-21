@@ -125,29 +125,10 @@ export default function SortableNodeGrid({
 }: SortableNodeGridProps) {
   const setCustomOrder = useFeedStore((s) => s.setCustomOrder);
   const setSort = useFilterStore((s) => s.setSort);
-  // Get customOrder via getState to avoid INVARIANT 1 violation (method selector)
-  const storedOrder = useMemo(() => useFeedStore.getState().customOrders[scopeKey] ?? [], [scopeKey]);
-
-  // Merge stored order (persisted) with incoming nodes:
-  // 1) items that exist in both, in the stored order
-  // 2) any new nodes (not yet ordered) appended at the end by created_at DESC
-  const orderedIds = useMemo(() => {
-    const byId = new Map(nodes.map((n) => [n.node_id, n]));
-    const used = new Set<string>();
-    const result: string[] = [];
-    if (storedOrder) {
-      for (const id of storedOrder) {
-        if (byId.has(id)) {
-          result.push(id);
-          used.add(id);
-        }
-      }
-    }
-    for (const n of nodes) {
-      if (!used.has(n.node_id)) result.push(n.node_id);
-    }
-    return result;
-  }, [nodes, storedOrder]);
+  // Feed order is SQL-authoritative (AUDIT-06 P2-1): when sort='custom',
+  // get_feed orders by p_custom_order_ids, which useFeed sources from the same
+  // feedStore map — no client-side reorder here.
+  const orderedIds = useMemo(() => nodes.map((n) => n.node_id), [nodes]);
 
   // Local state lets the drop preview land before the store updates.
   const [ids, setIds] = useState<string[]>(orderedIds);
