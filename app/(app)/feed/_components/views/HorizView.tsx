@@ -18,7 +18,6 @@ interface FolderContext {
 
 interface HorizViewProps extends ViewProps {
   folderContext?: FolderContext | null;
-  activeTag?: string | null;
   currentUserId?: string;
   folders?: Folder[];
   sourceFolderId?: string | null;
@@ -32,14 +31,15 @@ interface HorizViewProps extends ViewProps {
 /**
  * Group items per PRD §11.2 D:
  * 1. If in folder context → group by sub-folder name (stub: use folderColor as proxy)
- * 2. Else if tag filter active → group by tag
- * 3. Else → group by sender (dir: mine/received)
- * 4. Fallback → recency buckets: "Today", "This week", "This month", "Older"
+ * 2. Else → group by sender (dir: mine/received)
+ * 3. Fallback → recency buckets: "Today", "This week", "This month", "Older"
+ *
+ * (AUDIT-06 P1-3: removed the activeTag client-side filter/grouping branch —
+ * the prop had no callers; tag filtering is SQL-side via p_filter_tag_ids.)
  */
 function groupItems(
   items: FeedItem[],
-  folderContext?: FolderContext | null,
-  activeTag?: string | null
+  folderContext?: FolderContext | null
 ): { label: string; items: FeedItem[] }[] {
   // 1. In folder context → group by sub-folder (stub: group by folderColor as proxy)
   if (folderContext) {
@@ -58,17 +58,7 @@ function groupItems(
       .filter((g) => g.items.length > 0); // Hide empty rows
   }
 
-  // 2. Tag filter active → group by tag
-  if (activeTag) {
-    const withTag = items.filter((i) => i.tag === activeTag);
-    const withoutTag = items.filter((i) => i.tag !== activeTag);
-    const result: { label: string; items: FeedItem[] }[] = [];
-    if (withTag.length > 0) result.push({ label: activeTag, items: withTag });
-    if (withoutTag.length > 0) result.push({ label: "Other", items: withoutTag });
-    return result;
-  }
-
-  // 3. Else → group by sender (mine/received as proxy for sender)
+  // 2. Else → group by sender (mine/received as proxy for sender)
   const hasSenderInfo = items.some((i) => i.dir);
   if (hasSenderInfo) {
     const mine = items.filter((i) => i.dir === "mine");
@@ -108,8 +98,8 @@ function groupItems(
     .map(([label, g]) => ({ label, items: g }));
 }
 
-export default function HorizView({ items, onItemClick, folderContext, activeTag, currentUserId, folders, sourceFolderId, onChanged, onCardShare, onCardMoveToFolder, onCardAddTag, onCardDelete }: HorizViewProps) {
-  const groups = groupItems(items, folderContext, activeTag);
+export default function HorizView({ items, onItemClick, folderContext, currentUserId, folders, sourceFolderId, onChanged, onCardShare, onCardMoveToFolder, onCardAddTag, onCardDelete }: HorizViewProps) {
+  const groups = groupItems(items, folderContext);
 
   return (
     <div style={{ paddingBottom: 8 }}>
