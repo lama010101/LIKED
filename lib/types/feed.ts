@@ -1,14 +1,12 @@
 // ── DB-level feed types (single source of truth) ───────────────
 // These mirror the get_feed RPC RETURN TABLE exactly.
-// Both lib/db/feed.ts (server wrapper) and lib/hooks/useFeed.ts
-// (client cursor-pagination hook) import from here.
+// lib/db/feed.ts (server wrapper) and lib/hooks/useFeed.ts
+// (client cursor-pagination hook) both import from here.
 //
-// Two legitimate callers of get_feed exist:
-//   1. lib/db/feed.ts:getFeed  — server-side, used by SSR pages
-//   2. lib/hooks/useFeed.ts    — client-side, used for infinite scroll
-// Both call the RPC directly with NO added logic (no filtering,
-// sorting, or deduplication in TypeScript). The invariant is
-// "no logic around the RPC", not "single caller".
+// lib/db/feed.ts:getFeed is the ONLY caller of the get_feed RPC.
+// useFeed reaches it through app/lib/actions/feed.ts::fetchFeedPageAction
+// (thin pass-through server action). The invariant is
+// "no logic around the RPC" AND "single caller" (AUDIT-06 P1-1).
 
 /** Feed node as returned by get_feed RPC — matches SQL RETURN TABLE exactly */
 export interface FeedNode {

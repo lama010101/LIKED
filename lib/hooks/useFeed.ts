@@ -5,7 +5,8 @@
  * COMPLIANCE: 04_FEED_SQL_SPEC.md §2 (get_feed function)
  *
  * INVARIANTS:
- * - Calls ONLY get_feed RPC (no legacy RPCs)
+ * - Fetches ONLY via fetchFeedPageAction → getFeed → get_feed RPC
+ *   (lib/db/feed.ts is the sole get_feed caller — AUDIT-06 P1-1)
  * - Uses buildFeedParams as single mapping authority
  * - No client-side filtering or sorting
  * - Cursor pagination: appends without duplicates or reordering
@@ -21,7 +22,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useFilterStore } from "@/lib/store/filterStore";
 import { useFeedStore } from "@/lib/store/feedStore";
 import { buildFeedParams } from "@/lib/utils/feedParams";
-import { supabaseBrowser } from "@/lib/supabase/client";
+import { fetchFeedPageAction } from "@/app/lib/actions/feed";
 import { PAGINATION, DEFAULT_LANGUAGE } from "@/lib/constants";
 import type { FeedNode } from "@/lib/types/feed";
 
@@ -142,28 +143,14 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
       try {
         const limit = FEED_INITIAL_LOAD;
 
-        const res = await Promise.resolve(supabaseBrowser.rpc("get_feed", {
-          ...feedParams,
-          p_cursor_created_at: undefined,
-          p_cursor_node_id: undefined,
-          p_limit: limit,
-        }));
-        if (res.error) throw res.error;
-        const data = (res.data ?? []) as FeedNode[];
+        const res = await fetchFeedPageAction(feedParams, true);
+        const data = res.nodes;
 
         if (!cancelled) {
           setNodes(data);
-          const count = data.length > 0 ? (data[0].total_count ?? 0) : 0;
-          setTotalCount(count);
+          setTotalCount(res.totalCount);
           setHasMore(data.length === limit);
-
-          // Set cursor for next page
-          if (data.length === limit) {
-            const last = data[data.length - 1];
-            cursorRef.current = { createdAt: last.created_at, nodeId: last.node_id };
-          } else {
-            cursorRef.current = null;
-          }
+          cursorRef.current = res.nextCursor;
         }
       } catch (e: unknown) {
         if (!cancelled) {
@@ -196,23 +183,18 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
 
     try {
       // Standard cursor-based pagination
-      const res = await Promise.resolve(supabaseBrowser.rpc("get_feed", {
-        ...feedParams,
-        p_cursor_created_at: cursor.createdAt,
-        p_cursor_node_id: cursor.nodeId,
-        p_limit: limit,
-      }));
-      if (res.error) throw res.error;
-      const newNodes = (res.data ?? []) as FeedNode[];
+      const res = await fetchFeedPageAction(
+        {
+          ...feedParams,
+          p_cursor_created_at: cursor.createdAt,
+          p_cursor_node_id: cursor.nodeId,
+        },
+        false
+      );
+      const newNodes = res.nodes;
       setNodes((prev) => [...prev, ...newNodes]);
       setHasMore(newNodes.length === limit);
-
-      if (newNodes.length === limit) {
-        const last = newNodes[newNodes.length - 1];
-        cursorRef.current = { createdAt: last.created_at, nodeId: last.node_id };
-      } else {
-        cursorRef.current = null;
-      }
+      cursorRef.current = res.nextCursor;
     } catch (e: unknown) {
       setError(e instanceof Error ? e : new Error(String(e)));
     } finally {

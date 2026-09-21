@@ -10,12 +10,11 @@
  * - All parameters come from buildFeedParams (single mapping authority).
  * - Returns data exactly as SQL produces it.
  *
- * Two legitimate callers of get_feed exist (both call the RPC directly):
- *   1. This file (getFeed) — server-side, used by SSR pages.
- *   2. lib/hooks/useFeed.ts — client-side, for infinite-scroll cursor
- *      pagination (cannot route through a server action without breaking
- *      pagination and adding a round-trip per page).
- * The invariant is "no logic around the RPC", not "single caller".
+ * This file is the ONLY caller of the get_feed RPC (single-owner
+ * invariant, AUDIT-06 P1-1). Client pagination goes through
+ * app/lib/actions/feed.ts::fetchFeedPageAction, a thin pass-through
+ * server action — the RPC call itself happens only here.
+ * The invariant is "no logic around the RPC" AND "single caller".
  *
  * DO NOT:
  * - Add client-side filtering or sorting
