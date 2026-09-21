@@ -1,3 +1,4 @@
+require('dotenv').config({ path: require('path').join(__dirname, '..', '.env.local') });
 const fs = require('fs');
 const https = require('https');
 const { execSync } = require('child_process');
@@ -33,7 +34,7 @@ try {
 
 // Alternative: Try to use the Supabase Management API with the service role key
 // but using a different endpoint or method
-const SERVICE_ROLE_KEY = '***REMOVED***';
+const SERVICE_ROLE_KEY = process.env.SERVICE_ROLE_KEY;
 
 // Try the internal Supabase API endpoint that the CLI might use
 const options = {

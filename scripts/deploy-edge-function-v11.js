@@ -1,3 +1,4 @@
+require('dotenv').config({ path: require('path').join(__dirname, '..', '.env.local') });
 const fs = require('fs');
 const https = require('https');
 
@@ -5,7 +6,7 @@ const PROJECT_REF = 'lzkzfqshnjvlzosnntfx';
 const FUNCTION_NAME = 'extract-node-metadata';
 
 // Use the access token from the auth response
-const ACCESS_TOKEN = '***REMOVED***';
+const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
 
 // Try to generate a PAT via the Supabase dashboard API
 console.log('Trying to generate a PAT via dashboard API...');

@@ -1,9 +1,10 @@
+require('dotenv').config({ path: require('path').join(__dirname, '..', '.env.local') });
 const fs = require('fs');
 const https = require('https');
 
 const PROJECT_REF = 'lzkzfqshnjvlzosnntfx';
 const FUNCTION_NAME = 'extract-node-metadata';
-const SERVICE_ROLE_KEY = '***REMOVED***';
+const SERVICE_ROLE_KEY = process.env.SERVICE_ROLE_KEY;
 
 // Read the function file
 const functionSource = fs.readFileSync('./supabase/functions/extract-node-metadata/index.ts', 'utf8');

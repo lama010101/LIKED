@@ -1,3 +1,4 @@
+require('dotenv').config({ path: require('path').join(__dirname, '..', '.env.local') });
 const fs = require('fs');
 const https = require('https');
 const { execSync } = require('child_process');
@@ -90,7 +91,7 @@ function tryAlternativeAuth() {
     // Try to use the access token we got from auth
     console.log('Trying to use auth token with different approach...');
     
-    const ACCESS_TOKEN = '***REMOVED***';
+    const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
     
     // Write the token to a file and try to use it with CLI
     fs.writeFileSync('.supabase_access_token', ACCESS_TOKEN);

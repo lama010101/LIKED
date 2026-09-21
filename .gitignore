@@ -69,3 +69,6 @@ supabase/.temp/
 
 # local editor workspace
 LIKED.code-workspace
+
+# Supabase personal access token (local-only credential)
+.supabase_access_token

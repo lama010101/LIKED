@@ -1,8 +1,9 @@
+require('dotenv').config({ path: require('path').join(__dirname, '..', '.env.local') });
 const fs = require('fs');
 const https = require('https');
 
 const PROJECT_REF = 'lzkzfqshnjvlzosnntfx';
-const SERVICE_ROLE_KEY = '***REMOVED***';
+const SERVICE_ROLE_KEY = process.env.SERVICE_ROLE_KEY;
 
 // Try to query the database using GET method to list tables
 console.log('Querying database for all tables using GET...');

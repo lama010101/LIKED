@@ -1,9 +1,10 @@
+require('dotenv').config({ path: require('path').join(__dirname, '..', '.env.local') });
 const fs = require('fs');
 const https = require('https');
 
 const PROJECT_REF = 'lzkzfqshnjvlzosnntfx';
 const FUNCTION_NAME = 'extract-node-metadata';
-const ACCESS_TOKEN = '***REMOVED***';
+const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
 
 // Try to use the Supabase GraphQL API
 console.log('Trying Supabase GraphQL API...');
