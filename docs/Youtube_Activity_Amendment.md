@@ -1,9 +1,13 @@
 # LIKED — PRD Amendment: YouTube Activity Management
 
 **Version: 1.0**
-**Status: DRAFT — NOT YET MERGED INTO 01_PRD.md**
+**Status: SUPERSEDED by 01_PRD.md §41 — kept for rationale history only**
 **Adds: new §41 to the Unified PRD**
 **Depends on:** zero-error TypeScript baseline (blocking gate, see `00_PROGRESS.md`) before any implementation task is opened.
+
+> **SUPERSEDED — do not build from this document.** The merged spec is `01_PRD.md` §41 (Vision Amendment v28.0), which is authoritative. Two positions in this document do **not** reflect the merged spec:
+> - The **Option B recommendation** (§41.4) — the merged spec goes further: Google OAuth *is* the only signup/login method and the standalone YouTube-connection grant is absorbed into it (§41.2). Google OAuth is confirmed live in production.
+> - The **"No YouTube comments" non-goal** (§41.2) — the merged spec adds comments import as in-scope (§41.3.1).
 
 ---
 

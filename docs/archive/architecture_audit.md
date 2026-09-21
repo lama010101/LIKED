@@ -1,5 +1,7 @@
 # Architecture Audit Report
 
+> **ARCHIVED — historical, superseded by `DOCS/AUDIT-01-REPORT.md` through `DOCS/AUDIT-08-REPORT.md`.**
+
 ## Compliance with Specs
 
 ### 1. Feed System

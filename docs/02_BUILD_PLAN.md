@@ -2,9 +2,9 @@
 
 **Version: 1.0**  
 **Status: AUTHORITATIVE**  
-**Companion to: 01_PRD.md v26.0**  
+**Companion to: 01_PRD.md v28.0**  
 **Target environment: Windsurf Editor + Cascade AI agent**  
-**Stack: Next.js 15 (App Router) · React · Tailwind CSS · Supabase (Postgres + Auth + Storage + Edge Functions + Realtime)**
+**Stack: Next.js 16.3.0 (App Router) · React · Tailwind CSS · Supabase (Postgres + Auth + Storage + Edge Functions + Realtime)**
 
 ---
 
@@ -302,7 +302,7 @@ Do NOT proceed to P1 until all gate conditions pass.
 
 ## PHASE 3 — Sharing System
 
-**Goal:** Users can share nodes to other users. The causal edge model works correctly. Friendships are derived from reciprocal edges.
+**Goal:** Users can share nodes to other users. The causal edge model works correctly. Friendships are derived from `friend_invites` (one-party-active, PRD §9.1).
 
 **PRD sections:** §6.1–6.4 (write system), §9 (friend system), §4.1 (edges/causes), §29 (invariants)
 

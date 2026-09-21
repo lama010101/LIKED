@@ -1,5 +1,7 @@
 # LIKED — Implementation Roadmap
 
+> **ARCHIVED — historical, superseded. Current execution state: `DOCS/00_PROGRESS.md`.**
+
 **Version:** 2026-08-09  
 **Audience:** Cascade / Devin agent  
 **Authoritative docs:** `01_PRD.md` v27.2, `02_BUILD_PLAN.md` v1.0, `04_FEED_SQL_SPEC.md` v1.0, `00_PROGRESS.md`, `AUDIT-01-REPORT.md`

@@ -377,11 +377,11 @@ Rules: context filters only, MUST NOT create visibility, MUST NOT expand dataset
 
 ## 9. FRIEND SYSTEM
 
-- Friendship = two reciprocal active edges (from distinct causes)
+- Friendship = a `friend_invites` row (one-party-active — no reciprocal edges or acceptance required; see §9.1)
 - No separate `friends` table
 - Used for context filtering and Friends bar display
 
-> ⚠️ **RESOLUTION — Inconsistency #2:** UIX PRD v2 specified a dedicated `Friends` table. FULL PRD v18 wins — friendships are reciprocal edge pairs.
+> ⚠️ **RESOLUTION — Inconsistency #2:** UIX PRD v2 specified a dedicated `Friends` table. FULL PRD wins — no dedicated friends table; friendship is derived from `friend_invites` (one-party-active, §9.1), not reciprocal edge pairs.
 
 ### 9.1 Model
 
@@ -1533,7 +1533,7 @@ with:
 | # | v20 (overridden)                                                    | v21+ (authoritative)                                                                    |
 |---|---------------------------------------------------------------------|-----------------------------------------------------------------------------------------|
 | 1 | Folders/groups are purely organizational, no visibility impact       | Folders/groups are write-expansion orchestrators; sharing creates causes + edges        |
-| 2 | Dedicated `friends` table                                           | Friendships are reciprocal edge pairs; no separate table                                |
+| 2 | Dedicated `friends` table                                           | Friendships derive from `friend_invites` (one-party-active, §9.1); no separate table    |
 | 3 | Friend click uses folder-aware query                                | Friend click uses edge-only query (edges pre-created by folder share)                   |
 | 4 | Home \| Orange + \| Profile navbar                                  | Friends/Groups \| Create \| Folders/Tags — UIX visual polish retained                   |
 | 5 | UNIQUE(node_id, user_id) on edges + UPSERT writes                   | No uniqueness constraint; each share = new cause + new edges; deletion by cause         |
@@ -2454,4 +2454,4 @@ boards, notes-on-board) remains as specified in §1-§40, unchanged.
 
 ---
 
-*End of merged LIKED Unified PRD v26.0*  
+*End of merged LIKED Unified PRD v28.0*  

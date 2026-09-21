@@ -1,5 +1,7 @@
 # LIKED — UIX Verification & Implementation Plan
 
+> **ARCHIVED — historical, superseded. UIX matters are governed by `DOCS/01_PRD.md` (UIX Amendment v26.0 merged).**
+
 **Date:** 2026-04-29  
 **Purpose:** Verify current UIX against prototypes and detail implementation gaps  
 **Prototypes Referenced:**

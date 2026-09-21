@@ -2,7 +2,7 @@
 
 **Version: 1.0**  
 **Status: AUTHORITATIVE**  
-**Companion to: 01_PRD.md v26.0 · 02_BUILD_PLAN.md v1.0 · 03_TECHNICAL_ARCHITECTURE.md v1.0**  
+**Companion to: 01_PRD.md v28.0 · 02_BUILD_PLAN.md v1.0 · 03_TECHNICAL_ARCHITECTURE.md v1.0**  
 **Explicitly deferred in PRD §0.1 — this document fulfills that deferral.**
 
 ---
@@ -48,7 +48,10 @@ Each stage is a filter or transform applied in strict order. No stage can be ski
 This is the single parameterized query that powers all feed states. All parameters are optional except `p_user_id`. Every other combination is achieved by setting parameters.
 
 ```sql
--- supabase/migrations/005_feed_function.sql
+-- Live definition: supabase/migrations/022_get_feed.sql, evolved by
+-- 023/024 (ambiguity fixes), 049_get_feed_exclude_foldered.sql,
+-- 051_restore_get_feed.sql, 063 (overload drop),
+-- 086_add_custom_order_to_get_feed.sql, 092/094 (authz recreations).
 -- Master feed function — all feed states
 
 CREATE OR REPLACE FUNCTION get_feed(
@@ -77,7 +80,13 @@ CREATE OR REPLACE FUNCTION get_feed(
   -- Cursor pagination (PRD §7, TAD §16.1)
   p_cursor_created_at TIMESTAMPTZ DEFAULT NULL,    -- last seen created_at
   p_cursor_node_id    UUID        DEFAULT NULL,    -- tiebreaker
-  p_limit             INTEGER     DEFAULT 20
+  p_limit             INTEGER     DEFAULT 20,
+
+  -- Root-feed exclusion (migration 049): hide nodes that are in any folder
+  p_exclude_foldered BOOLEAN    DEFAULT FALSE,
+
+  -- Custom sort order (migration 086): explicit node ordering when p_sort = 'custom'
+  p_custom_order_ids UUID[]     DEFAULT NULL
 
 ) RETURNS TABLE (
   -- Node fields
@@ -570,18 +579,20 @@ const { data } = await serviceClient.rpc('get_feed', {
 Custom sort uses a separate, simpler query. Card positions are stored per user per context.
 
 ```sql
--- supabase/migrations/006_custom_sort.sql
+-- Live schema: supabase/migrations/017_user_node_preferences.sql
+-- Write path: supabase/migrations/032_set_custom_order.sql (set_custom_order RPC)
 
-CREATE TABLE user_node_sort_positions (
-  user_id     UUID NOT NULL REFERENCES users(id),
-  node_id     UUID NOT NULL REFERENCES nodes(id),
-  context_key TEXT NOT NULL,   -- 'personal' | 'folder:{id}' | 'friend:{id}' | 'group:{id}'
+CREATE TABLE user_node_preferences (
+  user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  scope_key   TEXT NOT NULL,   -- 'feed:all' | 'feed:mine' | 'folder:{id}' | 'friend:{id}' | 'group:{id}'
+  node_id     UUID NOT NULL REFERENCES nodes(id) ON DELETE CASCADE,
   position    INTEGER NOT NULL,
   updated_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
-  PRIMARY KEY (user_id, node_id, context_key)
+  PRIMARY KEY (user_id, scope_key, node_id)
 );
 
-CREATE INDEX unsp_user_context_idx ON user_node_sort_positions(user_id, context_key, position);
+CREATE INDEX user_node_preferences_lookup_idx
+  ON user_node_preferences (user_id, scope_key, position);
 ```
 
 ---
@@ -651,6 +662,8 @@ $$;
 
 ### 5.2 Groups list (Unified bar — groups portion)
 
+> **Live implementation:** no migration defines `get_user_groups`. Implemented via direct service-client query, not RPC — `getGroupBar` in `lib/db/friends.ts` — read-only, does not violate the RPC-write-authority rule.
+
 ```sql
 CREATE OR REPLACE FUNCTION get_user_groups(p_user_id UUID)
 RETURNS TABLE (
@@ -679,6 +692,8 @@ $$;
 ```
 
 ### 5.3 Folders list (Folders bar)
+
+> **Live implementation:** exists as `get_user_folders` RPC (migration 084) — but the live signature differs from below: no `p_friend_id` param, and no `access_users`/`avg_rating` outputs (returns id/name/owner_id/parent_folder_id/is_project/color_hex/deleted_at/created_at/node_count/thumbnails).
 
 ```sql
 CREATE OR REPLACE FUNCTION get_user_folders(
@@ -754,6 +769,8 @@ $$;
 
 ### 5.4 Friends with access to a folder/group (highlight query)
 
+> **FLAG (DOC-FIX-001):** neither `get_folder_access_users` nor `get_group_access_users` has a migration **or** a TypeScript implementation — the "highlight friends when folder/group is selected" feature is currently unbuilt. Do not assume the direct-query pattern used by §5.2/§5.6/§5.7 applies here.
+
 ```sql
 -- Used to highlight friends in the Unified bar when a folder/group is selected (PRD §16.4)
 
@@ -798,6 +815,8 @@ $$;
 
 ### 5.5 Breadcrumb path query (PRD §11.8)
 
+> **Live implementation:** no migration defines `get_folder_breadcrumb`. Breadcrumbs are derived client-side by walking `parent_folder_id` over the folder list returned by the `get_user_folders`/`get_folder_tree` RPCs (`app/(app)/layout.tsx` ancestry rebuild) — read-only, does not violate the RPC-write-authority rule.
+
 ```sql
 CREATE OR REPLACE FUNCTION get_folder_breadcrumb(
   p_folder_id UUID
@@ -820,6 +839,8 @@ $$;
 
 ### 5.6 Notification count (bell badge)
 
+> **Live implementation:** no migration defines `get_unread_notification_count`. Implemented via direct service-client query, not RPC — `getUnreadNotificationCountAction` in `app/lib/actions/notifications.ts` — read-only, does not violate the RPC-write-authority rule.
+
 ```sql
 CREATE OR REPLACE FUNCTION get_unread_notification_count(
   p_user_id UUID
@@ -831,6 +852,8 @@ $$;
 ```
 
 ### 5.7 Trash item count (badge)
+
+> **Live implementation:** no migration defines `get_trash_count`. Implemented via direct service-client query, not RPC — `getTrashedCount` in `lib/db/nodes.ts` via `getTrashCount` in `app/lib/actions/trash.ts` — read-only, does not violate the RPC-write-authority rule.
 
 ```sql
 CREATE OR REPLACE FUNCTION get_trash_count(
@@ -846,7 +869,7 @@ $$;
 
 ## 6. REQUIRED INDEXES
 
-Add to `supabase/migrations/007_feed_indexes.sql`:
+Indexes were applied across several migrations (016, 017, 075, 077, 078, 088) — no single `007_feed_indexes.sql` file exists:
 
 ```sql
 -- Visibility query performance
@@ -899,7 +922,7 @@ CREATE INDEX IF NOT EXISTS translations_node_lang_idx
 
 -- Custom sort positions
 CREATE INDEX IF NOT EXISTS unsp_user_context_pos_idx
-  ON user_node_sort_positions(user_id, context_key, position ASC);
+  ON user_node_preferences(user_id, scope_key, position ASC);
 
 -- Block lookup (bidirectional)
 CREATE INDEX IF NOT EXISTS blocks_blocker_idx ON blocks(blocker_id);
@@ -1043,6 +1066,8 @@ export interface FeedParams {
   sort?: 'newest' | 'oldest' | 'most_shared' | 'highest_rated' | 'custom'
   cursorCreatedAt?: string
   cursorNodeId?: string
+  excludeFoldered?: boolean
+  customOrderIds?: string[]
   isInitialLoad?: boolean
 }
 
@@ -1070,7 +1095,9 @@ export async function getFeed(params: FeedParams): Promise<FeedResult> {
     p_sort: params.sort ?? 'newest',
     p_cursor_created_at: params.cursorCreatedAt ?? null,
     p_cursor_node_id: params.cursorNodeId ?? null,
-    p_limit: limit
+    p_limit: limit,
+    p_exclude_foldered: params.excludeFoldered ?? false,
+    p_custom_order_ids: params.customOrderIds ?? null
   })
 
   if (error) throw new Error(`Feed query failed: ${error.message}`)

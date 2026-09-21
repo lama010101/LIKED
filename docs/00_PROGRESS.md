@@ -9,11 +9,27 @@
 
 | Field | Value |
 |-------|-------|
-|| **Last completed task** | Error-review sweep — drop dead RPCs, gate unshare, fix node-creation runtime bug (SWEEP-01/02/03) |
+|| **Last completed task** | FEED-ORDER-001-DEPLOY/CLOSEOUT — migration 101 `get_feed` pipeline reorder deployed to prod, e2e green |
 || **Next task to execute** | — |
-|| **Current phase** | All phases complete; audit hardening (AUDIT-05/06/07/08) + social feed + bulk YouTube import + portal menu done |
-|| **Phase gate passed** | ✅ tsc 0 / eslint 0 / vitest 60/60 / E2E 98 pass / anon-blocked 9/9 / authz 11/11 |
-|| **Last updated** | 2026-09-05 (Devin) |
+|| **Current phase** | All phases complete; audit hardening (AUDIT-05/06/07/08) + social feed + bulk YouTube import + portal menu + UIX-PORT (PROTO V2→prod, UIX-PORT-01..14) + YouTube OAuth Option B end-to-end + node_type write path + public landing + in-app YouTube search done |
+|| **Phase gate passed** | ✅ tsc 0 / eslint 0 / vitest 79/79 / E2E 87 pass + 15 skip + 0 fail (FEED-ORDER-001-DEPLOY run) / anon-blocked 9/9 / authz 11/11 |
+|| **Last updated** | 2026-09-21 (Devin) |
+
+---
+
+## STATUS TAXONOMY
+
+Applied to task/feature entries going forward. Existing entries retain their ✅/⚠️ marks and are not retroactively re-classified.
+
+| Status | Meaning |
+|--------|---------|
+| `specified` | Spec'd in an authoritative doc; no code written |
+| `implemented` | Code merged; not yet confirmed running against live DB/production |
+| `verified-live` | Confirmed working against the live database / production deploy |
+| `partial` | Some acceptance criteria met; remainder tracked explicitly |
+| `deferred` | Deliberately postponed; revisit trigger noted |
+| `needs-decision` | Blocked pending a human/CTO product decision |
+| `historical` | Superseded or no longer relevant; kept for record |
 
 ---
 
@@ -558,7 +574,60 @@
 |---------|-------|--------|-------|
 | PLAN-CLASSIFY-001 | DB-verified classification of remaining v1 work | ✅ | Read-only investigation; no app code, migrations, or rows modified. Live DB probed directly via `pg` (Supabase MCP is bound to a different project, gzvixlvkwjsrtmtybtkf): 32 public tables all RLS-on; migrations recorded through 100 + 4 timestamped; get_feed live with 16 params (spec §2.1 lists 14 — stale by p_exclude_foldered, p_custom_order_ids); invariants verified (0 NULL cause_id, 0 non-deleted nodes missing owner edge, no UNIQUE(node_id,user_id)); nodes.node_type + parent_node_id live (068 junk rows NULL per 098 CHECK); youtube_connections 12 cols; chat tables exist empty; pg_trgm installed, no pgvector. Local gates: tsc 0 / eslint 0 / vitest 79/79 / next build pass (27 routes) / playwright 101 tests → 81 pass, 15 skip, 2 fail, 3 did-not-run (2 fails in youtube-intelligent-import: POST /api/import 30s timeout + beforeAll login timeout). Discrepancies logged in task report: spec §5.4–5.7 sidebar RPCs absent (direct service-client queries instead), /social missing from proxy.ts protected routes, AUDIT-06 P1-1/P1-3/P2-1 still open in code, USING(true) policies remain on 8 reference tables, undocumented update_avatar_key/update_display_name dual overloads, dirty working tree (~1,715 uncommitted insertions: node_type wiring, /api/youtube/search + AddCardSheet YouTube mode + spec, public landing page, /prototype). Classification delivered: 12 READY items (audit-residual + spec'd features + ops) vs 12 NEEDS-SPEC items (§41.2 auth, §41.3.1 comments, §41.4 onboarding, §41.5 Phase B, ranked-list variant, folder filter chips, sidebar-query drift, reference-table RLS scope, folder_edges causes, AUDIT-02 pipeline-order ruling, landing/prototype ship decision, YT-search folder-choice residue). Verification scripts created: `scripts/verify-live-state-001.mjs`, `verify-live-state-002.mjs`, `verify-live-state-003.mjs` (read-only probes). |
 
+### DOC-FIX-001 — Documentation consolidation: version refs, quarantine, contract drift (2026-09-18)
+|| Task ID | Title | Status | Notes |
+||---------|-------|--------|-------|
+|| DOC-FIX-001 | Doc-only mechanical fixes; no app code changed | ✅ | Version refs: `02`/`03`/`04` companion lines + PRD footer v26.0→v28.0; AUDIT-05 date 2025-11-22→2026-08-27 (×2); header date →2026-09-18. Quarantine: `DATABASE_CONNECTION.md` (wrong project), `ROADMAP.md`, `architecture_audit.md`, `UIX_VERIFICATION_AND_IMPLEMENTATION_PLAN.md`, `UI (for reference only)/` → `DOCS/archive/` with one-line reason headers. New `DOCS/README.md` authority matrix. `04_FEED_SQL_SPEC.md`: 14→16 params (`p_exclude_foldered`, `p_custom_order_ids` in §2 signature + §8 wrapper), `user_node_sort_positions`→`user_node_preferences` (×3, schema aligned to migration 017), phantom migration refs corrected (005→real chain 022–094; 006→017/032; 007→applied-across note), FEED-ORDER-001 compliance note, §5.2/5.6/5.7 read-only direct-query annotations + §5.5 RPC-derived annotation, §5.4 pair flagged as unimplemented, §5.3 live-signature drift note. `03_TECHNICAL_ARCHITECTURE.md`: middleware.ts→proxy.ts (×6 incl. removed nonexistent `lib/supabase/middleware.ts` entry), protected routes +`/social`+`/youtube`, view-mode enum →`col|mason|list|horiz|free`, Next.js 15→16.3.0 (×2). `01_PRD.md` + `02_BUILD_PLAN.md`: friend-edge reciprocity text corrected to friend_invites one-party-active model (PRD :380/:384/:1536, BP :305). `Youtube_Activity_Amendment.md` marked SUPERSEDED (Option B + comments non-goal do not reflect merged §41). Status taxonomy added above. `tsc --noEmit` exit 0. |
+
 ### FEED-ORDER-001-DEPLOY — e2e + production deploy of migration 101 (2026-09-18)
 | Task ID | Title | Status | Notes |
 |---------|-------|--------|-------|
 | FEED-ORDER-001-DEPLOY | Run e2e locally and deploy migration 101 (feed pipeline reorder) | ✅ | Prod confirmed as the only available environment (no dev/staging Supabase project configured; no Docker for local stack; management token 401; Supabase MCP bound to different project). Applied `supabase/migrations/101_feed_pipeline_order.sql` to prod `lzkzfqshnjvlzosnntfx` via `scripts/apply-migration-101.mjs` (standard transactional apply; guard `to_regclass('public.nodes')`). Live `get_feed` def verified: stage offsets cursored=7848 → ordered=9290 → deduped=11029 → paginated=12582. E2e against local dev server (`npm run dev` :3001 → prod DB): playwright 102 tests → **87 passed, 15 skipped, 0 failed** (skips are test.skip guards, not failures; all feed-authenticated specs passed). Post-deploy live read-only check `scripts/verify-live-feed-order-101.mjs`: PASS — page1 5 rows no dup node_ids, newest-first, page1∩page2 overlap 0, page2 rows all ≤ cursor ts, total_count 200→195 after cursor exclusion. `tsc --noEmit` exit 0. Committed `62dd9ca`: migration 101 + apply/check/test/verify scripts. No secrets committed (pre-commit secret hook passed). |
+
+### YouTube OAuth sprint — recovered entries (2026-09-09/10)
+| Task ID | Title | Status | Notes |
+|---------|-------|--------|-------|
+| FIX-YT-OAUTH-A2 | Token encrypt/decrypt helpers (`lib/youtube/token-crypto.ts`) | ✅ | Commit `ea4b1af`. AES-256-GCM helpers: `encryptToken`/`decryptToken`, format `v1:<iv>:<authTag>:<ciphertext>` (base64), key read from `YOUTUBE_TOKEN_ENCRYPTION_KEY` (64 hex = 32 bytes) on every call — missing/malformed key always throws, never degrades, never logs keys or plaintext. New `lib/youtube/token-crypto.test.ts` (77 lines). Entry recovered 2026-09-21 (missed by the de6bcd5 logging pass). |
+| SEC-HOOK-001 | Remove hardcoded Supabase secret + pre-commit secret scan | ✅ | Commit `ac7415f`. `scripts/run-migration-076.mjs` embedded the service-role key + project URL in source; key was pushed to public GitHub and revoked by Supabase. Switched to repo-standard `.env.local` pattern (dotenv + `SUPABASE_SECRET_KEY` + project-ref guard). Added tracked pre-commit hook `scripts/hooks/pre-commit` blocking staged diffs with secret-shaped values; auto-installed via `scripts/install-hooks.mjs` on `npm install` (new `prepare` script in package.json). |
+| FIX-YT-OAUTH-A5b | Persist encrypted tokens to youtube_connections + final success redirect | ✅ | Commit `c55b917`. `app/api/youtube/callback/route.ts` (+80 lines): after A5a token exchange, encrypts access/refresh tokens via token-crypto and upserts into `youtube_connections` (access_token, refresh_token, token_expires_at, scopes, channel_id, channel_title); failure → `?youtube_error=connection_save_failed`. Completes Option B server-side flow. Entry recovered 2026-09-21. |
+| BRAND-001 | LIKED logo/favicon/icon asset pipeline + Privacy/Terms pages | ✅ | Commit `ac660e3`. New logo assets (`public/logo.svg`, `logo-wordmark.svg`, PNGs 16–512px), `app/favicon.ico` replaced, metadata/icons wired in `app/layout.tsx`. New public pages `app/privacy/page.tsx` (338 lines) + `app/terms/page.tsx` (202 lines); linked from `app/(auth)/signup/page.tsx`. |
+
+### UIX-PORT — PROTO V2 → production port (2026-09-13)
+| Task ID | Title | Status | Notes |
+|---------|-------|--------|-------|
+| UIX-PORT-00 | Port plan authored | ✅ | Commit `ad74ff1`. `DOCS/UIX-PORT-PLAN.md` — atomized PROTO V2 (`DOCS/UI/PROTO V2 - liked_desktop.html`) → prod breakdown. Frozen files declared: `lib/db/feed.ts`, `lib/hooks/useFeed.ts`, `lib/utils/feedParams.ts`, `filterStore` semantics, all RPCs; no client-side filter/sort on feed arrays. Context↔proto control mapping table + e2e selector contract recorded. **ID note**: plan task IDs `UIX-01..14` are logged here as `UIX-PORT-01..14` to avoid collision with the 2026-08-21 accessibility batch (`UIX-01..07` above). |
+| UIX-PORT-01 | Proto theme tokens + shell CSS foundation | ✅ | Commit `bf90dde`. `globals.css`: `--accent` → `#ff3b30` + accent-derived tokens, complete light palette, all `.v2-*` proto classes (sidebar/header/stories/folders/feed-pill/video-cards/sheets/friend-manager), `.fab` repositioned bottom:24px. Default theme flipped dark→light in layout. Frozen diff empty. |
+| UIX-PORT-02 | Additive group-membership backend | ✅ | Commit `07cb82d`. New `lib/db/groups.ts` `getGroupMembers` (service client, caller must be member) + `app/lib/actions/groups.ts` `getGroupMembersAction`/`createGroupAction`. No UI wired, no RLS/RPC changes. |
+| UIX-PORT-03 | StoriesBar (proto story rail) | ✅ | Commit `5552a62`. New `components/bars/StoriesBar.tsx` — Me/friends/groups rings + Manage + New group; preserves friend drag source + friend/group drop targets + long-press callback + pending dimming + member-count badge + active ring. Unmounted. |
+| UIX-PORT-04 | Sidebar (proto collapsible) | ✅ | Commit `cbb5b6d`. New `components/sidebar/Sidebar.tsx` — logo+collapse, nav Home/Feed, recursive folder tree w/ per-folder dnd drop, tags→filters, Library links (Activity→/social, Trash→/trash, YouTube→/youtube), group-context member list, 72px collapsed rail. Unmounted. |
+| UIX-PORT-05 | AppHeader (proto header) | ✅ | Commit `f55ce66`. New `components/bars/AppHeader.tsx` — desktop + mobile breakpoints, search pill via `useSearchController`, bell+count, avatar; aria-labels preserved (`Profile`, `Notifications`, `Tags`, `Trash`). Unmounted. |
+| UIX-PORT-06 | FeedControlsBar | ✅ | Commit `50f14de`. New `components/bars/FeedControlsBar.tsx` — feed pill dropdown (context+view per mapping incl. "I created" children → `setMineSubTab`), 5-view switcher (aria-labels/aria-pressed kept), cols stepper, real sort menu → `setSort`. Unmounted. |
+| UIX-PORT-07 | VideoCard + real feed fields + 4-view restyle | ✅ | Commit `b963e74`. New `feed/_components/VideoCard.tsx` — proto anatomy: 16:9 thumb/gradient, title, source/sender, stats row (★avg_rating ↗share_count 👁view_count), direction dot, tags, CardMenu. `FeedItem` extended with real fields; `toFeedItems` pure pass-through. `ColView`/`ListView`/`MasonView`/`HorizView` render it. Frozen diff empty. |
+| UIX-PORT-08 | NodeCard restyle to proto anatomy | ✅ | Commit `0caf788`. `feed/_components/NodeCard.tsx` restyled to same anatomy (covers SortableNodeGrid fallback + FreeGrid + FolderView); dnd/selection/long-press semantics unchanged. |
+| UIX-PORT-09 | FolderSection + FeedGrid integration | ✅ | Commit `a02e6a4`. New `feed/_components/FolderSection.tsx` — proto folders section (header w/ count + New Folder, folder-card grid keeping `.folder-tile` + dnd drop, "Everything" card, group-context member cards, sub-folder tabs, mobile drill-down w/ breadcrumb). Integrated into `FeedGrid` replacing inline `folderGrid`. |
+| UIX-PORT-10 | CardActionSheet + FolderTreePicker | ✅ | Commit `1ca08c7`. New `components/sheets/CardActionSheet.tsx` (mobile bottom sheet, CardMenu-identical items + Copy to, opens from ⋮) + `components/sheets/FolderTreePicker.tsx` (full-screen tree; move=radio→`dndMoveNodeToFolder`, copy=checkboxes→`dndAddNodeToFolder`). Wired in FeedGrid + mobile ⋮ callbacks on VideoCard/NodeCard. |
+| UIX-PORT-11 | FriendManagerModal + FriendActionSheet | ✅ | Commit `b1e81c5`. New `components/modals/FriendManagerModal.tsx` (Friends tab: invite/remove/block; Groups tab: list + create w/ member checkboxes) + `components/sheets/FriendActionSheet.tsx` (name, In:-groups via `getGroupMembersAction`, Remove friend, Block). Unmounted. |
+| UIX-PORT-12 | Layout restructure — mount V2 chrome, unmount old | ✅ | Commit `4a3d6cb`. `app/(app)/layout.tsx`: mounted Sidebar (desktop) + AppHeader + StoriesBar + FriendManagerModal + FriendActionSheet; ungated AddFolderSheet for desktop; unmounted TopBar/DesktopToolbar/FeedTabs/MineSubTabs/SortViewRow/FolderPathBar/BottomBar; kept ContextStrip, TagsStrip (mobile), NotificationPanel, ProfileModal, AddCardSheet, FabSpeedDial, SelectionOverlay, DndProvider, useRealtime, all data loading. Frozen diff empty. |
+| UIX-PORT-13 | Delete old chrome + update e2e specs | ✅ | Commit `3ddd3e6`. Deleted TopBar.tsx, BottomBar.tsx, BottomBarAvatar.tsx, FeedTabs.tsx, MineSubTabs.tsx, SortViewRow.tsx, FolderPathBar.tsx, DesktopToolbar.tsx; e2e selectors updated (Folders/Trash buttons→links). Grep: 0 remaining imports. |
+| UIX-PORT-14 | Final verification | ✅ | Commit `75a14cd` + fix `def977e` (2026-09-16, nav-unauth: `/` became public landing, not redirect). vitest 79/79; playwright 94 pass / 3 pre-existing fails (unrelated); frozen-file `git diff` empty. Commit `4acb99b` logged plan status — all 14 tasks done. |
+
+### PRD §41 — vision amendment v28.0 (2026-09-16)
+| Task ID | Title | Status | Notes |
+|---------|-------|--------|-------|
+| PRD-V28 | §41 YouTube-core pivot amendment | ✅ | Commit `ad1311d`. `docs/01_PRD.md` +111 lines — vision amendment §41 (YouTube-core pivot) merged into PRD, footer v26.0→v28.0. Docs-only; no code. |
+
+### Feature batch — proxy fix, node_type, landing, YouTube search, sheet fix (2026-09-18)
+| Task ID | Title | Status | Notes |
+|---------|-------|--------|-------|
+| FIX-PROXY-001 | Add /social to protected routes | ✅ | Commit `c84ac7f`. `proxy.ts` guarded /feed, /trash, /youtube but not /social — unauth GET returned 200 + app shell with client-side NEXT_REDIRECT instead of edge redirect. Added `pathname.startsWith("/social")` to `isProtectedRoute` (same pattern). Verified live: unauth GET /social → 307 empty body. Matching e2e case added (nav tests 7/7). |
+| IMPL-NODE-TYPE-01 | Caller-supplied node_type through write path | ✅ | Commit `3bc3d0e`. Migrations 098–100 verified applied live, no drift: `nodes.node_type` + `parent_node_id` with scoped CHECK + one-time backfill (098), guard trigger making both columns immutable for RLS-bound roles (099), required `p_node_type` param on `create_node_with_metadata` + `import_url` — old signatures dropped, single write path (100). Plumbed through `lib/db/nodes` (createNode/importUrl), callers (`createNodeAction` chip map, import route `'link'`, `youtubeImport` `'video'`), type surfaces (VisibleNode, Database), seed data, verification scripts. 14 files, +565/−24. |
+| LANDING-001 | Public landing page at / | ✅ | Commit `63d749c`. `app/page.tsx` +300 lines — unauth users see public landing with Sign in / Get started instead of redirect to /login; logged-in users still redirect to /feed. navigation-unauth spec green with change, red without. |
+| YT-SEARCH-001 | In-app YouTube search in Add Card sheet | ✅ | Commit `8ed95d8`. `GET /api/youtube/search` (auth + stored-token required) wraps YouTube Data API `search.list` + `videos.list` via new `searchYouTubeVideos` in `lib/youtube/client.ts`. `AddCardSheet` gains 'youtube' chip: debounced search, thumbnail result list, one-tap save via `importYouTubeActivity`, Connect-YouTube prompt on 401/not_connected. New `e2e/youtube-search.spec.ts` (66 lines: 401 unauth, 400 short-query, 401 not_connected); spec registered under unauth project in playwright.config. |
+| FIX-SHEET-001 | Sheet visibility/positioning + YouTube OAuth error toast | ✅ | Commit `5a90455`. `AddCardSheet` + `AddFolderSheet`: hidden sheets no longer intercept pointer events (pointerEvents/visibility gating); desktop sheets centered via top/left 50% + translate. `app/(app)/layout.tsx`: surfaces `?youtube_error=` callback failures as toast and strips the param so it doesn't re-fire. |
+
+### Working-tree state snapshot (2026-09-21)
+| Item | Status | Notes |
+|------|--------|-------|
+| DOC-FIX-001 changes | implemented (uncommitted) | Logged above; working tree carries the doc quarantine (`DOCS/archive/`), `DOCS/README.md` authority matrix, and companion-doc corrections — not yet committed. |
+| `app/prototype/` + `public/prototype/` | implemented (uncommitted) | Pinterest-style prototype home: `app/prototype/page.tsx` (auth-gated SSR, reuses `getFeed`/`buildFeedParams`) + `_components/` (PrototypeHome, PinGrid, PinCard, pinMapper, icons) + 30 stock images in `public/prototype/`. No task ID; ship decision tracked under PLAN-CLASSIFY-001 NEEDS-SPEC. |
+| `scripts/verify-live-maxbatch-001.mjs` | implemented (uncommitted) | Read-only MAXBATCH-001 probe: schema_migrations vs on-disk files, §5.4 RPC existence, `get_feed` stage-order markers, youtube-import tables, key row counts. |

@@ -2,8 +2,8 @@
 
 **Version: 1.0**  
 **Status: AUTHORITATIVE**  
-**Companion to: 01_PRD.md v26.0 · 02_BUILD_PLAN.md v1.0**  
-**Stack: Next.js 15 (App Router) · TypeScript · Tailwind CSS v3 · Supabase (Postgres + Auth + Storage + Edge Functions + Realtime)**
+**Companion to: 01_PRD.md v28.0 · 02_BUILD_PLAN.md v1.0**  
+**Stack: Next.js 16.3.0 (App Router) · TypeScript · Tailwind CSS v3 · Supabase (Postgres + Auth + Storage + Edge Functions + Realtime)**
 
 ---
 
@@ -25,7 +25,7 @@ liked/
 │   │   │   └── page.tsx
 │   │   └── callback/
 │   │       └── route.ts            # OAuth callback handler
-│   ├── (app)/                      # Authenticated routes (middleware-protected)
+│   ├── (app)/                      # Authenticated routes (proxy-protected)
 │   │   ├── layout.tsx              # App shell: top bar + bars + FAB
 │   │   ├── feed/
 │   │   │   └── page.tsx            # Main feed (Server Component)
@@ -76,7 +76,7 @@ liked/
 │   ├── supabase/
 │   │   ├── client.ts               # Browser Supabase client (singleton)
 │   │   ├── server.ts               # Server Supabase client (cookies)
-│   │   └── middleware.ts           # Session refresh helper
+│   │   └── service.ts              # Service-role client (writes, lib/db only)
 │   ├── db/                         # All database operations (server-side only)
 │   │   ├── nodes.ts
 │   │   ├── visibility.ts           # THE visibility query — canonical
@@ -112,7 +112,7 @@ liked/
 │   │   └── extract-node-metadata/
 │   │       └── index.ts
 │   └── seed.sql
-├── middleware.ts                   # Next.js middleware (session refresh + auth guard)
+├── proxy.ts                        # Next.js proxy (session refresh + auth guard)
 ├── tailwind.config.ts
 ├── tsconfig.json
 └── .env.local
@@ -127,7 +127,7 @@ liked/
 | Route Group | Purpose | Auth Required |
 |---|---|---|
 | `(auth)` | Login, signup, OAuth callback | No |
-| `(app)` | All authenticated surfaces | Yes — middleware redirects to /login |
+| `(app)` | All authenticated surfaces | Yes — proxy redirects to /login |
 
 ### 2.2 Route Design Rules
 
@@ -135,22 +135,27 @@ liked/
 - **Feed is the only content page.** All contexts (folder, friend, group, personal) are filter states on the feed, not separate routes.
 - **URL reflects active context** via query params for shareability: `?folder=<id>`, `?friend=<id>`, `?tag=<id>`. The page component reads these params and passes them to the feed query.
 
-### 2.3 Middleware
+### 2.3 Proxy
 
-`middleware.ts` at project root handles two things in order:
+`proxy.ts` at project root (Next.js 16 `proxy` convention — replaces deprecated `middleware.ts`) handles:
 1. **Session refresh**: call `supabase.auth.getUser()` on every request to keep the session alive.
-2. **Auth guard**: if no session and route matches `/(app)/.*`, redirect to `/login`.
+2. **Auth guard**: if no session and route is protected, redirect to `/login`. Logged-in users hitting `/login`/`/signup` are redirected to `/feed`.
+
+Protected routes: `/feed`, `/trash`, `/youtube`, `/social`.
 
 ```typescript
-// middleware.ts — structure (not full implementation)
-export async function middleware(request: NextRequest) {
-  const { supabase, response } = createSupabaseMiddlewareClient(request)
+// proxy.ts — structure (not full implementation)
+export async function proxy(request: NextRequest) {
+  const { supabase, response } = createSupabaseServerClient(request)
   const { data: { user } } = await supabase.auth.getUser()
   
-  const isAppRoute = request.nextUrl.pathname.startsWith('/feed') 
+  const isProtectedRoute =
+    request.nextUrl.pathname.startsWith('/feed')
     || request.nextUrl.pathname.startsWith('/trash')
+    || request.nextUrl.pathname.startsWith('/youtube')
+    || request.nextUrl.pathname.startsWith('/social')
   
-  if (isAppRoute && !user) {
+  if (isProtectedRoute && !user) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
   return response
@@ -303,7 +308,7 @@ interface FeedStore {
   sort: SortOption          // 'newest' | 'oldest' | 'most_shared' | 'highest_rated' | 'custom'
   setSort: (sort: SortOption) => void
   
-  viewMode: ViewMode        // 'masonry' | 'icons' | 'list' | 'horizontal' | 'canvas'
+  viewMode: ViewMode        // 'col' | 'mason' | 'list' | 'horiz' | 'free'
   setViewMode: (mode: ViewMode) => void
 }
 ```
@@ -586,7 +591,7 @@ export interface TagWithLabel {
 }
 
 export type SortOption = 'newest' | 'oldest' | 'most_shared' | 'highest_rated' | 'custom'
-export type ViewMode = 'masonry' | 'icons' | 'list' | 'horizontal' | 'canvas'
+export type ViewMode = 'col' | 'mason' | 'list' | 'horiz' | 'free'
 export type FeedView = 'all' | 'mine' | 'received'
 ```
 
@@ -1054,7 +1059,7 @@ test: "group unshare cascades to all member edges"
 
 ### 21.1 Target platform
 
-Vercel (primary). The app is a standard Next.js 15 app with no special deployment requirements.
+Vercel (primary). The app is a standard Next.js 16.3.0 app with no special deployment requirements.
 
 ### 21.2 Supabase project
 

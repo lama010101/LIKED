@@ -1,5 +1,7 @@
 # Database Connection Guide
 
+> **ARCHIVED — wrong project, do not use.** References `prompts` table, `src/lib/supabaseServer`, and `SUPABASE_DB_*` env vars that do not exist in LIKED.
+
 This guide helps coders connect to the LIKED project database and troubleshoot common connection issues.
 
 ## Quick Start
