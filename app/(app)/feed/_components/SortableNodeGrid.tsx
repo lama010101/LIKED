@@ -4,8 +4,10 @@
  * Sortable masonry grid for the default feed view (P7-T02 card reorder).
  *
  * Wraps NodeCard rendering in a @dnd-kit/sortable SortableContext. On drop,
- * we arrayMove the ids, persist to feedStore (which also flips sort to
- * 'custom' + writes localStorage), and fire `dndReorderFeed` server action.
+ * we arrayMove the ids for the drag preview, flip sort to 'custom', and
+ * persist via `dndReorderFeed` server action (user_node_preferences — the
+ * single source of truth). Display order always comes from get_feed via
+ * the `nodes` prop; no local-store reordering (AUDIT-06 P2-1).
  *
  * Limitations (accepted for P7-T02):
  *  - Only used by the fallback masonry path in FeedGrid (the only view
@@ -33,7 +35,6 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { FeedNode } from "@/lib/hooks/useFeed";
-import { useFeedStore } from "@/lib/store/feedStore";
 import { useFilterStore } from "@/lib/store/filterStore";
 import { dndReorderFeed } from "@/app/lib/actions/dnd";
 import NodeCardInner from "./NodeCard";
@@ -123,14 +124,12 @@ export default function SortableNodeGrid({
   onAddTag,
   onDelete,
 }: SortableNodeGridProps) {
-  const setCustomOrder = useFeedStore((s) => s.setCustomOrder);
   const setSort = useFilterStore((s) => s.setSort);
-  // Feed order is SQL-authoritative (AUDIT-06 P2-1): when sort='custom',
-  // get_feed orders by p_custom_order_ids, which useFeed sources from the same
-  // feedStore map — no client-side reorder here.
-  const orderedIds = useMemo(() => nodes.map((n) => n.node_id), [nodes]);
 
-  // Local state lets the drop preview land before the store updates.
+  // Display order = SQL order (get_feed output via `nodes` prop). Local
+  // `ids` state exists only for the transient drop preview; it re-syncs to
+  // SQL order whenever `nodes` changes (AUDIT-06 P2-1 — no local reorder).
+  const orderedIds = useMemo(() => nodes.map((n) => n.node_id), [nodes]);
   const [ids, setIds] = useState<string[]>(orderedIds);
   useEffect(() => setIds(orderedIds), [orderedIds]);
 
@@ -152,10 +151,11 @@ export default function SortableNodeGrid({
     if (oldIndex < 0 || newIndex < 0) return;
     const next = arrayMove(ids, oldIndex, newIndex);
     setIds(next);
-    // Flip sort → 'custom', cache to localStorage, persist to server.
-    setCustomOrder(scopeKey, next);
+    // Flip sort → 'custom' and persist to DB (user_node_preferences).
+    // The refreshed feed then returns rows in this order via get_feed.
     setSort('custom');
     await dndReorderFeed(scopeKey, next);
+    onChanged?.();
   };
 
   return (

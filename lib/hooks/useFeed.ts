@@ -20,9 +20,9 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useFilterStore } from "@/lib/store/filterStore";
-import { useFeedStore } from "@/lib/store/feedStore";
 import { buildFeedParams } from "@/lib/utils/feedParams";
 import { fetchFeedPageAction } from "@/app/lib/actions/feed";
+import { getCustomOrderAction } from "@/app/lib/actions/customOrder";
 import { PAGINATION, DEFAULT_LANGUAGE } from "@/lib/constants";
 import type { FeedNode } from "@/lib/types/feed";
 
@@ -39,7 +39,7 @@ interface Cursor {
 interface UseFeedOptions {
   userId: string;
   languageCode?: string;
-  /** Scope key for custom-order lookup (feedStore single source of truth). */
+  /** Scope key for custom-order lookup (user_node_preferences single source of truth). */
   scopeKey?: string;
 }
 
@@ -81,12 +81,34 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
   const viewMode = useFilterStore((s) => s.viewMode);
   const zoom = useFilterStore((s) => s.zoom);
 
-  // Custom order from feedStore (single source of truth for customOrders).
-  // Only read when sort is 'custom' and scopeKey is provided.
-  const customOrderIds = useMemo(
-    () => (sort === "custom" && scopeKey ? useFeedStore.getState().getCustomOrder(scopeKey) : []),
-    [sort, scopeKey]
-  );
+  const [nodes, setNodes] = useState<FeedNode[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [totalCount, setTotalCount] = useState(0);
+  const [refreshTick, setRefreshTick] = useState(0);
+
+  // Custom order from DB (user_node_preferences — single source of truth,
+  // AUDIT-06 P2-1). Resolved async only when sort is 'custom' and scopeKey
+  // is provided; null = not yet resolved (feed fetch waits for it).
+  const [customOrderIds, setCustomOrderIds] = useState<string[] | null>(null);
+  useEffect(() => {
+    if (sort !== "custom" || !scopeKey) {
+      setCustomOrderIds([]);
+      return;
+    }
+    let cancelled = false;
+    getCustomOrderAction(scopeKey)
+      .then((ids) => {
+        if (!cancelled) setCustomOrderIds(ids);
+      })
+      .catch(() => {
+        if (!cancelled) setCustomOrderIds([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [sort, scopeKey, refreshTick]);
 
   // Memoize feed params to prevent re-render cascade
   const feedParams = useMemo(
@@ -110,17 +132,10 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
         },
         userId,
         languageCode,
-        customOrderIds
+        customOrderIds ?? []
       ),
     [view, sort, mineSubTab, friendId, folderId, groupId, searchQuery, userId, languageCode, viewMode, zoom, tagIds, filterFriendIds, filterFolderIds, customOrderIds]
   );
-
-  const [nodes, setNodes] = useState<FeedNode[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-  const [hasMore, setHasMore] = useState(true);
-  const [totalCount, setTotalCount] = useState(0);
-  const [refreshTick, setRefreshTick] = useState(0);
 
   // Cursor tracking for pagination
   const cursorRef = useRef<Cursor | null>(null);
@@ -133,6 +148,10 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
       setHasMore(false);
       return;
     }
+    // Wait for the DB custom order before fetching a 'custom' feed —
+    // the order is a get_feed input (p_custom_order_ids), sourced from
+    // user_node_preferences, never from local state.
+    if (sort === "custom" && scopeKey && customOrderIds === null) return;
 
     let cancelled = false;
     cursorRef.current = null;
