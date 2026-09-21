@@ -266,7 +266,8 @@ export function buildFeedParams(
     // When a folder is open, p_folder_id filters the result set instead.
     p_exclude_foldered: !state.folderId,
     // Custom order: when sort='custom', RPC orders by array_position.
-    // Sourced from feedStore (single source of truth for customOrders).
+    // Sourced from user_node_preferences via getCustomOrder (DB = single
+    // source of truth for customOrders — AUDIT-06 P2-1).
     p_custom_order_ids: state.sort === "custom" && customOrderIds && customOrderIds.length > 0
       ? customOrderIds
       : undefined,

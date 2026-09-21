@@ -3,7 +3,9 @@
 /**
  * HorizView — horizontal strips grouped by context (UIX-07 restyle).
  * Tiles are fixed-width VideoCards; grouping logic unchanged
- * (folder color proxy → tag → sender → recency buckets).
+ * (folder color proxy → sender → recency buckets).
+ * AUDIT-06 P1-3: the activeTag regroup branch was dead code (prop never
+ * passed) and reordered the SQL result client-side — removed.
  */
 
 import type { ViewProps, FeedItem } from "@/lib/types/feed";
