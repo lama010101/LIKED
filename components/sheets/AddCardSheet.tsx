@@ -254,8 +254,8 @@ export default function AddCardSheet({ open, onClose, userId, languageCode }: Ad
 
   // Shared post-save applications: folder assignment, tag, friend shares.
   // All non-fatal — the card is already saved when these run.
-  const applyPostSaveSelections = async (nodeId: string) => {
-    const folderIdToAssign = activeFolderId || selectedFolder;
+  const applyPostSaveSelections = async (nodeId: string, opts?: { skipFolder?: boolean }) => {
+    const folderIdToAssign = opts?.skipFolder ? null : (activeFolderId || selectedFolder);
     if (folderIdToAssign) {
       try {
         await addNodeToFolderAction({ nodeId, folderId: folderIdToAssign });
@@ -303,6 +303,9 @@ export default function AddCardSheet({ open, onClose, userId, languageCode }: Ad
     setYtSavingId(video.id);
     setYtError(null);
     try {
+      // N12 (Option B): the active/selected folder context wins; the
+      // "YouTube" auto-folder is the RPC-side fallback when neither exists.
+      const targetFolderId = activeFolderId || selectedFolder;
       const result = await importYouTubeActivity({
         url: `https://www.youtube.com/watch?v=${video.id}`,
         title: video.title,
@@ -310,10 +313,13 @@ export default function AddCardSheet({ open, onClose, userId, languageCode }: Ad
         channelTitle: video.channelTitle,
         categoryId: video.categoryId,
         thumbnailUrl: video.thumbnail || null,
+        targetFolderId,
       });
       if (result.ok) {
-        await applyPostSaveSelections(result.nodeId);
-        toast.success('Saved to your YouTube folder!');
+        // Folder membership already happened inside import_url — skip the
+        // post-save folder add (would be a redundant RPC call).
+        await applyPostSaveSelections(result.nodeId, { skipFolder: true });
+        toast.success(targetFolderId ? 'Saved!' : 'Saved to your YouTube folder!');
         finishSave();
       } else if (result.code === 'duplicate') {
         toast.success('Already in your feed.');

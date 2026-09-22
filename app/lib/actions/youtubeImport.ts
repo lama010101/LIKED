@@ -41,6 +41,11 @@ export interface YouTubeImportInput {
   thumbnailUrl: string | null;
   /** Language code for tag/description i18n */
   languageCode?: string | null;
+  /** N12: explicit folder target (active folder context wins over selection).
+   *  When set, the node lands here inside the same import transaction and
+   *  the "YouTube" auto-folder is skipped; when null, "YouTube" is the
+   *  fallback folder. */
+  targetFolderId?: string | null;
 }
 
 export async function importYouTubeActivity(
@@ -130,7 +135,9 @@ export async function importYouTubeActivity(
       description: input.description?.trim() || null,
       newTagLabels: tagLabels,
       existingTagIds: [],
-      folderId: null,
+      // N12 (Option B): an explicit folder context wins; when none is set
+      // the RPC falls back to p_auto_folder_name="YouTube".
+      folderId: input.targetFolderId ?? null,
       note: null,
       nodeType: "video",
       autoFolderName: "YouTube",
