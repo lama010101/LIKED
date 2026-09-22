@@ -68,3 +68,34 @@ god-credential); **either A or B is acceptable for the pure counts**
 ("do we want folder-access highlighting?") before its RPCs are written.
 
 *This is a recommendation, not a decision.*
+
+---
+
+## Triage (PHASE3-PURGE-MERGE-SPECTRIAGE-001)
+
+**Tier 0 for the drift, resolved as Option A — and §5.4 disposition resolved
+as BUILD.** Two separable questions:
+
+1. **The drift itself is Tier 0.** `getFolderTree` computing cross-user
+   visibility in TypeScript on the service client violates two hard
+   invariants at once (visibility logic must not live outside the DB;
+   service-role must not serve user-scoped reads). No discretion exists on
+   *whether* to fix it — only the spec'd mechanism remains: RPCs.
+   **Resolution:** build `get_folder_tree` (kills P1-11) +
+   `get_user_folders` (P2-11) + `get_unread_notification_count` +
+   `get_trash_count` per spec, with the migration-092/094 authz-gate pattern;
+   delete the TS/service-client equivalents. §5.5 breadcrumb needs no RPC —
+   client derivation over authorized RPC results is compliant; amend §5.5
+   wording to say so.
+
+2. **§5.4 (`get_folder_access_users` / `get_group_access_users`) — resolved:
+   BUILD as spec'd RPCs, bundled with the folder/group-access-highlight
+   feature.** Rationale: the feature itself is spec'd product surface (PRD
+   §16.4 — highlight friends with access when a folder/group is selected;
+   N6's metadata rail consumes it). Deleting it from spec would silently
+   drop committed product scope; implementing it via direct queries would
+   re-create the exact service-client drift this item exists to kill. The
+   RPCs are the spec'd contract — they get written when the highlight
+   feature is scheduled (its urgency is a product call, but the mechanism is
+   not open for re-decision). Spec text stays; status note updated from
+   "unbuilt" to "unbuilt — implement per §5.4 when the feature lands."

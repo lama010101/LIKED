@@ -60,3 +60,21 @@ edges table with non-visibility rows and force every visibility query to
 discriminate.
 
 *This is a recommendation, not a decision.*
+
+---
+
+## Triage (PHASE3-PURGE-MERGE-SPECTRIAGE-001)
+
+**Tier 1 — proposed default: Option B (explicit `folder_edges` exemption +
+fix the delete semantics).** Evidence the exemption is the established
+pattern: the Tier-0 invariant sweep (`check-invariants-001.mjs`, 14/14 PASS)
+does not require cause/edge rows for `folder_edges` — folder membership has
+been an auxiliary table since schema v1, and visibility remains edges-only
+*of nodes*; membership ≠ node visibility. Folding membership into edges
+(Option A) would pollute the visibility edge-set with non-visibility rows —
+worse than the exemption. Two defects do get fixed under B:
+`remove_node_from_folder`'s direct DELETE needs a ruling-adjacent fix
+(membership removal is unlink, not entity-delete — document the exemption in
+spec and encode it in the invariant checker so audits stop re-flagging), and
+both RPCs must stay single-transaction. Proposed default; will proceed
+unless told otherwise.

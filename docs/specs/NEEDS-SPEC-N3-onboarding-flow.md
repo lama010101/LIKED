@@ -60,3 +60,18 @@ after N4 lands and the template catalog is decided. If the CTO wants the
 spec'd sequence verbatim, that is A — and it should wait on N4.
 
 *This is a recommendation, not a decision.*
+
+---
+
+## Triage (PHASE3-PURGE-MERGE-SPECTRIAGE-001)
+
+**Tier 2 — open product call.** Whether v1 onboarding is the full §41.4
+six-step sequence or a reduced flow is a genuine scope judgment with no
+controlling precedent — the spec commits the *destination* but §41.4's own
+"every step skippable" design makes the build incrementality a product
+choice, not an architecture one. Two hard constraints are mechanical and not
+negotiable: (1) step 1 cannot exist until N1 lands; (2) step-4 pre-population
+"where category/tag match exists" is only as good as the categorization
+signal — full fidelity needs N4, though YouTube `categoryId` grouping is a
+viable stand-in. Recommendation stands at **Option B** (reduced v1: OAuth →
+background import → single folder-from-likes CTA). Pending Lolo decision.

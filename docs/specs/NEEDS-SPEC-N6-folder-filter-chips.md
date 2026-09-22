@@ -55,3 +55,17 @@ now would either stall or force a service-client query that re-creates the
 exact drift N7 is meant to resolve.
 
 *This is a recommendation, not a decision.*
+
+---
+
+## Triage (PHASE3-PURGE-MERGE-SPECTRIAGE-001)
+
+**Tier 1 — proposed default: Option B (clickable folder chips → existing
+`folderId` filter param) now; metadata rail deferred behind N7.** The
+interaction half is cheap, spec-aligned, and needs no new reads — folder
+filtering already exists as a feed param, chips are just an entry point.
+The metadata half (avg rating + friend-access avatars) is mechanically
+blocked: its spec'd data source `get_folder_access_users` (§5.4) does not
+exist live, and building a direct-query substitute would recreate exactly
+the drift N7 resolves. Ship the click-to-filter half; the rich chip waits on
+N7's resolution. Proposed default; will proceed unless told otherwise.

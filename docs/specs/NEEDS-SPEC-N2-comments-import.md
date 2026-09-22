@@ -62,3 +62,18 @@ CTO still wants it this cycle, choose **A with amended spec wording** (scope:
 "comments on the user's own channel"), not the current wording.
 
 *This is a recommendation, not a decision.*
+
+---
+
+## Triage (PHASE3-PURGE-MERGE-SPECTRIAGE-001)
+
+**Tier 1 — proposed default: defer + amend §41.3.1.** Confirmed: the spec's
+stated scope is **impossible as written**, not merely difficult — Data API v3
+has no author-scoped comment listing and no liked-comments endpoint at all;
+the only data path for the stated scope is Google Takeout, which §41.6
+already defers out of scope. The convention (§41.6 deferral of Takeout-class
+imports) resolves the open question: **defer comments import; amend §41.3.1
+wording** to either narrow scope to "comments on the user's own channel" or
+mark the feature deferred pending a Takeout decision. Schema support
+(`node_type`/`parent_node_id`, migrations 098–100) stays dormant — harmless.
+Proposed default; will proceed unless told otherwise.

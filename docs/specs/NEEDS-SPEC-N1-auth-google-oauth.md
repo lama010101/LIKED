@@ -54,3 +54,14 @@ this project's rules forbid. If dev-flow continuity is judged critical, take
 Option B — but only with a committed removal date/task for the legacy path.
 
 *This is a recommendation, not a decision.*
+
+---
+
+## Triage (PHASE3-PURGE-MERGE-SPECTRIAGE-001)
+
+**Tier 0 — resolved.** The decision is already answered: §41.2 is AUTHORITATIVE
+(Google-OAuth-only, non-additive) and the project's migration-safety rule
+forbids old+new auth paths coexisting (dual-logic prohibition). That leaves
+exactly one conformant path: **Option A — big-bang replacement**. The only
+real work item underneath is mechanical (e2e/dev login must move to a Google
+test account or auth stub) — not a decision. Proceeds unless told otherwise.

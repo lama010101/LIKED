@@ -49,3 +49,18 @@ Dual membership (A) optimizes findability at the cost of a silent second
 filing — the kind of invisible state the rest of this system works to avoid.
 
 *This is a recommendation, not a decision.*
+
+---
+
+## Triage (PHASE3-PURGE-MERGE-SPECTRIAGE-001)
+
+**Tier 1 — proposed default: Option B (explicit folder context wins; "YouTube"
+auto-folder as fallback only).** Two conventions collide and the resolution
+is clear: `applyPostSaveSelections` is the sheet's *generic* post-save
+mechanism honoring the user's explicit selections — that convention should
+win over the import pipeline's blanket auto-archive (`p_auto_folder_name=
+"YouTube"`), which exists for the bulk YouTube-import flow where no live
+folder context exists. Dual membership isn't a schema violation (folders are
+boards; multi-membership is legal) but it's a silent second filing — the
+least-surprise behavior is: save lands where the user is standing, else in
+"YouTube". Proposed default; will proceed unless told otherwise.

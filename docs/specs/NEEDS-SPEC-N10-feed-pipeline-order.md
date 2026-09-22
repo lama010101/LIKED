@@ -56,3 +56,33 @@ semantic (which duplicates should be suppressed relative to page boundaries),
 then A or B follows mechanically.
 
 *This is a request for a ruling, not a technical recommendation.*
+
+---
+
+## Triage (PHASE3-PURGE-MERGE-SPECTRIAGE-001)
+
+**Tier 1 — ruling delivered, evidence-based: amend spec §1 to document live
+order (Option B).** The migration evidence resolves this without a coin flip:
+
+- The `deduped` CTE's representative selection is `DISTINCT ON (node_id)
+  ORDER BY node_id, direction-priority (received > sent > own)` — a fixed
+  display-badge rule, **not** sort-rank based (see
+  `051_restore_get_feed.sql` stage 10 comment: "Prefer 'received' direction
+  over 'sent' for display badge").
+- Every cursor/sort key is **node-level** (`created_at`, `share_count`,
+  `avg_rating`, `node_id`) — identical across a node's duplicate edge-rows.
+  Therefore which representative survives dedup cannot affect cursor
+  filtering or ordering: dedup **commutes** with cursor+order+limit. The two
+  orders are provably equivalent for all inputs.
+- Live order is strictly *safer*: dedup-first means `LIMIT` can never produce
+  a short page. A literal "order → dedup → limit" where limit rides with the
+  ordering step would be the version that can starve pages.
+- The only world where spec order is semantically required is one where
+  dedup picks representatives by feed-sort rank — which would break the
+  documented direction-priority badge rule. Nobody wants that world.
+
+**Resolution:** keep the SQL as-is; amend `04_FEED_SQL_SPEC.md` §1's stage
+list to read `… → dedup → cursor → ordering → limit` (or annotate that dedup
+may precede pagination since its criterion is sort-invariant). Zero-migration
+resolution; AUDIT-02's CRITICAL closes as "deviation ratified". Proceeds
+unless told otherwise.

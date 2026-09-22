@@ -69,3 +69,21 @@ grep for live readers of each table — scoping a table an active feature reads
 directly is a silent-breakage risk.
 
 *This is a recommendation, not a decision.*
+
+---
+
+## Triage (PHASE3-PURGE-MERGE-SPECTRIAGE-001)
+
+**Tier 1 — proposed default: Option B (split scoping).** AUDIT-06 already
+established the fix direction as a P1 finding ("scope the `USING (true)`
+policies on active tables" — P1-7 for users/folder_edges/folder_tree/group
+tables; P2-7 for these 8 reference tables). That's the Tier-1 convention:
+permissive authenticated-wide reads on user-derived rows are a named defect
+class, not a design choice. Proposed scope split — keep open:
+`external_sources`, `translations`, `tag_translations`, `tags` (shared
+vocabulary); scope to owner/edge-visible: `ratings`, `tag_edges`,
+`external_items_map`, `nodes_sort_cache` (user-derived cross-user leaks).
+**Mandatory precondition:** audit every live reader of each table before the
+policy migration — scoping a table an active feature reads directly is a
+silent-breakage vector. Proposed default; will proceed unless told
+otherwise.

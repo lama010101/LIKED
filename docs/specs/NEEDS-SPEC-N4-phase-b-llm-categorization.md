@@ -59,3 +59,18 @@ it. If onboarding (N3-B) ships first, **Option C** can stand in as the
 pre-population mechanism until the LLM path exists.
 
 *This is a recommendation, not a decision.*
+
+---
+
+## Triage (PHASE3-PURGE-MERGE-SPECTRIAGE-001)
+
+**Tier 1 — proposed default: Option B (Next.js route, on-demand at import).**
+§41.3.3 already decided the *what* (Gemini, review-before-write,
+liked-videos-only) — the residual is plumbing, and the codebase supplies the
+precedent: Google-API calls already run server-side in route handlers with
+stored tokens (`app/api/youtube/search` → `lib/youtube/client.ts`, shipped as
+YT-SEARCH-001). A route keeps the key server-side, adds no scheduler, and
+fails soft. The review-gate surface (suggestions store + review UI) is the
+same under any option. Escalate to an edge-function batch sweep (Option A)
+only if import volume makes synchronous calls hot. Proposed default; will
+proceed unless told otherwise.

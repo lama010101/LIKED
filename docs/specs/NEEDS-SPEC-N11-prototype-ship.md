@@ -51,3 +51,17 @@ worth keeping, then A — but decide that as a product question, not by
 default-keeping the code.
 
 *This is a recommendation, not a decision.*
+
+---
+
+## Triage (PHASE3-PURGE-MERGE-SPECTRIAGE-001)
+
+**Tier 1 — proposed default: do not ship; delete the untracked dirs
+(Option B).** The repo's convention is spec-driven surfaces — nothing in the
+PRD or feed spec describes a Pinterest-grid home, and `LANDING-001` already
+owns the public `/` surface it was prototyping. Uncommitted spike code
+entering the repo would be permanent carry cost (1.7MB images + a parallel
+home) for an unspec'd surface — the hygiene default resolves it. Caveat made
+explicit: the dirs are **untracked**, so deletion is unrecoverable — if the
+pin-grid is a wanted future direction, say so and Option A/C applies instead.
+Proposed default; will proceed unless told otherwise.

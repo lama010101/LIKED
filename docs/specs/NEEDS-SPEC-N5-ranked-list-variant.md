@@ -46,3 +46,14 @@ also defensible if the CTO wants a leaner PRD — but deferral preserves the
 option at zero cost.
 
 *This is a recommendation, not a decision.*
+
+---
+
+## Triage (PHASE3-PURGE-MERGE-SPECTRIAGE-001)
+
+**Tier 1 — proposed default: defer (Option B).** §41 establishes the
+prioritization convention — YouTube-core is the wedge and §41.6 already
+defers adjacent general-scope work; a general-purpose tile variant with no
+YouTube-specific value sits squarely in that deferral class. Keep it spec'd
+in the PRD, unscheduled. Proposed default; will proceed unless told
+otherwise.
