@@ -1127,6 +1127,39 @@ export interface Database {
           thumbnails: string[]
         }[]
       }
+      get_folder_access_users: {
+        Args: {
+          p_folder_id: string
+          p_requester_id: string
+        }
+        Returns: {
+          user_id: string
+          display_name: string
+          avatar_key: string | null
+        }[]
+      }
+      get_group_access_users: {
+        Args: {
+          p_group_id: string
+        }
+        Returns: {
+          user_id: string
+          display_name: string
+          avatar_key: string | null
+        }[]
+      }
+      get_unread_notification_count: {
+        Args: {
+          p_user_id: string
+        }
+        Returns: number
+      }
+      get_trash_count: {
+        Args: {
+          p_user_id: string
+        }
+        Returns: number
+      }
       get_social_timeline: {
         Args: {
           p_user_id: string

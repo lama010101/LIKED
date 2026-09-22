@@ -1,6 +1,7 @@
 'use server';
 
 import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { rpc } from '@/lib/db/rpc';
 import { revalidatePath } from 'next/cache';
 import { logger } from "@/lib/utils/logger";
 
@@ -43,18 +44,9 @@ export async function getUnreadNotificationCountAction(): Promise<number> {
     const { data: { user }, error } = await supabase.auth.getUser();
     if (error || !user) return 0;
 
-    const { count, error: queryError } = await supabase
-      .from('notifications')
-      .select('id', { count: 'exact', head: true })
-      .eq('user_id', user.id)
-      .eq('read', false);
-
-    if (queryError) {
-      logger.error('[getUnreadNotificationCountAction] query error:', queryError);
-      return 0;
-    }
-
-    return count ?? 0;
+    // Spec §5.6 — count lives in the get_unread_notification_count RPC
+    // (single SQL query, authz-gated). No direct table count here.
+    return await rpc<number>("get_unread_notification_count", { p_user_id: user.id });
   } catch (err) {
     logger.error('[getUnreadNotificationCountAction] error:', err);
     return 0;

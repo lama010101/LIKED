@@ -385,18 +385,9 @@ export async function getTrashedNodes(userId: string): Promise<TrashedNode[]> {
   return (data ?? []) as TrashedNode[];
 }
 
-/** Count of soft-deleted nodes owned by the user (for trash-icon badge). */
+/** Count of soft-deleted nodes owned by the user (for trash-icon badge).
+ *  Spec §5.7 — count lives in the get_trash_count RPC (single SQL query,
+ *  authz-gated). No direct table count here. */
 export async function getTrashedCount(userId: string): Promise<number> {
-  const supabase = getSupabaseServiceClient();
-
-  const { count, error } = await supabase
-    .from("nodes")
-    .select("id", { count: "exact", head: true })
-    .eq("owner_id", userId)
-    .not("deleted_at", "is", null);
-
-  if (error) {
-    throw new Error(`Failed to count trashed nodes: ${error.message}`);
-  }
-  return count ?? 0;
+  return rpc<number>("get_trash_count", { p_user_id: userId });
 }

@@ -769,7 +769,13 @@ $$;
 
 ### 5.4 Friends with access to a folder/group (highlight query)
 
-> **FLAG (DOC-FIX-001):** neither `get_folder_access_users` nor `get_group_access_users` has a migration **or** a TypeScript implementation — the "highlight friends when folder/group is selected" feature is currently unbuilt. Do not assume the direct-query pattern used by §5.2/§5.6/§5.7 applies here.
+> **Live implementation (PHASE4 N7):** both RPCs were created in migration
+> `103_sidebar_read_rpcs.sql` with migration-094-style authz gates
+> (service_role bypass; authenticated caller must match `p_requester_id`, or
+> be a member of the requested group). The "highlight friends when a
+> folder/group is selected" feature (PRD §16.4) remains unbuilt — the RPCs
+> are the spec'd contract it must consume when scheduled; they must not be
+> re-implemented as direct queries.
 
 ```sql
 -- Used to highlight friends in the Unified bar when a folder/group is selected (PRD §16.4)
@@ -839,7 +845,7 @@ $$;
 
 ### 5.6 Notification count (bell badge)
 
-> **Live implementation:** no migration defines `get_unread_notification_count`. Implemented via direct service-client query, not RPC — `getUnreadNotificationCountAction` in `app/lib/actions/notifications.ts` — read-only, does not violate the RPC-write-authority rule.
+> **Live implementation (PHASE4 N7):** `get_unread_notification_count` created in migration `103_sidebar_read_rpcs.sql` (authz-gated, 094 pattern); `getUnreadNotificationCountAction` calls it via `rpc()`.
 
 ```sql
 CREATE OR REPLACE FUNCTION get_unread_notification_count(
@@ -853,7 +859,7 @@ $$;
 
 ### 5.7 Trash item count (badge)
 
-> **Live implementation:** no migration defines `get_trash_count`. Implemented via direct service-client query, not RPC — `getTrashedCount` in `lib/db/nodes.ts` via `getTrashCount` in `app/lib/actions/trash.ts` — read-only, does not violate the RPC-write-authority rule.
+> **Live implementation (PHASE4 N7):** `get_trash_count` created in migration `103_sidebar_read_rpcs.sql` (authz-gated, 094 pattern); `getTrashedCount` in `lib/db/nodes.ts` calls it via `rpc()`.
 
 ```sql
 CREATE OR REPLACE FUNCTION get_trash_count(
