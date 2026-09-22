@@ -7,6 +7,7 @@ import ProfileModal from '@/components/modals/ProfileModal';
 import Sidebar from '@/components/sidebar/Sidebar';
 import AppHeader from '@/components/bars/AppHeader';
 import StoriesBar from '@/components/bars/StoriesBar';
+import FoldersStrip from '@/components/bars/FoldersStrip';
 import FriendManagerModal from '@/components/modals/FriendManagerModal';
 import FriendActionSheet, { type FriendSheetTarget } from '@/components/sheets/FriendActionSheet';
 import DndProvider from '@/lib/dnd/DndProvider';
@@ -307,6 +308,9 @@ function AppShell({ children }: { children: React.ReactNode }) {
             setFmOpen(true);
           }}
         />
+
+        {/* Folder chips — click-to-filter rail (N6; filterFolderIds → p_filter_folder_ids) */}
+        <FoldersStrip folders={layoutFolders} />
 
         {/* Tags Strip — collapsible, toggled from the header Tags icon (<lg) */}
         {tagsStripOpen && (
