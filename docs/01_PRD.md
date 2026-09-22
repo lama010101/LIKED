@@ -2408,8 +2408,10 @@ boards, notes-on-board) remains as specified in §1-§40, unchanged.
   RPC, do not create a parallel write path).
 
 **41.3.3 Auto-categorization**
-- Unchanged from existing Phase B plan: Gemini-based, review-before-write,
-  liked-videos-only scope for initial ship. Comments import (41.3.1)
+- LLM-based, review-before-write, liked-videos-only scope for initial
+  ship. Provider (PHASE5 ruling): OpenRouter free tier — currently
+  `nvidia/nemotron-3-super-120b-a12b:free`; provider is an implementation
+  detail, not a spec commitment. Comments import (41.3.1)
   categorization is out of scope for Phase B initial ship — separate
   future phase.
 

@@ -2,13 +2,14 @@ import { NextResponse } from "next/server";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { getSupabaseServiceClient } from "@/lib/supabase/service";
 import { rpc } from "@/lib/db/rpc";
-import { isGeminiConfigured, suggestCategorization } from "@/lib/ai/gemini";
+import { isCategorizationConfigured, suggestCategorization } from "@/lib/ai/openrouter";
 import { logger } from "@/lib/utils/logger";
 
 /**
  * POST /api/categorize — Phase B on-demand categorization (PRD §41.3.3).
  *
- * Runs Gemini over the user's YouTube-imported ("liked") videos that have
+ * Runs an LLM (OpenRouter free tier — nemotron-3-super-120b) over the
+ * user's YouTube-imported ("liked") videos that have
  * no suggestion yet and writes review-gated rows into
  * categorization_suggestions (status='pending'). Nothing touches
  * folders/tags until the user accepts a suggestion.
@@ -26,9 +27,9 @@ export async function POST() {
   if (!user) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
-  if (!isGeminiConfigured()) {
+  if (!isCategorizationConfigured()) {
     return NextResponse.json(
-      { error: "Categorization is not configured (GEMINI_API_KEY missing)" },
+      { error: "Categorization is not configured (OPENROUTER_API_KEY missing)" },
       { status: 503 }
     );
   }

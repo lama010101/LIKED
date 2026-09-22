@@ -74,3 +74,15 @@ fails soft. The review-gate surface (suggestions store + review UI) is the
 same under any option. Escalate to an edge-function batch sweep (Option A)
 only if import volume makes synchronous calls hot. Proposed default; will
 proceed unless told otherwise.
+
+## RULING (PHASE5-N4-PROVIDER-SWAP-001 — provider swap)
+
+Provider switched from Gemini to **OpenRouter free tier** —
+`nvidia/nemotron-3-super-120b-a12b:free` (selected from the live model
+catalog; only free shortlist model supporting structured JSON output).
+All "Gemini" references above are historical proposal text — the spec
+commitment that survives is LLM-based + review-before-write +
+likes-only; provider is now an implementation detail. Implementation:
+`lib/ai/openrouter.ts`, gated on `OPENROUTER_API_KEY` (503 when absent).
+Free-tier constraint: ~50 req/day per account, ~20 req/min — the ≤10
+batch fits; daily volume is the bound.

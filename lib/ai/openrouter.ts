@@ -1,12 +1,18 @@
 import { logger } from "@/lib/utils/logger";
 
 /**
- * Minimal Gemini client for Phase B categorization (PRD §41.3.3).
- * Requires GEMINI_API_KEY in env — absent → callers must fail soft.
+ * Minimal OpenRouter client for Phase B categorization (PRD §41.3.3).
+ * Requires OPENROUTER_API_KEY in env — absent → callers must fail soft.
+ *
+ * Provider ruling (PHASE5-N4-PROVIDER-SWAP-001): OpenRouter free tier,
+ * nvidia/nemotron-3-super-120b-a12b:free — selected from the live catalog
+ * (only free shortlist model supporting structured_outputs → strongest
+ * JSON contract). Fallback candidate: google/gemma-4-31b-it:free.
+ * Free-tier constraint: ~20 req/min burst, ~50 req/day per account.
  */
 
-const MODEL = "gemini-2.0-flash-lite";
-const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
+const MODEL = "nvidia/nemotron-3-super-120b-a12b:free";
+const ENDPOINT = "https://openrouter.ai/api/v1/chat/completions";
 
 export interface CategorizationSuggestion {
   folderName: string | null;
@@ -14,9 +20,27 @@ export interface CategorizationSuggestion {
   reason: string;
 }
 
-export function isGeminiConfigured(): boolean {
-  return !!process.env.GEMINI_API_KEY;
+export function isCategorizationConfigured(): boolean {
+  return !!process.env.OPENROUTER_API_KEY;
 }
+
+const RESPONSE_SCHEMA = {
+  type: "json_schema",
+  json_schema: {
+    name: "categorization_suggestion",
+    strict: true,
+    schema: {
+      type: "object",
+      properties: {
+        folderName: { type: ["string", "null"] },
+        tagLabels: { type: "array", items: { type: "string" }, maxItems: 3 },
+        reason: { type: "string" },
+      },
+      required: ["folderName", "tagLabels", "reason"],
+      additionalProperties: false,
+    },
+  },
+} as const;
 
 export async function suggestCategorization(input: {
   title: string;
@@ -25,7 +49,7 @@ export async function suggestCategorization(input: {
   existingFolders: string[];
   existingTags: string[];
 }): Promise<CategorizationSuggestion | null> {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) return null;
 
   const prompt = [
@@ -44,22 +68,26 @@ export async function suggestCategorization(input: {
   ].join("\n");
 
   try {
-    const res = await fetch(`${ENDPOINT}?key=${apiKey}`, {
+    const res = await fetch(ENDPOINT, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { responseMimeType: "application/json" },
+        model: MODEL,
+        messages: [{ role: "user", content: prompt }],
+        response_format: RESPONSE_SCHEMA,
       }),
     });
     if (!res.ok) {
-      logger.warn("[gemini] generateContent non-OK:", res.status);
+      logger.warn("[openrouter] chat/completions non-OK:", res.status);
       return null;
     }
     const data = (await res.json()) as {
-      candidates?: { content?: { parts?: { text?: string }[] } }[];
+      choices?: { message?: { content?: string } }[];
     };
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    const text = data.choices?.[0]?.message?.content;
     if (!text) return null;
     const parsed = JSON.parse(text) as Partial<CategorizationSuggestion>;
     return {
@@ -76,7 +104,7 @@ export async function suggestCategorization(input: {
       reason: typeof parsed.reason === "string" ? parsed.reason.slice(0, 300) : "",
     };
   } catch (err) {
-    logger.warn("[gemini] suggestion failed:", err);
+    logger.warn("[openrouter] suggestion failed:", err);
     return null;
   }
 }

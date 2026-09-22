@@ -9,7 +9,7 @@ import {
 } from "@/app/lib/actions/categorize";
 
 /**
- * Phase B review surface (PRD §41.3.3): on-demand Gemini suggestions for
+ * Phase B review surface (PRD §41.3.3): on-demand LLM suggestions for
  * liked videos, shown here for explicit accept/reject before any write.
  */
 export default function CategorizePanel() {
@@ -82,7 +82,7 @@ export default function CategorizePanel() {
             AI categorization
           </div>
           <div style={{ fontSize: 12, color: "var(--text-3, #999)" }}>
-            Gemini suggests folders/tags for your liked videos — nothing is applied until you accept.
+            AI suggests folders/tags for your liked videos — nothing is applied until you accept.
           </div>
         </div>
         <button
