@@ -1,75 +1,30 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { createBrowserClient } from "@supabase/ssr";
-import { Database } from "@/lib/types/database";
+import { supabaseBrowser } from "@/lib/supabase/client";
 
-const supabase = createBrowserClient<Database>(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-);
-
-function getEmailPrefix(email: string): string {
-  return email.split("@")[0] || "user";
-}
-
+/**
+ * Google-only signup (PRD §41.2). Account creation happens inside the
+ * Google OAuth grant (profile upserted in /callback); the same grant
+ * carries YouTube readonly + offline refresh scopes.
+ */
 export default function SignupPage() {
-  const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [displayName, setDisplayName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    try {
-      // Sign up with Supabase Auth
-      // Pass display name as user_metadata so the ensure_user_profile trigger
-      // (migration 013) picks it up via raw_user_meta_data->>'full_name'.
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: displayName || undefined,
-          },
-        },
-      });
-
-      if (authError) {
-        setError(authError.message);
-        setLoading(false);
-        return;
-      }
-
-      if (!authData.user) {
-        setError("Failed to create user");
-        setLoading(false);
-        return;
-      }
-
-      router.push("/feed");
-      router.refresh();
-    } catch {
-      setError("Sign up failed. Please try again.");
-      setLoading(false);
-    }
-  };
 
   const handleGoogleSignup = async () => {
     setLoading(true);
     setError(null);
 
-    const { error } = await supabase.auth.signInWithOAuth({
+    const { error } = await supabaseBrowser.auth.signInWithOAuth({
       provider: "google",
       options: {
         redirectTo: `${window.location.origin}/callback`,
+        scopes: "https://www.googleapis.com/auth/youtube.readonly",
+        queryParams: {
+          access_type: "offline",
+          prompt: "consent",
+        },
       },
     });
 
@@ -93,129 +48,6 @@ export default function SignupPage() {
           <div id="form-error" role="alert" aria-live="polite" className="p-3 text-sm font-medium" style={{ background: "rgba(248,113,113,0.12)", color: "var(--red)", borderRadius: "var(--r-md)", border: "1px solid rgba(248,113,113,0.25)" }}>{error}</div>
         )}
 
-        <form onSubmit={handleSignup} className="space-y-4">
-          <div>
-            <label htmlFor="email" className="block text-sm font-semibold mb-1.5" style={{ color: "var(--text-1)" }}>
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              autoComplete="email"
-              autoFocus
-              inputMode="email"
-              aria-invalid={error ? true : undefined}
-              aria-describedby={error ? "form-error" : undefined}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full px-3 py-2.5 text-sm"
-              style={{ background: "var(--c-input-bg, var(--surface-2))", border: "1px solid var(--c-input-border, var(--border-1))", borderRadius: "var(--r-md)", color: "var(--text-1)", outline: "none", transition: "border-color 150ms ease, box-shadow 150ms ease" }}
-              onFocus={(e) => { e.currentTarget.style.borderColor = "var(--accent)"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(124,92,252,0.15)"; }}
-              onBlur={(e) => { e.currentTarget.style.borderColor = "var(--c-input-border, var(--border-1))"; e.currentTarget.style.boxShadow = "none"; }}
-            />
-          </div>
-
-          <div>
-            <label htmlFor="password" className="block text-sm font-semibold mb-1.5" style={{ color: "var(--text-1)" }}>
-              Password
-            </label>
-            <div style={{ position: "relative" }}>
-              <input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                autoComplete="new-password"
-                aria-invalid={error ? true : undefined}
-                aria-describedby={error ? "form-error" : undefined}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-                className="w-full px-3 py-2.5 text-sm"
-                style={{ background: "var(--c-input-bg, var(--surface-2))", border: "1px solid var(--c-input-border, var(--border-1))", borderRadius: "var(--r-md)", color: "var(--text-1)", outline: "none", transition: "border-color 150ms ease, box-shadow 150ms ease", paddingRight: 40 }}
-                onFocus={(e) => { e.currentTarget.style.borderColor = "var(--accent)"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(124,92,252,0.15)"; }}
-                onBlur={(e) => { e.currentTarget.style.borderColor = "var(--c-input-border, var(--border-1))"; e.currentTarget.style.boxShadow = "none"; }}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((s) => !s)}
-                aria-label={showPassword ? "Hide password" : "Show password"}
-                style={{
-                  position: "absolute",
-                  right: 8,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  padding: 4,
-                  color: "var(--text-3)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                {showPassword ? (
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-                    <line x1="1" y1="1" x2="23" y2="23" />
-                  </svg>
-                ) : (
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                    <circle cx="12" cy="12" r="3" />
-                  </svg>
-                )}
-              </button>
-            </div>
-            {password && password.length < 6 && (
-              <p style={{ fontSize: 11, color: "var(--text-3)", marginTop: 4 }}>
-                Password must be at least 6 characters
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label htmlFor="displayName" className="block text-sm font-semibold mb-1.5" style={{ color: "var(--text-1)" }}>
-              Display Name{" "}<span style={{ color: "var(--text-3)" }}>(optional)</span>
-            </label>
-            <input
-              id="displayName"
-              type="text"
-              autoComplete="name"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              placeholder={getEmailPrefix(email) || "Your name"}
-              className="w-full px-3 py-2.5 text-sm"
-              style={{ background: "var(--c-input-bg, var(--surface-2))", border: "1px solid var(--c-input-border, var(--border-1))", borderRadius: "var(--r-md)", color: "var(--text-1)", outline: "none", transition: "border-color 150ms ease, box-shadow 150ms ease" }}
-              onFocus={(e) => { e.currentTarget.style.borderColor = "var(--accent)"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(124,92,252,0.15)"; }}
-              onBlur={(e) => { e.currentTarget.style.borderColor = "var(--c-input-border, var(--border-1))"; e.currentTarget.style.boxShadow = "none"; }}
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading || !email || !password || password.length < 6}
-            className="w-full py-2.5 px-4 text-sm font-bold"
-            style={{ background: "var(--accent)", color: "var(--accent-ink)", borderRadius: "var(--r-md)", border: "none", cursor: "pointer", transition: "opacity 150ms ease, transform 150ms ease", opacity: loading || !email || !password || password.length < 6 ? 0.5 : 1 }}
-            onMouseEnter={(e) => { if (!loading && email && password) e.currentTarget.style.opacity = "0.9"; }}
-            onMouseLeave={(e) => { if (!loading) e.currentTarget.style.opacity = "1"; }}
-            onMouseDown={(e) => { if (!loading && email && password) e.currentTarget.style.transform = "scale(0.98)"; }}
-            onMouseUp={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
-          >
-            {loading ? "Creating account..." : "Sign Up"}
-          </button>
-        </form>
-
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full" style={{ borderTop: "1px solid var(--border-1)" }} />
-          </div>
-          <div className="relative flex justify-center text-xs font-semibold uppercase tracking-wider">
-            <span className="px-2" style={{ background: "var(--surface-1)", color: "var(--text-3)" }}>Or</span>
-          </div>
-        </div>
-
         <button
           onClick={handleGoogleSignup}
           disabled={loading}
@@ -230,7 +62,7 @@ export default function SignupPage() {
             <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
             <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
           </svg>
-          Continue with Google
+          {loading ? "Redirecting..." : "Continue with Google"}
         </button>
 
         <p className="text-center text-xs" style={{ color: "var(--text-3)", lineHeight: 1.6 }}>

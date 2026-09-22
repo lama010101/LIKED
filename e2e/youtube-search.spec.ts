@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { TEST_EMAIL, TEST_PASSWORD } from "./helpers/auth";
+import { injectSession } from "./helpers/auth";
 
 /**
  * E2E: GET /api/youtube/search — auth + not-connected coverage.
@@ -31,14 +31,12 @@ test.describe("YouTube search API — authenticated (not connected)", () => {
 
   let cookies: { name: string; value: string; domain: string; path: string }[];
 
-  test.beforeAll(async ({ browser }) => {
+  test.beforeAll(async ({ browser, baseURL }) => {
     const context = await browser.newContext();
     const page = await context.newPage();
 
-    await page.goto("/login");
-    await page.locator("#email").fill(TEST_EMAIL);
-    await page.locator("#password").fill(TEST_PASSWORD);
-    await page.getByRole("button", { name: /sign in/i }).click();
+    await injectSession(context, baseURL ?? "http://localhost:3001");
+    await page.goto("/feed");
     await expect(page).toHaveURL(/\/feed/, { timeout: 30_000 });
 
     cookies = await context.cookies();

@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { TEST_EMAIL, TEST_PASSWORD } from "./helpers/auth";
+import { injectSession } from "./helpers/auth";
 
 /**
  * Authenticated smoke test — logs in and exercises core flows:
@@ -14,15 +14,13 @@ let savedCookies: string | null = null;
 test.describe.configure({ mode: "serial" });
 
 test.describe("Authenticated smoke — core flows", () => {
-  test.beforeAll(async ({ browser }) => {
+  test.beforeAll(async ({ browser, baseURL }) => {
     const context = await browser.newContext();
     const page = await context.newPage();
 
-    // Login via the form
-    await page.goto("/login");
-    await page.locator("#email").fill(TEST_EMAIL);
-    await page.locator("#password").fill(TEST_PASSWORD);
-    await page.getByRole("button", { name: /sign in/i }).click();
+    // Programmatic session (app is Google-OAuth-only — no login form)
+    await injectSession(context, baseURL ?? "http://localhost:3001");
+    await page.goto("/feed");
     await expect(page).toHaveURL(/\/feed/, { timeout: 30_000 });
 
     // Save cookies for subsequent tests

@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { TEST_EMAIL, TEST_PASSWORD } from "./helpers/auth";
+import { injectSession } from "./helpers/auth";
 
 /**
  * Test node creation via the AddCardSheet.
@@ -9,14 +9,12 @@ import { TEST_EMAIL, TEST_PASSWORD } from "./helpers/auth";
 test.describe("Authenticated — node creation", () => {
   test.use({ storageState: undefined });
 
-  test("create a URL node via AddCardSheet", async ({ page }) => {
+  test("create a URL node via AddCardSheet", async ({ page, baseURL }) => {
     test.setTimeout(120_000);
 
-    // Login
-    await page.goto("/login");
-    await page.locator("#email").fill(TEST_EMAIL);
-    await page.locator("#password").fill(TEST_PASSWORD);
-    await page.getByRole("button", { name: /sign in/i }).click();
+    // Login (programmatic session — app is Google-OAuth-only)
+    await injectSession(page.context(), baseURL ?? "http://localhost:3001");
+    await page.goto("/feed");
     await expect(page).toHaveURL(/\/feed/, { timeout: 30_000 });
 
     // Wait for feed to load

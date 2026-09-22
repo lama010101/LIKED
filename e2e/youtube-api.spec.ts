@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { TEST_EMAIL, TEST_PASSWORD } from "./helpers/auth";
+import { injectSession } from "./helpers/auth";
 
 /**
  * E2E: YouTube Activity API routes — authenticated.
@@ -32,15 +32,13 @@ test.describe("YouTube API — authenticated (not connected)", () => {
 
   let cookies: { name: string; value: string; domain: string; path: string }[];
 
-  test.beforeAll(async ({ browser }) => {
+  test.beforeAll(async ({ browser, baseURL }) => {
     // Login via UI to get session cookies
     const context = await browser.newContext();
     const page = await context.newPage();
 
-    await page.goto("/login");
-    await page.locator("#email").fill(TEST_EMAIL);
-    await page.locator("#password").fill(TEST_PASSWORD);
-    await page.getByRole("button", { name: /sign in/i }).click();
+    await injectSession(context, baseURL ?? "http://localhost:3001");
+    await page.goto("/feed");
     await expect(page).toHaveURL(/\/feed/, { timeout: 30_000 });
 
     // Save cookies for API calls
@@ -113,14 +111,12 @@ test.describe("YouTube API — authenticated (not connected)", () => {
 test.describe("YouTube page UI — authenticated (not connected)", () => {
   test.use({ storageState: undefined });
 
-  test("youtube page renders connect prompt when not connected", async ({ page }) => {
+  test("youtube page renders connect prompt when not connected", async ({ page, baseURL }) => {
     test.setTimeout(60_000);
 
     // Login
-    await page.goto("/login");
-    await page.locator("#email").fill(TEST_EMAIL);
-    await page.locator("#password").fill(TEST_PASSWORD);
-    await page.getByRole("button", { name: /sign in/i }).click();
+    await injectSession(page.context(), baseURL ?? "http://localhost:3001");
+    await page.goto("/feed");
     await expect(page).toHaveURL(/\/feed/, { timeout: 30_000 });
 
     // Navigate to YouTube page — use domcontentloaded (not networkidle)
@@ -144,14 +140,12 @@ test.describe("YouTube page UI — authenticated (not connected)", () => {
     await expect(page.getByRole("button", { name: /back to feed/i })).toBeVisible();
   });
 
-  test("youtube page does not crash on repeated visits", async ({ page }) => {
+  test("youtube page does not crash on repeated visits", async ({ page, baseURL }) => {
     test.setTimeout(90_000);
 
     // Login
-    await page.goto("/login");
-    await page.locator("#email").fill(TEST_EMAIL);
-    await page.locator("#password").fill(TEST_PASSWORD);
-    await page.getByRole("button", { name: /sign in/i }).click();
+    await injectSession(page.context(), baseURL ?? "http://localhost:3001");
+    await page.goto("/feed");
     await expect(page).toHaveURL(/\/feed/, { timeout: 30_000 });
 
     // Visit YouTube page — use domcontentloaded (not networkidle) because

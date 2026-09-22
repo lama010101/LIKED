@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { TEST_EMAIL, TEST_PASSWORD } from "./helpers/auth";
+import { injectSession } from "./helpers/auth";
 
 /**
  * E2E: YouTube intelligent import — verifies the atomic import_url RPC
@@ -29,30 +29,12 @@ test.describe("YouTube intelligent import — atomic RPC verification", () => {
   let accessToken: string;
   const _youtubeFolderId: string | null = null;
 
-  test.beforeAll(async ({ browser }) => {
-    // Login via UI to get session cookies
+  test.beforeAll(async ({ browser, baseURL }) => {
+    // Programmatic session (app is Google-OAuth-only — no login form)
     const context = await browser.newContext();
-    const page = await context.newPage();
-
-    await page.goto("/login");
-    await page.locator("#email").fill(TEST_EMAIL);
-    await page.locator("#password").fill(TEST_PASSWORD);
-    await page.getByRole("button", { name: /sign in/i }).click();
-    await expect(page).toHaveURL(/\/feed/, { timeout: 30_000 });
-
-    // Extract access_token from Supabase session cookie
-    const cookies = await context.cookies();
-    const authCookie = cookies.find((c) => c.name.includes("auth-token"));
-    expect(authCookie).toBeTruthy();
-
-    let rawValue = decodeURIComponent(authCookie!.value);
-    if (rawValue.startsWith("base64-")) {
-      rawValue = Buffer.from(rawValue.slice(7), "base64").toString("utf-8");
-    }
-    const session = JSON.parse(rawValue);
+    const session = await injectSession(context, baseURL ?? "http://localhost:3001");
     accessToken = session.access_token;
     expect(accessToken).toBeTruthy();
-
     await context.close();
   });
 
@@ -211,14 +193,12 @@ test.describe("YouTube intelligent import — atomic RPC verification", () => {
 test.describe("YouTube page UI — intelligent import wiring", () => {
   test.use({ storageState: undefined });
 
-  test("youtube page renders without error after import action change", async ({ page }) => {
+  test("youtube page renders without error after import action change", async ({ page, baseURL }) => {
     test.setTimeout(60_000);
 
-    // Login
-    await page.goto("/login");
-    await page.locator("#email").fill(TEST_EMAIL);
-    await page.locator("#password").fill(TEST_PASSWORD);
-    await page.getByRole("button", { name: /sign in/i }).click();
+    // Login (programmatic session — app is Google-OAuth-only)
+    await injectSession(page.context(), baseURL ?? "http://localhost:3001");
+    await page.goto("/feed");
     await expect(page).toHaveURL(/\/feed/, { timeout: 30_000 });
 
     // Navigate to YouTube page

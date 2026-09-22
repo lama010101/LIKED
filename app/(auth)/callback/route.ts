@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { backfillFriendInvites } from "@/lib/db/friends";
+import { persistYouTubeConnectionFromSession } from "@/lib/youtube/persist-connection";
 import { logger } from "@/lib/utils/logger";
 
 function getEmailPrefix(email: string): string {
@@ -40,7 +41,7 @@ export async function GET(request: Request) {
       }
     );
 
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    const { data: sessionData, error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
       // Check if user profile exists, create if not (for OAuth signups)
@@ -64,6 +65,20 @@ export async function GET(request: Request) {
 
         if (upsertErr) {
           logger.error("[auth/callback] Failed to upsert user profile:", upsertErr.message);
+        }
+
+        // Unified grant (PRD §41.2): the Google OAuth session carries
+        // provider_token/provider_refresh_token for YouTube — persist them
+        // so the YouTube connection exists from first login.
+        const providerToken = sessionData?.session?.provider_token;
+        if (providerToken) {
+          await persistYouTubeConnectionFromSession({
+            userId: user.id,
+            email: user.email ?? null,
+            providerToken,
+            providerRefreshToken: sessionData?.session?.provider_refresh_token ?? null,
+            scope: null,
+          });
         }
 
         // Backfill any pending friend invites for this user's email.
