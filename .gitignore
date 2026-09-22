@@ -70,5 +70,12 @@ supabase/.temp/
 # local editor workspace
 LIKED.code-workspace
 
-# Supabase personal access token (local-only credential)
+# credential files (tokens, keys, keystores — local-only secrets)
 .supabase_access_token
+.*access_token*
+*.key
+*.p12
+*.pfx
+*.keystore
+*.kdbx
+id_rsa*

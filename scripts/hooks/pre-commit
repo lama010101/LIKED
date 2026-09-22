@@ -12,7 +12,10 @@ if [ -z "$DIFF" ]; then
 fi
 
 # Patterns (extended regex). Add more provider prefixes as needed.
-PATTERNS='sb_secret_[A-Za-z0-9_-]{10,}|sk_live_[A-Za-z0-9]{10,}|sk_test_[A-Za-z0-9]{10,}|AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{36,}|xox[baprs]-[A-Za-z0-9-]{10,}|AIza[0-9A-Za-z_-]{35}'
+# The trailing JWT pattern covers base64url tokens (e.g. legacy Supabase
+# anon/service_role keys and session tokens such as .supabase_access_token
+# contents) — mirror of SECRET_RE in scripts/check-invariants-001.mjs.
+PATTERNS='sb_secret_[A-Za-z0-9_-]{10,}|sk_live_[A-Za-z0-9]{10,}|sk_test_[A-Za-z0-9]{10,}|AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{36,}|xox[baprs]-[A-Za-z0-9-]{10,}|AIza[0-9A-Za-z_-]{35}|eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}'
 
 # grep -E for extended regex; -n shows line numbers in the diff.
 if printf '%s\n' "$DIFF" | grep -nE "$PATTERNS" >/dev/null 2>&1; then
