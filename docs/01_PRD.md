@@ -248,6 +248,14 @@ Multiple edges per (node, user) are required and expected.
 
 Each edge is owned by exactly one cause. Cause deletion is the sole mechanism for edge removal. No fallback checks; no path analysis.
 
+> **Exemption (PHASE4-EXEC-TRIAGE-001 N9):** `folder_edges` is an explicit
+> auxiliary-table exemption. Folder membership is organizational, not a
+> visibility edge — membership rows carry no cause, and add/remove run
+> through the dedicated `add_node_to_folder` / `remove_node_from_folder`
+> RPCs (single transaction, authz-gated). Removing a node from a folder is
+> an unlink, not an entity deletion — no cause is created for it. All other
+> `edges` writes remain cause-bound.
+
 ### 6.2 Direct Share → INSERT cause + INSERT edge(s)
 
 1. INSERT `causes` row: `cause_type = 'direct_share'`, `created_by = sharer_id`, `metadata = {node_id, target_user_id}`
@@ -2380,11 +2388,15 @@ boards, notes-on-board) remains as specified in §1-§40, unchanged.
 
 ### 41.3 YouTube — new scope, no prior PRD section
 
-**41.3.1 Comments import (net-new)**
-- Import user's own written comments and liked comments via YouTube
-  Data API `commentThreads.list` / `comments.list`.
-- Comments are modeled as nodes (see §41.5 for schema decision), not
-  a separate table.
+**41.3.1 Comments import (net-new) — DEFERRED TO TAKEOUT**
+- **Deferred (PHASE4-EXEC-TRIAGE-001 N2):** YouTube Data API v3 has no
+  author-scoped "my comments" listing (`commentThreads.list` is
+  video-scoped; `comments.list` is parent-scoped) and no liked-comments
+  endpoint — the mechanism originally written here cannot deliver this
+  scope. Comments import therefore lands via the Google Takeout path
+  already committed in §41.6, which includes comment history.
+- When built via Takeout: comments are modeled as nodes (see §41.5 for
+  schema decision), not a separate table.
 - Subject to same review-before-write gate as liked-video
   categorization (per existing Phase B policy).
 

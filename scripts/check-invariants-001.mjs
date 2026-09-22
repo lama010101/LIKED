@@ -10,6 +10,12 @@
 //      5. get_feed single overload, 16 params
 //      6. update_display_name/update_avatar_key single overload each (migration 102)
 //      7. every numbered migration file recorded in schema_migrations
+//     15. folder_edges exemption (N9/PRD §6.1): folder membership is an
+//         auxiliary table — no cause_type='folder_membership' may ever
+//         exist; membership stays out of the cause/edge system
+//     16. folder_edges writes only via the two authz-gated single-statement
+//         RPCs (add_node_to_folder / remove_node_from_folder): both must
+//         exist, be SECURITY DEFINER, and carry an authz gate
 //   REPO 8. get_feed RPC has exactly one call site (lib/db/feed.ts) — AUDIT-06 P1-1
 //      9. no client-side feed reorder: feedStore gone, no useFeedStore refs — P2-1
 //     10. no activeTag client filter in views — P1-3
@@ -95,6 +101,23 @@ try {
   const unrecPostLedger = unrec.filter((f) => Number(f) >= 88);
   check("DB-7 migrations >=088 recorded in schema_migrations", unrecPostLedger.length === 0,
     unrecPostLedger.length ? `unrecorded: ${unrecPostLedger.join(",")}` : `all >=088 recorded (pre-ledger gap: ${unrec.length} files 001-087)`);
+
+  // DB-15 — N9 folder_edges exemption: folder membership is auxiliary,
+  // never cause-bound. If a 'folder_membership' cause_type ever appears,
+  // membership has leaked into the cause/edge system — a real violation.
+  const fmCauses = await q1(`SELECT COUNT(*)::int AS c FROM causes WHERE cause_type = 'folder_membership'`);
+  check("DB-15 folder_edges exemption (no folder_membership causes)", fmCauses[0].c === 0,
+    `${fmCauses[0].c} folder_membership causes`);
+
+  // DB-16 — N9: membership add/remove must stay inside the two dedicated
+  // authz-gated single-statement RPCs (not open table writes).
+  const folderRpcs = await q1(`SELECT proname, prosecdef,
+      (pg_get_functiondef(p.oid) ILIKE '%auth.role()%service_role%') AS gated
+    FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
+    WHERE n.nspname='public' AND proname IN ('add_node_to_folder','remove_node_from_folder')`);
+  check("DB-16 folder_edges RPCs exist + authz-gated",
+    folderRpcs.length === 2 && folderRpcs.every((r) => r.prosecdef && r.gated),
+    JSON.stringify(folderRpcs));
 } finally {
   client.release();
   await pool.end();

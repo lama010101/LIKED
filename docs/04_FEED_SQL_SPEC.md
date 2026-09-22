@@ -39,7 +39,15 @@ Each stage is a filter or transform applied in strict order. No stage can be ski
 | dedup | Collapse duplicate node_ids | No |
 | limit | Page size cap | No |
 
-> **Implementation note (FEED-ORDER-001):** Migration `101_feed_pipeline_order.sql` (commit `62dd9ca`) has been deployed to prod and live-verified — `get_feed` now executes the cursor → ordering → dedup → limit pipeline documented here (see `docs/00_PROGRESS.md`, FEED-ORDER-001-DEPLOY entry). This document remains authoritative.
+> **Implementation note (FEED-ORDER-001):** Migration `101_feed_pipeline_order.sql` (commit `62dd9ca`) has been deployed to prod and live-verified — `get_feed` executes the cursor → ordering → dedup → limit pipeline documented here (see `docs/00_PROGRESS.md`, FEED-ORDER-001-DEPLOY entry). This document remains authoritative.
+>
+> **Final ruling (PHASE4-EXEC-TRIAGE-001 N10):** the live
+> cursor → ordering → dedup → limit order is the correct and **permanent**
+> order — not an interim state pending further migration. Cursor keys
+> (`created_at`, `share_count`, `avg_rating`, `node_id`) are node-level, so
+> ordering commutes with dedup's `DISTINCT ON (node_id)`; cursoring before
+> dedup additionally guarantees the limit can never return a short page.
+> Do not reorder these stages.
 
 ---
 

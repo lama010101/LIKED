@@ -75,3 +75,11 @@ negotiable: (1) step 1 cannot exist until N1 lands; (2) step-4 pre-population
 signal — full fidelity needs N4, though YouTube `categoryId` grouping is a
 viable stand-in. Recommendation stands at **Option B** (reduced v1: OAuth →
 background import → single folder-from-likes CTA). Pending Lolo decision.
+
+## RULING (PHASE4-EXEC-TRIAGE-001 — final)
+
+**Reduced v1 (Option B) is APPROVED as the final decision.** Scope:
+Google OAuth (step 1, supplied by N1) → background liked-videos import →
+single "create folder from your likes" CTA. The remaining §41.4 steps are
+deferred, not cut. **Not built in this batch** — implementation is a
+separate dispatch, blocked on N1 landing (it now has).

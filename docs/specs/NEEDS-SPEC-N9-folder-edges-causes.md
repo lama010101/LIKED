@@ -78,3 +78,13 @@ worse than the exemption. Two defects do get fixed under B:
 spec and encode it in the invariant checker so audits stop re-flagging), and
 both RPCs must stay single-transaction. Proposed default; will proceed
 unless told otherwise.
+
+## RULING (PHASE4-EXEC-TRIAGE-001 — final)
+
+**Option B APPROVED and implemented:** `folder_edges` is a documented
+auxiliary-table exemption to the cause→edges rule (PRD §6.1, new note);
+the exemption is machine-encoded in `check-invariants-001.mjs`
+(DB-15/DB-16: no `folder_membership` cause_type may ever exist, and
+both folder RPCs must remain authz-gated single-statement writes).
+`add_node_to_folder`/`remove_node_from_folder` already run as single-
+transaction SECURITY DEFINER RPCs with 094-pattern gates — verified live.

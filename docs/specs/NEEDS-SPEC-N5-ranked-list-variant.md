@@ -57,3 +57,8 @@ defers adjacent general-scope work; a general-purpose tile variant with no
 YouTube-specific value sits squarely in that deferral class. Keep it spec'd
 in the PRD, unscheduled. Proposed default; will proceed unless told
 otherwise.
+
+## RULING (PHASE4-EXEC-TRIAGE-001 — final)
+
+**Deferred — confirmed.** Option B adopted: stays spec'd in the PRD,
+unscheduled, no code. No action taken.
