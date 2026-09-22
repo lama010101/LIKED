@@ -37,6 +37,32 @@ export interface Database {
         }
         Relationships: []
       }
+      categorization_suggestions: {
+        Row: {
+          id: string
+          user_id: string
+          node_id: string
+          suggested_folder_name: string | null
+          suggested_tag_labels: string[]
+          reason: string | null
+          status: string
+          created_at: string
+          reviewed_at: string | null
+        }
+        Insert: {
+          user_id: string
+          node_id: string
+          suggested_folder_name?: string | null
+          suggested_tag_labels?: string[]
+          reason?: string | null
+          status?: string
+        }
+        Update: {
+          status?: string
+          reviewed_at?: string | null
+        }
+        Relationships: []
+      }
       blocks: {
         Row: {
           blocker_id: string

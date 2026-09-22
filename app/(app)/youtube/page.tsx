@@ -10,6 +10,7 @@ import SubscriptionRow, { type YouTubeSubscription } from "./_components/Subscri
 import YouTubeSkeleton from "./_components/YouTubeSkeleton";
 import YouTubeConnect from "./_components/YouTubeConnect";
 import YouTubeImportDialog from "./_components/YouTubeImportDialog";
+import CategorizePanel from "./_components/CategorizePanel";
 
 type Tab = "likes" | "subscriptions";
 
@@ -325,6 +326,9 @@ export default function YouTubeActivityPage() {
           </button>
         </div>
       </div>
+
+      {/* Phase B: AI categorization review-gate (PRD §41.3.3) */}
+      <CategorizePanel />
 
       {/* Tabs */}
       <div style={{ display: "flex", padding: "0 20px", borderBottom: "1px solid var(--border-1, #e5e7eb)" }}>
