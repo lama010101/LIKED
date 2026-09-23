@@ -22,11 +22,48 @@ interface StoredConnectionRow {
   token_expires_at: string | null;
   channel_id: string | null;
   revoked_at: string | null;
+  scopes: string[] | null;
 }
 
 export interface StoredYouTubeToken {
   accessToken: string;
   channelId: string | null;
+  scopes: string[] | null;
+}
+
+/**
+ * YT-SCOPE-GUARD-001 — user-facing message when a YouTube write call is
+ * blocked because the stored grant lacks a write scope (unified signup
+ * grants youtube.readonly only). No scope/consent changes here — that is
+ * SPEC-YT-SCOPE-MODEL (Lane B).
+ */
+export const YOUTUBE_SCOPE_MESSAGE =
+  "This action needs extra YouTube permission — reconnect YouTube to enable it.";
+
+/** Scopes that permit videos.rate / subscriptions.delete writes. */
+const YOUTUBE_WRITE_SCOPES = new Set([
+  "https://www.googleapis.com/auth/youtube",
+  "https://www.googleapis.com/auth/youtube.force-ssl",
+  "https://www.googleapis.com/auth/youtubepartner",
+]);
+
+/**
+ * true/false when the grant's recorded scope list is known; null when scopes
+ * were never persisted (older connections) — callers fall back to the API's
+ * own 403 in that case.
+ */
+export function hasYouTubeWriteScope(scopes: string[] | null | undefined): boolean | null {
+  if (!scopes || scopes.length === 0) return null;
+  return scopes.some((s) => YOUTUBE_WRITE_SCOPES.has(s));
+}
+
+/** True when a YouTube API error body is an insufficient-scope 403 (vs quota/rate-limit 403s). */
+function isInsufficientScopeError(data: unknown): boolean {
+  const errors = (data as { error?: { errors?: { reason?: string }[] } } | null)?.error?.errors;
+  if (!Array.isArray(errors)) return false;
+  return errors.some(
+    (e) => typeof e.reason === "string" && e.reason.toLowerCase().includes("insufficient")
+  );
 }
 
 export type GetStoredTokenResult =
@@ -45,7 +82,7 @@ export async function getStoredYouTubeToken(userId: string): Promise<GetStoredTo
     // New token columns are not in the generated Database type yet (type regen is a separate task).
     const { data } = await supabase
       .from("youtube_connections")
-      .select("access_token, refresh_token, token_expires_at, channel_id, revoked_at")
+      .select("access_token, refresh_token, token_expires_at, channel_id, revoked_at, scopes")
       .eq("user_id", userId)
       .maybeSingle();
     const row = data as unknown as StoredConnectionRow | null;
@@ -68,7 +105,7 @@ export async function getStoredYouTubeToken(userId: string): Promise<GetStoredTo
     const expiringSoon = expiresAt === null || expiresAt <= now + 5 * 60 * 1000;
 
     if (!expiringSoon) {
-      return { ok: true, token: { accessToken, channelId: row.channel_id } };
+      return { ok: true, token: { accessToken, channelId: row.channel_id, scopes: row.scopes } };
     }
 
     const body = new URLSearchParams({
@@ -129,7 +166,7 @@ export async function getStoredYouTubeToken(userId: string): Promise<GetStoredTo
       return { ok: false, error: "refresh_failed", message: "Failed to refresh YouTube access token. Please reconnect your YouTube account." };
     }
 
-    return { ok: true, token: { accessToken: newAccessToken, channelId: row.channel_id } };
+    return { ok: true, token: { accessToken: newAccessToken, channelId: row.channel_id, scopes: row.scopes } };
   } catch (err) {
     logger.error("[getStoredYouTubeToken] unexpected error:", (err as Error).message);
     return { ok: false, error: "refresh_failed", message: "Unexpected error retrieving YouTube token." };
@@ -235,6 +272,9 @@ export async function unlikeVideo(
     if (!res.ok) {
       const data = await res.json().catch(() => null);
       if (res.status === 403) {
+        if (isInsufficientScopeError(data)) {
+          return { ok: false, error: YOUTUBE_SCOPE_MESSAGE };
+        }
         return { ok: false, error: "YouTube API access forbidden. Try reconnecting your YouTube account." };
       }
       return { ok: false, error: data?.error?.message ?? `YouTube API error: ${res.status}` };
@@ -320,6 +360,9 @@ export async function unsubscribeFromChannel(
     if (!res.ok) {
       const data = await res.json().catch(() => null);
       if (res.status === 403) {
+        if (isInsufficientScopeError(data)) {
+          return { ok: false, error: YOUTUBE_SCOPE_MESSAGE };
+        }
         return { ok: false, error: "YouTube API access forbidden. Try reconnecting your YouTube account." };
       }
       return { ok: false, error: data?.error?.message ?? `YouTube API error: ${res.status}` };

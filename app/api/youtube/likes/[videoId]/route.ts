@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
-import { getStoredYouTubeToken, unlikeVideo } from "@/lib/youtube/client";
+import { getStoredYouTubeToken, hasYouTubeWriteScope, unlikeVideo, YOUTUBE_SCOPE_MESSAGE } from "@/lib/youtube/client";
 
 export async function DELETE(
   _request: Request,
@@ -22,6 +22,12 @@ export async function DELETE(
     const auth = await getStoredYouTubeToken(user.id);
     if (!auth.ok) {
       return NextResponse.json({ error: auth.message }, { status: 401 });
+    }
+
+    // YT-SCOPE-GUARD-001: known readonly grant → fail fast with the scope message
+    // (null = scopes never recorded → let the API's own 403 decide).
+    if (hasYouTubeWriteScope(auth.token.scopes) === false) {
+      return NextResponse.json({ error: YOUTUBE_SCOPE_MESSAGE }, { status: 403 });
     }
 
     const result = await unlikeVideo(auth.token.accessToken, videoId);
