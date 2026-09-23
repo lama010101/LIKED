@@ -16,6 +16,8 @@ import type { FeedNode } from "@/lib/hooks/useFeed";
 import { sourceId, targetId } from "@/lib/dnd/types";
 import { useLongPress } from "@/lib/hooks/useLongPress";
 import { useSelectionStore } from "@/lib/store/selectionStore";
+import { useTagModeStore } from "@/lib/store/tagModeStore";
+import { applyTagToNodeAction } from "@/app/lib/actions/applyTagToNode";
 import { toast } from "@/lib/store/toastStore";
 import SelectionCloseButton from "@/components/selection/SelectionCloseButton";
 import { trashNode } from "@/app/lib/actions/selection";
@@ -78,6 +80,12 @@ export default function NodeCard({ node, onClick, currentUserId, dragListeners, 
   // Ownership check for menu button
   const isOwned = node.owner_id === currentUserId;
 
+  // Tag Mode (§11.3b): taps apply the picked tag instead of opening
+  const tagModeActive = useTagModeStore((s) => s.active);
+  const tagModeTag = useTagModeStore((s) => s.tag);
+  const tagFlash = useTagModeStore((s) => s.flash);
+  const tagFlashing = useTagModeStore((s) => s.flashTarget === `node:${node.node_id}`);
+
   // Multi-select (P7-T03)
   const selectionActive = useSelectionStore((s) => s.isActive);
   const isSelected = useSelectionStore((s) => s.isSelected({ kind: "node", id: node.node_id }));
@@ -122,6 +130,14 @@ export default function NodeCard({ node, onClick, currentUserId, dragListeners, 
   };
 
   const handleClick = () => {
+    // §11.3b step 4 — Tag Mode: apply tag instantly, never open detail.
+    if (tagModeActive) {
+      if (tagModeTag) {
+        void applyTagToNodeAction(tagModeTag.id, node.node_id);
+        tagFlash(`node:${node.node_id}`);
+      }
+      return;
+    }
     // While in selection mode, tap toggles this card in/out of the
     // selection set (PRD §17.1).
     if (selectionActive) {
@@ -213,10 +229,10 @@ export default function NodeCard({ node, onClick, currentUserId, dragListeners, 
         touchAction: "manipulation",
         position: 'relative',
         outline:
-          isSelected || (isOver && isOtherNodeDragging)
+          isSelected || (isOver && isOtherNodeDragging) || tagFlashing
             ? "3px solid var(--accent)"
             : "none",
-        outlineOffset: isSelected || (isOver && isOtherNodeDragging) ? 2 : 0,
+        outlineOffset: isSelected || (isOver && isOtherNodeDragging) || tagFlashing ? 2 : 0,
         transform:
           isOver && isOtherNodeDragging && !selectionActive ? "scale(1.02)" : undefined,
         transition: "transform 0.12s, outline-offset 0.12s, box-shadow 0.15s",

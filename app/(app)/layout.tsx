@@ -21,6 +21,10 @@ import ContextStrip, { ContextPill } from '@/components/bars/ContextStrip';
 import FabSpeedDial from '@/components/bars/FabSpeedDial';
 import NotificationPanel from '@/components/modals/NotificationPanel';
 import OnboardingRunner from '@/components/onboarding/OnboardingRunner';
+import TagModeOverlay from '@/components/tagmode/TagModeOverlay';
+import TemplatePickerSheet from '@/components/sheets/TemplatePickerSheet';
+import { useTagModeStore } from '@/lib/store/tagModeStore';
+import { useSelectionStore } from '@/lib/store/selectionStore';
 import AccessStrip from '@/components/bars/AccessStrip';
 import { getFolderAccessUsersAction, getGroupAccessUsersAction, type AccessUser } from '@/app/lib/actions/access';
 import { getSessionUser, getFriendBarAction, getGroupBarAction, type SessionUser } from '@/app/lib/actions/session';
@@ -191,6 +195,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
   const [friendSheet, setFriendSheet] = useState<FriendSheetTarget | null>(null);
   const [notificationCount, setNotificationCount] = useState(0);
   const [notificationPanelOpen, setNotificationPanelOpen] = useState(false);
+  const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
 
   // Fetch initial unread notification count
   useEffect(() => {
@@ -381,6 +386,16 @@ function AppShell({ children }: { children: React.ReactNode }) {
               setSpeedDialOpen(false);
               if (id === 'card') setOpenAdd(true);
               else if (id === 'folder') setOpenFolder(true);
+              else if (id === 'template') setTemplatePickerOpen(true);
+              else if (id === 'tag') {
+                // §11.3b step 6 — Tag Mode is mutually exclusive with
+                // multi-select mode; entry is refused while one is active.
+                if (useSelectionStore.getState().isActive) {
+                  showToast.info('Exit multi-select to use Tag Mode');
+                } else {
+                  useTagModeStore.getState().enter();
+                }
+              }
               else showToast.info('Coming soon');
             }}
           />
@@ -441,6 +456,19 @@ function AppShell({ children }: { children: React.ReactNode }) {
         open={notificationPanelOpen}
         onClose={() => setNotificationPanelOpen(false)}
         onUnreadCountChange={setNotificationCount}
+      />
+
+      {/* Tag Mode — floating pill + tag sheet (PRD §11.3b) */}
+      <TagModeOverlay
+        tags={layoutTags}
+        languageCode={sessionUser?.language_code ?? 'en'}
+      />
+
+      {/* Template Picker — §11.3d presets via create_folder_template */}
+      <TemplatePickerSheet
+        open={templatePickerOpen}
+        onClose={() => setTemplatePickerOpen(false)}
+        onCreated={refreshFolders}
       />
 
       {/* Multi-select context menu + undo toast (P7-T03) */}

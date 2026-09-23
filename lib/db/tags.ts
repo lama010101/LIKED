@@ -164,8 +164,9 @@ export async function createOrGetTag(
 
 /**
  * Attach a tag to a node (organizational only — no edge/visibility effects,
- * per PRD §6.6). Idempotent: uses upsert with onConflict so duplicate
- * assignments are silently ignored without a separate SELECT check.
+ * per PRD §6.6). Idempotent: tag_edges has no unique constraint on
+ * (tag_id,node_id,folder_id), so dedupe is an existence check + insert —
+ * a second call for the same pair is a no-op.
  */
 export async function addTagToNode(
   tagId: string,
@@ -173,17 +174,64 @@ export async function addTagToNode(
 ): Promise<void> {
   const supabase = getSupabaseServiceClient();
 
-  const { error } = await supabase.from("tag_edges").upsert(
-    {
-      tag_id: tagId,
-      node_id: nodeId,
-      folder_id: null,
-    },
-    { onConflict: "tag_id,node_id,folder_id", ignoreDuplicates: true }
-  );
+  const { data: existing, error: lookupErr } = await supabase
+    .from("tag_edges")
+    .select("id")
+    .eq("tag_id", tagId)
+    .eq("node_id", nodeId)
+    .is("folder_id", null)
+    .limit(1)
+    .maybeSingle();
+
+  if (lookupErr) {
+    throw new Error(`Failed to check tag on node: ${lookupErr.message}`);
+  }
+  if (existing) return;
+
+  const { error } = await supabase.from("tag_edges").insert({
+    tag_id: tagId,
+    node_id: nodeId,
+    folder_id: null,
+  });
 
   if (error) {
     throw new Error(`Failed to add tag to node: ${error.message}`);
+  }
+}
+
+/**
+ * Attach a tag to a folder (PRD §11.3b step 4 — Tag Mode folder tagging).
+ * Same organizational semantics as addTagToNode: idempotent via existence
+ * check; no edge/visibility effects.
+ */
+export async function addTagToFolder(
+  tagId: string,
+  folderId: string
+): Promise<void> {
+  const supabase = getSupabaseServiceClient();
+
+  const { data: existing, error: lookupErr } = await supabase
+    .from("tag_edges")
+    .select("id")
+    .eq("tag_id", tagId)
+    .is("node_id", null)
+    .eq("folder_id", folderId)
+    .limit(1)
+    .maybeSingle();
+
+  if (lookupErr) {
+    throw new Error(`Failed to check tag on folder: ${lookupErr.message}`);
+  }
+  if (existing) return;
+
+  const { error } = await supabase.from("tag_edges").insert({
+    tag_id: tagId,
+    node_id: null,
+    folder_id: folderId,
+  });
+
+  if (error) {
+    throw new Error(`Failed to add tag to folder: ${error.message}`);
   }
 }
 

@@ -1,6 +1,8 @@
 'use client';
 
 import { useFilterStore } from '@/lib/store/filterStore';
+import { useTagModeStore } from '@/lib/store/tagModeStore';
+import { applyTagToFolderAction } from '@/app/lib/actions/applyTagToNode';
 import DroppableFolderChip from '@/components/dnd/DroppableFolderChip';
 
 interface FolderChip {
@@ -24,6 +26,11 @@ interface FoldersStripProps {
 export default function FoldersStrip({ folders, visible = true }: FoldersStripProps) {
   const filterFolderIds = useFilterStore((s) => s.filterFolderIds);
   const toggleFolderFilter = useFilterStore((s) => s.toggleFolderFilter);
+  // §11.3b step 4 — folder tagging while Tag Mode is active
+  const tagModeActive = useTagModeStore((s) => s.active);
+  const tagModeTag = useTagModeStore((s) => s.tag);
+  const tagFlash = useTagModeStore((s) => s.flash);
+  const tagFlashTarget = useTagModeStore((s) => s.flashTarget);
 
   if (!visible || folders.length === 0) return null;
 
@@ -52,12 +59,22 @@ export default function FoldersStrip({ folders, visible = true }: FoldersStripPr
       >
         {folders.map((folder) => {
           const isActive = filterFolderIds.includes(folder.id);
+          const flashing = tagFlashTarget === `folder:${folder.id}`;
           const color = folder.color_hex || 'var(--accent)';
           return (
             <DroppableFolderChip key={folder.id} folderId={folder.id} folders={folders}>
               <button
                 type="button"
-                onClick={() => toggleFolderFilter(folder.id)}
+                onClick={() => {
+                  if (tagModeActive) {
+                    if (tagModeTag) {
+                      void applyTagToFolderAction(tagModeTag.id, folder.id);
+                      tagFlash(`folder:${folder.id}`);
+                    }
+                    return;
+                  }
+                  toggleFolderFilter(folder.id);
+                }}
                 aria-pressed={isActive}
                 style={{
                   display: 'inline-flex',
@@ -73,6 +90,7 @@ export default function FoldersStrip({ folders, visible = true }: FoldersStripPr
                   border: isActive
                     ? `2px solid ${color}`
                     : '1px solid var(--border-1)',
+                  boxShadow: flashing ? '0 0 0 2px var(--accent, #7c5cfc)' : undefined,
                   background: isActive
                     ? `color-mix(in srgb, ${color} 10%, transparent)`
                     : 'var(--surface-1)',
