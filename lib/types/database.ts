@@ -799,25 +799,10 @@ export interface Database {
         }
         Returns: unknown
       }
-      get_nodes_in_folder: {
-        Args: {
-          p_user_id: string
-          p_folder_id: string
-          p_sort: string
-        }
-        Returns: unknown
-      }
       get_visible_node_by_id: {
         Args: {
           p_user_id: string
           p_node_id: string
-        }
-        Returns: unknown
-      }
-      get_visible_nodes: {
-        Args: {
-          p_user_id: string
-          p_sort: string
         }
         Returns: unknown
       }
@@ -849,17 +834,6 @@ export interface Database {
           p_sharer_id: string
           p_folder_id: string
           p_target_user_ids: string[]
-        }
-        Returns: unknown
-      }
-      search_nodes: {
-        Args: {
-          p_user_id: string
-          p_query: string
-          p_language_code: string
-          p_sort: string
-          p_view: string
-          p_mine_filter: string
         }
         Returns: unknown
       }
