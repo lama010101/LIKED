@@ -1260,6 +1260,46 @@ export interface Database {
         }
         Returns: string
       }
+      get_onboarding_state: {
+        Args: Record<string, never>
+        Returns: {
+          imported: boolean
+          dismissed: boolean
+          youtube_connected: boolean
+          import_count: number
+        }
+      }
+      set_onboarding_flag: {
+        Args: {
+          p_step: string
+        }
+        Returns: void
+      }
+      get_onboarding_import_node_ids: {
+        Args: Record<string, never>
+        Returns: string[]
+      }
+      delete_group: {
+        Args: {
+          p_group_id: string
+        }
+        Returns: void
+      }
+      create_folder_template: {
+        Args: {
+          p_template_key: string
+          p_name?: string | null
+        }
+        Returns: string
+      }
+      get_folder_memberships: {
+        Args: {
+          p_folder_id: string
+        }
+        Returns: {
+          node_id: string
+        }[]
+      }
     }
     Views: Record<string, never>
     Enums: Record<string, never>
