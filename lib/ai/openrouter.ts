@@ -67,44 +67,66 @@ export async function suggestCategorization(input: {
     `Existing tags: ${input.existingTags.join(", ") || "(none)"}`,
   ].join("\n");
 
-  try {
-    const res = await fetch(ENDPOINT, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        messages: [{ role: "user", content: prompt }],
-        response_format: RESPONSE_SCHEMA,
-      }),
-    });
-    if (!res.ok) {
-      logger.warn("[openrouter] chat/completions non-OK:", res.status);
-      return null;
+  // PHASE5-N4-HARDEN-001: OpenRouter wraps upstream provider failures
+  // (e.g. {"error":{"code":503,"error_type":"provider_overloaded"}}) in an
+  // HTTP 200 body. Retry ANY failure shape — non-OK status, embedded
+  // error, empty content, malformed JSON — up to 3 total attempts with
+  // 1s/2s backoff. Capped: no unbounded retry, genuine failures still
+  // return null after the cap.
+  const MAX_ATTEMPTS = 3;
+  const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      const res = await fetch(ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: MODEL,
+          messages: [{ role: "user", content: prompt }],
+          response_format: RESPONSE_SCHEMA,
+        }),
+      });
+      const body = await res.text();
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = JSON.parse(body) as {
+        choices?: { message?: { content?: string } }[];
+        error?: { message?: string; code?: number; metadata?: { error_type?: string } };
+      };
+      if (data.error) {
+        throw new Error(
+          `embedded error ${data.error.code ?? "?"} ${data.error.metadata?.error_type ?? ""}: ${data.error.message ?? "unknown"}`
+        );
+      }
+      const text = data.choices?.[0]?.message?.content;
+      if (!text) throw new Error("empty content");
+      const parsed = JSON.parse(text) as Partial<CategorizationSuggestion>;
+      return {
+        folderName:
+          typeof parsed.folderName === "string" && parsed.folderName.trim()
+            ? parsed.folderName.trim().slice(0, 80)
+            : null,
+        tagLabels: Array.isArray(parsed.tagLabels)
+          ? parsed.tagLabels
+              .filter((t): t is string => typeof t === "string" && !!t.trim())
+              .map((t) => t.trim().slice(0, 40))
+              .slice(0, 3)
+          : [],
+        reason: typeof parsed.reason === "string" ? parsed.reason.slice(0, 300) : "",
+      };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (attempt < MAX_ATTEMPTS) {
+        logger.warn(`[openrouter] attempt ${attempt}/${MAX_ATTEMPTS} failed (${msg}); retrying in ${attempt}s`);
+        await sleep(attempt * 1000);
+      } else {
+        logger.warn(`[openrouter] suggestion failed after ${MAX_ATTEMPTS} attempts: ${msg}`);
+        return null;
+      }
     }
-    const data = (await res.json()) as {
-      choices?: { message?: { content?: string } }[];
-    };
-    const text = data.choices?.[0]?.message?.content;
-    if (!text) return null;
-    const parsed = JSON.parse(text) as Partial<CategorizationSuggestion>;
-    return {
-      folderName:
-        typeof parsed.folderName === "string" && parsed.folderName.trim()
-          ? parsed.folderName.trim().slice(0, 80)
-          : null,
-      tagLabels: Array.isArray(parsed.tagLabels)
-        ? parsed.tagLabels
-            .filter((t): t is string => typeof t === "string" && !!t.trim())
-            .map((t) => t.trim().slice(0, 40))
-            .slice(0, 3)
-        : [],
-      reason: typeof parsed.reason === "string" ? parsed.reason.slice(0, 300) : "",
-    };
-  } catch (err) {
-    logger.warn("[openrouter] suggestion failed:", err);
-    return null;
   }
+  return null;
 }
