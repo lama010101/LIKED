@@ -55,12 +55,13 @@ const PlusIcon = () => (
 interface StoryItemProps {
   item: BottomBarItem;
   isActive: boolean;
+  hasAccess?: boolean;
   onClick: (id: string, type: 'me' | 'friend' | 'group') => void;
   onFriendLongPress?: (item: BottomBarItem) => void;
   groupColorIndex?: number;
 }
 
-function StoryItem({ item, isActive, onClick, onFriendLongPress, groupColorIndex }: StoryItemProps) {
+function StoryItem({ item, isActive, hasAccess, onClick, onFriendLongPress, groupColorIndex }: StoryItemProps) {
   // Disable DnD during SSR to prevent hydration mismatch
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => {
@@ -159,7 +160,10 @@ function StoryItem({ item, isActive, onClick, onFriendLongPress, groupColorIndex
         cursor: dragSource && !selectionActive ? 'grab' : 'pointer',
       }}
     >
-      <div className={`story-ring${isActive ? ' active' : ''}${isOver ? ' drop-over' : ''}`}>
+      <div
+        className={`story-ring${isActive ? ' active' : ''}${isOver ? ' drop-over' : ''}`}
+        style={hasAccess ? { boxShadow: '0 0 0 3px var(--accent, #7c5cfc)', borderRadius: '50%' } : undefined}
+      >
         <div
           className="story-img"
           style={
@@ -190,6 +194,8 @@ function StoryItem({ item, isActive, onClick, onFriendLongPress, groupColorIndex
 
 interface StoriesBarProps {
   items: BottomBarItem[];
+  /** §16.4: user ids with access to the active folder/group context — friend rings glow */
+  highlightIds?: Set<string>;
   onAvatarClick: (id: string, type: 'me' | 'friend' | 'group') => void;
   onFriendLongPress?: (item: BottomBarItem) => void;
   onManage?: () => void;
@@ -198,6 +204,7 @@ interface StoriesBarProps {
 
 export default function StoriesBar({
   items,
+  highlightIds,
   onAvatarClick,
   onFriendLongPress,
   onManage,
@@ -258,6 +265,7 @@ export default function StoriesBar({
             key={item.id}
             item={item}
             isActive={friendId === item.id}
+            hasAccess={highlightIds?.has(item.id)}
             onClick={onAvatarClick}
             onFriendLongPress={onFriendLongPress}
           />

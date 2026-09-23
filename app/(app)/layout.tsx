@@ -21,6 +21,8 @@ import ContextStrip, { ContextPill } from '@/components/bars/ContextStrip';
 import FabSpeedDial from '@/components/bars/FabSpeedDial';
 import NotificationPanel from '@/components/modals/NotificationPanel';
 import OnboardingRunner from '@/components/onboarding/OnboardingRunner';
+import AccessStrip from '@/components/bars/AccessStrip';
+import { getFolderAccessUsersAction, getGroupAccessUsersAction, type AccessUser } from '@/app/lib/actions/access';
 import { getSessionUser, getFriendBarAction, getGroupBarAction, type SessionUser } from '@/app/lib/actions/session';
 import { getUserFoldersAction } from '@/app/lib/actions/getFolders';
 import { getTagsAction } from '@/app/lib/actions/getTags';
@@ -38,6 +40,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
   const filterFriendIds = useFilterStore((s) => s.filterFriendIds);
   const filterFolderIds = useFilterStore((s) => s.filterFolderIds);
   const activeFolderId = useFilterStore((s) => s.folderId);
+  const activeGroupId = useFilterStore((s) => s.groupId);
   const searchQuery = useFilterStore((s) => s.searchQuery);
   const toggleTagFilter = useFilterStore((s) => s.toggleTagFilter);
   const toggleFriendFilter = useFilterStore((s) => s.toggleFriendFilter);
@@ -113,6 +116,26 @@ function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     refreshFolders();
   }, [refreshFolders]);
+
+  // ACCESS-RAIL-001 (§16.4): when a folder/group context is active, fetch
+  // who has access (N7 RPCs via session client) — drives the AccessStrip
+  // row and the highlight on StoriesBar friend rings.
+  const [accessUsers, setAccessUsers] = useState<AccessUser[]>([]);
+  useEffect(() => {
+    if (!activeFolderId && !activeGroupId) {
+      queueMicrotask(() => setAccessUsers([]));
+      return;
+    }
+    let live = true;
+    const pending = activeFolderId
+      ? getFolderAccessUsersAction(activeFolderId)
+      : getGroupAccessUsersAction(activeGroupId!);
+    pending
+      .then((users) => { if (live) setAccessUsers(users); })
+      .catch(() => { if (live) setAccessUsers([]); });
+    return () => { live = false; };
+  }, [activeFolderId, activeGroupId]);
+  const accessUserIds = useMemo(() => new Set(accessUsers.map((u) => u.userId)), [accessUsers]);
 
   // Rebuild full ancestry chain from layoutFolders on deep-link / page load
   useEffect(() => {
@@ -296,6 +319,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
         {/* Stories rail — Me + friends + groups + Manage/New group */}
         <StoriesBar
           items={bottomBarItems}
+          highlightIds={accessUserIds}
           onAvatarClick={handleAvatarClick}
           onFriendLongPress={(item) =>
             setFriendSheet({ userId: item.id, displayName: item.displayName })
@@ -309,6 +333,9 @@ function AppShell({ children }: { children: React.ReactNode }) {
             setFmOpen(true);
           }}
         />
+
+        {/* Access avatars row (PRD §16.4) — directly under the rail it highlights */}
+        <AccessStrip users={accessUsers} />
 
         {/* Folder chips — click-to-filter rail (N6; filterFolderIds → p_filter_folder_ids) */}
         <FoldersStrip folders={layoutFolders} />
