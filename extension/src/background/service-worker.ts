@@ -11,7 +11,7 @@
 
 const LIKED_SESSION_KEY = "liked_session";
 const ALLOWED_ORIGINS = [
-  "https://liked.app",
+  "https://liked-zeta.vercel.app",
   "http://localhost:3000",
   "http://127.0.0.1:3000",
   "http://localhost:3001",

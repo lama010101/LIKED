@@ -3,9 +3,12 @@
   "name": "LIKED — Save to Library",
   "version": "0.1.0",
   "description": "Save any URL to your LIKED library with one click. Quick save by default, optional title, description, tags, and collection.",
-  "permissions": ["activeTab", "storage", "tabs"],
+  "permissions": [
+    "activeTab",
+    "storage"
+  ],
   "host_permissions": [
-    "https://liked.app/*",
+    "https://liked-zeta.vercel.app/*",
     "http://localhost:3000/*",
     "http://127.0.0.1:3000/*",
     "http://localhost:3001/*",
@@ -32,9 +35,16 @@
     "128": "icons/icon-128.png"
   },
   "externally_connectable": {
-    "matches": ["https://liked.app/*", "http://localhost:3000/*", "http://127.0.0.1:3000/*", "http://localhost:3001/*", "http://127.0.0.1:3001/*"]
+    "matches": [
+      "https://liked-zeta.vercel.app/*",
+      "http://localhost:3000/*",
+      "http://127.0.0.1:3000/*",
+      "http://localhost:3001/*",
+      "http://127.0.0.1:3001/*"
+    ]
   },
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
-  }
+  },
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2tmfeDjCsgSOe5iA/nTMPJIfDJnB8JaFrLaHiDHmddUkvXd+to9aoC+oe6rgu7EA2qs0k4nQaDTnCgf+06jeNHhptid+EPtGkDiptcINK34AtW8kgTzUpsDBIksPNfLLPL+kJb9p8WHN+bNUqRL4J4ykXT1Sh79XLuu/58ymTGvmWTPa0qNReW+Dz2ba2QfICXvbwExbxDaHDBy/qsDmDNsrS++304x1FSzS848FiBBeltzg8qxTiLvi8OleysAfda+QmXpgYz8Jnx4JElQaEtxxrr2haxkp0EqeIGAuXLG1fGvX448+4sF41gHaKvJFQ4jLmjtCqu2w/zoUlqkZBQIDAQAB"
 }
