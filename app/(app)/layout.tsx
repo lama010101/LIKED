@@ -20,6 +20,7 @@ import TagsStrip from '@/components/bars/TagsStrip';
 import ContextStrip, { ContextPill } from '@/components/bars/ContextStrip';
 import FabSpeedDial from '@/components/bars/FabSpeedDial';
 import NotificationPanel from '@/components/modals/NotificationPanel';
+import OnboardingRunner from '@/components/onboarding/OnboardingRunner';
 import { getSessionUser, getFriendBarAction, getGroupBarAction, type SessionUser } from '@/app/lib/actions/session';
 import { getUserFoldersAction } from '@/app/lib/actions/getFolders';
 import { getTagsAction } from '@/app/lib/actions/getTags';
@@ -339,6 +340,8 @@ function AppShell({ children }: { children: React.ReactNode }) {
 
         {/* Scrollable content — folder chrome + feed live inside FeedGrid */}
         <div className="v2-content">
+          {/* ONBOARD-001: background import + single-folder CTA (renders on /feed only) */}
+          <OnboardingRunner onFolderCreated={refreshFolders} />
           {children}
         </div>
 

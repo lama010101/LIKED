@@ -85,6 +85,7 @@ export default defineConfig({
         /sharing-authenticated\.spec\.ts/,
         /dnd-authenticated\.spec\.ts/,
         /notifications-authenticated\.spec\.ts/,
+        /onboarding\.spec\.ts/,
       ],
       dependencies: ["setup"],
       use: {

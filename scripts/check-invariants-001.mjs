@@ -123,6 +123,65 @@ try {
   await pool.end();
 }
 
+// DB-17 — COMPLETE-APP-002 (G-2/G-3): every RPC introduced by migrations
+// 107-110 must exist, be SECURITY DEFINER with SET search_path, have no
+// EXECUTE for PUBLIC/anon, and return 42501 on an unauthenticated call.
+{
+  const { default: pg2 } = await import("pg");
+  let c2 = process.env.DATABASE_URL;
+  const pw2 = c2.match(/:([^:@]+)@/)?.[1];
+  if (c2.includes("db.lzkzfqshnjvlzosnntfx.supabase.co")) {
+    c2 = `postgresql://postgres.lzkzfqshnjvlzosnntfx:${pw2}@aws-1-us-west-2.pooler.supabase.com:5432/postgres`;
+  }
+  const pool2 = new pg2.Pool({ connectionString: c2, connectionTimeoutMillis: 15000, ssl: { rejectUnauthorized: false } });
+  const client2 = await pool2.connect();
+  try {
+    const NEW_RPCS = [
+      { fn: "get_onboarding_state", args: {} },
+      { fn: "set_onboarding_flag", args: { p_step: "imported" } },
+      { fn: "get_onboarding_import_node_ids", args: {} },
+      { fn: "delete_group", args: { p_group_id: "00000000-0000-0000-0000-000000000000" } },
+      { fn: "create_folder_template", args: { p_template_key: "read_later", p_name: "x" } },
+      { fn: "get_folder_memberships", args: { p_folder_id: "00000000-0000-0000-0000-000000000000" } },
+    ];
+    const names = NEW_RPCS.map((r) => r.fn);
+    const meta = await client2.query(
+      `SELECT p.proname, p.prosecdef,
+              (SELECT COUNT(*) FROM unnest(p.proconfig) c WHERE c = 'search_path=public') > 0 AS has_sp
+         FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+        WHERE n.nspname = 'public' AND p.proname = ANY($1)`, [names]);
+    const metaMap = new Map(meta.rows.map((r) => [r.proname, r]));
+    const priv = await client2.query(
+      `SELECT routine_name, grantee FROM information_schema.routine_privileges
+        WHERE routine_schema='public' AND routine_name = ANY($1) AND privilege_type='EXECUTE'
+          AND grantee IN ('PUBLIC','anon')`, [names]);
+    const leaked = new Set(priv.rows.map((r) => r.routine_name));
+
+    const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+    for (const { fn, args } of NEW_RPCS) {
+      const m = metaMap.get(fn);
+      let anonStatus = "n/a", anonOk = false;
+      try {
+        const res = await fetch(`${base}/rest/v1/rpc/${fn}`, {
+          method: "POST",
+          headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}`, "Content-Type": "application/json" },
+          body: JSON.stringify(args),
+        });
+        const body = await res.json().catch(() => ({}));
+        anonStatus = `${res.status} ${body?.code ?? ""}`;
+        anonOk = res.status === 401 && body?.code === "42501";
+      } catch (e) { anonStatus = `fetch-fail ${e.message}`; }
+      check(`DB-17 ${fn} exists + DEFINER + search_path + anon-blocked (42501)`,
+        !!m && m.prosecdef === true && m.has_sp === true && !leaked.has(fn) && anonOk,
+        `${m ? `definer=${m.prosecdef} sp=${m.has_sp}` : "MISSING"} anonCall=${anonStatus}${leaked.has(fn) ? " PUBLIC/anon EXECUTE" : ""}`);
+    }
+  } finally {
+    client2.release();
+    await pool2.end();
+  }
+}
+
 // ---------- Repo checks ----------
 const SRC_DIRS = ["app", "lib", "components"];
 import { isAbsolute } from "path";
