@@ -22,7 +22,7 @@ import MultiSelectContextMenu, {
   ContextActionId,
 } from "./MultiSelectContextMenu";
 import UndoToast from "./UndoToast";
-import { trashNodes, restoreTrashedNode } from "@/app/lib/actions/selection";
+import { trashNodes, trashFolders, trashGroups, restoreTrashedNode } from "@/app/lib/actions/selection";
 import { grantFolderAdminAction, grantGroupAdminAction } from "@/app/lib/actions/admin";
 import { directShareAction, groupShareAction } from "@/app/lib/actions/sharing";
 import { removeNodeFromFolderAction } from "@/app/lib/actions/removeNodeFromFolder";
@@ -68,25 +68,21 @@ export default function SelectionOverlay({
 
     if (actionId === "moveToTrash") {
       const nodeIds = items.filter((i) => i.kind === "node").map((i) => i.id);
-      const nonNode = items.filter((i) => i.kind !== "node");
-      if (nonNode.length > 0 && onToast) {
-        onToast(
-          `Trashing folders/groups is not yet wired (${nonNode.length} skipped)`,
-          "err"
-        );
-      }
+      const folderIds = items.filter((i) => i.kind === "folder").map((i) => i.id);
+      const groupIds = items.filter((i) => i.kind === "group").map((i) => i.id);
       clear();
-      if (nodeIds.length === 0) return;
-      const result = await trashNodes(nodeIds);
-      if (result.ok) {
-        onToast?.(
-          nodeIds.length === 1
-            ? "Moved to trash"
-            : `${nodeIds.length} items moved to trash`,
-          "ok"
-        );
+      const total = nodeIds.length + folderIds.length + groupIds.length;
+      if (total === 0) return;
+      const results = await Promise.all([
+        nodeIds.length ? trashNodes(nodeIds) : null,
+        folderIds.length ? trashFolders(folderIds) : null,
+        groupIds.length ? trashGroups(groupIds) : null,
+      ]);
+      const firstError = results.flatMap((r) => (r && !r.ok ? [r.error] : []))[0];
+      if (firstError) {
+        onToast?.(firstError, "err");
       } else {
-        onToast?.(result.error, "err");
+        onToast?.(total === 1 ? "Moved to trash" : `${total} items moved to trash`, "ok");
       }
       return;
     }

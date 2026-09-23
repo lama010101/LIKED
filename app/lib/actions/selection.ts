@@ -11,6 +11,7 @@
 import { revalidatePath } from "next/cache";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { softDeleteNode, restoreNode } from "@/lib/db/nodes";
+import { deleteFolder } from "@/lib/db/folders";
 
 export type SelectionActionResult =
   | { ok: true }
@@ -89,5 +90,61 @@ export async function trashNodes(nodeIds: string[]): Promise<BatchTrashResult> {
       error: e instanceof Error ? e.message : "Trash failed",
       trashedIds,
     };
+  }
+}
+
+/**
+ * Soft-delete folders (SEL-MENU-001). Reuses lib/db/folders.deleteFolder —
+ * owner/admin authz + soft delete preserving causes/edges.
+ */
+export async function trashFolders(folderIds: string[]): Promise<BatchTrashResult> {
+  const trashedIds: string[] = [];
+  try {
+    const userId = await requireUserId();
+    const errors: string[] = [];
+    for (const id of folderIds) {
+      try {
+        await deleteFolder(id, userId);
+        trashedIds.push(id);
+      } catch (e) {
+        errors.push(e instanceof Error ? e.message : "unknown");
+      }
+    }
+    revalidatePath("/feed");
+    if (errors.length > 0) {
+      return { ok: false, error: `${errors.length} folder(s) failed: ${errors[0]}`, trashedIds };
+    }
+    return { ok: true, trashedIds };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Trash failed", trashedIds };
+  }
+}
+
+/**
+ * Soft-delete groups (SEL-MENU-001). Calls the delete_group RPC with the
+ * session client — owner/group_admin authz is enforced by auth.uid()
+ * inside SQL (migration 108). Members, causes and edges are preserved.
+ */
+export async function trashGroups(groupIds: string[]): Promise<BatchTrashResult> {
+  const trashedIds: string[] = [];
+  try {
+    const supabase = await getSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("Not authenticated");
+    const errors: string[] = [];
+    for (const id of groupIds) {
+      const { error } = await (supabase as unknown as {
+        rpc: (fn: string, params: Record<string, unknown>) => Promise<{ error: { message: string } | null }>;
+      }).rpc("delete_group", { p_group_id: id });
+      if (error) errors.push(error.message);
+      else trashedIds.push(id);
+    }
+    revalidatePath("/feed");
+    if (errors.length > 0) {
+      return { ok: false, error: `${errors.length} group(s) failed: ${errors[0]}`, trashedIds };
+    }
+    return { ok: true, trashedIds };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Trash failed", trashedIds };
   }
 }
