@@ -8,18 +8,13 @@
  * passed) and reordered the SQL result client-side — removed.
  */
 
+import { useEffect, useMemo, useState } from "react";
 import type { ViewProps, FeedItem } from "@/lib/types/feed";
 import type { Folder } from "@/lib/types/app";
+import { getFolderMembershipsAction } from "@/app/lib/actions/access";
 import VideoCard from "../VideoCard";
 
-interface FolderContext {
-  id: string;
-  name: string;
-  color: string;
-}
-
 interface HorizViewProps extends ViewProps {
-  folderContext?: FolderContext | null;
   currentUserId?: string;
   folders?: Folder[];
   sourceFolderId?: string | null;
@@ -30,9 +25,17 @@ interface HorizViewProps extends ViewProps {
   onCardDelete?: (nodeId: string) => void;
 }
 
+interface ItemGroup {
+  label: string;
+  items: FeedItem[];
+}
+
 /**
  * Group items per PRD §11.2 D:
- * 1. If in folder context → group by sub-folder name (stub: use folderColor as proxy)
+ * 1. In folder context → group by REAL sub-folder membership
+ *    (HORIZ-001: get_folder_memberships RPC; feed order preserved —
+ *    items are assigned to buckets in get_feed row order, never sorted
+ *    or filtered here)
  * 2. Else → group by sender (dir: mine/received)
  * 3. Fallback → recency buckets: "Today", "This week", "This month", "Older"
  *
@@ -41,23 +44,32 @@ interface HorizViewProps extends ViewProps {
  */
 function groupItems(
   items: FeedItem[],
-  folderContext?: FolderContext | null
-): { label: string; items: FeedItem[] }[] {
-  // 1. In folder context → group by sub-folder (stub: group by folderColor as proxy)
-  if (folderContext) {
-    const groups: Record<string, FeedItem[]> = {};
-    for (const item of items) {
-      // Use folderColor or title first word as sub-folder proxy
-      const key = item.folderColor ?? "Uncategorized";
-      if (!groups[key]) groups[key] = [];
-      groups[key].push(item);
+  sourceFolderId: string | null | undefined,
+  folders: Folder[] | undefined,
+  memberships: Map<string, Set<string>> | null,
+  activeFolderName: string
+): ItemGroup[] {
+  // 1. Folder context → real sub-folder membership grouping
+  if (sourceFolderId) {
+    if (memberships === null) {
+      // memberships still loading → flat strip in feed order
+      return items.length ? [{ label: activeFolderName, items }] : [];
     }
-    return Object.entries(groups)
-      .map(([, g]) => ({
-        label: g[0].title?.split(" ")[0]?.slice(0, 16) || "Folder",
-        items: g,
-      }))
-      .filter((g) => g.items.length > 0); // Hide empty rows
+    const subfolders = (folders ?? []).filter((f) => f.parent_folder_id === sourceFolderId);
+    if (subfolders.length === 0) {
+      return items.length ? [{ label: activeFolderName, items }] : [];
+    }
+    const buckets = subfolders.map((f) => ({
+      label: f.name,
+      ids: memberships.get(f.id) ?? new Set<string>(),
+      items: [] as FeedItem[],
+    }));
+    const rest: ItemGroup = { label: "This folder", items: [] };
+    for (const item of items) {
+      const bucket = buckets.find((b) => b.ids.has(item.id));
+      (bucket ?? rest).items.push(item);
+    }
+    return [...buckets, rest].filter((g) => g.items.length > 0);
   }
 
   // 2. Else → group by sender (mine/received as proxy for sender)
@@ -74,7 +86,7 @@ function groupItems(
     return result;
   }
 
-  // 4. Fallback → recency buckets
+  // 3. Fallback → recency buckets
   const buckets: Record<string, FeedItem[]> = {
     Today: [],
     "This week": [],
@@ -100,8 +112,46 @@ function groupItems(
     .map(([label, g]) => ({ label, items: g }));
 }
 
-export default function HorizView({ items, onItemClick, folderContext, currentUserId, folders, sourceFolderId, onChanged, onCardShare, onCardMoveToFolder, onCardAddTag, onCardDelete }: HorizViewProps) {
-  const groups = groupItems(items, folderContext);
+export default function HorizView({ items, onItemClick, currentUserId, folders, sourceFolderId, onChanged, onCardShare, onCardMoveToFolder, onCardAddTag, onCardDelete }: HorizViewProps) {
+  // HORIZ-001 — real sub-folder membership sets (edge-visible node_ids
+  // only, via get_folder_memberships). Fetched per subfolder when a
+  // folder context is active; ordering inside each group is inherited
+  // from get_feed row order — no sorting here.
+  const [memberships, setMemberships] = useState<Map<string, Set<string>> | null>(null);
+  const subfolderKey = useMemo(
+    () => (folders ?? []).filter((f) => f.parent_folder_id === sourceFolderId).map((f) => f.id).join(","),
+    [folders, sourceFolderId]
+  );
+  useEffect(() => {
+    if (!sourceFolderId) {
+      queueMicrotask(() => setMemberships(null));
+      return;
+    }
+    const subs = (folders ?? []).filter((f) => f.parent_folder_id === sourceFolderId);
+    if (subs.length === 0) {
+      queueMicrotask(() => setMemberships(new Map()));
+      return;
+    }
+    let live = true;
+    Promise.all(
+      subs.map((f) =>
+        getFolderMembershipsAction(f.id).then(
+          (ids) => [f.id, new Set(ids)] as const
+        )
+      )
+    )
+      .then((entries) => { if (live) setMemberships(new Map(entries)); })
+      .catch(() => { if (live) setMemberships(new Map()); });
+    return () => { live = false; };
+    // subfolderKey captures the folders list identity relevant here
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sourceFolderId, subfolderKey]);
+
+  const activeFolderName = (folders ?? []).find((f) => f.id === sourceFolderId)?.name ?? "Folder";
+  const groups = useMemo(
+    () => groupItems(items, sourceFolderId, folders, memberships, activeFolderName),
+    [items, sourceFolderId, folders, memberships, activeFolderName]
+  );
 
   return (
     <div style={{ paddingBottom: 8 }}>

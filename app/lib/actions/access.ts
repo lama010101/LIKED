@@ -37,3 +37,19 @@ export async function getGroupAccessUsersAction(groupId: string): Promise<Access
   if (error || !data) return [];
   return data.map((r) => ({ userId: r.user_id, displayName: r.display_name, avatarKey: r.avatar_key }));
 }
+
+/**
+ * HORIZ-001 — visible node_ids inside a folder for the caller.
+ * SQL enforces folder_is_accessible + the get_feed visibility predicate;
+ * returns [] on any failure (grouping falls back to a flat strip).
+ */
+export async function getFolderMembershipsAction(folderId: string): Promise<string[]> {
+  const supabase = await getSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+  const { data, error } = await (supabase as unknown as {
+    rpc: (fn: string, params: Record<string, unknown>) => Promise<{ data: { node_id: string }[] | null; error: { message: string } | null }>;
+  }).rpc("get_folder_memberships", { p_folder_id: folderId });
+  if (error || !data) return [];
+  return data.map((r) => r.node_id);
+}
