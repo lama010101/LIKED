@@ -13,7 +13,9 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import { useFilterStore } from '@/lib/store/filterStore';
+import { normalizeFilterState, serializeFilterStateToURL } from '@/lib/utils/feedParams';
 import DroppableFolderChip from '@/components/dnd/DroppableFolderChip';
 import { getGroupMembersAction } from '@/app/lib/actions/groups';
 import type { GroupMemberEntry } from '@/lib/db/groups';
@@ -101,6 +103,18 @@ export default function Sidebar({ collapsed, onToggle, folders, tags }: SidebarP
   const clearContext = useFilterStore((s) => s.clearContext);
   const setFolderStack = useFilterStore((s) => s.setFolderStack);
   const toggleTagFilter = useFilterStore((s) => s.toggleTagFilter);
+  const router = useRouter();
+  const pathname = usePathname();
+
+  // Push /feed carrying the current store state. Deferred via setTimeout(0)
+  // so useFeedURLSync's store-change router.replace on the current route is
+  // issued first and cannot discard this push.
+  const navToFeed = () => {
+    setTimeout(() => {
+      const qs = serializeFilterStateToURL(normalizeFilterState(useFilterStore.getState()));
+      router.push(`/feed${qs ? `?${qs}` : ''}`);
+    }, 0);
+  };
 
   const [foldersOpen, setFoldersOpen] = useState(true);
   const [tagsOpen, setTagsOpen] = useState(false);
@@ -144,6 +158,7 @@ export default function Sidebar({ collapsed, onToggle, folders, tags }: SidebarP
     }
     setContext({ folderId: folder.id });
     setFolderStack(pathTo(folder));
+    if (pathname !== '/feed') navToFeed();
   };
 
   const renderFolderRow = (folder: SidebarFolder, depth: number) => {
@@ -265,7 +280,10 @@ export default function Sidebar({ collapsed, onToggle, folders, tags }: SidebarP
               key={t.id}
               type="button"
               className={`nav-item${tagIds.includes(t.id) ? ' active' : ''}`}
-              onClick={() => toggleTagFilter(t.id)}
+              onClick={() => {
+                toggleTagFilter(t.id);
+                if (pathname !== '/feed') navToFeed();
+              }}
             >
               <span className="nav-icon" style={{ color: t.color_hex }}>
                 {TagDotIcon}
