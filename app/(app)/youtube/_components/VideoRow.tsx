@@ -1,6 +1,8 @@
 "use client";
 
 import Image from "next/image";
+import { useDraggable } from "@dnd-kit/core";
+import { sourceId, type DragSource } from "@/lib/dnd/types";
 
 /**
  * VideoRow — extracted from youtube/page.tsx
@@ -38,14 +40,37 @@ export default function VideoRow({
   saving,
   saved,
 }: VideoRowProps) {
+  // Drag source (YT-UX-005): dropping a row on a sidebar folder imports the
+  // video into that folder. Mirrors NodeCard.tsx's useDraggable pattern —
+  // the payload carries everything importYouTubeActivity needs (no re-fetch).
+  const dragSource: DragSource = {
+    kind: "youtube-video",
+    videoId: video.id,
+    title: video.title,
+    description: video.description,
+    channelTitle: video.channelTitle,
+    categoryId: video.categoryId,
+    thumbnail: video.thumbnail,
+  };
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: sourceId(dragSource),
+    data: { dragSource },
+  });
+
   return (
-    <div style={{
+    <div
+      ref={setNodeRef}
+      {...attributes}
+      {...listeners}
+      style={{
       display: "flex",
       gap: 12,
       padding: 12,
       background: "var(--surface-2, #f9f9f9)",
       borderRadius: 12,
       border: "1px solid var(--border-1, #f0f0f0)",
+      opacity: isDragging ? 0.4 : 1,
+      touchAction: "manipulation",
     }}>
       {/* Thumbnail */}
       {video.thumbnail && (

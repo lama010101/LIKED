@@ -11,6 +11,8 @@
 
 import { revalidatePath } from "next/cache";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { getSupabaseServiceClient } from "@/lib/supabase/service";
+import { importYouTubeActivity } from "@/app/lib/actions/youtubeImport";
 import { directShare, groupShare, createGroup, shareFolder } from "@/lib/db/sharing";
 import { addNodeToFolder, moveFolder } from "@/lib/db/folders";
 import { addTagToNode, removeTagFromNode } from "@/lib/db/tags";
@@ -278,6 +280,81 @@ export async function dndMoveFolder(
     return {
       ok: false,
       error: e instanceof Error ? e.message : "Move folder failed",
+    };
+  }
+}
+
+/**
+ * Result for YouTube video → folder drops (YT-UX-005). `alreadyInFeed`
+ * distinguishes a fresh import from the duplicate path so the client can
+ * show a distinct toast; `moved` tells whether the existing node actually
+ * gained a folder edge (false when the prior node is soft-deleted).
+ */
+export type DndImportYouTubeResult =
+  | { ok: true; alreadyInFeed: false }
+  | { ok: true; alreadyInFeed: true; moved: boolean }
+  | { ok: false; error: string };
+
+/**
+ * YouTube video row → Folder chip: import the video AND attach it to the
+ * target folder in one action (YT-UX-005). The write itself is delegated
+ * to importYouTubeActivity → import_url RPC (node + cause + edges +
+ * folder edge in a single transaction).
+ *
+ * Duplicate path: when the video was already imported (import_url raises
+ * DUPLICATE_NODE → code:"duplicate"), recover the existing live node via
+ * the same (url, owner_id, deleted_at IS NULL) lookup createNode uses,
+ * then attach it to the folder via the existing add_node_to_folder RPC.
+ * If no live node exists (soft-deleted duplicate) we report moved:false
+ * and perform no write.
+ */
+export async function dndImportYouTubeVideoToFolder(
+  video: {
+    videoId: string;
+    title: string;
+    description?: string;
+    channelTitle?: string;
+    categoryId?: string;
+    thumbnail?: string;
+  },
+  folderId: string
+): Promise<DndImportYouTubeResult> {
+  try {
+    const userId = await requireUserId();
+    const url = `https://www.youtube.com/watch?v=${video.videoId}`;
+    const result = await importYouTubeActivity({
+      url,
+      title: video.title,
+      description: video.description ?? "",
+      channelTitle: video.channelTitle ?? "",
+      categoryId: video.categoryId ?? "",
+      thumbnailUrl: video.thumbnail ?? null,
+      targetFolderId: folderId,
+    });
+    if (result.ok) {
+      return { ok: true, alreadyInFeed: false };
+    }
+    if (result.code === "duplicate") {
+      const supabase = getSupabaseServiceClient();
+      const { data: existing } = await supabase
+        .from("nodes")
+        .select("id")
+        .eq("url", url)
+        .eq("owner_id", userId)
+        .is("deleted_at", null)
+        .maybeSingle();
+      if (!existing) {
+        return { ok: true, alreadyInFeed: true, moved: false };
+      }
+      await addNodeToFolder(existing.id, folderId, userId);
+      revalidatePath("/feed");
+      return { ok: true, alreadyInFeed: true, moved: true };
+    }
+    return { ok: false, error: result.error };
+  } catch (e) {
+    return {
+      ok: false,
+      error: e instanceof Error ? e.message : "Import to folder failed",
     };
   }
 }

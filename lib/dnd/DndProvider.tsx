@@ -116,6 +116,22 @@ export default function DndProvider({ children }: { children: React.ReactNode })
         return;
       }
 
+      // YouTube video → Folder: import into the target folder (YT-UX-005).
+      // One action handles fresh import + folder attach; on duplicate the
+      // existing node is attached instead (distinct toast per outcome).
+      if (dragSource.kind === "youtube-video" && dropTarget.kind === "folder") {
+        const { dndImportYouTubeVideoToFolder } = await import("@/app/lib/actions/dnd");
+        const result = await dndImportYouTubeVideoToFolder(dragSource, dropTarget.folderId);
+        if (!result.ok) {
+          toast.error(result.error || "Import to folder failed");
+        } else if (result.alreadyInFeed) {
+          toast.success(result.moved ? "Already in your feed — moved to folder" : "Already in your feed.");
+        } else {
+          toast.success("Video imported to folder");
+        }
+        return;
+      }
+
       // Node → Tag: attach tag to node
       if (dragSource.kind === "node" && dropTarget.kind === "tag") {
         const { dndAttachTagToNode } = await import("@/app/lib/actions/dnd");

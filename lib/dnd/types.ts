@@ -7,7 +7,18 @@ export type DragSource =
   | { kind: "node"; nodeId: string }
   | { kind: "tag"; tagId: string; nodeId: string } // tag chip on a node (drag-off = remove)
   | { kind: "friend"; friendUserId: string }
-  | { kind: "folder"; folderId: string };
+  | { kind: "folder"; folderId: string }
+  // Liked-videos row on /youtube — carries everything importYouTubeActivity
+  // needs so the drop handler never re-fetches video metadata (YT-UX-005).
+  | {
+      kind: "youtube-video";
+      videoId: string;
+      title: string;
+      description?: string;
+      channelTitle?: string;
+      categoryId?: string;
+      thumbnail?: string;
+    };
 
 export type DropTarget =
   | { kind: "friend"; friendUserId: string }
@@ -28,6 +39,8 @@ export function sourceId(s: DragSource): string {
       return `src-friend:${s.friendUserId}`;
     case "folder":
       return `src-folder:${s.folderId}`;
+    case "youtube-video":
+      return `src-youtube:${s.videoId}`;
   }
 }
 
