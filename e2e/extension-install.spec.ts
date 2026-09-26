@@ -22,15 +22,33 @@ test.describe("Extension install page", () => {
     // Download button (ZIP or Web Store — depends on env)
     await expect(page.getByRole("link", { name: /download extension|add to chrome/i })).toBeVisible();
 
-    // Step: Unzip
-    await expect(page.getByText(/unzip the file/i)).toBeVisible();
+    // Step: Unzip (desktop default view)
+    await expect(page.getByText(/download and unzip/i)).toBeVisible();
 
-    // Step: Load in Chrome — mentions chrome://extensions
+    // Step: Load in Chrome — shows chrome://extensions as copyable text
+    // (chrome:// links cannot be navigated to from an https page)
     await expect(page.getByText(/load in chrome/i)).toBeVisible();
-    await expect(page.getByRole("link", { name: /chrome:\/\/extensions/i })).toBeVisible();
+    await expect(page.getByText("chrome://extensions")).toBeVisible();
 
     // Step: Sign in
     await expect(page.getByText("Sign in", { exact: true })).toBeVisible();
+  });
+
+  test("platform switcher exposes the Android (Edge Canary .crx) path", async ({ page }) => {
+    await page.goto("/extension/install");
+
+    // Switch to Android view
+    await page.getByRole("button", { name: /^android/i }).click();
+
+    // Honest disclaimer that Chrome on Android can't install extensions
+    await expect(page.getByText(/chrome on android doesn.?t support extensions/i)).toBeVisible();
+
+    // .crx download CTA
+    await expect(page.getByRole("link", { name: /download extension \(\.crx\)/i })).toBeVisible();
+
+    // Edge Canary steps present
+    await expect(page.getByText(/microsoft edge canary/i).first()).toBeVisible();
+    await expect(page.getByText(/extension install by crx/i)).toBeVisible();
   });
 
   test("has link back to feed", async ({ page }) => {
