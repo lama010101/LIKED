@@ -1,52 +1,59 @@
-import { getSupabaseServerClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
 import { getFeed } from "@/lib/db/feed";
-import { getUserFolders } from "@/lib/db/folders";
-import { parseURLToFilterState, buildFeedParams } from "@/lib/utils/feedParams";
-import { getCustomOrder } from "@/lib/db/nodePreferences";
-import FeedGrid from "./_components/FeedGrid";
+import { getSessionUser } from "@/app/lib/actions/session";
+import { getFoldersAction } from "@/app/lib/actions/mvp2";
+import FeedHome from "./_components/FeedHome";
+import { redirect } from "next/navigation";
 
-interface FeedPageProps {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}
+/**
+ * Home feed (Phase 5). All node visibility/filtering/sorting/pagination
+ * is delegated to get_feed — this page only maps URL params → FeedParams
+ * and renders the result. Folders come from get_folders (Q12) and render
+ * as a distinct section, never merged into the card list client-side.
+ */
+export default async function FeedPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const user = await getSessionUser();
+  if (!user) redirect("/login");
 
-export default async function FeedPage({ searchParams }: FeedPageProps) {
-  const resolvedSearchParams = await searchParams;
-  const supabase = await getSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const sp = await searchParams;
+  const s = (k: string) => (typeof sp[k] === "string" ? (sp[k] as string) : undefined);
+  const q = s("q") ?? null;
+  const friend = s("friend") ?? null;
+  const me = s("me") === "1";
+  const tag = s("tag") ?? null;
+  const sort = s("sort") ?? "newest";
 
-  if (!user) {
-    redirect("/login");
-  }
+  const params = {
+    p_user_id: user.id,
+    p_language_code: user.language_code ?? "en",
+    p_view: "all",
+    p_friend_id: friend,
+    p_filter_tag_ids: tag ? [tag] : null,
+    p_search_query: q,
+    p_sort: sort,
+    // Home shows unfiled cards only; friend/search/me views see everything.
+    p_exclude_foldered: !q && !friend && !me,
+  } as import("@/lib/types/feed").FeedParams;
 
-  // P9-T06-FIX: Parse full filter state from URL (deterministic, normalized)
-  const filterState = parseURLToFilterState(resolvedSearchParams);
-
-  // P9-T06-FIX: Canonical feed path — buildFeedParams → getFeed → get_feed RPC
-  // Custom order comes from user_node_preferences (DB) — the FeedGrid
-  // scopeKey default "default" is mirrored here (AUDIT-06 P2-1).
-  const customOrderIds =
-    filterState.sort === "custom"
-      ? await getCustomOrder(user.id, "default")
-      : undefined;
-  const feedParams = buildFeedParams(filterState, user.id, "en", customOrderIds);
-  const { nodes, totalCount, nextCursor } = await getFeed(feedParams, true);
-
-  // FOLDER-004: Fetch user's folders for feed UI
-  const folders = await getUserFolders();
+  const [feed, folders] = await Promise.all([
+    getFeed(params, true),
+    getFoldersAction({ search: q, tagIds: tag ? [tag] : null, friendId: me ? user.id : friend }),
+  ]);
 
   return (
-    <div className="min-h-[60vh]" style={{ background: 'var(--bg)' }}>
-      <FeedGrid
-        nodes={nodes}
-        currentUserId={user.id}
-        initialFilterState={filterState}
-        totalCount={totalCount}
-        nextCursor={nextCursor}
-        folders={folders}
-      />
-    </div>
+    <FeedHome
+      initialNodes={feed.nodes}
+      totalCount={feed.totalCount}
+      nextCursor={feed.nextCursor}
+      folders={folders}
+      feedParams={params}
+      query={q}
+      friendId={friend}
+      meView={me}
+      userId={user.id}
+    />
   );
 }
