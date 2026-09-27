@@ -17,14 +17,19 @@ export interface AccessUser {
   avatarKey: string | null;
 }
 
+type RpcRows<T> = {
+  rpc: (fn: string, params: Record<string, unknown>) => Promise<{ data: T[] | null; error: { message: string } | null }>;
+};
+
 export async function getFolderAccessUsersAction(folderId: string): Promise<AccessUser[]> {
   const supabase = await getSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return [];
-  const { data, error } = await supabase.rpc("get_folder_access_users", {
-    p_folder_id: folderId,
-    p_requester_id: user.id, // RPC gate: must equal auth.uid()
-  });
+  const { data, error } = await (supabase as unknown as RpcRows<{ user_id: string; display_name: string; avatar_key: string | null }>)
+    .rpc("get_folder_access_users", {
+      p_folder_id: folderId,
+      p_requester_id: user.id, // RPC gate: must equal auth.uid()
+    });
   if (error || !data) return [];
   return data.map((r) => ({ userId: r.user_id, displayName: r.display_name, avatarKey: r.avatar_key }));
 }
@@ -33,7 +38,8 @@ export async function getGroupAccessUsersAction(groupId: string): Promise<Access
   const supabase = await getSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return [];
-  const { data, error } = await supabase.rpc("get_group_access_users", { p_group_id: groupId });
+  const { data, error } = await (supabase as unknown as RpcRows<{ user_id: string; display_name: string; avatar_key: string | null }>)
+    .rpc("get_group_access_users", { p_group_id: groupId });
   if (error || !data) return [];
   return data.map((r) => ({ userId: r.user_id, displayName: r.display_name, avatarKey: r.avatar_key }));
 }

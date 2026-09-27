@@ -58,7 +58,7 @@ export async function upsertCardPositionAction(
 
     const { error: rpcError } = await supabase.rpc('upsert_card_position', {
       p_node_id: nodeId,
-      p_folder_id: folderId,
+      p_folder_id: folderId as string,
       p_pos_x: posX,
       p_pos_y: posY,
       p_width: width,

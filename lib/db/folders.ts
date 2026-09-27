@@ -285,5 +285,5 @@ export async function getFolderById(
     throw new Error(`Failed to fetch folder: ${error.message}`);
   }
 
-  return data as Folder;
+  return data as unknown as Folder;
 }

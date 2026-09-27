@@ -54,7 +54,7 @@ export async function listCategorizationSuggestions(): Promise<CategorizationSug
     reason: string | null;
     nodes: { title: string | null; thumbnail_key: string | null } | null;
   };
-  return ((data ?? []) as Row[]).map((r) => ({
+  return ((data ?? []) as unknown as Row[]).map((r) => ({
     id: r.id,
     node_id: r.node_id,
     node_title: r.nodes?.title ?? null,
