@@ -53,6 +53,7 @@ export default function AddCardSheet({ open, onClose, userId, languageCode }: Ad
   const [ytError, setYtError] = useState<string | null>(null);
   const [ytNotConnected, setYtNotConnected] = useState(false);
   const [ytSavingId, setYtSavingId] = useState<string | null>(null);
+  const [ytPreviewingId, setYtPreviewingId] = useState<string | null>(null);
   const [isSaving, startSaving] = useTransition();
   const [showSuccess, setShowSuccess] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -84,6 +85,7 @@ export default function AddCardSheet({ open, onClose, userId, languageCode }: Ad
         setYtError(null);
         setYtNotConnected(false);
         setYtSavingId(null);
+        setYtPreviewingId(null);
       });
     }
   }, [open]);
@@ -333,6 +335,10 @@ export default function AddCardSheet({ open, onClose, userId, languageCode }: Ad
       setYtSavingId(null);
     }
   };
+
+  const scrollYtPreviewIntoView = useCallback((el: HTMLDivElement | null) => {
+    el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, []);
 
   const handleSave = () => {
     const trimmedInput = input.trim();
@@ -587,54 +593,109 @@ export default function AddCardSheet({ open, onClose, userId, languageCode }: Ad
               ) : ytResults.length > 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 260, overflowY: 'auto' }}>
                   {ytResults.map((v) => (
-                    <button
-                      key={v.id}
-                      type="button"
-                      onClick={() => handlePickYouTube(v)}
-                      disabled={!!ytSavingId}
-                      style={{
-                        display: 'flex',
-                        gap: 10,
-                        alignItems: 'center',
-                        padding: 8,
-                        borderRadius: 10,
-                        background: 'var(--surface-3)',
-                        border: '1px solid var(--border-1)',
-                        cursor: ytSavingId ? 'default' : 'pointer',
-                        textAlign: 'left',
-                        opacity: ytSavingId && ytSavingId !== v.id ? 0.5 : 1,
-                      }}
-                    >
-                      {v.thumbnail && (
-                        <Image
-                          src={v.thumbnail}
-                          alt=""
-                          width={72}
-                          height={40}
-                          unoptimized
-                          style={{ width: 72, height: 40, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }}
-                        />
+                    <div key={v.id} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          gap: 10,
+                          alignItems: 'center',
+                          padding: 8,
+                          borderRadius: 10,
+                          background: 'var(--surface-3)',
+                          border: '1px solid var(--border-1)',
+                          opacity: ytSavingId && ytSavingId !== v.id ? 0.5 : 1,
+                        }}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => setYtPreviewingId((prev) => (prev === v.id ? null : v.id))}
+                          disabled={!!ytSavingId}
+                          aria-expanded={ytPreviewingId === v.id}
+                          style={{
+                            display: 'flex',
+                            gap: 10,
+                            alignItems: 'center',
+                            flex: 1,
+                            minWidth: 0,
+                            padding: 0,
+                            background: 'none',
+                            border: 'none',
+                            cursor: ytSavingId ? 'default' : 'pointer',
+                            textAlign: 'left',
+                          }}
+                        >
+                          {v.thumbnail && (
+                            <Image
+                              src={v.thumbnail}
+                              alt=""
+                              width={72}
+                              height={40}
+                              unoptimized
+                              style={{ width: 72, height: 40, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }}
+                            />
+                          )}
+                          <span style={{ flex: 1, minWidth: 0 }}>
+                            <span style={{
+                              display: 'block',
+                              fontSize: 13,
+                              fontWeight: 600,
+                              color: 'var(--text-1)',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                            }}>
+                              {v.title}
+                            </span>
+                            <span style={{ display: 'block', fontSize: 11, color: 'var(--text-3)', marginTop: 2 }}>
+                              {v.channelTitle}
+                            </span>
+                          </span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handlePickYouTube(v)}
+                          disabled={!!ytSavingId}
+                          style={{
+                            padding: '6px 12px',
+                            borderRadius: 8,
+                            background: 'var(--accent)',
+                            color: 'var(--accent-ink)',
+                            border: 'none',
+                            fontSize: 11,
+                            fontWeight: 700,
+                            cursor: ytSavingId ? 'default' : 'pointer',
+                            flexShrink: 0,
+                          }}
+                        >
+                          {ytSavingId === v.id ? 'Saving…' : 'Add'}
+                        </button>
+                      </div>
+                      {ytPreviewingId === v.id && (
+                        <div
+                          ref={scrollYtPreviewIntoView}
+                          style={{
+                            borderRadius: 10,
+                            overflow: 'hidden',
+                            border: '1px solid var(--border-1)',
+                            background: '#000',
+                            aspectRatio: '16 / 9',
+                          }}
+                        >
+                          <iframe
+                            src={`https://www.youtube.com/embed/${v.id}`}
+                            title={v.title}
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              border: 0,
+                              display: 'block',
+                            }}
+                          />
+                        </div>
                       )}
-                      <span style={{ flex: 1, minWidth: 0 }}>
-                        <span style={{
-                          display: 'block',
-                          fontSize: 13,
-                          fontWeight: 600,
-                          color: 'var(--text-1)',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                        }}>
-                          {v.title}
-                        </span>
-                        <span style={{ display: 'block', fontSize: 11, color: 'var(--text-3)', marginTop: 2 }}>
-                          {v.channelTitle}
-                        </span>
-                      </span>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent)', flexShrink: 0 }}>
-                        {ytSavingId === v.id ? 'Saving…' : 'Add'}
-                      </span>
-                    </button>
+                    </div>
                   ))}
                 </div>
               ) : input.trim().length >= 2 ? (
