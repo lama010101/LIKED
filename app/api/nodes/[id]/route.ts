@@ -1,56 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 
+// Soft delete via the set_node_deleted RPC (owner-gated inside SQL).
+// Causes and edges are never touched by soft delete.
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await getSupabaseServerClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { id: nodeId } = await params;
-
-    // Verify ownership before delete
-    const { data: node, error: fetchError } = await supabase
-      .from("nodes")
-      .select("owner_id")
-      .eq("id", nodeId)
-      .single();
-
-    if (fetchError) {
-      return NextResponse.json({ error: "Node not found" }, { status: 404 });
-    }
-
-    if (node.owner_id !== user.id) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    // Soft delete by setting deleted_at
-    const { error: updateError } = await supabase
-      .from("nodes")
-      .update({ deleted_at: new Date().toISOString() })
-      .eq("id", nodeId)
-      .eq("owner_id", user.id);
-
-    if (updateError) {
-      return NextResponse.json(
-        { error: updateError.message },
-        { status: 500 }
-      );
-    }
-
+    const { error } = await supabase.rpc("set_node_deleted", { p_node_id: nodeId, p_deleted: true });
+    if (error) return NextResponse.json({ error: error.message }, { status: 403 });
     return NextResponse.json({ success: true });
   } catch {
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
