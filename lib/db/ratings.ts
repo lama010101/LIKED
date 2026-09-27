@@ -4,6 +4,7 @@
  */
 
 import { getSupabaseServiceClient } from "@/lib/supabase/service";
+import { rpc } from "@/lib/db/rpc";
 
 export interface RatingWithUser {
   userId: string;
@@ -13,47 +14,30 @@ export interface RatingWithUser {
 }
 
 /**
- * Validate a rating score: 0-10 in steps of 0.5.
+ * Validate a rating score: integer 0–100 (MVP2 Q5).
  */
-function validateScore(score: number): void {
-  if (
-    typeof score !== "number" ||
-    !Number.isFinite(score) ||
-    score < 0 ||
-    score > 10 ||
-    (score * 2) % 1 !== 0
-  ) {
-    throw new Error("score must be 0-10 in steps of 0.5");
+export function validateScore(score: number): void {
+  if (!Number.isInteger(score) || score < 0 || score > 100) {
+    throw new Error("score must be an integer 0-100");
   }
 }
 
 /**
- * Upsert a rating and atomically refresh nodes_sort_cache.avg_rating.
- * Per PRD §6.7.
- *
- * Delegates to the `upsert_rating` Postgres RPC which performs:
- *   1. INSERT .. ON CONFLICT UPDATE into ratings
- *   2. UPSERT into nodes_sort_cache with recalculated avg_rating
- * in a single atomic transaction.
+ * Upsert the caller's rating and atomically refresh nodes_sort_cache.avg_rating
+ * (upsert_rating RPC, migration 118: auth.uid() inside, visibility-gated).
+ * Returns the new average.
  */
-export async function upsertRating(
-  userId: string,
-  nodeId: string,
-  score: number
-): Promise<void> {
+export async function upsertRating(nodeId: string, score: number): Promise<number | null> {
   validateScore(score);
+  return rpc<number | null>("upsert_rating", { p_node_id: nodeId, p_score: score });
+}
 
-  const supabase = getSupabaseServiceClient();
-
-  const { error } = await supabase.rpc("upsert_rating", {
-    p_user_id: userId,
-    p_node_id: nodeId,
-    p_score: score,
-  });
-
-  if (error) {
-    throw new Error(`Failed to upsert rating: ${error.message}`);
-  }
+/**
+ * Upsert the caller's independent folder rating (rate_folder RPC).
+ */
+export async function rateFolder(folderId: string, score: number): Promise<number | null> {
+  validateScore(score);
+  return rpc<number | null>("rate_folder", { p_folder_id: folderId, p_score: score });
 }
 
 /**

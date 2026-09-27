@@ -54,8 +54,8 @@ export async function rateCardAction(
   score: number
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   try {
-    const userId = await requireUserId();
-    await upsertRating(userId, nodeId, score);
+    await requireUserId();
+    await upsertRating(nodeId, score);
     revalidatePath("/feed");
     return { ok: true };
   } catch (e) {
