@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
-import { backfillFriendInvites } from "@/lib/db/friends";
 import { logger } from "@/lib/utils/logger";
 import { encryptToken } from "@/lib/youtube/token-crypto";
 import { getSupabaseServiceClient } from "@/lib/supabase/service";
@@ -175,14 +174,6 @@ export async function GET(request: Request) {
       return NextResponse.redirect(`${origin}/feed?youtube_error=connection_save_failed`);
     }
 
-    // Backfill any pending friend invites for this user's email.
-    if (user.email) {
-      try {
-        await backfillFriendInvites(user.id, user.email);
-      } catch {
-        // Non-fatal — invite backfill is a best-effort enhancement.
-      }
-    }
 
     return NextResponse.redirect(`${origin}${next}`);
   } catch (err) {

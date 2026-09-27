@@ -10,6 +10,7 @@
  */
 
 import { getSupabaseServiceClient } from "@/lib/supabase/service";
+import { rpc } from "@/lib/db/rpc";
 
 export interface FriendBarEntry {
   user_id: string | null;
@@ -46,89 +47,26 @@ export async function getFriendBar(userId: string): Promise<FriendBarEntry[]> {
 }
 
 /**
- * Sends a friend invite from fromUserId to toEmail.
- * Silently ignores duplicate invites (one active invite per pair).
+ * Sends a friend invite (single RPC, migration 112). Resolves the invitee by
+ * auth email inside SQL; duplicates are ignored by the (from_user_id, to_email)
+ * unique constraint. Returns "invited" | "already" | "self".
  */
-export async function sendFriendInvite(
-  fromUserId: string,
-  toEmail: string
-): Promise<void> {
-  const supabase = getSupabaseServiceClient();
-
-  const { data: existing } = await supabase
-    .from("friend_invites")
-    .select("id")
-    .eq("from_user_id", fromUserId)
-    .eq("to_email", toEmail.toLowerCase().trim())
-    .maybeSingle();
-
-  if (existing) {
-    return;
-  }
-
-  const { data: toUser } = await supabase
-    .from("users")
-    .select("id")
-    .eq("normalized_display_name", toEmail.toLowerCase().trim())
-    .maybeSingle();
-
-  const { error } = await supabase.from("friend_invites").insert({
-    from_user_id: fromUserId,
-    to_email: toEmail.toLowerCase().trim(),
-    to_user_id: toUser?.id ?? null,
-  });
-
-  if (error) {
-    throw new Error(`Failed to send friend invite: ${error.message}`);
-  }
+export async function sendFriendInvite(toEmail: string): Promise<string> {
+  return rpc<string>("invite_friend", { p_email: toEmail });
 }
 
 /**
- * On signup: links pending invite rows (to_user_id IS NULL) to the new user.
- * Must be called in the signup flow after user row is created.
+ * Removes a friend in both directions (single RPC, migration 112).
  */
-export async function backfillFriendInvites(
-  newUserId: string,
-  email: string
-): Promise<void> {
-  const supabase = getSupabaseServiceClient();
-
-  const { error } = await supabase
-    .from("friend_invites")
-    .update({ to_user_id: newUserId })
-    .eq("to_email", email.toLowerCase().trim())
-    .is("to_user_id", null);
-
-  if (error) {
-    throw new Error(`Failed to backfill friend invites: ${error.message}`);
-  }
+export async function removeFriend(targetUserId: string): Promise<void> {
+  await rpc<void>("remove_friend", { p_target_user_id: targetUserId });
 }
 
 /**
- * Removes a friend by deleting the invite row.
- * Works in both directions: deletes any invite between the two users.
+ * Blocks a user and removes invites both ways, atomically (single RPC, migration 112).
  */
-export async function removeFriend(
-  fromUserId: string,
-  targetUserId: string
-): Promise<void> {
-  const supabase = getSupabaseServiceClient();
-
-  // PostgREST filter DSL (NOT raw SQL): the .or() with .and() sub-filters
-  // is the idiomatic PostgREST API for compound conditions. The values are
-  // UUID parameters interpolated into the filter string — they are not
-  // user input and are validated as UUIDs by the caller. This is not SQL
-  // concatenation (AUDIT-06 P3-17: documented as PostgREST DSL).
-  const { error } = await supabase
-    .from("friend_invites")
-    .delete()
-    .or(
-      `and(from_user_id.eq.${fromUserId},to_user_id.eq.${targetUserId}),and(from_user_id.eq.${targetUserId},to_user_id.eq.${fromUserId})`
-    );
-
-  if (error) {
-    throw new Error(`Failed to remove friend: ${error.message}`);
-  }
+export async function blockUser(blockedId: string): Promise<void> {
+  await rpc<void>("block_user", { p_blocked_id: blockedId });
 }
 
 /**

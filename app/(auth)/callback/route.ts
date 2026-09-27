@@ -1,22 +1,11 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
-import { backfillFriendInvites } from "@/lib/db/friends";
 import { persistYouTubeConnectionFromSession } from "@/lib/youtube/persist-connection";
-import { logger } from "@/lib/utils/logger";
 
-function getEmailPrefix(email: string): string {
-  return email.split("@")[0] || "user";
-}
-
-function normalizeDisplayName(name: string): string {
-  return name
-    .trim()
-    .toLowerCase()
-    .normalize("NFKC")
-    .slice(0, 32);
-}
-
+// Profile creation and pending friend-invite backfill are owned by the
+// ensure_user_profile trigger on auth.users (migration 112) — this route only
+// exchanges the OAuth code for a session.
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
@@ -44,29 +33,9 @@ export async function GET(request: Request) {
     const { data: sessionData, error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
-      // Check if user profile exists, create if not (for OAuth signups)
       const { data: { user } } = await supabase.auth.getUser();
 
       if (user) {
-        // Create user profile for OAuth signup (idempotent via upsert)
-        const displayName = user.user_metadata?.full_name ||
-                           user.user_metadata?.name ||
-                           getEmailPrefix(user.email || "user");
-        const normalizedName = normalizeDisplayName(displayName);
-
-        const { error: upsertErr } = await supabase.from("users").upsert({
-          id: user.id,
-          display_name: displayName,
-          normalized_display_name: normalizedName,
-          language_code: "en",
-          avatar_key: null,
-          avatar_change_count_today: 0,
-        }, { onConflict: "id" });
-
-        if (upsertErr) {
-          logger.error("[auth/callback] Failed to upsert user profile:", upsertErr.message);
-        }
-
         // Unified grant (PRD §41.2): the Google OAuth session carries
         // provider_token/provider_refresh_token for YouTube — persist them
         // so the YouTube connection exists from first login.
@@ -80,22 +49,11 @@ export async function GET(request: Request) {
             scope: null,
           });
         }
-
-        // Backfill any pending friend invites for this user's email.
-        // Idempotent: only updates rows where to_user_id IS NULL.
-        if (user.email) {
-          try {
-            await backfillFriendInvites(user.id, user.email);
-          } catch {
-            // Non-fatal — invite backfill is a best-effort enhancement.
-          }
-        }
       }
 
       return NextResponse.redirect(`${origin}${next}`);
     }
   }
 
-  // Return to login on error
   return NextResponse.redirect(`${origin}/login`);
 }
