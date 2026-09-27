@@ -59,11 +59,7 @@ export async function markNotificationReadAction(notificationId: string): Promis
     const { data: { user }, error } = await supabase.auth.getUser();
     if (error || !user) return false;
 
-    const { error: updateError } = await supabase
-      .from('notifications')
-      .update({ read: true })
-      .eq('id', notificationId)
-      .eq('user_id', user.id);
+    const { error: updateError } = await rpc<number>('mark_notifications_read', { p_ids: [notificationId] }).then(() => ({ error: null }), (e: Error) => ({ error: e }));
 
     if (updateError) {
       logger.error('[markNotificationReadAction] error:', updateError);
@@ -84,11 +80,7 @@ export async function markAllNotificationsReadAction(): Promise<boolean> {
     const { data: { user }, error } = await supabase.auth.getUser();
     if (error || !user) return false;
 
-    const { error: updateError } = await supabase
-      .from('notifications')
-      .update({ read: true })
-      .eq('user_id', user.id)
-      .eq('read', false);
+    const { error: updateError } = await rpc<number>('mark_notifications_read', { p_ids: null }).then(() => ({ error: null }), (e: Error) => ({ error: e }));
 
     if (updateError) {
       logger.error('[markAllNotificationsReadAction] error:', updateError);
