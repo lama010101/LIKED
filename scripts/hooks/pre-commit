@@ -15,7 +15,7 @@ fi
 # The trailing JWT pattern covers base64url tokens (e.g. legacy Supabase
 # anon/service_role keys and session tokens such as .supabase_access_token
 # contents) — mirror of SECRET_RE in scripts/check-invariants-001.mjs.
-PATTERNS='sb_secret_[A-Za-z0-9_-]{10,}|sk_live_[A-Za-z0-9]{10,}|sk_test_[A-Za-z0-9]{10,}|AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{36,}|xox[baprs]-[A-Za-z0-9-]{10,}|AIza[0-9A-Za-z_-]{35}|eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}'
+PATTERNS='sb_secret_[A-Za-z0-9_-]{10,}|sk_live_[A-Za-z0-9]{10,}|sk_test_[A-Za-z0-9]{10,}|AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{36,}|xox[baprs]-[A-Za-z0-9-]{10,}|AIza[0-9A-Za-z_-]{35}|eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}|sbp_[A-Za-z0-9]{20,}|sk-or-v1-[A-Za-z0-9]{20,}|GOCSPX-[A-Za-z0-9_-]{10,}|postgres(ql)?://[^:@/ ]+:[A-Za-z0-9._~%!*-]{8,}@'
 
 # grep -E for extended regex; -n shows line numbers in the diff.
 if printf '%s\n' "$DIFF" | grep -nE "$PATTERNS" >/dev/null 2>&1; then

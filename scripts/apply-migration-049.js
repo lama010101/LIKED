@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const SUPABASE_ACCESS_TOKEN = 'sbp_8f365f41d44a9140450ca199e55582d5b35ee38c';
+const SUPABASE_ACCESS_TOKEN = process.env.SUPABASE_ACCESS_TOKEN;
 const PROJECT_REF = 'lzkzfqshnjvlzosnntfx';
 
 async function applyMigration049() {

@@ -1,7 +1,7 @@
 const { Client } = require('pg');
 require('dotenv').config({ path: '.env.local' });
 
-const poolerUrl = 'postgresql://postgres.lzkzfqshnjvlzosnntfx:nAvfaukg6D9HiUjf@aws-1-us-west-2.pooler.supabase.com:6543/postgres';
+const poolerUrl = process.env.DATABASE_URL;
 const client = new Client({
   connectionString: poolerUrl,
   ssl: { rejectUnauthorized: false }

@@ -1,6 +1,6 @@
 const fs = require('fs');
 
-const PAT = 'sbp_81e6dcc23175cd4dc8172ac0286037ea302f0ceb';
+const PAT = process.env.SUPABASE_ACCESS_TOKEN;
 const PROJECT_REF = 'lzkzfqshnjvlzosnntfx';
 
 const envContent = fs.readFileSync('.env.local', 'utf8');

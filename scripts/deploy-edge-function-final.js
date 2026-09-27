@@ -2,7 +2,7 @@ const fs = require('fs');
 
 const source = fs.readFileSync('supabase/functions/extract-node-metadata/index.ts', 'utf8');
 
-const PAT = 'sbp_81e6dcc23175cd4dc8172ac0286037ea302f0ceb';
+const PAT = process.env.SUPABASE_ACCESS_TOKEN;
 const PROJECT_REF = 'lzkzfqshnjvlzosnntfx';
 
 async function deploy() {

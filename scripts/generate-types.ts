@@ -8,7 +8,7 @@ interface PgFunctionParam {
   routine_name: string;
 }
 
-const connectionString = 'postgresql://postgres.lzkzfqshnjvlzosnntfx:UVYrurEWBDl6qVQ2@aws-1-us-west-2.pooler.supabase.com:5432/postgres';
+const connectionString = process.env.DATABASE_URL;
 
 const pool = new Pool({ connectionString });
 

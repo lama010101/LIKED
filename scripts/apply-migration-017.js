@@ -3,7 +3,7 @@ const path = require('path');
 const { Pool } = require('pg');
 
 // Database connection using same credentials as check-db-state.js
-const connectionString = 'postgresql://postgres.lzkzfqshnjvlzosnntfx:UVYrurEWBDl6qVQ2@aws-1-us-west-2.pooler.supabase.com:5432/postgres';
+const connectionString = process.env.DATABASE_URL;
 const pool = new Pool({ connectionString });
 
 async function applyMigration017() {

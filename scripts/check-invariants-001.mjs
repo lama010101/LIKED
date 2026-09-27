@@ -230,7 +230,7 @@ check("REPO-12 atomic writes (move_node_to_folder + create_folder_with_nodes)",
 
 // 13. no committed secrets in tracked files
 const tracked = execFileSync("git", ["ls-files"], { cwd: root, encoding: "utf8" }).split("\n").filter(Boolean);
-const SECRET_RE = /sb_secret_[A-Za-z0-9_-]{10,}|sk_live_[A-Za-z0-9]{10,}|sk_test_[A-Za-z0-9]{10,}|AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{36,}|xox[baprs]-[A-Za-z0-9-]{10,}|AIza[0-9A-Za-z_-]{35}|eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}/;
+const SECRET_RE = /sb_secret_[A-Za-z0-9_-]{10,}|sk_live_[A-Za-z0-9]{10,}|sk_test_[A-Za-z0-9]{10,}|AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{36,}|xox[baprs]-[A-Za-z0-9-]{10,}|AIza[0-9A-Za-z_-]{35}|eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}|sbp_[A-Za-z0-9]{20,}|sk-or-v1-[A-Za-z0-9]{20,}|GOCSPX-[A-Za-z0-9_-]{10,}|postgres(ql)?:\/\/[^:@/ ]+:[A-Za-z0-9._~%!*-]{8,}@/;
 const leaks = [];
 for (const f of tracked) {
   try {

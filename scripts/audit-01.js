@@ -6,10 +6,10 @@ const path = require('path');
 
 // Try .env.local first (session pooler), then fall back to scripts' historical password
 const CANDIDATES = [
-  'postgresql://postgres.lzkzfqshnjvlzosnntfx:nAvfaukg6D9HiUjf@aws-1-us-west-2.pooler.supabase.com:6543/postgres',
-  'postgresql://postgres.lzkzfqshnjvlzosnntfx:nAvfaukg6D9HiUjf@aws-1-us-west-2.pooler.supabase.com:5432/postgres',
-  'postgresql://postgres.lzkzfqshnjvlzosnntfx:UVYrurEWBDl6qVQ2@aws-1-us-west-2.pooler.supabase.com:5432/postgres',
-  'postgresql://postgres:nAvfaukg6D9HiUjf@db.lzkzfqshnjvlzosnntfx.supabase.co:5432/postgres'
+  process.env.DATABASE_URL,
+  process.env.DATABASE_URL,
+  process.env.DATABASE_URL,
+  process.env.DATABASE_URL
 ];
 
 async function tryConnect() {

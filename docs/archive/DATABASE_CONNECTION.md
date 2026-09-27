@@ -28,7 +28,7 @@ SUPABASE_SECRET_KEY=your-secret-key
 
 # Database Connection (REQUIRED)
 SUPABASE_DB_PASSWORD=your-db-password
-SUPABASE_DB_CONNECTION=postgresql://postgres.project-ref:password@aws-1-us-east-2.pooler.supabase.com:6543/postgres
+SUPABASE_DB_CONNECTION=postgresql://postgres.project-ref:<password>@aws-1-us-east-2.pooler.supabase.com:6543/postgres
 ```
 
 ### Step 3: Test Connection
@@ -92,7 +92,7 @@ SUPABASE_DB_CONNECTION=
 **Cause:** Network connectivity or incorrect connection string
 **Solution:**
 - Verify Supabase URL format: `https://project-ref.supabase.co`
-- Check connection string format: `postgresql://postgres.project-ref:password@host:port/database`
+- Check connection string format: `postgresql://postgres.project-ref:<password>@host:port/database`
 - Ensure no firewall blocks the connection
 
 #### 4. SSL/TLS Certificate Issues

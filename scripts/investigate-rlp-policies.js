@@ -2,7 +2,7 @@ const { Pool } = require('pg');
 require('dotenv').config({ path: '.env.local' });
 
 const pool = new Pool({
-  connectionString: 'postgresql://postgres.lzkzfqshnjvlzosnntfx:nAvfaukg6D9HiUjf@aws-1-us-west-2.pooler.supabase.com:6543/postgres'
+  connectionString: process.env.DATABASE_URL
 });
 
 async function runQuery(tableName) {

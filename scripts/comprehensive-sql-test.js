@@ -1,6 +1,6 @@
 const { Pool } = require('pg');
 
-const connectionString = 'postgresql://postgres.lzkzfqshnjvlzosnntfx:nAvfaukg6D9HiUjf@aws-1-us-west-2.pooler.supabase.com:6543/postgres';
+const connectionString = process.env.DATABASE_URL;
 const pool = new Pool({ connectionString, ssl: { rejectUnauthorized: false } });
 
 (async () => {

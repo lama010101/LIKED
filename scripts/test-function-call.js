@@ -1,7 +1,7 @@
 const { Pool } = require('pg');
 
 // Connection string from successful migration application
-const CONNECTION_STRING = 'postgresql://postgres.lzkzfqshnjvlzosnntfx:nAvfaukg6D9HiUjf@aws-1-us-west-2.pooler.supabase.com:6543/postgres';
+const CONNECTION_STRING = process.env.DATABASE_URL;
 
 async function testFunctionCall() {
   const pool = new Pool({ 
