@@ -307,6 +307,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
         onToggle={() => setSidebarClosed(!sidebarClosed)}
         folders={layoutFolders}
         tags={layoutTags}
+        onAddFolder={() => setOpenFolder(true)}
       />
 
       {/* MAIN COLUMN */}

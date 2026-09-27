@@ -53,6 +53,13 @@ const ChevronDown = (
   </svg>
 );
 
+const PlusIcon = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+    <line x1="12" y1="5" x2="12" y2="19" />
+    <line x1="5" y1="12" x2="19" y2="12" />
+  </svg>
+);
+
 const SidebarToggleIcon = (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
     <rect x="3" y="4" width="18" height="16" rx="2" />
@@ -91,9 +98,10 @@ interface SidebarProps {
   onToggle: () => void;
   folders: SidebarFolder[];
   tags: SidebarTag[];
+  onAddFolder?: () => void;
 }
 
-export default function Sidebar({ collapsed, onToggle, folders, tags }: SidebarProps) {
+export default function Sidebar({ collapsed, onToggle, folders, tags, onAddFolder }: SidebarProps) {
   const folderId = useFilterStore((s) => s.folderId);
   const groupId = useFilterStore((s) => s.groupId);
   const friendId = useFilterStore((s) => s.friendId);
@@ -217,6 +225,29 @@ export default function Sidebar({ collapsed, onToggle, folders, tags }: SidebarP
           }}
         >
           <span>Folders</span>
+          {onAddFolder && (
+            <button
+              type="button"
+              aria-label="Add folder"
+              onClick={(e) => {
+                e.stopPropagation();
+                onAddFolder();
+              }}
+              onKeyDown={(e) => e.stopPropagation()}
+              style={{
+                marginLeft: 'auto',
+                display: 'inline-flex',
+                alignItems: 'center',
+                background: 'none',
+                border: 'none',
+                padding: 0,
+                cursor: 'pointer',
+                color: 'var(--text-3)',
+              }}
+            >
+              {PlusIcon}
+            </button>
+          )}
           {ChevronDown}
         </div>
         <div className="collapsible-content">
