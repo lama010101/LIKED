@@ -4,6 +4,7 @@
  */
 
 import { getSupabaseServiceClient } from "@/lib/supabase/service";
+import { rpc } from "@/lib/db/rpc";
 import { Tag } from "@/lib/types/app";
 
 export interface TagWithLabel extends Tag {
@@ -163,96 +164,26 @@ export async function createOrGetTag(
 }
 
 /**
- * Attach a tag to a node (organizational only — no edge/visibility effects,
- * per PRD §6.6). Idempotent: tag_edges has no unique constraint on
- * (tag_id,node_id,folder_id), so dedupe is an existence check + insert —
- * a second call for the same pair is a no-op.
+ * Attach a tag to a node. Organizational only (no edge/visibility effects).
+ * Single RPC (migration 112): visibility-gated, idempotent via the
+ * tag_edges (tag_id, node_id) unique index — no check-then-insert.
  */
-export async function addTagToNode(
-  tagId: string,
-  nodeId: string
-): Promise<void> {
-  const supabase = getSupabaseServiceClient();
-
-  const { data: existing, error: lookupErr } = await supabase
-    .from("tag_edges")
-    .select("id")
-    .eq("tag_id", tagId)
-    .eq("node_id", nodeId)
-    .is("folder_id", null)
-    .limit(1)
-    .maybeSingle();
-
-  if (lookupErr) {
-    throw new Error(`Failed to check tag on node: ${lookupErr.message}`);
-  }
-  if (existing) return;
-
-  const { error } = await supabase.from("tag_edges").insert({
-    tag_id: tagId,
-    node_id: nodeId,
-    folder_id: null,
-  });
-
-  if (error) {
-    throw new Error(`Failed to add tag to node: ${error.message}`);
-  }
+export async function addTagToNode(tagId: string, nodeId: string): Promise<void> {
+  await rpc<void>("add_tag_to_node", { p_tag_id: tagId, p_node_id: nodeId });
 }
 
 /**
- * Attach a tag to a folder (PRD §11.3b step 4 — Tag Mode folder tagging).
- * Same organizational semantics as addTagToNode: idempotent via existence
- * check; no edge/visibility effects.
+ * Attach a tag to a folder (organizational only). Single RPC (migration 112).
  */
-export async function addTagToFolder(
-  tagId: string,
-  folderId: string
-): Promise<void> {
-  const supabase = getSupabaseServiceClient();
-
-  const { data: existing, error: lookupErr } = await supabase
-    .from("tag_edges")
-    .select("id")
-    .eq("tag_id", tagId)
-    .is("node_id", null)
-    .eq("folder_id", folderId)
-    .limit(1)
-    .maybeSingle();
-
-  if (lookupErr) {
-    throw new Error(`Failed to check tag on folder: ${lookupErr.message}`);
-  }
-  if (existing) return;
-
-  const { error } = await supabase.from("tag_edges").insert({
-    tag_id: tagId,
-    node_id: null,
-    folder_id: folderId,
-  });
-
-  if (error) {
-    throw new Error(`Failed to add tag to folder: ${error.message}`);
-  }
+export async function addTagToFolder(tagId: string, folderId: string): Promise<void> {
+  await rpc<void>("add_tag_to_folder", { p_tag_id: tagId, p_folder_id: folderId });
 }
 
 /**
- * Remove a tag from a node. No-op if not attached.
+ * Remove a tag from a node. No-op if not attached. Single RPC (migration 112).
  */
-export async function removeTagFromNode(
-  tagId: string,
-  nodeId: string
-): Promise<void> {
-  const supabase = getSupabaseServiceClient();
-
-  const { error } = await supabase
-    .from("tag_edges")
-    .delete()
-    .eq("tag_id", tagId)
-    .eq("node_id", nodeId);
-
-  if (error) {
-    throw new Error(`Failed to remove tag from node: ${error.message}`);
-  }
+export async function removeTagFromNode(tagId: string, nodeId: string): Promise<void> {
+  await rpc<void>("remove_tag_from_node", { p_tag_id: tagId, p_node_id: nodeId });
 }
 
 /**
