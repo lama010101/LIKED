@@ -22,7 +22,7 @@ export default function MeView({ user }: { user: SessionUser }) {
 
   const saveName = async () => {
     const res = await updateUsername(name.trim());
-    res.ok ? toast.success(t("me.saved")) : toast.error(res.error);
+    if (res.ok) toast.success(t("me.saved")); else toast.error(res.error);
   };
 
   const changeLocale = async (l: string) => {

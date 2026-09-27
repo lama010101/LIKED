@@ -47,7 +47,7 @@ test.describe("Authenticated smoke — core flows", () => {
     expect(page.url()).toContain("/feed");
 
     // Check for either feed content or empty state — no crash
-    const bodyText = await page.locator("body").textContent();
+    const bodyText = await page.locator("body").innerText();
     expect(bodyText).not.toContain("Application error");
     expect(bodyText).not.toContain("Something went wrong");
 
@@ -70,7 +70,7 @@ test.describe("Authenticated smoke — core flows", () => {
 
     expect(page.url()).toContain("/trash");
 
-    const bodyText = await page.locator("body").textContent();
+    const bodyText = await page.locator("body").innerText();
     expect(bodyText).not.toContain("Application error");
     expect(bodyText).not.toContain("Something went wrong");
 
@@ -92,7 +92,7 @@ test.describe("Authenticated smoke — core flows", () => {
 
     // YouTube page may redirect to login if not connected,
     // but should not crash
-    const bodyText = await page.locator("body").textContent();
+    const bodyText = await page.locator("body").innerText();
     expect(bodyText).not.toContain("Application error");
     expect(bodyText).not.toContain("Something went wrong");
 

@@ -207,11 +207,12 @@ test.describe("YouTube page UI — intelligent import wiring", () => {
     await page.waitForTimeout(2000);
 
     // Should not crash
-    const bodyText = await page.locator("body").textContent();
+    const bodyText = await page.locator("body").innerText();
     expect(bodyText).not.toContain("Application error");
     expect(bodyText).not.toContain("Something went wrong");
 
-    // Should show connect prompt (not connected)
-    await expect(page.getByRole("heading", { name: /connect your youtube account/i })).toBeVisible({ timeout: 10_000 });
+    // MVP2 (Q13): YouTube page + consent-gated "Connect YouTube" button
+    await expect(page.getByRole("heading", { name: /youtube/i }).first()).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByRole("button", { name: /connect youtube/i })).toBeVisible();
   });
 });

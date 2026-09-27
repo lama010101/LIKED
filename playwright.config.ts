@@ -62,7 +62,6 @@ export default defineConfig({
         /auth-login\.spec\.ts/,
         /auth-signup\.spec\.ts/,
         /auth-smoke\.spec\.ts/,
-        /auth-create-node\.spec\.ts/,
         /extension-auth\.spec\.ts/,
         /extension-install\.spec\.ts/,
         /extension-api\.spec\.ts/,
@@ -77,15 +76,9 @@ export default defineConfig({
     {
       name: "authed",
       testMatch: [
-        /feed-authenticated\.spec\.ts/,
         /navigation-auth\.spec\.ts/,
         /trash-authenticated\.spec\.ts/,
-        /card-detail-authenticated\.spec\.ts/,
-        /folders-authenticated\.spec\.ts/,
-        /sharing-authenticated\.spec\.ts/,
-        /dnd-authenticated\.spec\.ts/,
-        /notifications-authenticated\.spec\.ts/,
-        /onboarding\.spec\.ts/,
+        /mvp2-shell\.spec\.ts/,
       ],
       dependencies: ["setup"],
       use: {

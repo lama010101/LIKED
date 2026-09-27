@@ -9,7 +9,7 @@ import type { AccessEntry, Mvp2FolderDetail } from "@/app/lib/actions/mvp2";
 import {
   renameFolderAction, setFolderDetailsAction, trashFolderAction,
   rateFolderAction, shareFolderV2Action, revokeFolderGrantAction,
-  setFolderGrantPermissionAction, moveNodeToFolderAction,
+  setFolderGrantPermissionAction,
 } from "@/app/lib/actions/mvp2";
 import { getFriendBarAction, getGroupBarAction } from "@/app/lib/actions/session";
 import { toast } from "@/lib/store/toastStore";
@@ -65,15 +65,6 @@ export default function FolderView({
     try {
       await trashFolderAction(folder.id);
       router.push("/feed");
-      router.refresh();
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : t("common.error"));
-    }
-  };
-
-  const onDropCard = async (nodeId: string, targetFolderId: string) => {
-    try {
-      await moveNodeToFolderAction(nodeId, folder.id, targetFolderId);
       router.refresh();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : t("common.error"));

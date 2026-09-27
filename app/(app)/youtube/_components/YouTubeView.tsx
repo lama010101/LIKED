@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Modal from "../../_components/Modal";
 import { setYoutubeConsentAction } from "@/app/lib/actions/mvp2";
@@ -18,6 +19,7 @@ export default function YouTubeView({ consent }: { consent: boolean }) {
   const t = useTranslations();
   const router = useRouter();
   const [consentOpen, setConsentOpen] = useState(false);
+  const [hasConsent, setHasConsent] = useState(consent);
   const [connected, setConnected] = useState(false);
   const [email, setEmail] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
@@ -38,6 +40,7 @@ export default function YouTubeView({ consent }: { consent: boolean }) {
   const confirmConsent = async () => {
     try {
       await setYoutubeConsentAction(true);
+      setHasConsent(true);
       // NOW start OAuth (readonly scope, explicit user opt-in — Q13)
       window.location.href = "/api/youtube/connect";
     } catch (e) {
@@ -90,11 +93,16 @@ export default function YouTubeView({ consent }: { consent: boolean }) {
               <button className="btn btn-primary" onClick={runImport} disabled={importing}>
                 {importing ? `${t("youtube.importing")} ${progress ?? ""}` : t("youtube.import")}
               </button>
-              <a className="btn" href="/organize">{t("youtube.organizeCta")}</a>
+              <Link className="btn" href="/organize">{t("youtube.organizeCta")}</Link>
             </div>
           </>
         ) : (
-          <button className="btn btn-primary" onClick={() => setConsentOpen(true)}>{t("youtube.consentTitle")}</button>
+          <button
+            className="btn btn-primary"
+            onClick={() => (hasConsent ? (window.location.href = "/api/youtube/connect") : setConsentOpen(true))}
+          >
+            {t("youtube.consentTitle")}
+          </button>
         )}
       </section>
 

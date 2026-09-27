@@ -18,7 +18,7 @@ test.describe("Trash page — authenticated user", () => {
     await page.goto("/trash");
     await expect(page).toHaveURL(/\/trash/);
 
-    const bodyText = await page.locator("body").textContent();
+    const bodyText = await page.locator("body").innerText();
     expect(bodyText).not.toContain("Application error");
     expect(bodyText).not.toContain("Internal Server Error");
   });
@@ -29,7 +29,7 @@ test.describe("Trash page — authenticated user", () => {
 
     // The page should show either trashed cards or an empty message
     const body = page.locator("body");
-    const text = await body.textContent();
+    const text = await body.innerText();
     // Should contain either "trash" heading or empty state text
     expect(text?.toLowerCase()).toMatch(/trash|empty|nothing|no .*(card|item)/i);
   });

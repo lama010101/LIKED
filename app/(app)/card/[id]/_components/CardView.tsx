@@ -26,7 +26,7 @@ export default function CardView({ detail }: { detail: CardDetail }) {
 
   const saveTitle = async () => {
     const res = await updateNodeTitleAction(node.id, title.trim());
-    res.ok ? (setEditing(false), router.refresh()) : toast.error(res.error);
+    if (res.ok) { setEditing(false); router.refresh(); } else { toast.error(res.error); }
   };
 
   const onTrash = async () => {

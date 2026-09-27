@@ -21,7 +21,7 @@ import FolderTile from "./FolderTile";
 type ViewMode = "list" | "masonry" | "columns";
 
 export default function FeedHome({
-  initialNodes, totalCount, nextCursor, folders, feedParams, query, friendId, meView, userId,
+  initialNodes, totalCount, nextCursor, folders, feedParams, query, meView,
 }: {
   initialNodes: FeedNode[];
   totalCount: number;
@@ -29,9 +29,7 @@ export default function FeedHome({
   folders: Mvp2Folder[];
   feedParams: FeedParams;
   query: string | null;
-  friendId: string | null;
   meView: boolean;
-  userId: string;
 }) {
   const t = useTranslations();
   const router = useRouter();

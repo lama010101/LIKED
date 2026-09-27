@@ -150,7 +150,7 @@ try {
       { fn: "get_onboarding_import_node_ids", args: {} },
       { fn: "delete_group", args: { p_group_id: "00000000-0000-0000-0000-000000000000" } },
       { fn: "create_folder_template", args: { p_template_key: "read_later", p_name: "x" } },
-      { fn: "get_folder_memberships", args: { p_folder_id: "00000000-0000-0000-0000-000000000000" } },
+      // get_folder_memberships dropped in migration 132 (P12 cut-over)
       // MVP2 P0-04 (migration 112)
       { fn: "add_tag_to_node", args: { p_tag_id: "00000000-0000-0000-0000-000000000000", p_node_id: "00000000-0000-0000-0000-000000000000" } },
       { fn: "remove_tag_from_node", args: { p_tag_id: "00000000-0000-0000-0000-000000000000", p_node_id: "00000000-0000-0000-0000-000000000000" } },
@@ -224,6 +224,18 @@ try {
         !!m && m.prosecdef === true && m.has_sp === true && !leaked.has(fn) && anonOk,
         `${m ? `definer=${m.prosecdef} sp=${m.has_sp}` : "MISSING"} anonCall=${anonStatus}${leaked.has(fn) ? " PUBLIC/anon EXECUTE" : ""}`);
     }
+    // DB-19 — P12: superseded RPCs must be gone from the schema.
+    const DROPPED = [
+      "share_folder", "delete_folder", "get_folder_access_users",
+      "get_folder_memberships", "get_social_timeline", "revoke_folder_admin",
+      "unshare_folder_op", "revoke_group_admin", "direct_share",
+      "group_share", "group_unshare", "get_or_create_unsorted_folder",
+      "get_or_create_named_folder",
+    ];
+    const dropped = await client2.query(
+      `SELECT proname FROM pg_proc WHERE pronamespace='public'::regnamespace AND proname = ANY($1)`, [DROPPED]);
+    check("DB-19 superseded RPCs dropped (P12)", dropped.rows.length === 0,
+      dropped.rows.map((r) => r.proname).join(", ") || "all dropped");
   } finally {
     client2.release();
     await pool2.end();
@@ -280,10 +292,14 @@ const domainWrites = srcFiles.filter((f) => domainWriteRe.test(readFileSync(f, "
 check("REPO-15 RPC-only writes (all domain tables)", domainWrites.length === 0,
   domainWrites.map((f) => f.replace(root + "\\", "")).join(", ") || "clean");
 
-// 12. atomic multi-row writes via single RPCs
-const dnd = readFileSync(join(root, "app/lib/actions/dnd.ts"), "utf8");
+// 12. atomic multi-row writes via single RPCs (MVP2: folder moves via
+// move_node_to_folder; batch ops via create_folder_with_nodes / organize RPCs)
+const mvp2 = readFileSync(join(root, "app/lib/actions/mvp2.ts"), "utf8");
 check("REPO-12 atomic writes (move_node_to_folder + create_folder_with_nodes)",
-  dnd.includes("move_node_to_folder") && dnd.includes("create_folder_with_nodes"));
+  mvp2.includes("move_node_to_folder")
+  && /create_folder_with_nodes|apply_organization_batch/.test(
+       readFileSync(join(root, "app/api/categorize/route.ts"), "utf8")
+       + mvp2));
 
 // 13. no committed secrets in tracked files
 const tracked = execFileSync("git", ["ls-files"], { cwd: root, encoding: "utf8" }).split("\n").filter(Boolean);

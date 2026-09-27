@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import type { FriendBarEntry, GroupBarEntry } from "@/lib/db/friends";
-import { inviteFriendAction, removeFriendAction, blockUserAction, createGroupAction, deleteGroupAction, addGroupMemberAction, removeGroupMemberAction } from "@/app/lib/actions/mvp2";
+import { inviteFriendAction, removeFriendAction, blockUserAction, createGroupAction, deleteGroupAction, addGroupMemberAction } from "@/app/lib/actions/mvp2";
 import Avatar from "../../_components/Avatar";
 import Modal from "../../_components/Modal";
 import { toast } from "@/lib/store/toastStore";
@@ -16,7 +16,6 @@ export default function FriendsView({ friends, groups }: { friends: FriendBarEnt
   const [email, setEmail] = useState("");
   const [groupName, setGroupName] = useState("");
   const [addMemberTo, setAddMemberTo] = useState<string | null>(null);
-  const [memberPick, setMemberPick] = useState("");
   const [busy, setBusy] = useState(false);
 
   const run = async (fn: () => Promise<unknown>, okMsg?: string) => {

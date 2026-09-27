@@ -55,7 +55,7 @@ export default function BatchView({ batchId, items }: { batchId: string; items: 
                 disabled={i.status !== "proposed"}
                 onChange={() => {
                   const next = new Set(sel);
-                  next.has(i.item_id) ? next.delete(i.item_id) : next.add(i.item_id);
+                  if (next.has(i.item_id)) next.delete(i.item_id); else next.add(i.item_id);
                   setSel(next);
                 }}
               />

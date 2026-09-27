@@ -126,18 +126,17 @@ test.describe("YouTube page UI — authenticated (not connected)", () => {
     await page.waitForTimeout(2000);
 
     // Should show connect prompt (not an error)
-    const bodyText = await page.locator("body").textContent();
+    const bodyText = await page.locator("body").innerText();
     expect(bodyText).not.toContain("Application error");
     expect(bodyText).not.toContain("Something went wrong");
 
-    // Should show "Connect your YouTube account" heading
-    await expect(page.getByRole("heading", { name: /connect your youtube account/i })).toBeVisible({ timeout: 10_000 });
+    // MVP2 (Q13): page shows the YouTube heading + Connect button; clicking it
+    // opens the in-app consent modal BEFORE any OAuth redirect.
+    await expect(page.getByRole("heading", { name: /youtube/i }).first()).toBeVisible({ timeout: 10_000 });
 
-    // Should have a "Connect YouTube" button
-    await expect(page.getByRole("button", { name: /connect youtube/i })).toBeVisible();
-
-    // Should have "Back to feed" link
-    await expect(page.getByRole("button", { name: /back to feed/i })).toBeVisible();
+    // "Connect YouTube" button opens the consent modal
+    await page.getByRole("button", { name: /connect youtube/i }).click();
+    await expect(page.getByRole("button", { name: /i understand/i })).toBeVisible();
   });
 
   test("youtube page does not crash on repeated visits", async ({ page, baseURL }) => {
@@ -162,7 +161,7 @@ test.describe("YouTube page UI — authenticated (not connected)", () => {
     await page.waitForLoadState("domcontentloaded");
     await page.waitForTimeout(2000);
 
-    const bodyText = await page.locator("body").textContent();
+    const bodyText = await page.locator("body").innerText();
     expect(bodyText).not.toContain("Application error");
   });
 });

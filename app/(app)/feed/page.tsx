@@ -51,9 +51,7 @@ export default async function FeedPage({
       folders={folders}
       feedParams={params}
       query={q}
-      friendId={friend}
       meView={me}
-      userId={user.id}
     />
   );
 }

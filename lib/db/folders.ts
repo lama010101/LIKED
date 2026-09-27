@@ -14,8 +14,7 @@ import { rpc } from "@/lib/db/rpc";
 import { Folder } from "@/lib/types/app";
 import {
   hasFolderPermission,
-  assertFolderPermission,
-  PermissionError,
+  assertFolderPermission,
 } from "./permissions";
 
 /**
