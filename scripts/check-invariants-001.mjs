@@ -118,6 +118,14 @@ try {
   check("DB-16 folder_edges RPCs exist + authz-gated",
     folderRpcs.length === 2 && folderRpcs.every((r) => r.prosecdef && r.gated),
     JSON.stringify(folderRpcs));
+
+  // DB-18 — MVP2 P0-03: permanent delete is cascade-only. Every FK that
+  // references nodes or folders must be ON DELETE CASCADE.
+  const nonCascade = await q1(`SELECT conrelid::regclass::text AS t, conname FROM pg_constraint
+    WHERE contype='f' AND confrelid IN ('public.nodes'::regclass,'public.folders'::regclass)
+      AND confdeltype <> 'c'`);
+  check("DB-18 node/folder dependents are ON DELETE CASCADE", nonCascade.length === 0,
+    nonCascade.length ? nonCascade.map((r) => `${r.t}.${r.conname}`).join(", ") : "all cascade");
 } finally {
   client.release();
   await pool.end();
@@ -143,11 +151,23 @@ try {
       { fn: "delete_group", args: { p_group_id: "00000000-0000-0000-0000-000000000000" } },
       { fn: "create_folder_template", args: { p_template_key: "read_later", p_name: "x" } },
       { fn: "get_folder_memberships", args: { p_folder_id: "00000000-0000-0000-0000-000000000000" } },
+      // MVP2 P0-04 (migration 112)
+      { fn: "add_tag_to_node", args: { p_tag_id: "00000000-0000-0000-0000-000000000000", p_node_id: "00000000-0000-0000-0000-000000000000" } },
+      { fn: "remove_tag_from_node", args: { p_tag_id: "00000000-0000-0000-0000-000000000000", p_node_id: "00000000-0000-0000-0000-000000000000" } },
+      { fn: "add_tag_to_folder", args: { p_tag_id: "00000000-0000-0000-0000-000000000000", p_folder_id: "00000000-0000-0000-0000-000000000000" } },
+      { fn: "remove_tag_from_folder", args: { p_tag_id: "00000000-0000-0000-0000-000000000000", p_folder_id: "00000000-0000-0000-0000-000000000000" } },
+      { fn: "set_folder_color", args: { p_folder_id: "00000000-0000-0000-0000-000000000000", p_color: "#000000" } },
+      { fn: "invite_friend", args: { p_email: "x@example.com" } },
+      { fn: "remove_friend", args: { p_target_user_id: "00000000-0000-0000-0000-000000000000" } },
+      { fn: "block_user", args: { p_blocked_id: "00000000-0000-0000-0000-000000000000" } },
+      { fn: "set_language", args: { p_language_code: "en" } },
+      { fn: "mark_notifications_read", args: { p_ids: null } },
+      ...(globalThis.__MVP2_EXTRA_RPCS ?? []),
     ];
     const names = NEW_RPCS.map((r) => r.fn);
     const meta = await client2.query(
       `SELECT p.proname, p.prosecdef,
-              (SELECT COUNT(*) FROM unnest(p.proconfig) c WHERE c = 'search_path=public') > 0 AS has_sp
+              (SELECT COUNT(*) FROM unnest(p.proconfig) c WHERE c LIKE 'search_path=public%') > 0 AS has_sp
          FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
         WHERE n.nspname = 'public' AND p.proname = ANY($1)`, [names]);
     const metaMap = new Map(meta.rows.map((r) => [r.proname, r]));
@@ -222,6 +242,15 @@ const writeRe = /\.from\(\s*["'](edges|causes|folder_edges|folder_tree)["']\s*\)
 const directWrites = srcFiles.filter((f) => writeRe.test(readFileSync(f, "utf8")));
 check("REPO-11 RPC-only writes (edges/causes/folder_edges/folder_tree)", directWrites.length === 0,
   directWrites.map((f) => f.replace(root + "\\", "")).join(", ") || "clean");
+
+// 15. MVP2 P0-04 (F7): no direct writes to domain tables from app code —
+// every write goes through an RPC. (youtube_connections own-row token
+// storage is the single sanctioned exception.) categorization_suggestions
+// is dropped by P2-08 (F6), at which point its writers disappear.
+const domainWriteRe = /\.from\(\s*["'](tag_edges|folders|nodes|blocks|friend_invites|users|notifications|groups|group_members|ratings|folder_grants|folder_ratings|organize_batches|organize_items)["']\s*\)\s*\.(insert|update|delete|upsert)\(/;
+const domainWrites = srcFiles.filter((f) => domainWriteRe.test(readFileSync(f, "utf8")));
+check("REPO-15 RPC-only writes (all domain tables)", domainWrites.length === 0,
+  domainWrites.map((f) => f.replace(root + "\\", "")).join(", ") || "clean");
 
 // 12. atomic multi-row writes via single RPCs
 const dnd = readFileSync(join(root, "app/lib/actions/dnd.ts"), "utf8");
