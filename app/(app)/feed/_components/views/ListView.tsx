@@ -7,6 +7,9 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { useDraggable } from "@dnd-kit/core";
+import { sourceId } from "@/lib/dnd/types";
+import type { DragSource } from "@/lib/dnd/types";
 import type { ViewProps, FeedItem } from "@/lib/types/feed";
 import type { Folder } from "@/lib/types/app";
 import { toast } from "@/lib/store/toastStore";
@@ -36,6 +39,13 @@ function ListRow({ item, onClick, currentUserId, folders, sourceFolderId, onChan
   const isMobile = useIsMobile();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [pickerMode, setPickerMode] = useState<'move' | 'copy' | null>(null);
+  const dragSource: DragSource = item.kind === 'folder'
+    ? { kind: 'folder', folderId: item.id }
+    : { kind: 'node', nodeId: item.id };
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: sourceId(dragSource),
+    data: { dragSource },
+  });
   const handleCardDelete = async () => {
     const res = await fetch(`/api/nodes/${item.id}`, {
       method: 'DELETE',
@@ -66,7 +76,10 @@ function ListRow({ item, onClick, currentUserId, folders, sourceFolderId, onChan
 
   return (
     <div
+      ref={setNodeRef}
       className="video-list-item"
+      {...attributes}
+      {...listeners}
       onClick={() => onClick(item)}
       role="button"
       tabIndex={0}
@@ -76,6 +89,7 @@ function ListRow({ item, onClick, currentUserId, folders, sourceFolderId, onChan
           onClick(item);
         }
       }}
+      style={{ touchAction: 'manipulation', opacity: isDragging ? 0.4 : 1 }}
     >
       <div className="thumb-wrap">
         {item.kind === "folder" ? (

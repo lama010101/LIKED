@@ -1,8 +1,8 @@
 'use client';
 
-import { useDroppable } from "@dnd-kit/core";
+import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { useDndContext } from "@dnd-kit/core";
-import { targetId } from "@/lib/dnd/types";
+import { sourceId, targetId } from "@/lib/dnd/types";
 
 interface DroppableFolderChipProps {
   folderId: string;
@@ -56,18 +56,38 @@ export default function DroppableFolderChip({ folderId, children, folders = [], 
      activeSource.kind === 'friend' ||
      activeSource.kind === 'folder');
 
-  const { setNodeRef, isOver } = useDroppable({
+  const { setNodeRef: setDropRef, isOver } = useDroppable({
     id: targetId({ kind: 'folder', folderId }),
     disabled: !isAcceptable,
     data: { dropTarget: { kind: 'folder', folderId } },
   });
 
+  const {
+    listeners,
+    setNodeRef: setDragRef,
+    isDragging,
+  } = useDraggable({
+    id: sourceId({ kind: 'folder', folderId }),
+    data: { dragSource: { kind: 'folder', folderId } },
+  });
+
+  const dragListeners = { ...(listeners ?? {}) };
+  delete dragListeners.onKeyDown;
+
+  const setRefs = (el: HTMLDivElement | null) => {
+    setDragRef(el);
+    setDropRef(el);
+  };
+
   return (
     <div
-      ref={setNodeRef}
+      ref={setRefs}
+      {...dragListeners}
       style={{
         display: 'inline-block',
+        touchAction: 'manipulation',
         ...style,
+        opacity: isDragging ? 0.4 : undefined,
         transition: 'outline 0.15s ease, transform 0.15s ease',
         outline: isOver ? '2px solid var(--accent)' : undefined,
         outlineOffset: isOver ? 2 : undefined,

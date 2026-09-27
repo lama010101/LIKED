@@ -10,6 +10,9 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import { useDraggable } from '@dnd-kit/core';
+import { sourceId } from '@/lib/dnd/types';
+import type { DragSource } from '@/lib/dnd/types';
 import type { FeedItem } from '@/lib/types/feed';
 import type { Folder } from '@/lib/types/app';
 import { toast } from '@/lib/store/toastStore';
@@ -99,6 +102,13 @@ export default function VideoCard({
   const isMobile = useIsMobile();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [pickerMode, setPickerMode] = useState<'move' | 'copy' | null>(null);
+  const dragSource: DragSource = item.kind === 'folder'
+    ? { kind: 'folder', folderId: item.id }
+    : { kind: 'node', nodeId: item.id };
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: sourceId(dragSource),
+    data: { dragSource },
+  });
   const handleCardDelete = async () => {
     const res = await fetch(`/api/nodes/${item.id}`, {
       method: 'DELETE',
@@ -131,7 +141,10 @@ export default function VideoCard({
 
   return (
     <div
+      ref={setNodeRef}
       className="video-card"
+      {...attributes}
+      {...listeners}
       onClick={() => onClick(item)}
       role="button"
       tabIndex={0}
@@ -141,13 +154,15 @@ export default function VideoCard({
           onClick(item);
         }
       }}
-      style={
-        variant === 'mason'
-          ? { breakInside: 'avoid', marginBottom: 16 }
+      style={{
+        touchAction: 'manipulation',
+        opacity: isDragging ? 0.4 : 1,
+        ...(variant === 'mason'
+          ? { breakInside: 'avoid' as const, marginBottom: 16 }
           : variant === 'horiz'
-            ? { width: 200, flexShrink: 0 }
-            : undefined
-      }
+            ? { width: 200, flexShrink: 0 as const }
+            : {}),
+      }}
     >
       <div className="thumb-wrap">
         {item.kind === 'folder' ? (
