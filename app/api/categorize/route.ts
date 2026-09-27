@@ -1,24 +1,22 @@
 import { NextResponse } from "next/server";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
-import { getSupabaseServiceClient } from "@/lib/supabase/service";
 import { rpc } from "@/lib/db/rpc";
 import { isCategorizationConfigured, suggestCategorization } from "@/lib/ai/openrouter";
 import { logger } from "@/lib/utils/logger";
 
 /**
- * POST /api/categorize — Phase B on-demand categorization (PRD §41.3.3).
+ * POST /api/categorize — auto-organize proposal run (MVP2 Q2/Q16, F12).
  *
- * Runs an LLM (OpenRouter free tier — nemotron-3-super-120b) over the
- * user's YouTube-imported ("liked") videos that have
- * no suggestion yet and writes review-gated rows into
- * categorization_suggestions (status='pending'). Nothing touches
- * folders/tags until the user accepts a suggestion.
+ * Creates an organize batch over the caller's YouTube system folder
+ * (create_organize_batch snapshots the folder's own nodes as 'pending'
+ * items), asks the LLM for a folder/tag proposal per item, and records
+ * each via set_organize_item_proposal. Provider failures mark the item
+ * 'failed' — both 'pending' leftovers and 'failed' items are re-included
+ * by the next batch (Q2 re-run). Nothing is applied until the user
+ * reviews the batch (apply_organization_batch, P2-08).
  *
- * Scope: likes-only — node_type='video' nodes carrying the 'YouTube' tag.
- * Auth: authenticated user only; suggestions are owner-scoped.
+ * Auth: session user; all writes go through SECURITY DEFINER RPCs.
  */
-const BATCH_LIMIT = 10;
-
 export async function POST() {
   const supabase = await getSupabaseServerClient();
   const {
@@ -34,100 +32,86 @@ export async function POST() {
     );
   }
 
-  const db = getSupabaseServiceClient();
   try {
-    // 1. "Liked" discriminator: tag_edges → a tag whose label is 'YouTube'.
-    const { data: ytTagRows, error: ytErr } = await db
-      .from("tag_translations")
-      .select("tag_id")
-      .eq("label", "YouTube");
-    if (ytErr) throw ytErr;
-    const ytTagIds = (ytTagRows ?? []).map((r) => r.tag_id);
-    if (ytTagIds.length === 0) {
-      return NextResponse.json({ created: 0, candidates: 0 });
+    // 1. Source folder = the caller's YouTube system folder.
+    const sourceFolderId = await rpc<string>("get_or_create_system_folder", {
+      p_kind: "youtube",
+      p_user_id: user.id,
+    });
+
+    // 2. Snapshot candidates into a batch.
+    const batchId = await rpc<string>("create_organize_batch", {
+      p_source_folder_id: sourceFolderId,
+    });
+
+    const { data: items } = await supabase
+      .from("organize_items")
+      .select("id, node_id")
+      .eq("batch_id", batchId)
+      .eq("status", "pending");
+    if (!items?.length) {
+      return NextResponse.json({ created: 0, candidates: 0, batch_id: batchId });
     }
 
-    // 2. Nodes already suggested (any status — don't re-suggest).
-    const { data: existing } = await db
-      .from("categorization_suggestions")
-      .select("node_id")
-      .eq("user_id", user.id);
-    const doneIds = (existing ?? []).map((r) => r.node_id);
-
-    // 3. Candidate liked videos.
-    let query = db
+    // 3. Node metadata for prompts + vocabulary for the LLM.
+    const nodeIds = items.map((i) => i.node_id);
+    const { data: nodes } = await supabase
       .from("nodes")
-      .select("id, title, language_code, tag_edges!inner(tag_id)")
-      .eq("owner_id", user.id)
-      .eq("node_type", "video")
-      .is("deleted_at", null)
-      .in("tag_edges.tag_id", ytTagIds)
-      .limit(BATCH_LIMIT);
-    if (doneIds.length > 0) {
-      query = query.not("id", "in", `(${doneIds.join(",")})`);
-    }
-    const { data: candidates, error: candErr } = await query;
-    if (candErr) throw candErr;
-    if (!candidates?.length) {
-      return NextResponse.json({ created: 0, candidates: 0 });
+      .select("id, title, language_code")
+      .in("id", nodeIds);
+    const nodeById = new Map((nodes ?? []).map((n) => [n.id, n]));
+
+    const { data: transRows } = await supabase
+      .from("translations")
+      .select("node_id, language_code, description")
+      .in("node_id", nodeIds);
+    const descByNode = new Map<string, string>();
+    for (const n of nodes ?? []) {
+      const rows = (transRows ?? []).filter((t) => t.node_id === n.id);
+      const own = rows.find((t) => t.language_code === n.language_code) ?? rows[0];
+      if (own?.description) descByNode.set(n.id, own.description);
     }
 
-    // 4. Vocabulary for the prompt: folder names + tag labels.
     const folders = await rpc<{ name: string }[]>("get_user_folders", {
       p_user_id: user.id,
     }).catch(() => [] as { name: string }[]);
     const folderNames = (folders ?? []).map((f) => f.name);
 
-    const { data: tagRows } = await db
+    const { data: tagRows } = await supabase
       .from("tag_translations")
       .select("label")
       .eq("language_code", "en")
       .limit(60);
     const tagLabels = (tagRows ?? []).map((t) => t.label);
 
-    // 5. Descriptions live in translations (per node + language) — fetch
-    //    once for the batch, preferring each node's own language.
-    const nodeIds = candidates.map((n) => n.id);
-    const { data: transRows } = await db
-      .from("translations")
-      .select("node_id, language_code, description")
-      .in("node_id", nodeIds);
-    const descByNode = new Map<string, string>();
-    for (const n of candidates) {
-      const rows = (transRows ?? []).filter((t) => t.node_id === n.id);
-      const own = rows.find((t) => t.language_code === n.language_code) ?? rows[0];
-      if (own?.description) descByNode.set(n.id, own.description);
-    }
-
+    // 4. One proposal per item; failures are marked and left for re-run.
     let created = 0;
-    for (const node of candidates) {
+    for (const item of items) {
+      const node = nodeById.get(item.node_id);
+      if (!node) continue;
       const suggestion = await suggestCategorization({
         title: node.title ?? "Untitled video",
-        description: descByNode.get(node.id) ?? null,
+        description: descByNode.get(item.node_id) ?? null,
         channelTitle: null,
         existingFolders: folderNames,
         existingTags: tagLabels,
-      });
-      if (!suggestion) continue;
-      const { error: insErr } = await db
-        .from("categorization_suggestions")
-        .insert({
-          user_id: user.id,
-          node_id: node.id,
-          suggested_folder_name: suggestion.folderName,
-          suggested_tag_labels: suggestion.tagLabels,
-          reason: suggestion.reason,
-        });
-      if (insErr) {
-        logger.error("[categorize] insert failed:", insErr.message);
-      } else {
-        created += 1;
-      }
+      }).catch(() => null);
+      await rpc("set_organize_item_proposal", {
+        p_batch_id: batchId,
+        p_node_id: item.node_id,
+        p_target_folder_id: null,
+        p_new_folder_name: suggestion?.folderName ?? null,
+        p_tag_labels: suggestion?.tagLabels ?? [],
+        p_reason: suggestion?.reason ?? null,
+        p_status: suggestion ? "proposed" : "failed",
+      }).catch((e) => logger.error("[categorize] proposal failed:", e));
+      if (suggestion) created += 1;
     }
 
     return NextResponse.json({
       created,
-      candidates: candidates.length,
+      candidates: items.length,
+      batch_id: batchId,
     });
   } catch (err) {
     logger.error("[categorize] failed:", err);
