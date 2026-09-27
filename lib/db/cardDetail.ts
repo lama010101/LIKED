@@ -110,11 +110,13 @@ export async function getCardDetail(
   const node = await getVisibleNodeById(userId, nodeId);
   if (!node) return null;
 
+  const isOwner = node.owner_id === userId;
   const [tags, ratings, sortCache, sharedWith] = await Promise.all([
     getTagsForNode(nodeId, languageCode).catch(() => [] as TagWithLabel[]),
     getRatingsForNode(nodeId).catch(() => [] as RatingWithUser[]),
     getSortCache(nodeId),
-    getSharedWith(nodeId, node.owner_id),
+    // Q20: recipient lists are owner-only — never populated for viewers.
+    isOwner ? getSharedWith(nodeId, node.owner_id) : Promise.resolve([] as CardDetailSharedUser[]),
   ]);
 
   const yourRating = ratings.find((r) => r.userId === userId)?.score ?? null;
@@ -126,7 +128,7 @@ export async function getCardDetail(
     yourRating,
     sharedWith,
     sortCache,
-    isOwner: node.owner_id === userId,
+    isOwner,
   };
 }
 

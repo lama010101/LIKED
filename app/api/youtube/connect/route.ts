@@ -36,7 +36,7 @@ export async function GET() {
       client_id: clientId,
       redirect_uri: `${baseUrl}/api/youtube/callback`,
       response_type: "code",
-      scope: "https://www.googleapis.com/auth/youtube",
+      scope: "https://www.googleapis.com/auth/youtube.readonly",
       access_type: "offline",
       prompt: "consent",
       state,

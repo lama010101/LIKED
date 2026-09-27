@@ -17,7 +17,7 @@ import { logger } from "@/lib/utils/logger";
  *
  * Auth: session user; all writes go through SECURITY DEFINER RPCs.
  */
-export async function POST() {
+export async function POST(req: Request) {
   const supabase = await getSupabaseServerClient();
   const {
     data: { user },
@@ -33,11 +33,11 @@ export async function POST() {
   }
 
   try {
-    // 1. Source folder = the caller's YouTube system folder.
-    const sourceFolderId = await rpc<string>("get_or_create_system_folder", {
-      p_kind: "youtube",
-      p_user_id: user.id,
-    });
+    // 1. Source folder = caller-chosen folder, else the YouTube system folder.
+    const body = await req.json().catch(() => ({}));
+    const sourceFolderId = typeof body?.source_folder_id === "string" && body.source_folder_id
+      ? body.source_folder_id
+      : await rpc<string>("get_or_create_system_folder", { p_kind: "youtube", p_user_id: user.id });
 
     // 2. Snapshot candidates into a batch.
     const batchId = await rpc<string>("create_organize_batch", {
