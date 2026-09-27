@@ -161,6 +161,8 @@ export async function POST(req: NextRequest) {
     folderId: body.folderId ?? null,
     note: body.note?.trim() || null,
     nodeType: "link",
+    // MVP2 Phase 8: extension saves default to the "Web" system folder.
+    autoFolderName: body.folderId ? null : "Web",
   };
 
   // 4. Atomic write via import_url RPC (single transaction, no partial writes).

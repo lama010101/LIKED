@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import type { CardDetail } from "@/lib/db/cardDetail";
 import { rateCardAction, trashCardAction, updateNodeTitleAction } from "@/app/lib/actions/cardDetail";
-import { shareNodeAction } from "@/app/lib/actions/mvp2";
+import { shareNodeAction, getNodeAccessAction, changeNodePermissionAction, unshareNodeAction, type AccessEntry } from "@/app/lib/actions/mvp2";
 import { getFriendBarAction, getGroupBarAction } from "@/app/lib/actions/session";
 import { toast } from "@/lib/store/toastStore";
 import RatingSlider from "../../../_components/RatingSlider";
@@ -84,18 +84,11 @@ export default function CardView({ detail }: { detail: CardDetail }) {
         {isOwner && <button className="btn btn-danger" onClick={onTrash}>{t("card.deleteCard")}</button>}
       </div>
 
-      {/* Owner-only recipient list (Q20) */}
-      {isOwner && detail.sharedWith.length > 0 && (
+      {/* Owner-only recipient list (Q20) with permission control */}
+      {isOwner && (
         <section>
           <h2 className="sec-title">{t("card.sharedWith")}</h2>
-          <ul className="access-list">
-            {detail.sharedWith.map((u) => (
-              <li key={u.userId} className="access-row">
-                <Avatar userId={u.userId} avatarKey={u.avatarKey} name={u.displayName ?? ""} size={28} />
-                <span className="access-name">{u.displayName}</span>
-              </li>
-            ))}
-          </ul>
+          <CardAccessList nodeId={node.id} />
         </section>
       )}
 
@@ -116,5 +109,53 @@ export default function CardView({ detail }: { detail: CardDetail }) {
         }}
       />
     </div>
+  );
+}
+
+/** Owner-only access list (Q20): get_node_access rows + per-cause
+ *  permission change (change_node_permission) and revoke (unshare). */
+function CardAccessList({ nodeId }: { nodeId: string }) {
+  const t = useTranslations();
+  const router = useRouter();
+  const [rows, setRows] = useState<AccessEntry[] | null>(null);
+
+  useEffect(() => {
+    getNodeAccessAction(nodeId).then(setRows).catch(() => setRows([]));
+  }, [nodeId]);
+
+  if (rows === null) return <p className="muted">{t("common.loading")}</p>;
+  if (rows.length === 0) return <p className="muted">{t("share.ownerOnly")}</p>;
+
+  return (
+    <ul className="access-list">
+      {rows.map((a) => (
+        <li key={a.cause_id ?? a.user_id} className="access-row">
+          <Avatar userId={a.user_id ?? ""} avatarKey={a.avatar_key} name={a.display_name} size={28} />
+          <span className="access-name">{a.display_name}</span>
+          <select
+            value={a.permission}
+            onChange={async (e) => {
+              if (!a.cause_id) return;
+              try { await changeNodePermissionAction(a.cause_id, e.target.value); router.refresh(); }
+              catch (err) { toast.error(err instanceof Error ? err.message : t("common.error")); }
+            }}
+          >
+            {["view", "comment", "edit", "reshare"].map((p) => (
+              <option key={p} value={p}>{t(`folder.permission${p[0].toUpperCase()}${p.slice(1)}` as "folder.permissionView")}</option>
+            ))}
+          </select>
+          <button
+            className="btn btn-danger btn-sm"
+            onClick={async () => {
+              if (!a.cause_id) return;
+              try { await unshareNodeAction(a.cause_id); setRows(rows.filter((r) => r !== a)); }
+              catch (err) { toast.error(err instanceof Error ? err.message : t("common.error")); }
+            }}
+          >
+            {t("share.revoke")}
+          </button>
+        </li>
+      ))}
+    </ul>
   );
 }

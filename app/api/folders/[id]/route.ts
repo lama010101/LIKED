@@ -3,7 +3,7 @@ import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { rpc } from "@/lib/db/rpc";
 
 // Orchestration only: every write goes through a single RPC
-// (rename_folder / set_folder_color / delete_folder). Authorization lives
+// (rename_folder / set_folder_color / trash_folder). Authorization lives
 // inside the RPCs (auth.uid()), not here.
 export async function PATCH(
   request: NextRequest,
@@ -49,7 +49,9 @@ export async function DELETE(
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { id: folderId } = await params;
-    const { error } = await supabase.rpc("delete_folder", { p_folder_id: folderId });
+    // MVP2: soft-delete via trash_folder (Q7 — trash is recoverable; the
+    // folder lands in /trash, not permanently deleted).
+    const { error } = await supabase.rpc("trash_folder", { p_folder_id: folderId });
     if (error) return NextResponse.json({ error: error.message }, { status: 403 });
     return NextResponse.json({ success: true });
   } catch {

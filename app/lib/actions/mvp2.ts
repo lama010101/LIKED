@@ -73,6 +73,7 @@ export async function getFolderAction(folderId: string): Promise<Mvp2FolderDetai
 export interface AccessEntry {
   grantee_id?: string;
   user_id?: string;
+  cause_id?: string;
   display_name: string;
   avatar_key: string | null;
   permission: string;
@@ -86,6 +87,22 @@ export async function getFolderAccessAction(folderId: string): Promise<AccessEnt
 export async function getNodeAccessAction(nodeId: string): Promise<AccessEntry[]> {
   const rpc = await sessionRpc();
   return (await rpc("get_node_access", { p_node_id: nodeId }).catch(() => [])) as AccessEntry[];
+}
+
+export async function changeNodePermissionAction(causeId: string, permission: string) {
+  const rpc = await sessionRpc();
+  const supabase = await getSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  await rpc("change_node_permission", {
+    p_cause_id: causeId, p_requesting_user_id: user?.id ?? null, p_new_permission: permission,
+  });
+}
+
+export async function unshareNodeAction(causeId: string) {
+  const rpc = await sessionRpc();
+  const supabase = await getSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  await rpc("unshare", { p_cause_id: causeId, p_requesting_user_id: user?.id ?? null });
 }
 
 export interface TrashItem {

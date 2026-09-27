@@ -78,53 +78,6 @@ export async function renameFolder(
   });
 }
 
-/**
- * Soft delete a folder
- *
- * Per P13-T01 C5:
- * - Check hasFolderPermission(requestingUserId, folderId, 'admin') OR is owner
- * - Owner can always delete
- * - Sets deleted_at, preserves causes and edges
- */
-export async function deleteFolder(
-  folderId: string,
-  requestingUserId: string
-): Promise<void> {
-  const supabase = getSupabaseServiceClient();
-
-  // Verify user is owner or has admin permission
-  const { data: folder, error: fetchError } = await supabase
-    .from("folders")
-    .select("owner_id")
-    .eq("id", folderId)
-    .single();
-
-  if (fetchError) {
-    throw new Error(`Failed to fetch folder: ${fetchError.message}`);
-  }
-
-  const isOwner = folder.owner_id === requestingUserId;
-
-  if (!isOwner) {
-    // Not owner, check for admin permission
-    const hasAdmin = await hasFolderPermission(requestingUserId, folderId, "admin");
-    if (!hasAdmin) {
-      throw new PermissionError(
-        "Only folder owner or admin can delete folder",
-        "admin",
-        null
-      );
-    }
-  }
-
-  const { error } = await supabase.rpc("delete_folder", {
-    p_folder_id: folderId,
-  });
-
-  if (error) {
-    throw new Error(`Failed to delete folder: ${error.message}`);
-  }
-}
 
 /**
  * Get folder tree for a user
@@ -172,35 +125,6 @@ export async function addNodeToFolder(
 }
 
 /**
- * Find or create the user's "Unsorted" folder.
- * Every user gets one on first node creation so that no node is ever
- * without a folder (home page shows only folders).
- *
- * Uses the get_or_create_unsorted_folder RPC (single transaction:
- * folders + folder_tree). Replaces the non-atomic TS pattern (AUDIT-06 P1-4).
- *
- * @returns The folder UUID of the user's "Unsorted" folder.
- */
-export async function getOrCreateUnsortedFolder(userId: string): Promise<string> {
-  return rpc("get_or_create_unsorted_folder", { p_user_id: userId });
-}
-
-/**
- * Find or create a named top-level folder for the user (e.g. "YouTube").
- * Uses the get_or_create_named_folder RPC (single transaction).
- */
-export async function getOrCreateNamedFolder(
-  userId: string,
-  name: string,
-  color?: string | null
-): Promise<string> {
-  return rpc("get_or_create_named_folder", {
-    p_user_id: userId,
-    p_name: name,
-    p_color: color ?? null,
-  });
-}
-
 /**
  * Remove a node from a folder
  *

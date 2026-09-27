@@ -19,6 +19,7 @@ import {
   type Tag,
   type ApiError,
 } from "../api/liked-client";
+import { t } from "../i18n/strings";
 
 // LIKED_API_URL is replaced at build time by the extension's esbuild step.
 // Used for both API calls (in liked-client.ts) and web app links (sign-in,
@@ -150,7 +151,7 @@ async function render() {
 
   const tab = await getActiveTab();
   if (!tab) {
-    renderError(root, "This page cannot be saved. Open a web page (http/https) and try again.");
+    renderError(root, t("errBadPage"));
     return;
   }
 
@@ -165,8 +166,8 @@ async function render() {
 
 function renderUnauthenticated(root: HTMLElement) {
   const wrap = h("div", { className: "auth-view" }, [
-    h("p", {}, ["Sign in to LIKED to save pages to your library."]),
-    h("button", { className: "btn btn-primary", onClick: openSignIn }, ["Sign in to LIKED"]),
+    h("p", {}, [t("signInBody")]),
+    h("button", { className: "btn btn-primary", onClick: openSignIn }, [t("signIn")]),
   ]);
   root.appendChild(wrap);
 }
@@ -219,7 +220,7 @@ async function renderReady(root: HTMLElement, tab: ActiveTab) {
   );
 
   const header = h("div", { className: "header" }, [
-    h("h1", {}, ["Save to LIKED"]),
+    h("h1", {}, [t("saveTo")]),
     h(
       "button",
       {
@@ -229,7 +230,7 @@ async function renderReady(root: HTMLElement, tab: ActiveTab) {
           render();
         },
       },
-      ["Sign out"]
+      [t("signOut")]
     ),
   ]);
   root.appendChild(header);
@@ -244,7 +245,7 @@ async function renderReady(root: HTMLElement, tab: ActiveTab) {
   root.appendChild(preview);
 
   const advancedToggle = h("button", { className: "advanced-toggle", type: "button" }, [
-    h("span", {}, ["Advanced (title, description, tags, collection)"]),
+    h("span", {}, [t("advanced")]),
     h("span", { className: "chevron" }, ["▾"]),
   ]);
   root.appendChild(advancedToggle);
@@ -258,7 +259,7 @@ async function renderReady(root: HTMLElement, tab: ActiveTab) {
   const saveBtn = h(
     "button",
     { className: "btn btn-primary", type: "button" },
-    ["Save to LIKED"]
+    [t("saveTo")]
   );
   // Place Save button between preview and advanced toggle for prominence.
   root.insertBefore(saveBtn, advancedToggle);
@@ -273,7 +274,7 @@ async function renderReady(root: HTMLElement, tab: ActiveTab) {
     // Title
     advanced.appendChild(
       h("div", { className: "field" }, [
-        h("label", {}, ["Title (optional)"]),
+        h("label", {}, [t("titleOptional")]),
         h("input", {
           type: "text",
           value: state.titleOverride,
@@ -288,10 +289,10 @@ async function renderReady(root: HTMLElement, tab: ActiveTab) {
     // Description
     advanced.appendChild(
       h("div", { className: "field" }, [
-        h("label", {}, ["Description (optional)"]),
+        h("label", {}, [t("descriptionOptional")]),
         h("textarea", {
           value: state.description,
-          placeholder: "Why are you saving this?",
+          placeholder: t("descriptionPh"),
           oninput: (e: Event) => {
             state.description = (e.target as HTMLTextAreaElement).value;
           },
@@ -302,10 +303,10 @@ async function renderReady(root: HTMLElement, tab: ActiveTab) {
     // Personal note (PRD §8 — P0 feature)
     advanced.appendChild(
       h("div", { className: "field" }, [
-        h("label", {}, ["Personal note (optional)"]),
+        h("label", {}, [t("noteOptional")]),
         h("textarea", {
           value: state.note,
-          placeholder: "Add a personal note about this page…",
+          placeholder: t("notePh"),
           oninput: (e: Event) => {
             state.note = (e.target as HTMLTextAreaElement).value;
           },
@@ -328,7 +329,7 @@ async function renderReady(root: HTMLElement, tab: ActiveTab) {
     });
     advanced.appendChild(
       h("div", { className: "field" }, [
-        h("label", {}, ["Collection (optional)"]),
+        h("label", {}, [t("collectionOptional")]),
         folderSelect,
       ])
     );
@@ -336,7 +337,7 @@ async function renderReady(root: HTMLElement, tab: ActiveTab) {
     // Tags
     const tagChips = h("div", { className: "tag-chips" });
     if (state.tags.length === 0) {
-      tagChips.appendChild(h("span", { className: "muted" }, ["No tags yet."]));
+      tagChips.appendChild(h("span", { className: "muted" }, [t("noTagsYet")]));
     } else {
       for (const t of state.tags) {
         const chip = h(
@@ -364,7 +365,7 @@ async function renderReady(root: HTMLElement, tab: ActiveTab) {
     }
     advanced.appendChild(
       h("div", { className: "field" }, [
-        h("label", {}, ["Tags (optional)"]),
+        h("label", {}, [t("tagsOptional")]),
         tagChips,
       ])
     );
@@ -373,12 +374,12 @@ async function renderReady(root: HTMLElement, tab: ActiveTab) {
     const newTagInput = h("input", {
       type: "text",
       value: state.newTagInput,
-      placeholder: "Add a new tag…",
+      placeholder: t("addTagPh"),
       oninput: (e: Event) => {
         state.newTagInput = (e.target as HTMLInputElement).value;
       },
     });
-    const addTagBtn = h("button", { type: "button" }, ["Add"]);
+    const addTagBtn = h("button", { type: "button" }, [t("add")]);
     addTagBtn.addEventListener("click", () => {
       const v = state.newTagInput.trim();
       if (!v) return;
@@ -394,7 +395,7 @@ async function renderReady(root: HTMLElement, tab: ActiveTab) {
     });
     advanced.appendChild(
       h("div", { className: "field" }, [
-        h("label", {}, ["New tags"]),
+        h("label", {}, [t("newTags")]),
         h("div", { className: "new-tag-row" }, [newTagInput, addTagBtn]),
         state.newTagLabels.length > 0
           ? h(
@@ -448,7 +449,7 @@ async function renderReady(root: HTMLElement, tab: ActiveTab) {
         const already = state.save.alreadyExists;
         statusHost.appendChild(
           h("div", { className: "status status-success" }, [
-            already ? "Already saved — " : "Saved ✓ — ",
+            already ? t("alreadySaved") : t("saved"),
             h(
               "a",
               {
@@ -458,7 +459,7 @@ async function renderReady(root: HTMLElement, tab: ActiveTab) {
                   openInLiked();
                 },
               },
-              ["Open in LIKED"]
+              [t("openInLiked")]
             ),
           ])
         );
@@ -497,12 +498,12 @@ async function renderReady(root: HTMLElement, tab: ActiveTab) {
       const e = err as ApiError | Error;
       const message =
         (e as ApiError)?.code === "unauthenticated"
-          ? "Please sign in to LIKED."
+          ? t("errSignIn")
           : (e as ApiError)?.code === "network"
-            ? "Unable to reach LIKED."
+            ? t("errNetwork")
             : e instanceof Error
               ? e.message
-              : "LIKED could not save this page. Please try again.";
+              : t("errGeneric");
       state.save = { kind: "error", message };
     }
     rerenderStatus();
