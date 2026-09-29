@@ -3,8 +3,13 @@ import { cookies } from "next/headers";
 import { randomBytes } from "node:crypto";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    // Optional return path after OAuth (e.g. "/feed?yt_sync=1" from the
+    // topbar sync button). Local paths only — no open redirects.
+    const rawNext = new URL(request.url).searchParams.get("next");
+    const next = rawNext && rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/youtube";
+
     const supabase = await getSupabaseServerClient();
     const { data: { user }, error } = await supabase.auth.getUser();
     if (error || !user) {
@@ -25,6 +30,13 @@ export async function GET() {
 
     const cookieStore = await cookies();
     cookieStore.set("yt_oauth_state", state, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+      maxAge: 600,
+      path: "/",
+    });
+    cookieStore.set("yt_oauth_next", next, {
       httpOnly: true,
       secure: true,
       sameSite: "lax",

@@ -14,6 +14,7 @@ import Avatar, { avatarUrl } from "./Avatar";
 import ThemeSync from "./ThemeSync";
 import AddSheet from "./AddSheet";
 import FriendsRail from "./FriendsRail";
+import YouTubeSyncButton from "./YouTubeSyncButton";
 import { toast } from "@/lib/store/toastStore";
 import { useRealtime } from "@/lib/hooks/useRealtime";
 import type { SessionUser } from "@/app/lib/actions/session";
@@ -78,12 +79,13 @@ export default function AppShell({
               aria-label={t("nav.searchPlaceholder")}
             />
           </form>
+          <YouTubeSyncButton />
           <Link href="/notifications" className="icon-btn" aria-label={t("nav.notifications")}>
             <BellIcon />
             {unread > 0 && <span className="badge">{unread > 9 ? "9+" : unread}</span>}
           </Link>
-          <Link href="/trash" className="icon-btn" aria-label={t("nav.trash")}>
-            <TrashIcon />
+          <Link href="/organize" className="icon-btn" aria-label={t("nav.organize")}>
+            <OrganizeIcon />
           </Link>
           <Link href="/me" className="icon-btn" aria-label={t("nav.me")}>
             {avatarUrl(user.avatar_key) ? (
@@ -138,6 +140,6 @@ function HomeIcon() {
 function BellIcon() {
   return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.7 21a2 2 0 0 1-3.4 0" /></svg>;
 }
-function TrashIcon() {
-  return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4h8v2m1 0-1 15H8L7 6" /></svg>;
+function OrganizeIcon() {
+  return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z" /><path d="m19 15 .8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z" /></svg>;
 }

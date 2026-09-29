@@ -187,6 +187,8 @@ try {
       { fn: "set_organize_item_proposal", args: { p_batch_id: "00000000-0000-0000-0000-000000000000", p_node_id: "00000000-0000-0000-0000-000000000000" } },
       { fn: "apply_organization_batch", args: { p_batch_id: "00000000-0000-0000-0000-000000000000", p_item_ids: [] } },
       { fn: "discard_organization_batch", args: { p_batch_id: "00000000-0000-0000-0000-000000000000" } },
+      // m133 restored: still called by apply_organization_batch + _resolve_auto_folder
+      { fn: "get_or_create_named_folder", args: { p_user_id: "00000000-0000-0000-0000-000000000000", p_name: "x" } },
       { fn: "set_youtube_import_consent", args: { p_consent: true } },
       { fn: "add_group_member", args: { p_group_id: "00000000-0000-0000-0000-000000000000", p_user_id: "00000000-0000-0000-0000-000000000000" } },
       { fn: "remove_group_member", args: { p_group_id: "00000000-0000-0000-0000-000000000000", p_user_id: "00000000-0000-0000-0000-000000000000" } },
@@ -230,7 +232,6 @@ try {
       "get_folder_memberships", "get_social_timeline", "revoke_folder_admin",
       "unshare_folder_op", "revoke_group_admin", "direct_share",
       "group_share", "group_unshare", "get_or_create_unsorted_folder",
-      "get_or_create_named_folder",
     ];
     const dropped = await client2.query(
       `SELECT proname FROM pg_proc WHERE pronamespace='public'::regnamespace AND proname = ANY($1)`, [DROPPED]);

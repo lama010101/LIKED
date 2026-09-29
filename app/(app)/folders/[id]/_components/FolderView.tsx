@@ -17,6 +17,8 @@ import Modal from "../../../_components/Modal";
 import Avatar from "../../../_components/Avatar";
 import ShareSheet from "../../../_components/ShareSheet";
 import RatingSlider from "../../../_components/RatingSlider";
+import CardItem from "../../../_components/CardItem";
+import ViewSwitch, { useCardView } from "../../../_components/ViewSwitch";
 
 const PERMS = ["view", "comment", "contribute", "edit", "reshare", "admin"] as const;
 
@@ -36,6 +38,7 @@ export default function FolderView({
   const canShare = isOwner || ["reshare", "admin"].includes(myPermission);
   const isSystem = !!folder.system_kind;
 
+  const [view, pickView] = useCardView();
   const [renaming, setRenaming] = useState(false);
   const [name, setName] = useState(folder.name);
   const [desc, setDesc] = useState(folder.description ?? "");
@@ -113,20 +116,19 @@ export default function FolderView({
         </section>
       )}
 
-      {/* Member cards (visible to me via edges) */}
+      {/* Member cards (visible to me via edges) — same 3 views as home */}
       <section>
-        <h2 className="sec-title">{t("folder.members")} · {totalCount}</h2>
+        <div className="feed-head">
+          <h2 className="sec-title">{t("folder.members")} · {totalCount}</h2>
+          <ViewSwitch view={view} onPick={pickView} />
+        </div>
         {nodes.length === 0 ? (
           <p className="empty-note">{t("folder.empty")}</p>
         ) : (
-          <div className="cards cards-list">
+          <div className={`cards cards-${view}`}>
             {nodes.map((n) => (
               <Link key={n.node_id} href={`/card/${n.node_id}`} className="card-link">
-                <article className="card">
-                  <div className="card-body">
-                    <h3 className="card-title">{n.title ?? n.text_content?.slice(0, 80) ?? t("card.untitled")}</h3>
-                  </div>
-                </article>
+                <CardItem node={n} />
               </Link>
             ))}
           </div>

@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import type { TrashItem } from "@/app/lib/actions/mvp2";
 import { restoreNodeAction, restoreFolderAction, hardDeleteNodeAction, hardDeleteFolderAction, emptyTrashAction } from "@/app/lib/actions/mvp2";
+import Crumbs from "../../_components/Crumbs";
 import { toast } from "@/lib/store/toastStore";
 
 /** Trash (Phase 10): restore / permanent-delete / empty. Deletes are
@@ -22,6 +23,7 @@ export default function TrashView({ items }: { items: TrashItem[] }) {
 
   return (
     <div className="trash-view">
+      <Crumbs items={[{ href: "/feed", label: t("nav.home") }, { label: t("trash.title") }]} />
       <div className="feed-head">
         <h1 className="sec-title">{t("trash.title")} · {items.length}</h1>
         {items.length > 0 && (

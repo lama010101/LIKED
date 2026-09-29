@@ -7,6 +7,7 @@ import type { FriendBarEntry, GroupBarEntry } from "@/lib/db/friends";
 import { inviteFriendAction, removeFriendAction, blockUserAction, createGroupAction, deleteGroupAction, addGroupMemberAction } from "@/app/lib/actions/mvp2";
 import Avatar from "../../_components/Avatar";
 import Modal from "../../_components/Modal";
+import Crumbs from "../../_components/Crumbs";
 import { toast } from "@/lib/store/toastStore";
 
 /** Friends & groups management (Phase 6). */
@@ -33,6 +34,7 @@ export default function FriendsView({ friends, groups }: { friends: FriendBarEnt
 
   return (
     <div className="friends-view">
+      <Crumbs items={[{ href: "/feed", label: t("nav.home") }, { label: t("nav.friends") }]} />
       <h1 className="sec-title">{t("friends.title")}</h1>
 
       {/* Invite */}

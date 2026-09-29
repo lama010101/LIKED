@@ -8,6 +8,7 @@ import { updateUsername } from "@/app/lib/actions/profile";
 import { setLocaleAction } from "@/app/lib/actions/mvp2";
 import { setTheme } from "../../_components/ThemeSync";
 import Avatar from "../../_components/Avatar";
+import Crumbs from "../../_components/Crumbs";
 import { toast } from "@/lib/store/toastStore";
 import { LOCALES } from "@/i18n/locales";
 
@@ -38,6 +39,7 @@ export default function MeView({ user }: { user: SessionUser }) {
 
   return (
     <div className="me-view">
+      <Crumbs items={[{ href: "/feed", label: t("nav.home") }, { label: t("nav.me") }]} />
       <h1 className="sec-title">{t("me.title")}</h1>
 
       <section className="me-card">
@@ -77,6 +79,8 @@ export default function MeView({ user }: { user: SessionUser }) {
       <section className="me-card">
         <a className="btn" href="/friends">{t("nav.friends")}</a>
         <a className="btn" href="/youtube">{t("nav.youtube")}</a>
+        <a className="btn" href="/extension/install">{t("nav.extension")}</a>
+        <a className="btn" href="/trash">{t("nav.trash")}</a>
         <button className="btn btn-danger" onClick={signOut}>{t("nav.signOut")}</button>
       </section>
     </div>

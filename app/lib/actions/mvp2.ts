@@ -170,8 +170,8 @@ export async function getOrganizeBatchAction(batchId: string): Promise<OrganizeI
 export async function createFolderAction(input: { name: string; parentId?: string | null; color?: string | null; description?: string | null }) {
   const rpc = await sessionRpc();
   const id = await rpc("create_folder", {
-    p_name: input.name, p_parent_id: input.parentId ?? null,
-    p_color: input.color ?? null, p_description: input.description ?? null,
+    p_name: input.name, p_parent_folder_id: input.parentId ?? null,
+    p_color_hex: input.color ?? null, p_description: input.description ?? null,
   });
   revalidatePath("/feed");
   return id as string;
@@ -191,7 +191,7 @@ export async function renameFolderAction(folderId: string, name: string) {
 
 export async function setFolderDetailsAction(folderId: string, description: string | null, color: string | null) {
   const rpc = await sessionRpc();
-  await rpc("set_folder_details", { p_folder_id: folderId, p_description: description, p_color: color });
+  await rpc("set_folder_details", { p_folder_id: folderId, p_description: description, p_color_hex: color });
   revalidatePath("/feed");
 }
 
@@ -325,11 +325,6 @@ export async function rateFolderAction(folderId: string, score: number) {
 
 // ── organize ───────────────────────────────────────────────────
 
-export async function createOrganizeBatchAction(sourceFolderId: string): Promise<string> {
-  const rpc = await sessionRpc();
-  return (await rpc("create_organize_batch", { p_source_folder_id: sourceFolderId })) as string;
-}
-
 export async function applyOrganizeBatchAction(batchId: string, itemIds: string[]) {
   const rpc = await sessionRpc();
   await rpc("apply_organization_batch", { p_batch_id: batchId, p_item_ids: itemIds });
@@ -345,7 +340,19 @@ export async function discardOrganizeBatchAction(batchId: string) {
 
 export async function inviteFriendAction(email: string) {
   const rpc = await sessionRpc();
-  await rpc("invite_friend", { p_email: email });
+  const status = (await rpc("invite_friend", { p_email: email })) as string;
+  if (status === "self") return;
+  // Send the actual invite email via Supabase Auth — pending invitees have no
+  // account, so this also creates auth.users and ensure_user_profile links the
+  // invite on their first sign-in. A registered address errors benignly: the
+  // invitee is already in-app, nothing to send.
+  const admin = getSupabaseServiceClient();
+  const { error } = await admin.auth.admin.inviteUserByEmail(email, {
+    redirectTo: process.env.NEXT_PUBLIC_APP_URL ? `${process.env.NEXT_PUBLIC_APP_URL}/callback` : undefined,
+  });
+  if (error && !/already|registered|exists/i.test(error.message)) {
+    throw new Error(error.message);
+  }
 }
 
 export async function removeFriendAction(userId: string) {

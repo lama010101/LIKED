@@ -9,15 +9,19 @@ export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
   const state = searchParams.get("state");
-  const next = searchParams.get("next") ?? "/youtube";
+
+  const cookieStore = await cookies();
+  const nextCookie = cookieStore.get("yt_oauth_next")?.value;
+  const next =
+    nextCookie && nextCookie.startsWith("/") && !nextCookie.startsWith("//")
+      ? nextCookie
+      : (searchParams.get("next") ?? "/youtube");
 
   if (!code) {
     return NextResponse.redirect(`${origin}/feed`);
   }
 
   try {
-    const cookieStore = await cookies();
-
     const stateCookie = cookieStore.get("yt_oauth_state")?.value;
     if (!stateCookie) {
       return NextResponse.redirect(`${origin}/feed?youtube_error=missing_state_cookie`);
@@ -30,6 +34,7 @@ export async function GET(request: Request) {
     }
 
     cookieStore.set("yt_oauth_state", "", { path: "/", maxAge: 0 });
+    cookieStore.set("yt_oauth_next", "", { path: "/", maxAge: 0 });
 
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,

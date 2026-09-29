@@ -17,6 +17,8 @@ import { logger } from "@/lib/utils/logger";
  *
  * Auth: session user; all writes go through SECURITY DEFINER RPCs.
  */
+export const maxDuration = 60;
+
 export async function POST(req: Request) {
   const supabase = await getSupabaseServerClient();
   const {

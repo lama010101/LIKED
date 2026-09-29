@@ -1,26 +1,57 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { Mvp2Folder } from "@/app/lib/actions/mvp2";
 
 const THUMB_BASE = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/thumbnails/`;
+const CLICK_DELAY_MS = 250;
 
-/** Folder tile — link to /folders/[id] + drop target for card drags. */
+/** Folder tile — click filters feed (?folder=id, toggles off if active),
+ *  double-click enters /folders/[id]; drop target for card drags. */
 export default function FolderTile({
-  folder, onDropCard,
+  folder, onDropCard, active = false,
 }: {
   folder: Mvp2Folder;
   onDropCard: (nodeId: string, folderId: string) => void;
+  active?: boolean;
 }) {
+  const router = useRouter();
+  const clickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [over, setOver] = useState(false);
   const thumbs = (folder.thumbnails as { th: string }[] | string[] | null) ?? [];
   const keys = thumbs.map((x) => (typeof x === "string" ? x : x.th)).filter(Boolean).slice(0, 4);
 
+  const onClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    // Keyboard-activated click (Enter) has detail 0 — enter the folder.
+    if (e.detail === 0) {
+      router.push(`/folders/${folder.id}`);
+      return;
+    }
+    if (clickTimer.current) clearTimeout(clickTimer.current);
+    clickTimer.current = setTimeout(() => {
+      clickTimer.current = null;
+      router.push(active ? "/feed" : `/feed?folder=${folder.id}`);
+    }, CLICK_DELAY_MS);
+  };
+
+  const onDoubleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (clickTimer.current) {
+      clearTimeout(clickTimer.current);
+      clickTimer.current = null;
+    }
+    router.push(`/folders/${folder.id}`);
+  };
+
   return (
     <Link
       href={`/folders/${folder.id}`}
-      className={`folder-tile ${over ? "folder-tile-over" : ""}`}
+      className={`folder-tile ${over ? "folder-tile-over" : ""} ${active ? "folder-tile-active" : ""}`}
+      onClick={onClick}
+      onDoubleClick={onDoubleClick}
       onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; setOver(true); }}
       onDragLeave={() => setOver(false)}
       onDrop={(e) => {

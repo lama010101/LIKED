@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { OrganizeItemRow } from "@/app/lib/actions/mvp2";
 import { applyOrganizeBatchAction, discardOrganizeBatchAction } from "@/app/lib/actions/mvp2";
+import Crumbs from "../../../_components/Crumbs";
 import { toast } from "@/lib/store/toastStore";
 
 const THUMB_BASE = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/thumbnails/`;
@@ -36,6 +37,7 @@ export default function BatchView({ batchId, items }: { batchId: string; items: 
 
   return (
     <div className="org-view">
+      <Crumbs items={[{ href: "/feed", label: t("nav.home") }, { href: "/organize", label: t("organize.title") }, { label: t("organize.proposals") }]} />
       <div className="feed-head">
         <h1 className="sec-title">{t("organize.proposals")}</h1>
         <div className="row">
@@ -72,6 +74,7 @@ export default function BatchView({ batchId, items }: { batchId: string; items: 
               {i.tag_labels?.length > 0 && (
                 <span className="muted">{i.tag_labels.join(", ")}</span>
               )}
+              {i.reason && <span className="muted">{i.reason}</span>}
             </li>
           );
         })}
