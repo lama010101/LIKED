@@ -21,6 +21,12 @@
     "test:vercel": "BASE_URL=https://liked-zeta.vercel.app npx playwright test",
     "test:vercel:headed": "BASE_URL=https://liked-zeta.vercel.app npx playwright test --headed"
   },
+  "allowScripts": {
+    "@parcel/watcher@2.6.0": true,
+    "@swc/core@1.16.2": true,
+    "esbuild@0.28.2": true,
+    "unrs-resolver@1.11.1": true
+  },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
