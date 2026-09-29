@@ -14,7 +14,7 @@ const anonKey = anonKeyMatch ? anonKeyMatch[1].trim() : '';
 async function setEnv() {
   console.log('=== SETTING FUNCTION ENV VARIABLES ===\n');
   console.log('SUPABASE_URL:', supabaseUrl);
-  console.log('SECRET_KEY:', serviceRoleKey.substring(0, 20) + '...');
+  console.log('SECRET_KEY: set');
   console.log('PUBLISHABLE_KEY:', anonKey.substring(0, 20) + '...\n');
 
   const envVars = [

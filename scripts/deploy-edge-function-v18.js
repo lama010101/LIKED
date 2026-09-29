@@ -50,7 +50,7 @@ function automateDashboard() {
       return tokenElement ? tokenElement.textContent : null;
     });
     
-    console.log('Got PAT:', token);
+    console.log('PAT obtained');
     
     await browser.close();
     

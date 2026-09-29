@@ -41,7 +41,7 @@ const req = https.request(options, (res) => {
   let body = '';
   res.on('data', (chunk) => { body += chunk; });
   res.on('end', () => {
-    console.log('Response body:', body);
+    console.log('Response:', res.statusCode, FUNCTION_NAME);
     if (res.statusCode === 409) {
       console.log('Function already exists, trying to update...');
       updateFunction();
@@ -72,7 +72,7 @@ function updateFunction() {
     let body = '';
     res.on('data', (chunk) => { body += chunk; });
     res.on('end', () => {
-      console.log('Update Response body:', body);
+      console.log('Update Response:', res.statusCode, FUNCTION_NAME);
     });
   });
 

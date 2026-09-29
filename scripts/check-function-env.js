@@ -15,7 +15,7 @@ async function checkEnv() {
 
   console.log('FUNCTION DETAILS status:', response.status);
   const body = await response.text();
-  console.log('FUNCTION DETAILS body:', body);
+  console.log('FUNCTION DETAILS:', response.status, 'extract-node-metadata');
 }
 
 checkEnv().catch(console.error);

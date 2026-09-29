@@ -15,7 +15,7 @@ console.log('Checking for Supabase access token...');
 try {
   // Try to use supabase auth to get a token
   const token = execSync('supabase auth status --output json', { encoding: 'utf8' });
-  console.log('Auth status:', token);
+  console.log('Auth status check succeeded');
 } catch (e) {
   console.log('No auth session found');
 }
@@ -27,7 +27,7 @@ console.log('Attempting to get access token via CLI...');
 // Let's try to use the Supabase CLI to generate one or find one
 try {
   const accessToken = execSync('supabase projects api-keys --project-ref ' + PROJECT_REF, { encoding: 'utf8' });
-  console.log('API keys:', accessToken);
+  console.log('API keys request succeeded');
 } catch (e) {
   console.log('Could not get API keys via CLI');
 }
