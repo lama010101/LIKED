@@ -7,5 +7,5 @@ export default async function OrganizePage() {
   const user = await getSessionUser();
   if (!user) redirect("/login");
   const [batches, folders] = await Promise.all([getOrganizeBatchesAction(), getFoldersAction()]);
-  return <OrganizeHome batches={batches} folders={folders} />;
+  return <OrganizeHome batches={batches} folders={folders.filter((f) => f.owner_id === user.id)} />;
 }

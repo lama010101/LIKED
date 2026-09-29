@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Mvp2Folder, OrganizeBatchRow } from "@/app/lib/actions/mvp2";
 import { discardOrganizeBatchAction } from "@/app/lib/actions/mvp2";
+import Crumbs from "../../_components/Crumbs";
 import { toast } from "@/lib/store/toastStore";
 
 /** Organize home: run auto-organize on a folder + review past batches. */
@@ -35,6 +36,7 @@ export default function OrganizeHome({ batches, folders }: { batches: OrganizeBa
 
   return (
     <div className="org-view">
+      <Crumbs items={[{ href: "/feed", label: t("nav.home") }, { label: t("organize.title") }]} />
       <h1 className="sec-title">{t("organize.title")}</h1>
 
       <section>

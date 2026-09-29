@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import type { FeedNode } from "@/lib/types/feed";
-import Avatar from "../../_components/Avatar";
+import Avatar from "./Avatar";
 
 const THUMB_BASE = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/thumbnails/`;
 

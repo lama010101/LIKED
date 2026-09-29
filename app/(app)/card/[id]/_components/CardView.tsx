@@ -11,6 +11,7 @@ import { toast } from "@/lib/store/toastStore";
 import RatingSlider from "../../../_components/RatingSlider";
 import ShareSheet from "../../../_components/ShareSheet";
 import Avatar from "../../../_components/Avatar";
+import Crumbs from "../../../_components/Crumbs";
 
 const THUMB_BASE = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/thumbnails/`;
 
@@ -35,8 +36,18 @@ export default function CardView({ detail }: { detail: CardDetail }) {
     if (res.ok) { router.push("/feed"); router.refresh(); } else toast.error(res.error);
   };
 
+  const onBack = () => {
+    if (window.history.length > 1) router.back();
+    else router.push("/feed");
+  };
+
   return (
     <div className="card-view">
+      <div className="crumbs crumbs-row">
+        <button className="crumbs-back" onClick={onBack}>← {t("nav.back")}</button>
+        <Crumbs items={[{ href: "/feed", label: t("nav.home") }, { label: node.title ?? t("card.untitled") }]} />
+      </div>
+
       {node.thumbnail_key && (
         // eslint-disable-next-line @next/next/no-img-element
         <img className="cv-hero" src={`${THUMB_BASE}${node.thumbnail_key}`} alt="" />

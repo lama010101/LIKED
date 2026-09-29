@@ -22,6 +22,7 @@ export default async function FeedPage({
   const s = (k: string) => (typeof sp[k] === "string" ? (sp[k] as string) : undefined);
   const q = s("q") ?? null;
   const friend = s("friend") ?? null;
+  const folder = s("folder") ?? null;
   const me = s("me") === "1";
   const tag = s("tag") ?? null;
   const sort = s("sort") ?? "newest";
@@ -29,13 +30,12 @@ export default async function FeedPage({
   const params = {
     p_user_id: user.id,
     p_language_code: user.language_code ?? "en",
-    p_view: "all",
+    p_view: me ? "mine" : "all",
     p_friend_id: friend,
+    p_folder_id: folder,
     p_filter_tag_ids: tag ? [tag] : null,
     p_search_query: q,
     p_sort: sort,
-    // Home shows unfiled cards only; friend/search/me views see everything.
-    p_exclude_foldered: !q && !friend && !me,
   } as import("@/lib/types/feed").FeedParams;
 
   const [feed, folders] = await Promise.all([
@@ -52,6 +52,7 @@ export default async function FeedPage({
       feedParams={params}
       query={q}
       meView={me}
+      activeFolderId={folder}
     />
   );
 }

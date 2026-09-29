@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { NotificationRow } from "@/app/lib/actions/mvp2";
 import { markNotificationsReadAction } from "@/app/lib/actions/mvp2";
+import Crumbs from "../../_components/Crumbs";
 import { toast } from "@/lib/store/toastStore";
 
 /** Notification list (Phase 9): mark-all-read + per-type rendering.
@@ -42,6 +43,7 @@ export default function NotificationsView({ items }: { items: NotificationRow[] 
 
   return (
     <div className="notifs-view">
+      <Crumbs items={[{ href: "/feed", label: t("nav.home") }, { label: t("notifications.title") }]} />
       <div className="feed-head">
         <h1 className="sec-title">{t("notifications.title")}</h1>
         <button className="btn" onClick={markAll}>{t("notifications.markAllRead")}</button>

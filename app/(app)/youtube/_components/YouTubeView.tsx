@@ -5,8 +5,9 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Modal from "../../_components/Modal";
+import Crumbs from "../../_components/Crumbs";
 import { setYoutubeConsentAction } from "@/app/lib/actions/mvp2";
-import { importYouTubeActivity } from "@/app/lib/actions/youtubeImport";
+import { runYouTubeImport } from "@/lib/youtube/runImport";
 import { toast } from "@/lib/store/toastStore";
 
 /**
@@ -52,26 +53,7 @@ export default function YouTubeView({ consent }: { consent: boolean }) {
     setImporting(true);
     setProgress(null);
     try {
-      let pageToken: string | undefined;
-      let count = 0;
-      do {
-        const res = await fetch(`/api/youtube/likes${pageToken ? `?pageToken=${pageToken}` : ""}`);
-        const body = await res.json();
-        if (!res.ok) throw new Error(body.error ?? `likes fetch failed (${res.status})`);
-        for (const v of body.videos ?? []) {
-          await importYouTubeActivity({
-            url: `https://www.youtube.com/watch?v=${v.id}`,
-            title: v.title ?? "",
-            description: v.description ?? "",
-            channelTitle: v.channelTitle ?? "",
-            categoryId: v.categoryId ?? "",
-            thumbnailUrl: v.thumbnail ?? null,
-          }).catch(() => {});
-          count += 1;
-          setProgress(`${count}`);
-        }
-        pageToken = body.nextPageToken;
-      } while (pageToken);
+      const count = await runYouTubeImport((n) => setProgress(`${n}`));
       toast.success(`✓ ${count}`);
       router.refresh();
     } catch (e) {
@@ -83,6 +65,7 @@ export default function YouTubeView({ consent }: { consent: boolean }) {
 
   return (
     <div className="yt-view">
+      <Crumbs items={[{ href: "/feed", label: t("nav.home") }, { label: t("nav.youtube") }]} />
       <h1 className="sec-title">{t("youtube.title")}</h1>
 
       <section className="me-card">

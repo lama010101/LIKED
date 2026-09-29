@@ -15,13 +15,12 @@ import { fetchFeedPageAction } from "@/app/lib/actions/feed";
 import type { Mvp2Folder } from "@/app/lib/actions/mvp2";
 import { moveNodeToFolderAction } from "@/app/lib/actions/mvp2";
 import { toast } from "@/lib/store/toastStore";
-import CardItem from "./CardItem";
+import CardItem from "../../_components/CardItem";
+import ViewSwitch, { useCardView } from "../../_components/ViewSwitch";
 import FolderTile from "./FolderTile";
 
-type ViewMode = "list" | "masonry" | "columns";
-
 export default function FeedHome({
-  initialNodes, totalCount, nextCursor, folders, feedParams, query, meView,
+  initialNodes, totalCount, nextCursor, folders, feedParams, query, meView, activeFolderId,
 }: {
   initialNodes: FeedNode[];
   totalCount: number;
@@ -30,19 +29,14 @@ export default function FeedHome({
   feedParams: FeedParams;
   query: string | null;
   meView: boolean;
+  activeFolderId: string | null;
 }) {
   const t = useTranslations();
   const router = useRouter();
-  const [view, setView] = useState<ViewMode>(() =>
-    (typeof window !== "undefined" && (localStorage.getItem("liked.view") as ViewMode)) || "list");
+  const [view, pickView] = useCardView();
   const [nodes, setNodes] = useState(initialNodes);
   const [cursor, setCursor] = useState(nextCursor);
   const [loading, setLoading] = useState(false);
-
-  const pickView = (v: ViewMode) => {
-    setView(v);
-    localStorage.setItem("liked.view", v);
-  };
 
   const loadMore = useCallback(async () => {
     if (!cursor || loading) return;
@@ -81,25 +75,15 @@ export default function FeedHome({
           <h2 className="sec-title">{t("feed.folders")}</h2>
           <div className="folder-row">
             {folders.map((f) => (
-              <FolderTile key={f.id} folder={f} onDropCard={onDropToFolder} />
+              <FolderTile key={f.id} folder={f} onDropCard={onDropToFolder} active={f.id === activeFolderId} />
             ))}
           </div>
         </section>
       )}
 
       <div className="feed-head">
-        <h2 className="sec-title">{query ? `"${query}"` : meView ? t("nav.me") : t("feed.cards")}</h2>
-        <div className="seg view-seg" role="group" aria-label="view">
-          {(["list", "masonry", "columns"] as const).map((v) => (
-            <button
-              key={v}
-              className={`seg-btn ${view === v ? "seg-on" : ""}`}
-              onClick={() => pickView(v)}
-            >
-              {t(`feed.view${v[0].toUpperCase()}${v.slice(1)}` as "feed.viewList")}
-            </button>
-          ))}
-        </div>
+        <h2 className="sec-title">{query ? `"${query}"` : activeFolderId ? (folders.find((f) => f.id === activeFolderId)?.name ?? t("feed.cards")) : meView ? t("nav.me") : t("feed.cards")}</h2>
+        <ViewSwitch view={view} onPick={pickView} />
       </div>
 
       {nodes.length === 0 ? (
