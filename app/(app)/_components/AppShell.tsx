@@ -14,6 +14,8 @@ import Avatar, { avatarUrl } from "./Avatar";
 import ThemeSync from "./ThemeSync";
 import AddSheet from "./AddSheet";
 import FriendsRail from "./FriendsRail";
+import FolderRail from "./FolderRail";
+import { setRailOpen, syncPrefs, type LayoutPref } from "./prefs";
 import YouTubeSyncButton from "./YouTubeSyncButton";
 import { toast } from "@/lib/store/toastStore";
 import { useRealtime } from "@/lib/hooks/useRealtime";
@@ -34,13 +36,24 @@ export default function AppShell({
   const pathname = usePathname();
   const [unread, setUnread] = useState(initialUnread);
   const [addOpen, setAddOpen] = useState(false);
+  const [addMode, setAddMode] = useState<"card" | "folder">("card");
   const [search, setSearch] = useState("");
   const [folders, setFolders] = useState<Mvp2Folder[]>([]);
+  const [layout, setLayout] = useState<LayoutPref>("friends-left");
+  const [railOpen, setRailOpenState] = useState(true);
 
   const refreshFolders = useCallback(() => {
     getFoldersAction().then(setFolders).catch(() => {});
   }, []);
   useEffect(refreshFolders, [refreshFolders]);
+
+  // Apply persisted layout/rail prefs + stay in sync with changes from /me.
+  useEffect(() => syncPrefs((l, o) => { setLayout(l); setRailOpenState(o); }), []);
+
+  const openAdd = (mode: "card" | "folder") => {
+    setAddMode(mode);
+    setAddOpen(true);
+  };
 
   // Realtime: bump unread badge + refresh on incoming shares (P9).
   useRealtime({
@@ -62,15 +75,29 @@ export default function AppShell({
     <div className="shell">
       <ThemeSync />
 
-      {/* Desktop/tablet left rail — folders + friends */}
-      <aside className="shell-rail">
+      {/* Left panel — friends or folders, per layout pref */}
+      <aside className={`shell-rail ${layout === "friends-top" ? "rail-folders" : ""}`}>
         <Link href="/feed" className="shell-logo">LIKED</Link>
-        <FriendsRail user={user} friends={friends} />
+        {layout === "friends-top" ? (
+          <FolderRail folders={folders} onAdd={() => openAdd("folder")} onChanged={refreshFolders} />
+        ) : (
+          <FriendsRail user={user} friends={friends} />
+        )}
       </aside>
 
       <div className="shell-main">
-        {/* Header: search + notifications + me */}
+        {/* Header: panel toggle + search + notifications + me */}
         <header className="shell-header">
+          <button
+            type="button"
+            className="icon-btn"
+            onClick={() => setRailOpen(!railOpen)}
+            aria-label={t("nav.togglePanel")}
+            aria-pressed={railOpen}
+            title={t("nav.togglePanel")}
+          >
+            <PanelIcon />
+          </button>
           <form onSubmit={onSearchSubmit} className="shell-search" role="search">
             <input
               value={search}
@@ -97,6 +124,13 @@ export default function AppShell({
           </Link>
         </header>
 
+        {/* Friends sliding rail on top — when layout pref moves folders to the left panel */}
+        {layout === "friends-top" && (
+          <div className="shell-toprail">
+            <FriendsRail user={user} friends={friends} horizontal />
+          </div>
+        )}
+
         <main className="shell-content">{children}</main>
 
         {/* Mobile bottom bar: Home / Add / Me */}
@@ -105,7 +139,7 @@ export default function AppShell({
             <HomeIcon />
             <span>{t("nav.home")}</span>
           </Link>
-          <button className="bb-item bb-add" onClick={() => setAddOpen(true)} aria-label={t("nav.add")}>
+          <button className="bb-item bb-add" onClick={() => openAdd("card")} aria-label={t("nav.add")}>
             <PlusIcon />
             <span>{t("nav.add")}</span>
           </button>
@@ -116,21 +150,26 @@ export default function AppShell({
         </nav>
 
         {/* FAB — desktop/tablet */}
-        <button className="fab" onClick={() => setAddOpen(true)} aria-label={t("nav.add")}>
+        <button className="fab" onClick={() => openAdd("card")} aria-label={t("nav.add")}>
           <PlusIcon />
         </button>
       </div>
 
       <AddSheet
+        key={addMode}
         open={addOpen}
         onClose={() => setAddOpen(false)}
         folders={folders}
+        initialMode={addMode}
         onCreated={() => { refreshFolders(); router.refresh(); toast.success(t("add.added")); }}
       />
     </div>
   );
 }
 
+function PanelIcon() {
+  return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M9 4v16" /></svg>;
+}
 function PlusIcon() {
   return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>;
 }

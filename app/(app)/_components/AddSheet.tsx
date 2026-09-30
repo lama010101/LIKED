@@ -11,16 +11,17 @@ import { createCardAction, createFolderAction, type Mvp2Folder } from "@/app/lib
  * or a folder (optional parent = current context). All writes via RPCs.
  */
 export default function AddSheet({
-  open, onClose, folders, contextFolderId = null, onCreated,
+  open, onClose, folders, contextFolderId = null, initialMode = "card", onCreated,
 }: {
   open: boolean;
   onClose: () => void;
   folders: Mvp2Folder[];
   contextFolderId?: string | null;
+  initialMode?: "card" | "folder";
   onCreated?: () => void;
 }) {
   const t = useTranslations();
-  const [mode, setMode] = useState<"card" | "folder">("card");
+  const [mode, setMode] = useState<"card" | "folder">(initialMode);
   const [busy, setBusy] = useState(false);
   const [url, setUrl] = useState("");
   const [title, setTitle] = useState("");

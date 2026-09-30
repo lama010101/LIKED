@@ -2112,6 +2112,24 @@ body {
 .rail-plus { width: 40px; height: 40px; border-radius: 50%; border: 1px dashed var(--text-3); display: flex; align-items: center; justify-content: center; font-size: 20px; color: var(--text-3); }
 .rail-manage:hover .rail-plus { border-color: var(--accent); color: var(--accent); }
 
+/* Layout prefs (liked.layout / liked.rail → <html data-layout / data-rail>) */
+html[data-rail="closed"] .shell-rail { display: none; }
+html[data-layout="friends-top"] .feed-home .folder-section { display: none; }
+
+/* Friends sliding rail on top (friends-top layout) */
+.shell-toprail { flex-shrink: 0; border-bottom: 1px solid var(--surface-3); padding: 8px 12px; overflow-x: auto; }
+.rail-h { flex-direction: row; align-items: center; gap: 14px; overflow-x: auto; overflow-y: hidden; flex: none; }
+
+/* Folders in the left panel (friends-top layout) */
+.shell-rail.rail-folders { width: 132px; align-items: stretch; }
+.rail-folders .rail { align-items: stretch; }
+.rail-folders .rail-item { flex-direction: row; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 10px; }
+.rail-folders .rail-item:hover { background: var(--surface-2); }
+.rail-folders .rail-label { flex: 1; min-width: 0; max-width: none; text-align: left; font-size: var(--text-sm, 12px); }
+.fr-glyph { font-size: 15px; }
+.fr-item.fr-over { outline: 2px solid var(--accent); }
+.fr-add { border: none; background: none; font: inherit; cursor: pointer; }
+
 /* Avatar */
 .av { border-radius: 50%; overflow: hidden; background: var(--surface-4); display: inline-flex; align-items: center; justify-content: center; font-weight: 700; color: var(--text-1); flex-shrink: 0; }
 .av img { width: 100%; height: 100%; object-fit: cover; }
