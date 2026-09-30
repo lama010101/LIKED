@@ -7,6 +7,7 @@ import type { SessionUser } from "@/app/lib/actions/session";
 import { updateUsername } from "@/app/lib/actions/profile";
 import { setLocaleAction } from "@/app/lib/actions/mvp2";
 import { setTheme } from "../../_components/ThemeSync";
+import { getLayoutPref, setLayoutPref, type LayoutPref } from "../../_components/prefs";
 import Avatar from "../../_components/Avatar";
 import Crumbs from "../../_components/Crumbs";
 import { toast } from "@/lib/store/toastStore";
@@ -19,6 +20,9 @@ export default function MeView({ user }: { user: SessionUser }) {
   const [name, setName] = useState(user.display_name ?? "");
   const [theme, setThemeState] = useState<"light" | "dark">(
     typeof window !== "undefined" && localStorage.getItem("liked.theme") === "dark" ? "dark" : "light"
+  );
+  const [layout, setLayout] = useState<LayoutPref>(
+    typeof window !== "undefined" ? getLayoutPref() : "friends-left"
   );
 
   const saveName = async () => {
@@ -70,6 +74,20 @@ export default function MeView({ user }: { user: SessionUser }) {
                 onClick={() => { setThemeState(v); setTheme(v); }}
               >
                 {v === "light" ? t("me.themeLight") : t("me.themeDark")}
+              </button>
+            ))}
+          </div>
+        </label>
+        <label className="fld">
+          <span>{t("me.layout")}</span>
+          <div className="seg">
+            {(["friends-left", "friends-top"] as const).map((v) => (
+              <button
+                key={v}
+                className={`seg-btn ${layout === v ? "seg-on" : ""}`}
+                onClick={() => { setLayout(v); setLayoutPref(v); }}
+              >
+                {v === "friends-left" ? t("me.layoutFriendsLeft") : t("me.layoutFriendsTop")}
               </button>
             ))}
           </div>

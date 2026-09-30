@@ -13,7 +13,8 @@
     "organize": "จัดระเบียบ",
     "signOut": "ออกจากระบบ",
     "searchPlaceholder": "ค้นหาการ์ดของคุณ…",
-    "back": "กลับ"
+    "back": "กลับ",
+    "togglePanel": "สลับแผงด้านข้าง"
   },
   "common": {
     "save": "บันทึก",
@@ -168,6 +169,9 @@
     "theme": "ธีม",
     "themeLight": "สว่าง",
     "themeDark": "มืด",
+    "layout": "เพื่อนและโฟลเดอร์",
+    "layoutFriendsLeft": "เพื่อนด้านซ้าย",
+    "layoutFriendsTop": "เพื่อนด้านบน",
     "saved": "บันทึกแล้ว",
     "myCards": "การ์ดของฉัน",
     "myFolders": "โฟลเดอร์ของฉัน"

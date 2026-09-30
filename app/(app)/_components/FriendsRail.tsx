@@ -8,10 +8,10 @@ import Avatar from "./Avatar";
 import type { SessionUser } from "@/app/lib/actions/session";
 import type { FriendBarEntry } from "@/lib/db/friends";
 
-export default function FriendsRail({ user, friends }: { user: SessionUser; friends: FriendBarEntry[] }) {
+export default function FriendsRail({ user, friends, horizontal = false }: { user: SessionUser; friends: FriendBarEntry[]; horizontal?: boolean }) {
   const t = useTranslations();
   return (
-    <div className="rail">
+    <div className={`rail ${horizontal ? "rail-h" : ""}`}>
       <Link href="/feed?me=1" className="rail-item" title={t("nav.me")}>
         <Avatar userId={user.id} avatarKey={user.avatar_key} name={user.display_name ?? "Me"} size={40} />
         <span className="rail-label">{t("nav.me")}</span>

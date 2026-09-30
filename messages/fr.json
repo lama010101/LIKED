@@ -13,7 +13,8 @@
     "organize": "Organiser",
     "signOut": "Se déconnecter",
     "searchPlaceholder": "Rechercher vos cartes…",
-    "back": "Retour"
+    "back": "Retour",
+    "togglePanel": "Afficher/masquer le panneau"
   },
   "common": {
     "save": "Enregistrer",
@@ -168,6 +169,9 @@
     "theme": "Thème",
     "themeLight": "Clair",
     "themeDark": "Sombre",
+    "layout": "Amis et dossiers",
+    "layoutFriendsLeft": "Amis à gauche",
+    "layoutFriendsTop": "Amis en haut",
     "saved": "Enregistré.",
     "myCards": "Mes cartes",
     "myFolders": "Mes dossiers"

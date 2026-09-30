@@ -13,7 +13,8 @@
     "organize": "Organize",
     "signOut": "Sign out",
     "searchPlaceholder": "Search your cards…",
-    "back": "Back"
+    "back": "Back",
+    "togglePanel": "Toggle side panel"
   },
   "common": {
     "save": "Save",
@@ -168,6 +169,9 @@
     "theme": "Theme",
     "themeLight": "Light",
     "themeDark": "Dark",
+    "layout": "Friends & folders",
+    "layoutFriendsLeft": "Friends left",
+    "layoutFriendsTop": "Friends on top",
     "saved": "Saved.",
     "myCards": "My cards",
     "myFolders": "My folders"
