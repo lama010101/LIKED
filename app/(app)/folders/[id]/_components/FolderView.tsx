@@ -9,13 +9,15 @@ import type { AccessEntry, Mvp2FolderDetail } from "@/app/lib/actions/mvp2";
 import {
   renameFolderAction, setFolderDetailsAction, trashFolderAction,
   rateFolderAction, shareFolderV2Action, revokeFolderGrantAction,
-  setFolderGrantPermissionAction,
+  setFolderGrantPermissionAction, moveFolderAction,
 } from "@/app/lib/actions/mvp2";
 import { getFriendBarAction, getGroupBarAction } from "@/app/lib/actions/session";
 import { toast } from "@/lib/store/toastStore";
 import Modal from "../../../_components/Modal";
 import Avatar from "../../../_components/Avatar";
 import ShareSheet from "../../../_components/ShareSheet";
+import ItemMenu from "../../../_components/ItemMenu";
+import FolderPickModal from "../../../_components/FolderPickModal";
 import RatingSlider from "../../../_components/RatingSlider";
 import CardItem from "../../../_components/CardItem";
 import ViewSwitch, { useCardView } from "../../../_components/ViewSwitch";
@@ -43,7 +45,8 @@ export default function FolderView({
   const [name, setName] = useState(folder.name);
   const [desc, setDesc] = useState(folder.description ?? "");
   const [color, setColor] = useState(folder.color_hex ?? "#ff3b30");
-  const [shareOpen, setShareOpen] = useState(false);
+  const [shareTarget, setShareTarget] = useState<string | null>(null);
+  const [childMoveId, setChildMoveId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   const saveDetails = async () => {
@@ -97,7 +100,7 @@ export default function FolderView({
         <div className="folder-actions">
           <RatingSlider initial={null} onRate={(s) => rateFolderAction(folder.id, s)} label={t("folder.rateFolder")} />
           {canEdit && !isSystem && <button className="btn" onClick={() => setRenaming(true)}>{t("folder.setDetails")}</button>}
-          {canShare && <button className="btn" onClick={() => setShareOpen(true)}>{t("folder.shareFolder")}</button>}
+          {canShare && <button className="btn" onClick={() => setShareTarget(folder.id)}>{t("folder.shareFolder")}</button>}
           {isOwner && !isSystem && <button className="btn btn-danger" onClick={onTrash}>{t("folder.trashFolder")}</button>}
         </div>
       </div>
@@ -108,9 +111,30 @@ export default function FolderView({
           <h2 className="sec-title">{t("folder.subfolders")}</h2>
           <div className="folder-row">
             {folder.children.map((c) => (
-              <Link key={c.id} href={`/folders/${c.id}`} className="folder-tile">
-                <div className="ft-name">{c.name}</div>
-              </Link>
+              <div key={c.id} className="ft-wrap">
+                <Link href={`/folders/${c.id}`} className="folder-tile">
+                  <div className="ft-name">{c.name}</div>
+                </Link>
+                <ItemMenu
+                  title={c.name}
+                  actions={[
+                    ...(canEdit && !c.system_kind ? [{ key: "move", label: t("folder.moveTo"), onSelect: () => setChildMoveId(c.id) }] : []),
+                    ...(canShare ? [{ key: "share", label: t("common.share"), onSelect: () => setShareTarget(c.id) }] : []),
+                    ...(isOwner && !c.system_kind ? [{
+                      key: "trash", label: t("folder.trashFolder"), danger: true,
+                      onSelect: async () => {
+                        if (!confirm(t("trash.deleteConfirm"))) return;
+                        try {
+                          await trashFolderAction(c.id);
+                          router.refresh();
+                        } catch (e) {
+                          toast.error(e instanceof Error ? e.message : t("common.error"));
+                        }
+                      },
+                    }] : []),
+                  ]}
+                />
+              </div>
             ))}
           </div>
         </section>
@@ -194,10 +218,10 @@ export default function FolderView({
         </div>
       </Modal>
 
-      {/* Share sheet */}
+      {/* Share sheet — one instance serving the folder itself and subfolder menus */}
       <ShareSheet
-        open={shareOpen}
-        onClose={() => setShareOpen(false)}
+        open={shareTarget !== null}
+        onClose={() => setShareTarget(null)}
         loadTargets={async () => {
           const [fr, gr] = await Promise.all([getFriendBarAction(), getGroupBarAction()]);
           return {
@@ -206,8 +230,27 @@ export default function FolderView({
           };
         }}
         onShare={async ({ permission, userIds, groupIds, allFriends }) => {
-          await shareFolderV2Action(folder.id, permission, userIds, groupIds, allFriends);
+          await shareFolderV2Action(shareTarget!, permission, userIds, groupIds, allFriends);
           toast.success(t("share.sharedOk"));
+        }}
+      />
+
+      {/* Subfolder move picker */}
+      <FolderPickModal
+        open={childMoveId !== null}
+        onClose={() => setChildMoveId(null)}
+        title={t("folder.moveTo")}
+        excludeId={childMoveId}
+        allowRoot
+        hideSystem
+        onPick={async (parentId) => {
+          try {
+            await moveFolderAction(childMoveId!, parentId);
+            toast.success(t("common.done"));
+            router.refresh();
+          } catch (e) {
+            toast.error(e instanceof Error ? e.message : t("common.error"));
+          }
         }}
       />
     </div>

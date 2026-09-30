@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Modal from "../../_components/Modal";
+import ProgressModal from "../../_components/ProgressModal";
 import Crumbs from "../../_components/Crumbs";
 import { setYoutubeConsentAction } from "@/app/lib/actions/mvp2";
 import { runYouTubeImport } from "@/lib/youtube/runImport";
@@ -25,6 +26,8 @@ export default function YouTubeView({ consent }: { consent: boolean }) {
   const [email, setEmail] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
   const [progress, setProgress] = useState<string | null>(null);
+  const [progOpen, setProgOpen] = useState(false);
+  const stopRef = useRef(false);
 
   useEffect(() => {
     fetch("/api/youtube/status")
@@ -52,14 +55,17 @@ export default function YouTubeView({ consent }: { consent: boolean }) {
   const runImport = async () => {
     setImporting(true);
     setProgress(null);
+    stopRef.current = false;
+    setProgOpen(true);
     try {
-      const count = await runYouTubeImport((n) => setProgress(`${n}`));
+      const count = await runYouTubeImport((n) => setProgress(`${n}`), () => stopRef.current);
       toast.success(`✓ ${count}`);
       router.refresh();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : t("common.error"));
     } finally {
       setImporting(false);
+      setProgOpen(false);
     }
   };
 
@@ -96,6 +102,13 @@ export default function YouTubeView({ consent }: { consent: boolean }) {
           <button className="btn btn-primary" onClick={confirmConsent}>{t("youtube.consentConfirm")}</button>
         </div>
       </Modal>
+      <ProgressModal
+        open={progOpen && importing}
+        onClose={() => setProgOpen(false)}
+        onCancel={() => { stopRef.current = true; }}
+        title={t("youtube.progressTitle")}
+        text={t("youtube.progressCount", { count: Number(progress ?? 0) })}
+      />
     </div>
   );
 }

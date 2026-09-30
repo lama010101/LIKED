@@ -16,10 +16,10 @@ test.describe("MVP2 shell — authenticated", () => {
     await expect(page).toHaveURL(/\/feed/);
     await page.waitForLoadState("domcontentloaded");
 
-    // header: search input + nav links
+    // header: logo home link + search input + nav links
+    await expect(page.locator(".shell-logo-img").first()).toBeVisible();
     await expect(page.getByRole("textbox").first()).toBeVisible();
     await expect(page.getByRole("link", { name: /notifications/i }).first()).toBeVisible();
-    await expect(page.getByRole("link", { name: /trash/i }).first()).toBeVisible();
 
     // folder section + 3-view toggle (Q21)
     await expect(page.locator("body")).toContainText(/folders/i);
@@ -73,14 +73,19 @@ test.describe("MVP2 shell — authenticated", () => {
     expect(body).not.toContain("Application error");
   });
 
-  test("folder tile navigates to /folders/[id]", async ({ page }) => {
+  test("folder tile: click filters feed, double-click opens /folders/[id]", async ({ page }) => {
     await page.goto("/feed");
     await page.waitForLoadState("domcontentloaded");
     const tile = page.locator(".folder-tile").first();
     await expect(tile).toBeVisible({ timeout: 15_000 });
     const href = await tile.getAttribute("href");
     expect(href).toMatch(/\/folders\//);
+    // single click → filter the feed to this folder (?folder=id)
     await tile.click();
+    await page.waitForURL(/\/feed\?folder=/, { timeout: 30_000 });
+    // double-click → enter the folder page
+    await page.goto("/feed");
+    await page.locator(".folder-tile").first().dblclick();
     await page.waitForURL(/\/folders\//, { timeout: 30_000 });
     await expect(page.getByRole("link", { name: /home/i }).first()).toBeVisible();
   });

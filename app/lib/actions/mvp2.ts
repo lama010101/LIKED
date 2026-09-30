@@ -218,6 +218,36 @@ export async function moveNodeToFolderAction(nodeId: string, fromFolderId: strin
   revalidatePath("/feed");
 }
 
+/** Move a card to a folder — files it out of every folder it is currently in
+ *  (single-membership app convention). One move_node_to_folder RPC per
+ *  source folder; each call is itself atomic. */
+export async function moveNodeEverywhereAction(nodeId: string, targetFolderId: string) {
+  const rpc = await sessionRpc();
+  const supabase = await getSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const { data: cur } = await supabase
+    .from("folder_edges")
+    .select("folder_id")
+    .eq("node_id", nodeId);
+  const sources = (cur ?? [])
+    .map((r: { folder_id: string }) => r.folder_id)
+    .filter((id: string) => id !== targetFolderId);
+  if (sources.length === 0) {
+    await rpc("move_node_to_folder", {
+      p_node_id: nodeId, p_target_folder_id: targetFolderId,
+      p_source_folder_id: null, p_user_id: user?.id ?? null,
+    });
+  } else {
+    for (const src of sources) {
+      await rpc("move_node_to_folder", {
+        p_node_id: nodeId, p_target_folder_id: targetFolderId,
+        p_source_folder_id: src, p_user_id: user?.id ?? null,
+      });
+    }
+  }
+  revalidatePath("/feed");
+}
+
 // ── sharing ────────────────────────────────────────────────────
 // Group targets are expanded client-side (read) into member ids — the RPC
 // expands them to snapshot edges (Q3/Q4). share_folder_v2 takes one
@@ -324,6 +354,11 @@ export async function rateFolderAction(folderId: string, score: number) {
 }
 
 // ── organize ───────────────────────────────────────────────────
+
+export async function createOrganizeBatchAction(sourceFolderId: string): Promise<string> {
+  const rpc = await sessionRpc();
+  return (await rpc("create_organize_batch", { p_source_folder_id: sourceFolderId })) as string;
+}
 
 export async function applyOrganizeBatchAction(batchId: string, itemIds: string[]) {
   const rpc = await sessionRpc();

@@ -80,7 +80,14 @@
     "permissionAdmin": "ผู้ดูแล",
     "rateFolder": "ให้คะแนนโฟลเดอร์นี้",
     "systemFolder": "โฟลเดอร์ระบบ",
-    "maxDepth": "โฟลเดอร์ซ้อนกันได้สูงสุด 5 ระดับ"
+    "maxDepth": "โฟลเดอร์ซ้อนกันได้สูงสุด 5 ระดับ",
+    "moveTo": "ย้ายไปยังโฟลเดอร์…"
+  },
+  "menu": {
+    "open": "การกระทำ"
+  },
+  "job": {
+    "stop": "หยุด"
   },
   "share": {
     "title": "แชร์",
@@ -147,7 +154,13 @@
     "applied": "จัดระเบียบแล้ว",
     "nothingPending": "ไม่มีอะไรให้จัดระเบียบตอนนี้",
     "rerunNote": "บางรายการยังค้างอยู่ — เรียกจัดระเบียบอีกครั้งเพื่อลองใหม่",
-    "noProposal": "ไม่มีคำแนะนำ"
+    "noProposal": "ไม่มีคำแนะนำ",
+    "running": "กำลังจัดระเบียบ {folder}",
+    "progress": "{done} จาก {total} รายการ",
+    "cancelledRun": "ยกเลิกการจัดระเบียบแล้ว",
+    "summaryTitle": "จัดระเบียบเสร็จสิ้น",
+    "summary": "วิเคราะห์ {candidates} รายการ · สร้างคำแนะนำ {created} รายการ",
+    "review": "ดูคำแนะนำ"
   },
   "youtube": {
     "title": "YouTube",
@@ -159,7 +172,9 @@
     "importing": "กำลังนำเข้า…",
     "organizeCta": "จัดระเบียบวิดีโอที่นำเข้าอัตโนมัติ",
     "disconnect": "ยกเลิกการเชื่อมต่อ",
-    "lastImport": "นำเข้าล่าสุด: {date}"
+    "lastImport": "นำเข้าล่าสุด: {date}",
+    "progressTitle": "กำลังนำเข้าวิดีโอที่ถูกใจ",
+    "progressCount": "นำเข้าแล้ว {count} วิดีโอ"
   },
   "me": {
     "title": "ฉัน",
@@ -187,6 +202,9 @@
     "tagsPlaceholder": "แท็ก (คั่นด้วยจุลภาค)",
     "folderPicker": "โฟลเดอร์",
     "noFolder": "ยังไม่จัด",
+    "parentFolder": "โฟลเดอร์แม่",
+    "rootFolder": "ระดับบนสุด",
+    "insideHint": "โฟลเดอร์ใหม่จะถูกสร้างใน: {folder}",
     "create": "เพิ่มการ์ด",
     "createFolder": "สร้างโฟลเดอร์",
     "added": "เพิ่มแล้ว"

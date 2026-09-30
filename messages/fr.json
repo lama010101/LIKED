@@ -80,7 +80,14 @@
     "permissionAdmin": "Admin",
     "rateFolder": "Noter ce dossier",
     "systemFolder": "Dossier système",
-    "maxDepth": "Les dossiers ne peuvent s'imbriquer que sur 5 niveaux."
+    "maxDepth": "Les dossiers ne peuvent s'imbriquer que sur 5 niveaux.",
+    "moveTo": "Déplacer vers un dossier…"
+  },
+  "menu": {
+    "open": "Actions"
+  },
+  "job": {
+    "stop": "Arrêter"
   },
   "share": {
     "title": "Partager",
@@ -147,7 +154,13 @@
     "applied": "Organisation appliquée.",
     "nothingPending": "Rien à organiser pour le moment.",
     "rerunNote": "Certains éléments sont encore en attente — relancez l'organisation.",
-    "noProposal": "Aucune suggestion"
+    "noProposal": "Aucune suggestion",
+    "running": "Organisation de {folder}",
+    "progress": "{done} éléments sur {total}",
+    "cancelledRun": "Organisation annulée.",
+    "summaryTitle": "Organisation terminée",
+    "summary": "{candidates} éléments analysés · {created} suggestions créées",
+    "review": "Voir les suggestions"
   },
   "youtube": {
     "title": "YouTube",
@@ -159,7 +172,9 @@
     "importing": "Import en cours…",
     "organizeCta": "Organiser automatiquement les vidéos importées",
     "disconnect": "Déconnecter",
-    "lastImport": "Dernier import : {date}"
+    "lastImport": "Dernier import : {date}",
+    "progressTitle": "Import des vidéos aimées",
+    "progressCount": "{count} vidéos importées"
   },
   "me": {
     "title": "Moi",
@@ -187,6 +202,9 @@
     "tagsPlaceholder": "Étiquettes (séparées par des virgules)",
     "folderPicker": "Dossier",
     "noFolder": "Non trié",
+    "parentFolder": "Dossier parent",
+    "rootFolder": "Racine (niveau supérieur)",
+    "insideHint": "Le nouveau dossier sera créé dans : {folder}",
     "create": "Ajouter la carte",
     "createFolder": "Créer le dossier",
     "added": "Ajouté."

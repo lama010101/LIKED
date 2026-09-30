@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import Modal from "./Modal";
 import { toast } from "@/lib/store/toastStore";
@@ -29,6 +29,12 @@ export default function AddSheet({
   const [folderId, setFolderId] = useState<string>("");
   const [folderName, setFolderName] = useState("");
   const [folderDesc, setFolderDesc] = useState("");
+  const [parentId, setParentId] = useState<string>(contextFolderId ?? "");
+
+  // Re-sync parent + mode each time the sheet opens (context may change).
+  useEffect(() => {
+    if (open) { setParentId(contextFolderId ?? ""); setMode(initialMode); }
+  }, [open, contextFolderId, initialMode]);
 
   const reset = () => { setUrl(""); setTitle(""); setNote(""); setFolderId(""); setFolderName(""); setFolderDesc(""); };
 
@@ -45,7 +51,7 @@ export default function AddSheet({
         if (!res.ok) { toast.error(res.error ?? t("common.error")); return; }
       } else {
         if (!folderName.trim()) { toast.error(t("folder.namePlaceholder")); return; }
-        await createFolderAction({ name: folderName.trim(), parentId: contextFolderId, description: folderDesc.trim() || null });
+        await createFolderAction({ name: folderName.trim(), parentId: parentId || null, description: folderDesc.trim() || null });
       }
       reset();
       onClose();
@@ -83,6 +89,18 @@ export default function AddSheet({
         <div className="form">
           <input value={folderName} onChange={(e) => setFolderName(e.target.value)} placeholder={t("folder.namePlaceholder")} />
           <input value={folderDesc} onChange={(e) => setFolderDesc(e.target.value)} placeholder={t("folder.descriptionPlaceholder")} />
+          <label className="fld">
+            <span>{t("add.parentFolder")}</span>
+            <select value={parentId} onChange={(e) => setParentId(e.target.value)}>
+              <option value="">{t("add.rootFolder")}</option>
+              {folders.filter((f) => !f.system_kind).map((f) => (
+                <option key={f.id} value={f.id}>{f.name}</option>
+              ))}
+            </select>
+          </label>
+          <p className="muted add-parent-hint">
+            {t("add.insideHint", { folder: parentId ? folders.find((f) => f.id === parentId)?.name ?? "…" : t("add.rootFolder") })}
+          </p>
         </div>
       )}
 
