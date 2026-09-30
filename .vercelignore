@@ -1,0 +1,7 @@
+# Not needed for the Next.js build — shrinks CLI uploads.
+# (root-anchored: app/extension/** routes are part of the web app)
+/extension/
+/e2e/
+/_archive/
+/DOCS/
+/.windsurf/
