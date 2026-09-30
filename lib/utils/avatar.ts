@@ -3,7 +3,15 @@
  * P1-T04 implementation placeholder
  */
 
-import { createHash } from "crypto";
+// Isomorphic deterministic hash (djb2) — no node:crypto so this module
+// is safe to import from client components (Avatar disk color).
+function hashString(s: string): number {
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) {
+    h = ((h << 5) + h + s.charCodeAt(i)) >>> 0;
+  }
+  return h;
+}
 
 // 20-color palette for deterministic color assignment
 const AVATAR_PALETTE = [
@@ -33,9 +41,7 @@ const AVATAR_PALETTE = [
  * Get deterministic color from user ID
  */
 export function getAvatarColor(userId: string): string {
-  const hash = createHash("md5").update(userId).digest("hex");
-  const index = parseInt(hash.slice(0, 8), 16) % AVATAR_PALETTE.length;
-  return AVATAR_PALETTE[index];
+  return AVATAR_PALETTE[hashString(userId) % AVATAR_PALETTE.length];
 }
 
 /**
@@ -80,8 +86,10 @@ export function generateDefaultAvatarSvg(
     </svg>
   `.trim();
   
-  const base64 = Buffer.from(svg).toString("base64");
-  return `data:image/svg+xml;base64,${base64}`;
+  const bytes = new TextEncoder().encode(svg);
+  let bin = "";
+  bytes.forEach((b) => (bin += String.fromCharCode(b)));
+  return `data:image/svg+xml;base64,${btoa(bin)}`;
 }
 
 /**

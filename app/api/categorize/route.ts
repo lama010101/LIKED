@@ -7,13 +7,15 @@ import { logger } from "@/lib/utils/logger";
 /**
  * POST /api/categorize — auto-organize proposal run (MVP2 Q2/Q16, F12).
  *
- * Creates an organize batch over the caller's YouTube system folder
- * (create_organize_batch snapshots the folder's own nodes as 'pending'
- * items), asks the LLM for a folder/tag proposal per item, and records
- * each via set_organize_item_proposal. Provider failures mark the item
- * 'failed' — both 'pending' leftovers and 'failed' items are re-included
- * by the next batch (Q2 re-run). Nothing is applied until the user
- * reviews the batch (apply_organization_batch, P2-08).
+ * The client creates the batch first (create_organize_batch RPC snapshots
+ * the folder's own nodes as 'pending' items) and passes its id here — so
+ * the UI can poll per-item progress and cancel mid-run by discarding the
+ * batch (the loop below re-checks the batch row before every proposal).
+ * Each item gets an LLM folder/tag proposal recorded via
+ * set_organize_item_proposal. Provider failures mark the item 'failed' —
+ * both 'pending' leftovers and 'failed' items are re-included by the next
+ * batch (Q2 re-run). Nothing is applied until the user reviews the batch
+ * (apply_organization_batch, P2-08).
  *
  * Auth: session user; all writes go through SECURITY DEFINER RPCs.
  */
@@ -35,24 +37,31 @@ export async function POST(req: Request) {
   }
 
   try {
-    // 1. Source folder = caller-chosen folder, else the YouTube system folder.
+    // 1. Caller-created batch (progress polling + cancel live client-side).
     const body = await req.json().catch(() => ({}));
-    const sourceFolderId = typeof body?.source_folder_id === "string" && body.source_folder_id
-      ? body.source_folder_id
-      : await rpc<string>("get_or_create_system_folder", { p_kind: "youtube", p_user_id: user.id });
+    const batchId = typeof body?.batch_id === "string" && body.batch_id ? body.batch_id : null;
+    if (!batchId) {
+      return NextResponse.json({ error: "batch_id required" }, { status: 400 });
+    }
 
-    // 2. Snapshot candidates into a batch.
-    const batchId = await rpc<string>("create_organize_batch", {
-      p_source_folder_id: sourceFolderId,
-    });
+    const { data: batch } = await supabase
+      .from("organize_batches")
+      .select("id")
+      .eq("id", batchId)
+      .eq("user_id", user.id)
+      .eq("status", "open")
+      .maybeSingle();
+    if (!batch) {
+      return NextResponse.json({ error: "batch not found or not open" }, { status: 404 });
+    }
 
     const { data: items } = await supabase
       .from("organize_items")
       .select("id, node_id")
-      .eq("batch_id", batchId)
+      .eq("batch_id", batch.id)
       .eq("status", "pending");
     if (!items?.length) {
-      return NextResponse.json({ created: 0, candidates: 0, batch_id: batchId });
+      return NextResponse.json({ created: 0, candidates: 0, batch_id: batch.id });
     }
 
     // 3. Node metadata for prompts + vocabulary for the LLM.
@@ -87,8 +96,21 @@ export async function POST(req: Request) {
     const tagLabels = (tagRows ?? []).map((t) => t.label);
 
     // 4. One proposal per item; failures are marked and left for re-run.
+    //    Cancel: the client discards the batch row — detected here before
+    //    each item so the loop stops instead of writing orphan proposals.
     let created = 0;
     for (const item of items) {
+      const { data: alive } = await supabase
+        .from("organize_batches")
+        .select("id")
+        .eq("id", batch.id)
+        .eq("status", "open")
+        .maybeSingle();
+      if (!alive) {
+        return NextResponse.json({
+          cancelled: true, created, candidates: items.length, batch_id: batch.id,
+        });
+      }
       const node = nodeById.get(item.node_id);
       if (!node) continue;
       const suggestion = await suggestCategorization({

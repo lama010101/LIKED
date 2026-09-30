@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import Modal from "./Modal";
+import ProgressModal from "./ProgressModal";
 import { setYoutubeConsentAction, getYoutubeConsentAction } from "@/app/lib/actions/mvp2";
 import { runYouTubeImport } from "@/lib/youtube/runImport";
 import { toast } from "@/lib/store/toastStore";
@@ -19,17 +20,24 @@ export default function YouTubeSyncButton() {
   const [connected, setConnected] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [consentOpen, setConsentOpen] = useState(false);
+  const [progOpen, setProgOpen] = useState(false);
+  const [count, setCount] = useState(0);
+  const stopRef = useRef(false);
 
   const sync = useCallback(async () => {
     setSyncing(true);
+    setCount(0);
+    stopRef.current = false;
+    setProgOpen(true);
     try {
-      const count = await runYouTubeImport();
-      toast.success(`✓ ${count}`);
+      const n = await runYouTubeImport(setCount, () => stopRef.current);
+      toast.success(`✓ ${n}`);
       router.refresh();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : t("common.error"));
     } finally {
       setSyncing(false);
+      setProgOpen(false);
     }
   }, [router, t]);
 
@@ -92,6 +100,13 @@ export default function YouTubeSyncButton() {
           <button className="btn btn-primary" onClick={confirmConsent}>{t("youtube.consentConfirm")}</button>
         </div>
       </Modal>
+      <ProgressModal
+        open={progOpen && syncing}
+        onClose={() => setProgOpen(false)}
+        onCancel={() => { stopRef.current = true; }}
+        title={t("youtube.progressTitle")}
+        text={t("youtube.progressCount", { count })}
+      />
     </>
   );
 }

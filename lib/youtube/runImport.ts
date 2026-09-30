@@ -4,7 +4,10 @@ import { importYouTubeActivity } from "@/app/lib/actions/youtubeImport";
  *  each through the atomic import_url RPC. Client-side orchestration only —
  *  the per-video write (cause + edges) stays inside the RPC transaction.
  *  Returns the number of videos processed. */
-export async function runYouTubeImport(onCount?: (n: number) => void): Promise<number> {
+export async function runYouTubeImport(
+  onCount?: (n: number) => void,
+  shouldStop?: () => boolean
+): Promise<number> {
   let pageToken: string | undefined;
   let count = 0;
   do {
@@ -12,6 +15,7 @@ export async function runYouTubeImport(onCount?: (n: number) => void): Promise<n
     const body = await res.json();
     if (!res.ok) throw new Error(body.error ?? `likes fetch failed (${res.status})`);
     for (const v of body.videos ?? []) {
+      if (shouldStop?.()) return count;
       await importYouTubeActivity({
         url: `https://www.youtube.com/watch?v=${v.id}`,
         title: v.title ?? "",
@@ -24,6 +28,6 @@ export async function runYouTubeImport(onCount?: (n: number) => void): Promise<n
       onCount?.(count);
     }
     pageToken = body.nextPageToken;
-  } while (pageToken);
+  } while (pageToken && !shouldStop?.());
   return count;
 }

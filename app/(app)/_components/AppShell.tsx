@@ -10,7 +10,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import Avatar, { avatarUrl } from "./Avatar";
+import Avatar from "./Avatar";
 import ThemeSync from "./ThemeSync";
 import AddSheet from "./AddSheet";
 import FriendsRail from "./FriendsRail";
@@ -37,6 +37,7 @@ export default function AppShell({
   const [unread, setUnread] = useState(initialUnread);
   const [addOpen, setAddOpen] = useState(false);
   const [addMode, setAddMode] = useState<"card" | "folder">("card");
+  const [addContext, setAddContext] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [folders, setFolders] = useState<Mvp2Folder[]>([]);
   const [layout, setLayout] = useState<LayoutPref>("friends-left");
@@ -51,6 +52,10 @@ export default function AppShell({
   useEffect(() => syncPrefs((l, o) => { setLayout(l); setRailOpenState(o); }), []);
 
   const openAdd = (mode: "card" | "folder") => {
+    // Current folder context: /folders/[id] path or /feed?folder= filter.
+    const folderPage = pathname.match(/^\/folders\/([^/]+)/)?.[1] ?? null;
+    const folderFilter = new URLSearchParams(window.location.search).get("folder");
+    setAddContext(folderPage ?? folderFilter);
     setAddMode(mode);
     setAddOpen(true);
   };
@@ -77,7 +82,6 @@ export default function AppShell({
 
       {/* Left panel — friends or folders, per layout pref */}
       <aside className={`shell-rail ${layout === "friends-top" ? "rail-folders" : ""}`}>
-        <Link href="/feed" className="shell-logo">LIKED</Link>
         {layout === "friends-top" ? (
           <FolderRail folders={folders} onAdd={() => openAdd("folder")} onChanged={refreshFolders} />
         ) : (
@@ -88,6 +92,10 @@ export default function AppShell({
       <div className="shell-main">
         {/* Header: panel toggle + search + notifications + me */}
         <header className="shell-header">
+          <Link href="/feed" className="shell-logo-img" aria-label={t("nav.home")}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.svg" alt="LIKED" width={26} height={26} />
+          </Link>
           <button
             type="button"
             className="icon-btn"
@@ -114,14 +122,6 @@ export default function AppShell({
           <Link href="/organize" className="icon-btn" aria-label={t("nav.organize")}>
             <OrganizeIcon />
           </Link>
-          <Link href="/me" className="icon-btn" aria-label={t("nav.me")}>
-            {avatarUrl(user.avatar_key) ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={avatarUrl(user.avatar_key)!} alt="" width={32} height={32} style={{ borderRadius: "50%" }} />
-            ) : (
-              <Avatar userId={user.id} avatarKey={null} name={user.display_name ?? ""} size={32} />
-            )}
-          </Link>
         </header>
 
         {/* Friends sliding rail on top — when layout pref moves folders to the left panel */}
@@ -136,7 +136,8 @@ export default function AppShell({
         {/* Mobile bottom bar: Home / Add / Me */}
         <nav className="shell-bottom" aria-label={t("nav.home")}>
           <Link href="/feed" className={`bb-item ${pathname === "/feed" ? "bb-active" : ""}`}>
-            <HomeIcon />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.svg" alt="" width={22} height={22} className="bb-logo" />
             <span>{t("nav.home")}</span>
           </Link>
           <button className="bb-item bb-add" onClick={() => openAdd("card")} aria-label={t("nav.add")}>
@@ -156,10 +157,11 @@ export default function AppShell({
       </div>
 
       <AddSheet
-        key={addMode}
+        key={`${addMode}-${addContext ?? "root"}`}
         open={addOpen}
         onClose={() => setAddOpen(false)}
         folders={folders}
+        contextFolderId={addContext}
         initialMode={addMode}
         onCreated={() => { refreshFolders(); router.refresh(); toast.success(t("add.added")); }}
       />
@@ -172,9 +174,6 @@ function PanelIcon() {
 }
 function PlusIcon() {
   return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>;
-}
-function HomeIcon() {
-  return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 10.5 12 3l9 7.5" /><path d="M5 9.5V21h14V9.5" /></svg>;
 }
 function BellIcon() {
   return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.7 21a2 2 0 0 1-3.4 0" /></svg>;
