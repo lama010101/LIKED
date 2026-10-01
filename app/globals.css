@@ -2146,7 +2146,10 @@ html[data-layout="friends-top"] .feed-home .folder-section { display: none; }
   .shell-bottom { display: flex; position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface-1); border-top: 1px solid var(--surface-3); padding: 6px 0 calc(6px + env(safe-area-inset-bottom)); z-index: 40; }
   .bb-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 0; color: var(--text-2); text-decoration: none; border: none; background: none; font-size: 10px; cursor: pointer; }
   .bb-item.bb-active, .bb-item:hover { color: var(--accent); }
-  .bb-add svg { width: 56px; height: 56px; padding: 15px; background: var(--accent); color: #fff; border-radius: 50%; margin-top: -22px; box-shadow: var(--shadow-fab, 0 8px 24px rgba(255,59,48,.3)); }
+  .bb-add svg { width: 112px; height: 112px; padding: 30px; background: var(--accent); color: #fff; border-radius: 50%; margin-top: -44px; box-shadow: var(--shadow-fab, 0 8px 24px rgba(255,59,48,.3)); }
+  .rail-toggle-bb svg { width: 56px; height: 56px; }
+  /* Panel toggle lives in the bottom bar on mobile (UX-BB-LAYOUT-001). */
+  .shell-header .rail-toggle { display: none; }
 }
 
 /* Buttons / forms */

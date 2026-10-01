@@ -810,3 +810,8 @@ Applied to task/feature entries going forward. Existing entries retain their ✅
 | Task ID | Item | Status | Notes |
 |---|---|---|---|
 | UX-BB-ICON-SIZE-001 | Bottom-bar Home and Me icons enlarged to the (+) button's 56px size | ✅ | `app/(app)/_components/AppShell.tsx`: mobile bottom-bar Home `.bb-logo` img 22→`width/height={56}`, Me `Avatar` `size={24}`→`size={56}` — matching `.bb-add svg`'s 56px (`globals.css:2149`). Labels unchanged. Verify: `tsc --noEmit` 0, `eslint` 0. |
+
+### UX-BB-LAYOUT-001 (2026-10-01)
+| Task ID | Item | Status | Notes |
+|---|---|---|---|
+| UX-BB-LAYOUT-001 | Double the (+) bottom-bar button; move the FOLDERS/FRIENDS panel button into the mobile bottom bar replacing Home | ✅ | `app/globals.css` (@media ≤700px): `.bb-add svg` 56→`112px` (padding 15→30, margin-top -22→-44 — footprint doubled); new `.rail-toggle-bb svg` 56px to match the other bb items; `.shell-header .rail-toggle` hidden on mobile. `app/(app)/_components/AppShell.tsx`: rail-toggle click/dblclick handlers extracted to `onRailToggleClick`/`onRailToggleDoubleClick` and shared; bottom-bar Home `<Link>` replaced by a `<button class="bb-item rail-toggle-bb">` running the same handlers (glyph + FOLDERS/FRIENDS label per layout pref, `bb-active`/`aria-pressed` while panel open); desktop header button unchanged. Verify: `tsc --noEmit` 0, `eslint` 0. |

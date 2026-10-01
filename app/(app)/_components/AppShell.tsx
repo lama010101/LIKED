@@ -56,6 +56,22 @@ export default function AppShell({
   // Apply persisted layout/rail prefs + stay in sync with changes from /me.
   useEffect(() => syncPrefs((l, o) => { setLayout(l); setRailOpenState(o); }), []);
 
+  // Rail-toggle click/dblclick handlers shared by the header button
+  // (desktop) and its mobile home in the bottom bar (UX-BB-LAYOUT-001).
+  const onRailToggleClick = (e: React.MouseEvent) => {
+    if (e.detail === 0) { setRailOpen(!railOpen); return; }
+    if (clickTimer.current) clearTimeout(clickTimer.current);
+    clickTimer.current = setTimeout(() => {
+      clickTimer.current = null;
+      setRailOpen(!railOpen);
+    }, 250);
+  };
+  const onRailToggleDoubleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (clickTimer.current) { clearTimeout(clickTimer.current); clickTimer.current = null; }
+    setSwitchOpen(true);
+  };
+
   const openAdd = (mode: "card" | "folder") => {
     // Current folder context: /folders/[id] path or /feed?folder= filter.
     const folderPage = pathname.match(/^\/folders\/([^/]+)/)?.[1] ?? null;
@@ -106,19 +122,8 @@ export default function AppShell({
           <button
             type="button"
             className="shell-logo-img rail-toggle"
-            onClick={(e) => {
-              if (e.detail === 0) { setRailOpen(!railOpen); return; }
-              if (clickTimer.current) clearTimeout(clickTimer.current);
-              clickTimer.current = setTimeout(() => {
-                clickTimer.current = null;
-                setRailOpen(!railOpen);
-              }, 250);
-            }}
-            onDoubleClick={(e) => {
-              e.preventDefault();
-              if (clickTimer.current) { clearTimeout(clickTimer.current); clickTimer.current = null; }
-              setSwitchOpen(true);
-            }}
+            onClick={onRailToggleClick}
+            onDoubleClick={onRailToggleDoubleClick}
             aria-label={layout === "friends-top" ? t("nav.folders") : t("nav.friends")}
             aria-pressed={railOpen}
             title={t("nav.togglePanel")}
@@ -173,14 +178,21 @@ export default function AppShell({
 
         <main className="shell-content">{children}</main>
 
-        {/* Mobile bottom bar: Home / Add / Me */}
+        {/* Mobile bottom bar: panel toggle (the desktop header button's
+            mobile home — UX-BB-LAYOUT-001) / Add / Me */}
         <nav className="shell-bottom" aria-label={t("nav.home")}>
-          <Link href="/feed" className={`bb-item ${pathname === "/feed" ? "bb-active" : ""}`}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.svg" alt="" width={56} height={56} className="bb-logo" />
-            <span>{t("nav.home")}</span>
-          </Link>
-          <button className="bb-item bb-add" onClick={() => openAdd("card")} aria-label={t("nav.add")}>
+          <button
+            type="button"
+            className={`bb-item rail-toggle-bb ${railOpen ? "bb-active" : ""}`}
+            onClick={onRailToggleClick}
+            onDoubleClick={onRailToggleDoubleClick}
+            aria-label={layout === "friends-top" ? t("nav.folders") : t("nav.friends")}
+            aria-pressed={railOpen}
+          >
+            {layout === "friends-top" ? <FolderGlyph /> : <FriendsGlyph />}
+            <span>{layout === "friends-top" ? t("nav.folders") : t("nav.friends")}</span>
+          </button>
+          <button type="button" className="bb-item bb-add" onClick={() => openAdd("card")} aria-label={t("nav.add")}>
             <PlusIcon />
             <span>{t("nav.add")}</span>
           </button>
