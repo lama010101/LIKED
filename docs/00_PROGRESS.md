@@ -800,4 +800,8 @@ Applied to task/feature entries going forward. Existing entries retain their ✅
 | Task ID | Item | Status | Notes |
 |---|---|---|---|
 | UX-ME-SEG-HYDRATION-001 | Fix /me seg highlight hydration mismatch (found during UX-RAIL-TOGGLE-001 e2e) | ✅ | `app/(app)/me/_components/MeView.tsx`: `theme` + `layout` were `useState(() => localStorage…)` — SSR wrote `seg-on` for the default while the client initializer read the stored pref, and React never patched the mismatched class (seg showed "Friends left" selected while `data-layout=friends-top`; same latent bug on theme). Both now use `useSyncExternalStore` on the `liked:prefs` event (server snapshot = defaults, client snapshot re-read post-hydration → real transition → DOM patched). Theme onClick additionally dispatches `liked:prefs` (setTheme doesn't). Verify: `tsc --noEmit` 0, `eslint` 0. |
->>>>>>> origin/devin/1790846514-panel-toggle-label
+
+### UX-ME-FILTER-001 (2026-10-01)
+| Task ID | Item | Status | Notes |
+|---|---|---|---|
+| UX-ME-FILTER-001 | Remove Me avatar from friends rail; bottom-bar Me becomes "my content" feed filter | ✅ | `app/(app)/_components/FriendsRail.tsx`: fixed Me `<Link>` removed (rail = friends avatars + manage link only); unused `user` prop dropped from signature + `AppShell.tsx` call sites (2). `app/(app)/_components/AppShell.tsx`: mobile bottom-bar Me `<Link href="/me">` replaced by a `<button>` — toggles `/feed?me=1` ↔ `/feed` (get_feed `p_view:"mine"`, FolderRail toggle-off pattern), `.bb-item` + `bb-active`/`aria-pressed` driven by `useSearchParams` (`me=1` on `/feed`); keeps `Avatar` + `nav.me` label. Desktop: /me remains reachable by URL; no i18n changes. Verify: `tsc --noEmit` 0, `eslint` 0. |

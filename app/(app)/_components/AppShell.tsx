@@ -8,7 +8,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Avatar from "./Avatar";
 import ThemeSync from "./ThemeSync";
@@ -40,6 +40,8 @@ export default function AppShell({
   const [addMode, setAddMode] = useState<"card" | "folder">("card");
   const [addContext, setAddContext] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const searchParams = useSearchParams();
+  const meActive = pathname === "/feed" && searchParams.get("me") === "1";
   const [folders, setFolders] = useState<Mvp2Folder[]>([]);
   const [layout, setLayout] = useState<LayoutPref>("friends-left");
   const [railOpen, setRailOpenState] = useState(true);
@@ -88,7 +90,7 @@ export default function AppShell({
         {layout === "friends-top" ? (
           <FolderRail folders={folders} onAdd={() => openAdd("folder")} onChanged={refreshFolders} />
         ) : (
-          <FriendsRail user={user} friends={friends} />
+          <FriendsRail friends={friends} />
         )}
       </aside>
 
@@ -165,7 +167,7 @@ export default function AppShell({
         {/* Friends sliding rail on top — when layout pref moves folders to the left panel */}
         {layout === "friends-top" && (
           <div className="shell-toprail">
-            <FriendsRail user={user} friends={friends} horizontal />
+            <FriendsRail friends={friends} horizontal />
           </div>
         )}
 
@@ -182,10 +184,18 @@ export default function AppShell({
             <PlusIcon />
             <span>{t("nav.add")}</span>
           </button>
-          <Link href="/me" className={`bb-item ${pathname === "/me" ? "bb-active" : ""}`}>
+          {/* Me = "my content" feed filter (/feed?me=1 → get_feed p_view:"mine").
+              Toggles off back to /feed when already active (FolderRail pattern). */}
+          <button
+            type="button"
+            className={`bb-item ${meActive ? "bb-active" : ""}`}
+            onClick={() => router.push(meActive ? "/feed" : "/feed?me=1")}
+            aria-pressed={meActive}
+            aria-label={t("nav.me")}
+          >
             <Avatar userId={user.id} avatarKey={user.avatar_key} name={user.display_name ?? ""} size={24} />
             <span>{t("nav.me")}</span>
-          </Link>
+          </button>
         </nav>
 
         {/* FAB — desktop/tablet */}
