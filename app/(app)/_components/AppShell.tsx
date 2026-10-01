@@ -92,19 +92,22 @@ export default function AppShell({
       <div className="shell-main">
         {/* Header: panel toggle + search + notifications + me */}
         <header className="shell-header">
-          <Link href="/feed" className="shell-logo-img" aria-label={t("nav.home")}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.svg" alt="LIKED" width={26} height={26} />
-          </Link>
+          {/* Panel toggle (replaces the old separate toggle button):
+              icon + label name the rail the left panel currently shows —
+              FOLDERS when layout pref is friends-top (FolderRail in panel),
+              FRIENDS otherwise (FriendsRail in panel). */}
           <button
             type="button"
-            className="icon-btn"
+            className="shell-logo-img rail-toggle"
             onClick={() => setRailOpen(!railOpen)}
-            aria-label={t("nav.togglePanel")}
+            aria-label={layout === "friends-top" ? t("nav.folders") : t("nav.friends")}
             aria-pressed={railOpen}
             title={t("nav.togglePanel")}
           >
-            <PanelIcon />
+            {layout === "friends-top" ? <FolderGlyph /> : <FriendsGlyph />}
+            <span className="rail-toggle-label">
+              {layout === "friends-top" ? t("nav.folders") : t("nav.friends")}
+            </span>
           </button>
           <form onSubmit={onSearchSubmit} className="shell-search" role="search">
             <input
@@ -169,8 +172,11 @@ export default function AppShell({
   );
 }
 
-function PanelIcon() {
-  return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M9 4v16" /></svg>;
+function FolderGlyph() {
+  return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" /></svg>;
+}
+function FriendsGlyph() {
+  return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="8" r="3.2" /><path d="M3.5 19c.6-3.1 2.9-5 5.5-5s4.9 1.9 5.5 5" /><circle cx="17" cy="9" r="2.4" /><path d="M15.8 14.3c2.7.2 4.4 1.9 4.9 4.7" /></svg>;
 }
 function PlusIcon() {
   return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>;
