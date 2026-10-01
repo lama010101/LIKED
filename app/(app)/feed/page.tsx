@@ -45,6 +45,9 @@ export default async function FeedPage({
 
   return (
     <FeedHome
+      // searchParams-driven dataset changes must remount the client
+      // component — useState(initialNodes) would otherwise keep stale nodes.
+      key={`${q ?? ""}|${friend ?? ""}|${folder ?? ""}|${me}|${tag ?? ""}|${sort}`}
       initialNodes={feed.nodes}
       totalCount={feed.totalCount}
       nextCursor={feed.nextCursor}

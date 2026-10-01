@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Modal from "./Modal";
 import { toast } from "@/lib/store/toastStore";
@@ -21,6 +22,7 @@ export default function AddSheet({
   onCreated?: () => void;
 }) {
   const t = useTranslations();
+  const router = useRouter();
   const [mode, setMode] = useState<"card" | "folder">(initialMode);
   const [busy, setBusy] = useState(false);
   const [url, setUrl] = useState("");
@@ -51,7 +53,12 @@ export default function AddSheet({
         if (!res.ok) { toast.error(res.error ?? t("common.error")); return; }
       } else {
         if (!folderName.trim()) { toast.error(t("folder.namePlaceholder")); return; }
-        await createFolderAction({ name: folderName.trim(), parentId: parentId || null, description: folderDesc.trim() || null });
+        const newFolderId = await createFolderAction({ name: folderName.trim(), parentId: parentId || null, description: folderDesc.trim() || null });
+        reset();
+        onClose();
+        onCreated?.();
+        if (newFolderId) router.push(`/folders/${newFolderId}`);
+        return;
       }
       reset();
       onClose();
