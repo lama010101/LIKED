@@ -7,7 +7,7 @@ import { rpc } from "@/lib/db/rpc";
 
 // ── helpers ───────────────────────────────────────────────────────────────
 
-async function getSessionUserId(): Promise<string> {
+async function getSessionAuthUser() {
   const cookieStore = await cookies();
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -25,6 +25,11 @@ async function getSessionUserId(): Promise<string> {
   );
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Unauthenticated");
+  return { supabase, user };
+}
+
+async function getSessionUserId(): Promise<string> {
+  const { user } = await getSessionAuthUser();
   return user.id;
 }
 
@@ -114,6 +119,48 @@ export async function uploadAvatar(
   } catch (err) {
     await supabase.storage.from("avatars").remove([avatarKey]);
     return { ok: false, error: (err as Error).message };
+  }
+}
+
+// ── syncGoogleAvatar ──────────────────────────────────────────────────────
+
+export type SyncGoogleAvatarResult =
+  | { ok: true; avatarKey: string | null; updated: boolean }
+  | { ok: false };
+
+/** Google-signin avatar sync (UX-GOOGLE-AVATAR-001): copies the provider
+ *  avatar URL (user_metadata.avatar_url / picture, identities fallback) into
+ *  users.avatar_key. Runs lazily on app load — fixes users created before
+ *  the ensure_user_profile backfill existed and refreshes changed pics.
+ *  Never overwrites an uploaded avatar (storage keys are non-http). */
+export async function syncGoogleAvatar(): Promise<SyncGoogleAvatarResult> {
+  let ctx;
+  try {
+    ctx = await getSessionAuthUser();
+  } catch {
+    return { ok: false };
+  }
+  const { supabase, user } = ctx;
+
+  const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
+  let url = (meta.avatar_url ?? meta.picture) as string | undefined;
+  if (!url) {
+    const ids = (user.identities ?? []) as Array<{ provider?: string; identity_data?: Record<string, unknown> }>;
+    const g = ids.find((i) => i.provider === "google") ?? ids[0];
+    url = (g?.identity_data?.avatar_url ?? g?.identity_data?.picture) as string | undefined;
+  }
+  if (!url || !/^https?:\/\//.test(url)) return { ok: true, avatarKey: null, updated: false };
+
+  const { data: row } = await supabase.from("users").select("avatar_key").eq("id", user.id).single();
+  const current = (row?.avatar_key ?? null) as string | null;
+  if (current === url) return { ok: true, avatarKey: current, updated: false };
+  if (current && !/^https?:\/\//.test(current)) return { ok: true, avatarKey: current, updated: false };
+
+  try {
+    await updateAvatar(user.id, url);
+    return { ok: true, avatarKey: url, updated: true };
+  } catch {
+    return { ok: false };
   }
 }
 

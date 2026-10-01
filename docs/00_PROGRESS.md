@@ -830,3 +830,8 @@ Applied to task/feature entries going forward. Existing entries retain their ✅
 | Task ID | Item | Status | Notes |
 |---|---|---|---|
 | UX-AVATAR-SELECT-001 | Circle the selected avatar (friend filter / Me filter) | ✅ | `Avatar`'s existing-but-unused `active` prop (`av-active` class) wired: `app/(app)/_components/FriendsRail.tsx` reads `useSearchParams().get("friend")` → `active={friendActive === f.user_id}` on each friend avatar (both panel + top-strip variants); `app/(app)/_components/AppShell.tsx` bottom-bar Me `Avatar` gets `active={meActive}` (`?me=1` on `/feed`). `app/globals.css`: `.av-active` strengthened 2px→`outline: 3px solid var(--accent); outline-offset: 2px` so the selection circle is unmissable. Verify: `tsc --noEmit` 0, `eslint` 0. |
+
+### UX-GOOGLE-AVATAR-001 (2026-10-01)
+| Task ID | Item | Status | Notes |
+|---|---|---|---|
+| UX-GOOGLE-AVATAR-001 | Lazy Google-avatar sync so all avatars show the Google profile pic | ✅ | `app/lib/actions/profile.ts`: `getSessionUserId` refactored onto new `getSessionAuthUser()` (returns {supabase, user}); new `syncGoogleAvatar()` — reads `user_metadata.avatar_url`/`picture` (fallback: `identities[provider=google|first].identity_data.avatar_url`/`picture`), writes `users.avatar_key` via `updateAvatar` only when missing/changed, and never overwrites an uploaded avatar (non-http keys). Covers users created before migration 134's backfill ran + refreshes changed Google pics. `app/(app)/_components/AppShell.tsx`: one-shot `useEffect` calls the action and `router.refresh()`es only when it actually updated. Avatar already renders http(s) keys (migration-134 isomorphic `avatarUrl`); initials remain the fallback for NULL keys. Verify: `tsc --noEmit` 0, `eslint` 0. |
