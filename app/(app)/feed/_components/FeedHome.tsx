@@ -38,6 +38,16 @@ export default function FeedHome({
   const [cursor, setCursor] = useState(nextCursor);
   const [loading, setLoading] = useState(false);
 
+  // Resync on router.refresh(): refresh delivers new props without remounting
+  // (the key only covers params), so paginated state would otherwise stay
+  // stale — this hid newly added YouTube cards until a manual reload.
+  const [prevProps, setPrevProps] = useState({ initialNodes, nextCursor });
+  if (prevProps.initialNodes !== initialNodes || prevProps.nextCursor !== nextCursor) {
+    setPrevProps({ initialNodes, nextCursor });
+    setNodes(initialNodes);
+    setCursor(nextCursor);
+  }
+
   const loadMore = useCallback(async () => {
     if (!cursor || loading) return;
     setLoading(true);

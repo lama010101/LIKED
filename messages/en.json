@@ -63,7 +63,8 @@
     "moveToFolder": "Move to folder",
     "deleteCard": "Move to trash",
     "untitled": "Untitled",
-    "editNote": "Click to edit"
+    "editNote": "Click to edit",
+    "play": "Play"
   },
   "folder": {
     "new": "New folder",

@@ -6,7 +6,7 @@ import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
-  moveFolderAction, shareFolderV2Action, trashFolderAction,
+  moveFolderAction, renameFolderAction, shareFolderV2Action, trashFolderAction,
   type Mvp2Folder,
 } from "@/app/lib/actions/mvp2";
 import { getFriendBarAction, getGroupBarAction } from "@/app/lib/actions/session";
@@ -71,6 +71,13 @@ export default function FolderTile({
     }
   };
   const actions = [
+    ...(isAdmin ? [{
+      key: "rename", label: t("folder.rename"),
+      onSelect: () => {
+        const name = window.prompt(t("folder.namePlaceholder"), folder.name);
+        if (name?.trim() && name.trim() !== folder.name) run(() => renameFolderAction(folder.id, name.trim()))();
+      },
+    }] : []),
     ...(isAdmin ? [{ key: "move", label: t("folder.moveTo"), onSelect: () => setMoveOpen(true) }] : []),
     ...(canShare ? [{ key: "share", label: t("common.share"), onSelect: () => setShareOpen(true) }] : []),
     ...(isAdmin ? [{

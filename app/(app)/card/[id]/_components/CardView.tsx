@@ -8,6 +8,7 @@ import { rateCardAction, trashCardAction, updateNodeTitleAction, updateNodeTextA
 import { shareNodeAction, getNodeAccessAction, changeNodePermissionAction, unshareNodeAction, type AccessEntry } from "@/app/lib/actions/mvp2";
 import { getFriendBarAction, getGroupBarAction } from "@/app/lib/actions/session";
 import { toast } from "@/lib/store/toastStore";
+import { youtubeVideoId, youtubeEmbedUrl } from "@/lib/utils/youtube";
 import RatingSlider from "../../../_components/RatingSlider";
 import ShareSheet from "../../../_components/ShareSheet";
 import Avatar from "../../../_components/Avatar";
@@ -78,6 +79,17 @@ export default function CardView({ detail }: { detail: CardDetail }) {
         <Crumbs items={[{ href: "/feed", label: t("nav.home") }, { label: hasDistinctTitle ? node.title! : t("card.untitled") }]} />
       </div>
 
+      {/* YouTube cards embed the player inside the card (UX-BATCH-003). */}
+      {(() => { const ytId = youtubeVideoId(node.url); return ytId ? (
+        <div className="cv-yt">
+          <iframe
+            src={youtubeEmbedUrl(ytId, false)}
+            title={node.title ?? "YouTube"}
+            allow="autoplay; encrypted-media; picture-in-picture"
+            allowFullScreen
+          />
+        </div>
+      ) : null; })()}
       {node.thumbnail_key && (
         // eslint-disable-next-line @next/next/no-img-element
         <img className="cv-hero" src={`${THUMB_BASE}${node.thumbnail_key}`} alt="" />
@@ -126,7 +138,7 @@ export default function CardView({ detail }: { detail: CardDetail }) {
       {detail.tags.length > 0 && (
         <div className="cv-tags">
           {detail.tags.map((tag) => (
-            <span key={tag.id} className="tag-pill" style={{ borderColor: tag.color_hex }}>{tag.label}</span>
+            <a key={tag.id} className="tag-pill tag-link" style={{ borderColor: tag.color_hex }} href={`/feed?tag=${tag.id}`}>{tag.label}</a>
           ))}
         </div>
       )}
