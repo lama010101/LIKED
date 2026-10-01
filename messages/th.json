@@ -14,7 +14,8 @@
     "signOut": "ออกจากระบบ",
     "searchPlaceholder": "ค้นหาการ์ดของคุณ…",
     "back": "กลับ",
-    "togglePanel": "สลับแผงด้านข้าง"
+    "togglePanel": "สลับแผงด้านข้าง",
+    "panelView": "มุมมองแผง"
   },
   "common": {
     "save": "บันทึก",

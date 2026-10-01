@@ -6,7 +6,7 @@
  * DnD: cards drag onto folder rail chips / folder tiles (Phase 4 dnd).
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -15,7 +15,8 @@ import ThemeSync from "./ThemeSync";
 import AddSheet from "./AddSheet";
 import FriendsRail from "./FriendsRail";
 import FolderRail from "./FolderRail";
-import { setRailOpen, syncPrefs, type LayoutPref } from "./prefs";
+import Modal from "./Modal";
+import { setLayoutPref, setRailOpen, syncPrefs, type LayoutPref } from "./prefs";
 import YouTubeSyncButton from "./YouTubeSyncButton";
 import { toast } from "@/lib/store/toastStore";
 import { useRealtime } from "@/lib/hooks/useRealtime";
@@ -42,6 +43,8 @@ export default function AppShell({
   const [folders, setFolders] = useState<Mvp2Folder[]>([]);
   const [layout, setLayout] = useState<LayoutPref>("friends-left");
   const [railOpen, setRailOpenState] = useState(true);
+  const [switchOpen, setSwitchOpen] = useState(false);
+  const clickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const refreshFolders = useCallback(() => {
     getFoldersAction().then(setFolders).catch(() => {});
@@ -93,13 +96,27 @@ export default function AppShell({
         {/* Header: panel toggle + search + notifications + me */}
         <header className="shell-header">
           {/* Panel toggle (replaces the old separate toggle button):
-              icon + label name the rail the left panel currently shows —
-              FOLDERS when layout pref is friends-top (FolderRail in panel),
-              FRIENDS otherwise (FriendsRail in panel). */}
+              single click opens/closes the left panel (250ms disambiguation,
+              same as FolderRail); double-click opens the view switcher.
+              Icon + label name the rail the panel currently shows — FOLDERS
+              when layout pref is friends-top (FolderRail in panel), FRIENDS
+              otherwise (FriendsRail in panel). */}
           <button
             type="button"
             className="shell-logo-img rail-toggle"
-            onClick={() => setRailOpen(!railOpen)}
+            onClick={(e) => {
+              if (e.detail === 0) { setRailOpen(!railOpen); return; }
+              if (clickTimer.current) clearTimeout(clickTimer.current);
+              clickTimer.current = setTimeout(() => {
+                clickTimer.current = null;
+                setRailOpen(!railOpen);
+              }, 250);
+            }}
+            onDoubleClick={(e) => {
+              e.preventDefault();
+              if (clickTimer.current) { clearTimeout(clickTimer.current); clickTimer.current = null; }
+              setSwitchOpen(true);
+            }}
             aria-label={layout === "friends-top" ? t("nav.folders") : t("nav.friends")}
             aria-pressed={railOpen}
             title={t("nav.togglePanel")}
@@ -109,6 +126,24 @@ export default function AppShell({
               {layout === "friends-top" ? t("nav.folders") : t("nav.friends")}
             </span>
           </button>
+          <Modal open={switchOpen} onClose={() => setSwitchOpen(false)} title={t("nav.panelView")}>
+            <div className="menu-list">
+              <button
+                type="button"
+                className="menu-item"
+                onClick={() => { setSwitchOpen(false); setLayoutPref("friends-top"); }}
+              >
+                <FolderGlyph /> {t("nav.folders")}
+              </button>
+              <button
+                type="button"
+                className="menu-item"
+                onClick={() => { setSwitchOpen(false); setLayoutPref("friends-left"); }}
+              >
+                <FriendsGlyph /> {t("nav.friends")}
+              </button>
+            </div>
+          </Modal>
           <form onSubmit={onSearchSubmit} className="shell-search" role="search">
             <input
               value={search}
