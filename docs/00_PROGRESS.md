@@ -790,3 +790,8 @@ Applied to task/feature entries going forward. Existing entries retain their ✅
 | Task ID | Item | Status | Notes |
 |---|---|---|---|
 | UX-ME-FILTER-001 | Remove Me avatar from friends rail; bottom-bar Me becomes "my content" feed filter | ✅ | `app/(app)/_components/FriendsRail.tsx`: fixed Me `<Link>` removed (rail = friends avatars + manage link only); unused `user` prop dropped from signature + `AppShell.tsx` call sites (2). `app/(app)/_components/AppShell.tsx`: mobile bottom-bar Me `<Link href="/me">` replaced by a `<button>` — toggles `/feed?me=1` ↔ `/feed` (get_feed `p_view:"mine"`, FolderRail toggle-off pattern), `.bb-item` + `bb-active`/`aria-pressed` driven by `useSearchParams` (`me=1` on `/feed`); keeps `Avatar` + `nav.me` label. Desktop: /me remains reachable by URL; no i18n changes. Verify: `tsc --noEmit` 0, `eslint` 0. |
+
+### UX-BB-ICON-SIZE-001 (2026-10-01)
+| Task ID | Item | Status | Notes |
+|---|---|---|---|
+| UX-BB-ICON-SIZE-001 | Bottom-bar Home and Me icons enlarged to the (+) button's 56px size | ✅ | `app/(app)/_components/AppShell.tsx`: mobile bottom-bar Home `.bb-logo` img 22→`width/height={56}`, Me `Avatar` `size={24}`→`size={56}` — matching `.bb-add svg`'s 56px (`globals.css:2149`). Labels unchanged. Verify: `tsc --noEmit` 0, `eslint` 0. |

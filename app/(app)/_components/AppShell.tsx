@@ -139,7 +139,7 @@ export default function AppShell({
         <nav className="shell-bottom" aria-label={t("nav.home")}>
           <Link href="/feed" className={`bb-item ${pathname === "/feed" ? "bb-active" : ""}`}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.svg" alt="" width={22} height={22} className="bb-logo" />
+            <img src="/logo.svg" alt="" width={56} height={56} className="bb-logo" />
             <span>{t("nav.home")}</span>
           </Link>
           <button className="bb-item bb-add" onClick={() => openAdd("card")} aria-label={t("nav.add")}>
@@ -155,7 +155,7 @@ export default function AppShell({
             aria-pressed={meActive}
             aria-label={t("nav.me")}
           >
-            <Avatar userId={user.id} avatarKey={user.avatar_key} name={user.display_name ?? ""} size={24} />
+            <Avatar userId={user.id} avatarKey={user.avatar_key} name={user.display_name ?? ""} size={56} />
             <span>{t("nav.me")}</span>
           </button>
         </nav>
