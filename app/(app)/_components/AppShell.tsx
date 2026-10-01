@@ -13,6 +13,7 @@ import Link from "next/link";
 import Avatar from "./Avatar";
 import ThemeSync from "./ThemeSync";
 import AddSheet from "./AddSheet";
+import SettingsModal from "./SettingsModal";
 import FriendsRail from "./FriendsRail";
 import FolderRail from "./FolderRail";
 import Modal from "./Modal";
@@ -46,6 +47,7 @@ export default function AppShell({
   const [layout, setLayout] = useState<LayoutPref>("friends-left");
   const [railOpen, setRailOpenState] = useState(true);
   const [switchOpen, setSwitchOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const clickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const refreshFolders = useCallback(() => {
@@ -162,7 +164,17 @@ export default function AppShell({
           <Link href="/organize" className="icon-btn" aria-label={t("nav.organize")}>
             <OrganizeIcon />
           </Link>
+          <button
+            type="button"
+            className="icon-btn"
+            onClick={() => setSettingsOpen(true)}
+            aria-label={t("nav.settings")}
+            title={t("nav.settings")}
+          >
+            <GearIcon />
+          </button>
         </header>
+        <SettingsModal user={user} open={settingsOpen} onClose={() => setSettingsOpen(false)} />
 
         {/* Friends sliding rail on top — when layout pref moves folders to the left panel */}
         {layout === "friends-top" && (
@@ -231,4 +243,7 @@ function BellIcon() {
 }
 function OrganizeIcon() {
   return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z" /><path d="m19 15 .8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z" /></svg>;
+}
+function GearIcon() {
+  return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>;
 }

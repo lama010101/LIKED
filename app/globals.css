@@ -2298,3 +2298,8 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
 .rail-toggle:hover { background: var(--surface-2); }
 .rail-toggle-label { text-transform: uppercase; }
 .rail-toggle[aria-pressed="false"] { color: var(--text-3); }
+.settings-modal { display: flex; flex-direction: column; gap: 14px; }
+.settings-profile { display: flex; align-items: center; gap: 12px; }
+.settings-name { flex: 1; display: flex; gap: 8px; }
+.settings-name input { flex: 1; }
+.settings-actions { display: flex; gap: 10px; justify-content: space-between; }
