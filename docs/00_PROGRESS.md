@@ -860,3 +860,8 @@ Applied to task/feature entries going forward. Existing entries retain their ✅
 | Task ID | Item | Status | Notes |
 |---|---|---|---|
 | UX-BATCH-003 | Rail rows menu, YouTube play, tag links, independent scroll, feed resync, mobile 33vw + card clamp | ✅ | `FolderRail.tsx`: every folder row gets a ⋯ `ItemMenu` (rename/move/share/trash, permission-gated like FolderTile) with portaled FolderPickModal/ShareSheet; `onSelect` now fires synchronously on click (immediate panel close). `FolderTile.tsx`: + rename action. `CardItem.tsx`: YouTube thumbnail click → inline `card-yt` iframe embed; tag pills → `/feed?tag=<id>`. `CardView.tsx`: YouTube cards embed `.cv-yt` 16:9 player; tags link to `/feed?tag=`. `lib/utils/youtube.ts` (new): `youtubeVideoId`/`youtubeEmbedUrl`. `FeedHome.tsx`: render-time resync of `nodes`/`cursor` when refreshed `initialNodes`/`nextCursor` arrive — newly added YouTube cards appear without manual reload. `globals.css`: `.shell` fixed 100dvh + overflow hidden (rail & feed scroll independently); mobile panel 50vw→33vw; `.card-title` 3-line clamp + `.card-url` ellipsis (list-view height parity); `.fr-wrap` menu positioning, `.card-yt*`, `.cv-yt`, `.tag-link` styles. i18n: `card.play` (en/fr/th). Verify: `tsc --noEmit` 0, `eslint` 0. |
+
+### UX-BATCH-003B (2026-10-01)
+| Task ID | Item | Status | Notes |
+|---|---|---|---|
+| UX-BATCH-003B | Mobile 33vw legibility fix | ✅ | `globals.css`: at ≤700px, folder panel items stack (full-width 16:10 cover, name 2-line clamp underneath, menu-btn overlays the cover corner); friend disks shrink to 32px so names keep ~65px. Fixes the ~16px name column found in e2e at 33vw. |
