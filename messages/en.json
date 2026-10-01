@@ -14,7 +14,8 @@
     "signOut": "Sign out",
     "searchPlaceholder": "Search your cards…",
     "back": "Back",
-    "togglePanel": "Toggle side panel"
+    "togglePanel": "Toggle side panel",
+    "panelView": "Panel view"
   },
   "common": {
     "save": "Save",

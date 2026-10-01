@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState, useSyncExternalStore } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
 import type { SessionUser } from "@/app/lib/actions/session";
 import { updateUsername } from "@/app/lib/actions/profile";
 import { setLocaleAction } from "@/app/lib/actions/mvp2";
 import { setTheme } from "../../_components/ThemeSync";
-import { getLayoutPref, setLayoutPref, type LayoutPref } from "../../_components/prefs";
+import { getLayoutPref, setLayoutPref } from "../../_components/prefs";
 import Avatar from "../../_components/Avatar";
 import Crumbs from "../../_components/Crumbs";
 import { toast } from "@/lib/store/toastStore";
@@ -18,12 +18,16 @@ export default function MeView({ user }: { user: SessionUser }) {
   const locale = useLocale();
   const router = useRouter();
   const [name, setName] = useState(user.display_name ?? "");
-  const [theme, setThemeState] = useState<"light" | "dark">(
-    typeof window !== "undefined" && localStorage.getItem("liked.theme") === "dark" ? "dark" : "light"
-  );
-  const [layout, setLayout] = useState<LayoutPref>(
-    typeof window !== "undefined" ? getLayoutPref() : "friends-left"
-  );
+  // localStorage-backed prefs via useSyncExternalStore: SSR renders the
+  // server snapshot (defaults), then React re-reads the client snapshot
+  // post-hydration and patches the seg-on class. Reading localStorage in
+  // useState initializers leaves the stale SSR class forever (hydration bug).
+  const subscribePrefs = useCallback((onChange: () => void) => {
+    window.addEventListener("liked:prefs", onChange);
+    return () => window.removeEventListener("liked:prefs", onChange);
+  }, []);
+  const theme = useSyncExternalStore(subscribePrefs, () => (localStorage.getItem("liked.theme") === "dark" ? "dark" : "light"), () => "light");
+  const layout = useSyncExternalStore(subscribePrefs, getLayoutPref, () => "friends-left");
 
   const saveName = async () => {
     const res = await updateUsername(name.trim());
@@ -71,7 +75,7 @@ export default function MeView({ user }: { user: SessionUser }) {
               <button
                 key={v}
                 className={`seg-btn ${theme === v ? "seg-on" : ""}`}
-                onClick={() => { setThemeState(v); setTheme(v); }}
+                onClick={() => { setTheme(v); window.dispatchEvent(new Event("liked:prefs")); }}
               >
                 {v === "light" ? t("me.themeLight") : t("me.themeDark")}
               </button>
@@ -85,7 +89,7 @@ export default function MeView({ user }: { user: SessionUser }) {
               <button
                 key={v}
                 className={`seg-btn ${layout === v ? "seg-on" : ""}`}
-                onClick={() => { setLayout(v); setLayoutPref(v); }}
+                onClick={() => setLayoutPref(v)}
               >
                 {v === "friends-left" ? t("me.layoutFriendsLeft") : t("me.layoutFriendsTop")}
               </button>

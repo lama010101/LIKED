@@ -14,7 +14,8 @@
     "signOut": "Se déconnecter",
     "searchPlaceholder": "Rechercher vos cartes…",
     "back": "Retour",
-    "togglePanel": "Afficher/masquer le panneau"
+    "togglePanel": "Afficher/masquer le panneau",
+    "panelView": "Vue du panneau"
   },
   "common": {
     "save": "Enregistrer",
