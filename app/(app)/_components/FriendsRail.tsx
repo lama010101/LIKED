@@ -1,21 +1,18 @@
 "use client";
 
-/** Friends-only avatar rail (Q3/rail spec): fixed "Me" on top + friends. */
+/** Friends-only avatar rail: friends avatars + manage link.
+ *  The fixed "Me" entry was removed (UX-ME-FILTER-001) — "my content"
+ *  is reached via the bottom-bar / feed ?me=1 filter instead. */
 
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import Avatar from "./Avatar";
-import type { SessionUser } from "@/app/lib/actions/session";
 import type { FriendBarEntry } from "@/lib/db/friends";
 
-export default function FriendsRail({ user, friends, horizontal = false }: { user: SessionUser; friends: FriendBarEntry[]; horizontal?: boolean }) {
+export default function FriendsRail({ friends, horizontal = false }: { friends: FriendBarEntry[]; horizontal?: boolean }) {
   const t = useTranslations();
   return (
     <div className={`rail ${horizontal ? "rail-h" : ""}`}>
-      <Link href="/feed?me=1" className="rail-item" title={t("nav.me")}>
-        <Avatar userId={user.id} avatarKey={user.avatar_key} name={user.display_name ?? "Me"} size={40} />
-        <span className="rail-label">{t("nav.me")}</span>
-      </Link>
       {friends
         .filter((f) => f.user_id)
         .map((f) => (
