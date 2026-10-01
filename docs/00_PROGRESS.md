@@ -820,3 +820,8 @@ Applied to task/feature entries going forward. Existing entries retain their ✅
 | Task ID | Item | Status | Notes |
 |---|---|---|---|
 | UX-SETTINGS-BTN-001 | Header settings gear opens a user profile/settings modal | ✅ | New `app/(app)/_components/SettingsModal.tsx`: `Modal` titled `nav.settings` (new i18n key en/fr/th) containing avatar + display-name input/save (`updateUsername`), language select (`setLocaleAction`), theme seg + layout seg — both via `useSyncExternalStore` on `liked:prefs` (hydration-safe, same fix as UX-ME-SEG-HYDRATION-001) — plus `nav.me` profile-page link and `nav.signOut`. `app/(app)/_components/AppShell.tsx`: new `settingsOpen` state + `icon-btn` gear (`GearIcon` inline SVG, existing icon pattern) appended to the header right side; renders `<SettingsModal user open onClose>`. `app/globals.css`: `.settings-modal`/`.settings-profile`/`.settings-name`/`.settings-actions` appended. No changes to MeView — same actions/prefs, single source of truth (localStorage + `liked:prefs`). Verify: `tsc --noEmit` 0, `eslint` 0. |
+
+### UX-TOPRAIL-AVATAR-001 (2026-10-01)
+| Task ID | Item | Status | Notes |
+|---|---|---|---|
+| UX-TOPRAIL-AVATAR-001 | Double the friends avatars in the top strip | ✅ | `app/(app)/_components/FriendsRail.tsx`: friend `Avatar` `size={40}` → `size={horizontal ? 80 : 40}` — the `.shell-toprail` horizontal rail (friends-top layout) shows 80px avatars; the left-panel rail keeps 40px. Verify: `tsc --noEmit` 0, `eslint` 0. |
