@@ -865,3 +865,8 @@ Applied to task/feature entries going forward. Existing entries retain their ✅
 | Task ID | Item | Status | Notes |
 |---|---|---|---|
 | UX-BATCH-003B | Mobile 33vw legibility fix | ✅ | `globals.css`: at ≤700px, folder panel items stack (full-width 16:10 cover, name 2-line clamp underneath, menu-btn overlays the cover corner); friend disks shrink to 32px so names keep ~65px. Fixes the ~16px name column found in e2e at 33vw. |
+
+### UX-RAIL-FRIENDFOLDERS-001 (2026-10-01)
+| Task ID | Item | Status | Notes |
+|---|---|---|---|
+| UX-RAIL-FRIENDFOLDERS-001 | Friend filter → left-panel folder rail lists only that friend's shared folders | ✅ | `app/(app)/_components/AppShell.tsx`: `friendId` derived from `useSearchParams().get("friend")`; `refreshFolders` additionally fetches `getFoldersAction({ friendId })` into a separate `railFolders` state when a friend is selected (re-runs on param change via the callback dep); `<FolderRail>` receives `friendId ? railFolders : folders`. SQL-only filtering (existing `get_folders p_friend_id` = owner-friend + edge-visibility, same semantics as the `/feed` folder section); `folders` stays the unfiltered set for `AddSheet` pickers so the + flow isn't scoped to the friend. Verify: `tsc --noEmit` 0, `eslint` 0. |
