@@ -15,7 +15,8 @@
     "searchPlaceholder": "Rechercher vos cartes…",
     "back": "Retour",
     "togglePanel": "Afficher/masquer le panneau",
-    "panelView": "Vue du panneau"
+    "panelView": "Vue du panneau",
+    "settings": "Paramètres"
   },
   "common": {
     "save": "Enregistrer",

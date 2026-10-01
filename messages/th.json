@@ -15,7 +15,8 @@
     "searchPlaceholder": "ค้นหาการ์ดของคุณ…",
     "back": "กลับ",
     "togglePanel": "สลับแผงด้านข้าง",
-    "panelView": "มุมมองแผง"
+    "panelView": "มุมมองแผง",
+    "settings": "การตั้งค่า"
   },
   "common": {
     "save": "บันทึก",

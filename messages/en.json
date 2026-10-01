@@ -15,7 +15,8 @@
     "searchPlaceholder": "Search your cards…",
     "back": "Back",
     "togglePanel": "Toggle side panel",
-    "panelView": "Panel view"
+    "panelView": "Panel view",
+    "settings": "Settings"
   },
   "common": {
     "save": "Save",
