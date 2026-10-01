@@ -16,6 +16,7 @@ import { setTheme } from "./ThemeSync";
 import { getLayoutPref, setLayoutPref } from "./prefs";
 import Avatar from "./Avatar";
 import Modal from "./Modal";
+import YouTubeSyncButton from "./YouTubeSyncButton";
 import { toast } from "@/lib/store/toastStore";
 import { LOCALES } from "@/i18n/locales";
 
@@ -53,9 +54,12 @@ export default function SettingsModal({ user, open, onClose }: { user: SessionUs
       <div className="settings-modal">
         <div className="settings-profile">
           <Avatar userId={user.id} avatarKey={user.avatar_key} name={user.display_name ?? ""} size={40} />
-          <div className="row settings-name">
-            <input value={name} onChange={(e) => setName(e.target.value)} />
-            <button className="btn" onClick={saveName}>{t("common.save")}</button>
+          <div className="settings-id">
+            <div className="row settings-name">
+              <input value={name} onChange={(e) => setName(e.target.value)} />
+              <button className="btn" onClick={saveName}>{t("common.save")}</button>
+            </div>
+            {user.email && <div className="settings-email">{user.email}</div>}
           </div>
         </div>
         <label className="fld">
@@ -93,6 +97,7 @@ export default function SettingsModal({ user, open, onClose }: { user: SessionUs
           </div>
         </label>
         <div className="settings-actions">
+          <YouTubeSyncButton />
           <Link href="/me" className="btn" onClick={onClose}>{t("nav.me")}</Link>
           <button className="btn btn-danger" onClick={signOut}>{t("nav.signOut")}</button>
         </div>

@@ -18,7 +18,6 @@ import FriendsRail from "./FriendsRail";
 import FolderRail from "./FolderRail";
 import Modal from "./Modal";
 import { setLayoutPref, setRailOpen, syncPrefs, type LayoutPref } from "./prefs";
-import YouTubeSyncButton from "./YouTubeSyncButton";
 import { syncGoogleAvatar } from "@/app/lib/actions/profile";
 import { toast } from "@/lib/store/toastStore";
 import { useRealtime } from "@/lib/hooks/useRealtime";
@@ -113,9 +112,9 @@ export default function AppShell({
       {/* Left panel — friends or folders, per layout pref */}
       <aside className={`shell-rail ${layout === "friends-top" ? "rail-folders" : ""}`}>
         {layout === "friends-top" ? (
-          <FolderRail folders={folders} onAdd={() => openAdd("folder")} onChanged={refreshFolders} />
+          <FolderRail folders={folders} onAdd={() => openAdd("folder")} onChanged={refreshFolders} onSelect={() => setRailOpen(false)} />
         ) : (
-          <FriendsRail friends={friends} />
+          <FriendsRail friends={friends} onSelect={() => setRailOpen(false)} />
         )}
       </aside>
 
@@ -150,7 +149,6 @@ export default function AppShell({
               aria-label={t("nav.searchPlaceholder")}
             />
           </form>
-          <YouTubeSyncButton />
           <Link href="/notifications" className="icon-btn" aria-label={t("nav.notifications")}>
             <BellIcon />
             {unread > 0 && <span className="badge">{unread > 9 ? "9+" : unread}</span>}

@@ -11,6 +11,7 @@ export interface SessionUser {
   display_name: string | null;
   avatar_key: string | null;
   language_code?: string;
+  email?: string | null;
 }
 
 export async function getSessionUser(): Promise<SessionUser | null> {
@@ -41,7 +42,8 @@ export async function getSessionUser(): Promise<SessionUser | null> {
       .single();
 
     if (!data) return null;
-    return data as SessionUser;
+    // email lives on auth.users, not public.users — merge it in (UX-BATCH-001).
+    return { ...(data as SessionUser), email: user.email ?? null };
   } catch {
     return null;
   }

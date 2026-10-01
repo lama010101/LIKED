@@ -10,7 +10,12 @@ import { useSearchParams } from "next/navigation";
 import Avatar from "./Avatar";
 import type { FriendBarEntry } from "@/lib/db/friends";
 
-export default function FriendsRail({ friends, horizontal = false }: { friends: FriendBarEntry[]; horizontal?: boolean }) {
+export default function FriendsRail({ friends, horizontal = false, onSelect }: {
+  friends: FriendBarEntry[];
+  horizontal?: boolean;
+  /** Fired after a friend is picked — AppShell closes the panel (UX-BATCH-001). */
+  onSelect?: () => void;
+}) {
   const t = useTranslations();
   // Ring the friend whose feed filter is active (UX-AVATAR-SELECT-001).
   const friendActive = useSearchParams().get("friend");
@@ -19,7 +24,7 @@ export default function FriendsRail({ friends, horizontal = false }: { friends: 
       {friends
         .filter((f) => f.user_id)
         .map((f) => (
-          <Link key={f.user_id} href={`/feed?friend=${f.user_id}`} className="rail-item" title={f.display_name ?? ""}>
+          <Link key={f.user_id} href={`/feed?friend=${f.user_id}`} className="rail-item" title={f.display_name ?? ""} onClick={() => onSelect?.()}>
             {/* Top strip avatars are 2× the left-panel size (UX-TOPRAIL-AVATAR-001) */}
             <Avatar userId={f.user_id!} avatarKey={f.avatar_key} name={f.display_name ?? "?"} size={horizontal ? 80 : 40} active={friendActive === f.user_id} />
             <span className="rail-label">{f.display_name}</span>
