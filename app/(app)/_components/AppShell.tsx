@@ -19,6 +19,7 @@ import FolderRail from "./FolderRail";
 import Modal from "./Modal";
 import { setLayoutPref, setRailOpen, syncPrefs, type LayoutPref } from "./prefs";
 import YouTubeSyncButton from "./YouTubeSyncButton";
+import { syncGoogleAvatar } from "@/app/lib/actions/profile";
 import { toast } from "@/lib/store/toastStore";
 import { useRealtime } from "@/lib/hooks/useRealtime";
 import type { SessionUser } from "@/app/lib/actions/session";
@@ -57,6 +58,12 @@ export default function AppShell({
 
   // Apply persisted layout/rail prefs + stay in sync with changes from /me.
   useEffect(() => syncPrefs((l, o) => { setLayout(l); setRailOpenState(o); }), []);
+
+  // Lazy Google-avatar sync (UX-GOOGLE-AVATAR-001): fills avatar_key from the
+  // provider pic when missing/outdated, then refreshes so the pic renders.
+  useEffect(() => {
+    syncGoogleAvatar().then((r) => { if (r.ok && r.updated) router.refresh(); }).catch(() => {});
+  }, [router]);
 
   // Rail-toggle click/dblclick handlers shared by the header button
   // (desktop) and its mobile home in the bottom bar (UX-BB-LAYOUT-001).
