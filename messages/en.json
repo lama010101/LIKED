@@ -16,7 +16,8 @@
     "back": "Back",
     "togglePanel": "Toggle side panel",
     "panelView": "Panel view",
-    "settings": "Settings"
+    "settings": "Settings",
+    "search": "Search"
   },
   "common": {
     "save": "Save",
@@ -36,7 +37,8 @@
     "description": "Description",
     "optional": "optional",
     "owner": "Owner",
-    "you": "You"
+    "you": "You",
+    "undo": "Undo"
   },
   "feed": {
     "title": "Home",
@@ -60,7 +62,8 @@
     "tags": "Tags",
     "moveToFolder": "Move to folder",
     "deleteCard": "Move to trash",
-    "untitled": "Untitled"
+    "untitled": "Untitled",
+    "editNote": "Click to edit"
   },
   "folder": {
     "new": "New folder",
@@ -83,7 +86,10 @@
     "rateFolder": "Rate this folder",
     "systemFolder": "System folder",
     "maxDepth": "Folders can only nest 5 levels deep.",
-    "moveTo": "Move to folder…"
+    "moveTo": "Move to folder…",
+    "sort": "Sort",
+    "sortCreated": "Creation date",
+    "sortAlpha": "Alphabetical"
   },
   "menu": {
     "open": "Actions"

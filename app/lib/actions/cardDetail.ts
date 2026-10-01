@@ -10,6 +10,7 @@ import {
   getCardDetail,
   incrementViewCount,
   updateNodeTitle,
+  updateNodeText,
   type CardDetail,
   getFriendRatingsForNode,
 } from "@/lib/db/cardDetail";
@@ -76,6 +77,23 @@ export async function updateNodeTitleAction(
     return {
       ok: false,
       error: e instanceof Error ? e.message : "Failed to update title",
+    };
+  }
+}
+
+export async function updateNodeTextAction(
+  nodeId: string,
+  text: string
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  try {
+    const userId = await requireUserId();
+    await updateNodeText(userId, nodeId, text);
+    revalidatePath("/feed");
+    return { ok: true };
+  } catch (e) {
+    return {
+      ok: false,
+      error: e instanceof Error ? e.message : "Failed to update note",
     };
   }
 }

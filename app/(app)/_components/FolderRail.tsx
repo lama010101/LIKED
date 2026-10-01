@@ -5,7 +5,7 @@
  *  active), Enter/double-click enters /folders/[id]; items are drop targets
  *  for card drags (same as FolderTile). */
 
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState, useSyncExternalStore } from "react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -32,6 +32,27 @@ export default function FolderRail({ folders, onAdd, onChanged, onSelect }: {
   const router = useRouter();
   const clickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
+
+  // Folder ordering pref (UX-BATCH-002): "created" (default, newest first)
+  // or "alpha". Persisted in localStorage, synced via liked:prefs.
+  const subscribePrefs = useCallback((onChange: () => void) => {
+    window.addEventListener("liked:prefs", onChange);
+    return () => window.removeEventListener("liked:prefs", onChange);
+  }, []);
+  const sortMode = useSyncExternalStore(
+    subscribePrefs,
+    () => (localStorage.getItem("liked.folderSort") === "alpha" ? "alpha" : "created"),
+    () => "created"
+  );
+  const setSortMode = (v: "created" | "alpha") => {
+    localStorage.setItem("liked.folderSort", v);
+    window.dispatchEvent(new Event("liked:prefs"));
+  };
+  const sorted = [...folders].sort((a, b) =>
+    sortMode === "alpha"
+      ? a.name.localeCompare(b.name)
+      : new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
 
   const onClick = (e: React.MouseEvent, f: Mvp2Folder) => {
     e.preventDefault();
@@ -76,7 +97,19 @@ export default function FolderRail({ folders, onAdd, onChanged, onSelect }: {
 
   return (
     <div className="rail folder-rail">
-      {folders.map((f) => (
+      <div className="fr-sort seg" role="group" aria-label={t("folder.sort")}>
+        <button
+          type="button"
+          className={`seg-btn ${sortMode === "created" ? "seg-on" : ""}`}
+          onClick={() => setSortMode("created")}
+        >{t("folder.sortCreated")}</button>
+        <button
+          type="button"
+          className={`seg-btn ${sortMode === "alpha" ? "seg-on" : ""}`}
+          onClick={() => setSortMode("alpha")}
+        >{t("folder.sortAlpha")}</button>
+      </div>
+      {sorted.map((f) => (
         <Link
           key={f.id}
           href={`/folders/${f.id}`}
@@ -93,17 +126,20 @@ export default function FolderRail({ folders, onAdd, onChanged, onSelect }: {
             <img className="fr-cover" src={`${THUMB_BASE}${coverKey(f)}`} alt="" loading="lazy" />
           ) : (
             <span className="fr-cover fr-cover-empty" style={{ background: f.color_hex ?? "var(--surface-3)" }}>
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg>
             </span>
           )}
-          <span className="rail-label fr-name">{f.name}</span>
-          <span className="fr-count">{f.node_count}</span>
+          <span className="fr-meta">
+            <span className="rail-label fr-name">{f.name}</span>
+            <span className="fr-count">{f.node_count}</span>
+          </span>
         </Link>
       ))}
       <button type="button" className="rail-item rail-manage fr-add" onClick={onAdd} title={t("folder.new")}>
         <span className="rail-plus">+</span>
         <span className="rail-label">{t("folder.new")}</span>
       </button>
+      
     </div>
   );
 }

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import type { CardDetail } from "@/lib/db/cardDetail";
-import { rateCardAction, trashCardAction, updateNodeTitleAction } from "@/app/lib/actions/cardDetail";
+import { rateCardAction, trashCardAction, updateNodeTitleAction, updateNodeTextAction } from "@/app/lib/actions/cardDetail";
 import { shareNodeAction, getNodeAccessAction, changeNodePermissionAction, unshareNodeAction, type AccessEntry } from "@/app/lib/actions/mvp2";
 import { getFriendBarAction, getGroupBarAction } from "@/app/lib/actions/session";
 import { toast } from "@/lib/store/toastStore";
@@ -24,10 +24,28 @@ export default function CardView({ detail }: { detail: CardDetail }) {
   const [title, setTitle] = useState(node.title ?? "");
   const [editing, setEditing] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  // Click-to-edit note body (UX-BATCH-002): Undo restores the saved text,
+  // Cancel discards, Save persists; back arrow auto-saves.
+  const [noteEditing, setNoteEditing] = useState(false);
+  const [noteDraft, setNoteDraft] = useState(node.text_content ?? "");
+  const [noteSaving, setNoteSaving] = useState(false);
+  const noteDirty = noteDraft !== (node.text_content ?? "");
+
+  // A note whose title is unset or just echoes its content shows the body
+  // once — crumb and heading fall back to "untitled" instead of duplicating.
+  const hasDistinctTitle = !!node.title && node.title !== node.text_content;
 
   const saveTitle = async () => {
     const res = await updateNodeTitleAction(node.id, title.trim());
     if (res.ok) { setEditing(false); router.refresh(); } else { toast.error(res.error); }
+  };
+
+  const saveNote = async () => {
+    setNoteSaving(true);
+    const res = await updateNodeTextAction(node.id, noteDraft.trim());
+    setNoteSaving(false);
+    if (res.ok) { setNoteEditing(false); router.refresh(); } else { toast.error(res.error); }
+    return res.ok;
   };
 
   const onTrash = async () => {
@@ -36,7 +54,9 @@ export default function CardView({ detail }: { detail: CardDetail }) {
     if (res.ok) { router.push("/feed"); router.refresh(); } else toast.error(res.error);
   };
 
-  const onBack = () => {
+  const onBack = async () => {
+    // Auto-save an in-progress note edit before leaving (UX-BATCH-002).
+    if (noteEditing && noteDirty && !(await saveNote())) return;
     if (window.history.length > 1) router.back();
     else router.push("/feed");
   };
@@ -45,7 +65,7 @@ export default function CardView({ detail }: { detail: CardDetail }) {
     <div className="card-view">
       <div className="crumbs crumbs-row">
         <button className="crumbs-back" onClick={onBack}>← {t("nav.back")}</button>
-        <Crumbs items={[{ href: "/feed", label: t("nav.home") }, { label: node.title ?? t("card.untitled") }]} />
+        <Crumbs items={[{ href: "/feed", label: t("nav.home") }, { label: hasDistinctTitle ? node.title! : t("card.untitled") }]} />
       </div>
 
       {node.thumbnail_key && (
@@ -53,24 +73,45 @@ export default function CardView({ detail }: { detail: CardDetail }) {
         <img className="cv-hero" src={`${THUMB_BASE}${node.thumbnail_key}`} alt="" />
       )}
 
-      {editing ? (
+      {hasDistinctTitle && (editing ? (
         <div className="cv-title-edit">
           <input value={title} onChange={(e) => setTitle(e.target.value)} />
           <button className="btn btn-primary" onClick={saveTitle}>{t("common.save")}</button>
         </div>
       ) : (
         <h1 className="cv-title" onDoubleClick={() => isOwner && setEditing(true)}>
-          {node.title ?? t("card.untitled")}
+          {node.title}
         </h1>
-      )}
-      {isOwner && <button className="btn btn-sm" onClick={() => setEditing(true)}>{t("folder.rename")}</button>}
+      ))}
+      {isOwner && !noteEditing && <button className="btn btn-sm" onClick={() => setEditing(true)}>{t("folder.rename")}</button>}
 
       {node.url && (
         <a className="cv-url" href={node.url} target="_blank" rel="noopener noreferrer">
           {node.url}
         </a>
       )}
-      {node.text_content && <p className="cv-text">{node.text_content}</p>}
+      {node.text_content != null && (noteEditing ? (
+        <div className="cv-note-edit">
+          <textarea
+            className="cv-note-textarea"
+            value={noteDraft}
+            onChange={(e) => setNoteDraft(e.target.value)}
+            rows={Math.min(20, Math.max(4, noteDraft.split("\n").length + 1))}
+            autoFocus
+          />
+          <div className="cv-note-actions">
+            <button className="btn btn-sm" onClick={() => setNoteDraft(node.text_content ?? "")} disabled={!noteDirty}>{t("common.undo")}</button>
+            <button className="btn btn-sm" onClick={() => { setNoteDraft(node.text_content ?? ""); setNoteEditing(false); }}>{t("common.cancel")}</button>
+            <button className="btn btn-sm btn-primary" onClick={saveNote} disabled={noteSaving}>{t("common.save")}</button>
+          </div>
+        </div>
+      ) : (
+        <p
+          className={`cv-text ${isOwner ? "cv-text-editable" : ""}`}
+          onClick={() => { if (isOwner) { setNoteDraft(node.text_content ?? ""); setNoteEditing(true); } }}
+          title={isOwner ? t("card.editNote") : undefined}
+        >{node.text_content}</p>
+      ))}
 
       {detail.tags.length > 0 && (
         <div className="cv-tags">

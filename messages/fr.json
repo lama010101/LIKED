@@ -16,7 +16,8 @@
     "back": "Retour",
     "togglePanel": "Afficher/masquer le panneau",
     "panelView": "Vue du panneau",
-    "settings": "Paramètres"
+    "settings": "Paramètres",
+    "search": "Rechercher"
   },
   "common": {
     "save": "Enregistrer",
@@ -36,7 +37,8 @@
     "description": "Description",
     "optional": "facultatif",
     "owner": "Propriétaire",
-    "you": "Vous"
+    "you": "Vous",
+    "undo": "Annuler"
   },
   "feed": {
     "title": "Accueil",
@@ -60,7 +62,8 @@
     "tags": "Étiquettes",
     "moveToFolder": "Déplacer vers un dossier",
     "deleteCard": "Mettre à la corbeille",
-    "untitled": "Sans titre"
+    "untitled": "Sans titre",
+    "editNote": "Cliquer pour modifier"
   },
   "folder": {
     "new": "Nouveau dossier",
@@ -83,7 +86,10 @@
     "rateFolder": "Noter ce dossier",
     "systemFolder": "Dossier système",
     "maxDepth": "Les dossiers ne peuvent s'imbriquer que sur 5 niveaux.",
-    "moveTo": "Déplacer vers un dossier…"
+    "moveTo": "Déplacer vers un dossier…",
+    "sort": "Trier",
+    "sortCreated": "Date de création",
+    "sortAlpha": "Alphabétique"
   },
   "menu": {
     "open": "Actions"

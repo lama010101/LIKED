@@ -154,7 +154,10 @@ export async function syncGoogleAvatar(): Promise<SyncGoogleAvatarResult> {
   const { data: row } = await supabase.from("users").select("avatar_key").eq("id", user.id).single();
   const current = (row?.avatar_key ?? null) as string | null;
   if (current === url) return { ok: true, avatarKey: current, updated: false };
-  if (current && !/^https?:\/\//.test(current)) return { ok: true, avatarKey: current, updated: false };
+  // Only a real manual upload ("avatars/…" storage keys written by
+  // uploadAvatar) is protected — stale/legacy keys get the Google pic
+  // (UX-BATCH-002; users sign in with Google and expect their pic).
+  if (current && current.startsWith("avatars/")) return { ok: true, avatarKey: current, updated: false };
 
   try {
     await updateAvatar(user.id, url);

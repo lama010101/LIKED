@@ -148,6 +148,9 @@ export default function AppShell({
               placeholder={t("nav.searchPlaceholder")}
               aria-label={t("nav.searchPlaceholder")}
             />
+            <button type="submit" className="search-go" aria-label={t("nav.search")} title={t("nav.search")}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            </button>
           </form>
           <Link href="/notifications" className="icon-btn" aria-label={t("nav.notifications")}>
             <BellIcon />
