@@ -141,6 +141,7 @@ export default function FolderTile({
           <ShareSheet
             open={shareOpen}
             onClose={() => setShareOpen(false)}
+            shareUrl={`${window.location.origin}/folders/${folder.id}`}
             loadTargets={async () => {
               const [fr, gr] = await Promise.all([getFriendBarAction(), getGroupBarAction()]);
               return {

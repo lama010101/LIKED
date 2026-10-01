@@ -12,7 +12,7 @@
     "extension": "Chrome extension",
     "organize": "Organize",
     "signOut": "Sign out",
-    "searchPlaceholder": "Search your cards…",
+    "searchPlaceholder": "Search…",
     "back": "Back",
     "togglePanel": "Toggle side panel",
     "panelView": "Panel view",
@@ -50,7 +50,8 @@
     "viewMasonry": "Masonry",
     "viewColumns": "Columns",
     "loadMore": "Load more",
-    "sharedWithYou": "Shared with you"
+    "sharedWithYou": "Shared with you",
+    "all": "All"
   },
   "card": {
     "open": "Open",
@@ -111,7 +112,10 @@
     "changePermission": "Change permission",
     "ownerOnly": "Only you can see who has access.",
     "noFriends": "No friends yet — invite someone first.",
-    "snapshotNote": "Group and \"all friends\" shares are a snapshot of current members."
+    "snapshotNote": "Group and \"all friends\" shares are a snapshot of current members.",
+    "copyLink": "Copy link",
+    "shareVia": "Share…",
+    "linkCopied": "Link copied"
   },
   "friends": {
     "title": "Friends & groups",

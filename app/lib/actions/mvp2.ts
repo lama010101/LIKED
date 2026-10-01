@@ -58,6 +58,13 @@ export async function getFoldersAction(opts?: {
   })) as Mvp2Folder[];
 }
 
+/** Card → folder map for feed chips (UX-BATCH-004). Reads folder_edges
+ *  via the session client (RLS allows any authenticated user). */
+export async function getNodeFoldersAction(nodeIds: string[]): Promise<Record<string, string>> {
+  const { getFoldersForNodes } = await import("@/lib/db/folders");
+  return getFoldersForNodes(nodeIds);
+}
+
 export interface Mvp2FolderDetail extends Mvp2Folder {
   breadcrumb: { id: string; name: string }[];
   children: { id: string; name: string; color_hex: string | null; system_kind: string | null }[];
@@ -401,10 +408,11 @@ export async function blockUserAction(userId: string) {
 }
 
 export async function createGroupAction(name: string, memberIds: string[] = []) {
-  const rpc = await sessionRpc();
   const supabase = await getSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
-  return await rpc("create_group", { p_owner_id: user?.id, p_name: name, p_member_ids: memberIds });
+  if (!user) throw new Error("Not authenticated");
+  const { createGroup } = await import("@/lib/db/friends");
+  return createGroup(user.id, name, memberIds);
 }
 
 export async function addGroupMemberAction(groupId: string, userId: string) {

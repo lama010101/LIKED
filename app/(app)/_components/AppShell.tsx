@@ -6,7 +6,7 @@
  * DnD: cards drag onto folder rail chips / folder tiles (Phase 4 dnd).
  */
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -54,6 +54,36 @@ export default function AppShell({
   const [switchOpen, setSwitchOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const clickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Desktop panel width — drag-resizable (UX-BATCH-004), persisted in
+  // localStorage. Applied as a CSS var; mobile (≤700px) always uses 50vw.
+  const subscribePrefs = useCallback((onChange: () => void) => {
+    window.addEventListener("liked:prefs", onChange);
+    return () => window.removeEventListener("liked:prefs", onChange);
+  }, []);
+  const railW = useSyncExternalStore(
+    subscribePrefs,
+    () => { const w = parseInt(localStorage.getItem("liked.railW") ?? "", 10); return w >= 180 && w <= 480 ? w : null; },
+    () => null
+  );
+  const setRailW = (v: number | ((p: number | null) => number | null)) => {
+    const w = typeof v === "function" ? v(parseInt(localStorage.getItem("liked.railW") ?? "", 10) || null) : v;
+    if (w == null) localStorage.removeItem("liked.railW");
+    else localStorage.setItem("liked.railW", String(w));
+    window.dispatchEvent(new Event("liked:prefs"));
+  };
+  const onResizeStart = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const el = e.currentTarget;
+    el.setPointerCapture(e.pointerId);
+    const move = (ev: PointerEvent) => setRailW(Math.min(480, Math.max(180, ev.clientX)));
+    const up = () => {
+      el.removeEventListener("pointermove", move);
+      el.removeEventListener("pointerup", up);
+      setRailW((w) => { if (w) localStorage.setItem("liked.railW", String(w)); return w; });
+    };
+    el.addEventListener("pointermove", move);
+    el.addEventListener("pointerup", up);
+  };
 
   const refreshFolders = useCallback(() => {
     getFoldersAction().then(setFolders).catch(() => {});
@@ -115,17 +145,9 @@ export default function AppShell({
     <div className="shell">
       <ThemeSync />
 
-      {/* Left panel — friends or folders, per layout pref */}
-      <aside className={`shell-rail ${layout === "friends-top" ? "rail-folders" : ""}`}>
-        {layout === "friends-top" ? (
-          <FolderRail folders={friendId ? railFolders : folders} onAdd={() => openAdd("folder")} onChanged={refreshFolders} onSelect={() => setRailOpen(false)} />
-        ) : (
-          <FriendsRail friends={friends} onSelect={() => setRailOpen(false)} />
-        )}
-      </aside>
-
       <div className="shell-main">
-        {/* Header: panel toggle + search + notifications + me */}
+        {/* Header spans the full width above the panel (UX-BATCH-004) —
+            it stays put whether the left panel is open or closed. */}
         <header className="shell-header">
           {/* Panel toggle (replaces the old separate toggle button):
               single click opens/closes the left panel (250ms disambiguation,
@@ -199,14 +221,33 @@ export default function AppShell({
           </div>
         </Modal>
 
-        {/* Friends sliding rail on top — when layout pref moves folders to the left panel */}
-        {layout === "friends-top" && (
-          <div className="shell-toprail">
-            <FriendsRail friends={friends} horizontal />
-          </div>
-        )}
+        {/* Left panel — friends or folders, per layout pref.
+            Staying OPEN on selection per latest spec (was: auto-close).
+            width var drives desktop drag-resize; mobile = 50vw. */}
+        <div className="shell-body">
+          <aside
+            className={`shell-rail ${layout === "friends-top" ? "rail-folders" : ""}`}
+            style={railW ? ({ "--rail-w": `${railW}px` } as React.CSSProperties) : undefined}
+          >
+            {layout === "friends-top" ? (
+              <FolderRail folders={friendId ? railFolders : folders} onAdd={() => openAdd("folder")} onChanged={refreshFolders} />
+            ) : (
+              <FriendsRail friends={friends} query={searchParams.get("q")} />
+            )}
+          </aside>
+          <div className="rail-resizer" role="separator" aria-orientation="vertical" onPointerDown={onResizeStart} />
 
-        <main className="shell-content">{children}</main>
+          <div className="shell-inner">
+            {/* Friends sliding rail on top — when layout pref moves folders to the left panel */}
+            {layout === "friends-top" && (
+              <div className="shell-toprail">
+                <FriendsRail friends={friends} horizontal query={searchParams.get("q")} />
+              </div>
+            )}
+
+            <main className="shell-content">{children}</main>
+          </div>
+        </div>
 
         {/* Mobile bottom bar: panel toggle (the desktop header button's
             mobile home — UX-BB-LAYOUT-001) / Add / Me */}
