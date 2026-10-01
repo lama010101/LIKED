@@ -10,6 +10,7 @@ import {
 } from "@/app/lib/actions/mvp2";
 import { getFriendBarAction, getGroupBarAction } from "@/app/lib/actions/session";
 import { toast } from "@/lib/store/toastStore";
+import { youtubeVideoId, youtubeEmbedUrl } from "@/lib/utils/youtube";
 import Avatar from "./Avatar";
 import ItemMenu from "./ItemMenu";
 import FolderPickModal from "./FolderPickModal";
@@ -26,6 +27,9 @@ export default function CardItem({ node }: { node: FeedNode }) {
   const isOwn = node.direction !== "received";
   const [moveOpen, setMoveOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  // YouTube cards play inline from the thumbnail (UX-BATCH-003).
+  const [playing, setPlaying] = useState(false);
+  const ytId = youtubeVideoId(node.url);
 
   const onTrash = async () => {
     if (!confirm(t("trash.deleteConfirm"))) return;
@@ -57,7 +61,26 @@ export default function CardItem({ node }: { node: FeedNode }) {
         e.dataTransfer.effectAllowed = "move";
       }}
     >
-      {node.thumbnail_key ? (
+      {ytId && playing ? (
+        <iframe
+          className="card-thumb card-yt"
+          src={youtubeEmbedUrl(ytId)}
+          title={node.title ?? "YouTube"}
+          allow="autoplay; encrypted-media; picture-in-picture"
+          allowFullScreen
+        />
+      ) : ytId && node.thumbnail_key ? (
+        <button
+          type="button"
+          className="card-thumb card-yt-btn"
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPlaying(true); }}
+          aria-label={t("card.play")}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={`${THUMB_BASE}${node.thumbnail_key}`} alt="" loading="lazy" />
+          <span className="card-yt-play" aria-hidden="true">▶</span>
+        </button>
+      ) : node.thumbnail_key ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img className="card-thumb" src={`${THUMB_BASE}${node.thumbnail_key}`} alt="" loading="lazy" />
       ) : (
@@ -77,7 +100,15 @@ export default function CardItem({ node }: { node: FeedNode }) {
           )}
           {node.avg_rating != null && <span className="card-rating">★ {Math.round(node.avg_rating)}</span>}
           {node.tags?.slice(0, 3).map((tag) => (
-            <span key={tag.tag_id} className="tag-pill" style={{ borderColor: tag.color_hex }}>
+            <span
+              key={tag.tag_id}
+              className="tag-pill tag-link"
+              style={{ borderColor: tag.color_hex }}
+              role="link"
+              tabIndex={0}
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push(`/feed?tag=${tag.tag_id}`); }}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); router.push(`/feed?tag=${tag.tag_id}`); } }}
+            >
               {tag.label}
             </span>
           ))}

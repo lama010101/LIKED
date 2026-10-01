@@ -63,7 +63,8 @@
     "moveToFolder": "Déplacer vers un dossier",
     "deleteCard": "Mettre à la corbeille",
     "untitled": "Sans titre",
-    "editNote": "Cliquer pour modifier"
+    "editNote": "Cliquer pour modifier",
+    "play": "Lire"
   },
   "folder": {
     "new": "Nouveau dossier",

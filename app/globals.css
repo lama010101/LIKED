@@ -2090,7 +2090,9 @@ body {
    (--bg, --surface-N, --text-N, --accent*) + [data-theme] variants.
    ============================================================ */
 
-.shell { display: flex; min-height: 100dvh; background: var(--bg); color: var(--text-1); }
+/* Fixed-viewport shell: the rail and the feed scroll independently
+   (UX-BATCH-003) — overflow lives on .rail / .shell-content only. */
+.shell { display: flex; height: 100dvh; overflow: hidden; background: var(--bg); color: var(--text-1); }
 .shell-rail { width: 280px; flex-shrink: 0; border-right: 1px solid var(--surface-3); padding: 12px; display: flex; flex-direction: column; gap: 12px; }
 .shell-logo-img { display: flex; align-items: center; flex-shrink: 0; }
 .shell-logo-img img { border-radius: 6px; display: block; }
@@ -2158,8 +2160,8 @@ html[data-layout="friends-top"] .feed-home .folder-section { display: none; }
 .fab { position: fixed; right: 20px; bottom: 24px; width: 56px; height: 56px; border-radius: 50%; background: var(--accent); color: #fff; border: none; font-size: 24px; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-fab, 0 8px 24px rgba(255,59,48,.3)); cursor: pointer; z-index: 40; }
 
 @media (max-width: 700px) {
-  /* Panel = 50% of the viewport, one item per row (UX-BATCH-002). */
-  .shell-rail { width: 50vw; padding: 8px; }
+  /* Panel = 33% of the viewport, one item per row (UX-BATCH-003). */
+  .shell-rail { width: 33vw; padding: 8px; }
   .rail { padding-bottom: 80px; }
   .fab { display: none; }
   /* Tighter mobile topbar (Google-Flow-style compact header). */
@@ -2248,7 +2250,8 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
 .cards-masonry .card-thumb, .cards-columns .card-thumb { width: 100%; height: 120px; }
 .card-thumb-text { display: flex; align-items: center; justify-content: center; background: var(--surface-3); font-size: 26px; font-weight: 700; color: var(--text-2); }
 .card-body { min-width: 0; flex: 1; }
-.card-title { margin: 0 0 4px; font-size: var(--text-md, 14px); font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
+.card-title { margin: 0 0 4px; font-size: var(--text-md, 14px); font-weight: 600; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.card-url { margin: 0; font-size: var(--text-xs, 10px); color: var(--text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .card-url { margin: 0; font-size: var(--text-xs, 10px); color: var(--text-3); }
 .card-meta { display: flex; gap: 8px; align-items: center; margin-top: 6px; flex-wrap: wrap; font-size: var(--text-xs, 10px); color: var(--text-2); }
 .card-sender { display: inline-flex; align-items: center; gap: 4px; }
@@ -2257,6 +2260,22 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
    modal action list (move / share / trash). */
 .menu-btn { position: absolute; top: 6px; right: 6px; z-index: 5; width: 30px; height: 30px; border-radius: 50%; border: none; background: rgba(0,0,0,.5); color: #fff; font-size: 16px; font-weight: 800; line-height: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0 0 2px; }
 .menu-btn:hover { background: rgba(0,0,0,.75); }
+
+/* Folder rows: ⋯ menu aligned to the row's trailing edge (UX-BATCH-003) */
+.fr-wrap { position: relative; }
+.fr-wrap .menu-btn { top: 50%; right: 4px; transform: translateY(-50%); background: transparent; color: var(--text-3); }
+.fr-wrap .menu-btn:hover { background: var(--surface-3); color: var(--text-1); }
+
+/* YouTube inline play + card player (UX-BATCH-003) */
+.card-yt-btn { position: relative; padding: 0; border: none; background: none; cursor: pointer; overflow: hidden; }
+.card-yt-btn img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.card-yt-play { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.35); color: #fff; font-size: 22px; }
+.card-yt { border: none; object-fit: cover; }
+.cv-yt { position: relative; width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden; }
+.cv-yt iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: none; }
+
+/* Tag pills act as links → /feed?tag=<id> (UX-BATCH-003) */
+.tag-link { cursor: pointer; text-decoration: none; }
 .menu-list { display: flex; flex-direction: column; gap: 8px; }
 .menu-item { display: flex; align-items: center; gap: 10px; width: 100%; padding: 12px 14px; border: 1px solid var(--surface-3); border-radius: var(--r-md); background: var(--surface-2); color: var(--text-1); font-size: var(--text-md, 14px); font-weight: 600; text-align: left; cursor: pointer; }
 .menu-item:hover { background: var(--surface-3); }
