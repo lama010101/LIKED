@@ -2092,8 +2092,16 @@ body {
 
 /* Fixed-viewport shell: the rail and the feed scroll independently
    (UX-BATCH-003) — overflow lives on .rail / .shell-content only. */
-.shell { display: flex; height: 100dvh; overflow: hidden; background: var(--bg); color: var(--text-1); }
-.shell-rail { width: 280px; flex-shrink: 0; border-right: 1px solid var(--surface-3); padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+.shell { display: flex; flex-direction: column; height: 100dvh; overflow: hidden; background: var(--bg); color: var(--text-1); }
+.shell-body { display: flex; flex: 1; min-height: 0; overflow: hidden; }
+.shell-inner { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
+.shell-rail { width: var(--rail-w, 280px); flex-shrink: 0; border-right: 1px solid var(--surface-3); padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+/* Desktop drag-resize handle on the panel's right edge (UX-BATCH-004). */
+.rail-resizer { flex-shrink: 0; width: 8px; margin-left: -4px; cursor: col-resize; z-index: 5; position: relative; }
+.rail-resizer:hover, .rail-resizer:active { background: var(--accent); opacity: .25; }
+/* Friends panel items = 80px disk + name under, same size as the top
+   swiping rail (UX-BATCH-004). */
+.shell-rail:not(.rail-folders) .rail-item:not(.rail-manage) { flex-direction: column; align-items: center; text-align: center; gap: 6px; padding: 10px 6px; }
 .shell-logo-img { display: flex; align-items: center; flex-shrink: 0; }
 .shell-logo-img img { border-radius: 6px; display: block; }
 .bb-logo { border-radius: 5px; display: block; }
@@ -2136,6 +2144,8 @@ html[data-layout="friends-top"] .feed-home .folder-section { display: none; }
 .fr-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
 .fr-count { font-size: 10px; color: var(--text-3); }
 .fr-item.fr-over .fr-cover { outline: 2px solid var(--accent); outline-offset: -2px; }
+/* Pinned "All" root entry (UX-BATCH-004) — accent cover, always first. */
+.fr-all-cover { background: var(--accent) !important; color: #fff; }
 .fr-add { border: none; background: none; font: inherit; cursor: pointer; }
 
 /* Note click-to-edit (UX-BATCH-002) */
@@ -2160,8 +2170,9 @@ html[data-layout="friends-top"] .feed-home .folder-section { display: none; }
 .fab { position: fixed; right: 20px; bottom: 24px; width: 56px; height: 56px; border-radius: 50%; background: var(--accent); color: #fff; border: none; font-size: 24px; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-fab, 0 8px 24px rgba(255,59,48,.3)); cursor: pointer; z-index: 40; }
 
 @media (max-width: 700px) {
-  /* Panel = 33% of the viewport, one item per row (UX-BATCH-003). */
-  .shell-rail { width: 33vw; padding: 8px; }
+  /* Panel = 50% of the viewport, one item per row (UX-BATCH-004). */
+  .shell-rail { width: 50vw; padding: 8px; }
+  .rail-resizer { display: none; }
   .rail { padding-bottom: 80px; }
   /* At 33vw the name column would shrink to ~16px — stack name under the
      cover and shrink the cover instead (keeps tiles readable). */
@@ -2171,8 +2182,7 @@ html[data-layout="friends-top"] .feed-home .folder-section { display: none; }
   .fr-meta .rail-label { font-size: 11px; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
   .rail-folders .rail-label { text-align: center; }
   .rail-item .rail-label { flex: 1; }
-  /* Friend disk + name still too wide for 33vw — shrink the disk. */
-  .shell-rail:not(.rail-folders) .rail-item .av { width: 32px !important; height: 32px !important; font-size: 13px !important; }
+
   .fab { display: none; }
   /* Tighter mobile topbar (Google-Flow-style compact header). */
   .shell-header { gap: 6px; padding: 8px 10px; }
@@ -2293,6 +2303,12 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
 .progress-bar { height: 6px; border-radius: 999px; background: var(--surface-3); overflow: hidden; }
 .progress-bar > div { height: 100%; background: var(--accent); transition: width .3s ease; }
 .tag-pill { border: 1px solid var(--surface-4); border-radius: 999px; padding: 1px 8px; font-size: 10px; }
+/* Card → folder chip + created date (UX-BATCH-004). */
+.card-folder { display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--surface-4); border-radius: 999px; padding: 1px 8px; font-size: 10px; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+.card-folder:hover { border-color: var(--accent); color: var(--accent); }
+.card-date { font-size: 10px; color: var(--text-3); }
+/* ShareSheet external-link row (copy / native share). */
+.share-link { display: flex; gap: 8px; margin-bottom: 12px; }
 .load-more { display: block; margin: 18px auto; }
 
 .card-view, .folder-view, .me-view, .friends-view, .notifs-view, .trash-view, .org-view, .yt-view { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
@@ -2361,3 +2377,4 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
 .settings-name input { flex: 1; }
 .settings-email { margin-top: 4px; font-size: var(--text-sm, 12px); color: var(--text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .settings-actions { display: flex; gap: 10px; justify-content: space-between; align-items: center; }
+.feed-head-side { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }

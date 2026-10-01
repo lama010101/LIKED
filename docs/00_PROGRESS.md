@@ -865,3 +865,17 @@ Applied to task/feature entries going forward. Existing entries retain their ✅
 | Task ID | Item | Status | Notes |
 |---|---|---|---|
 | UX-BATCH-003B | Mobile 33vw legibility fix | ✅ | `globals.css`: at ≤700px, folder panel items stack (full-width 16:10 cover, name 2-line clamp underneath, menu-btn overlays the cover corner); friend disks shrink to 32px so names keep ~65px. Fixes the ~16px name column found in e2e at 33vw. |
+
+### UX-BATCH-004 (2026-10-01)
+| Task ID | Item | Status | Notes |
+|---|---|---|---|
+| UX-BATCH-004 | Header above panel + resizable rail | ✅ | `AppShell`: header spans full width; rail+content wrapped in `.shell-body`/`.shell-inner`. `.rail-resizer` drag handle sets `--rail-w` (180–480px, persisted `liked.railW`); mobile fixed 50vw. |
+| UX-BATCH-004B | Panel stays open on selection | ✅ | Removed `onSelect` auto-close from AppShell rail calls (spec reversal). |
+| UX-BATCH-004C | YouTube embed host + hero dedupe | ✅ | `youtube-nocookie.com` → `youtube.com/embed` (blocked-content fix); card page hides hero img when the player renders. |
+| UX-BATCH-004D | External share links | ✅ | `ShareSheet` `shareUrl` prop → Copy link + native `navigator.share` row on card/folder sheets. Note: recipients still need accounts (no anonymous public links — needs share-token migration; prod DB unreachable for DDL). |
+| UX-BATCH-004E | Card folder chip + creation date | ✅ | `folder_edges` lookup (`getFoldersForNodes` session-client read) → `.card-folder` chip → `/feed?folder=`; `.card-date` shows created date+time. |
+| UX-BATCH-004F | "All" pinned folder | ✅ | First row in FolderRail — accent cover, click → `/feed`, exempt from sort. |
+| UX-BATCH-004G | Search "Search…" + friend rail filter | ✅ | Placeholder simplified; FriendsRail `query` prop filters both panel + top rail to matching names. Folders/cards grouping already exists (folder rail above cards). |
+| UX-BATCH-004H | Friend panel items = 80px disk + name under | ✅ | Column layout for `.shell-rail` friend items at all widths. |
+| UX-BATCH-004I | Card sort | ✅ | `liked.cardSort` pref — Creation date (default) / Alphabetical seg in feed head. |
+| FIX-GROUP-001 | Group creation #441 | ✅ | `createGroupAction` used sessionRpc but migration 093 revoked `create_group` from `authenticated` → service-client call via `lib/db/friends.createGroup`. |

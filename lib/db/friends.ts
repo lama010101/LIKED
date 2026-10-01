@@ -118,3 +118,17 @@ export async function getGroupBar(userId: string): Promise<GroupBarEntry[]> {
     member_count: memberCounts[g.id] || 0,
   }));
 }
+
+/** create_group RPC — service client only: migration 093 intentionally
+ *  revoked EXECUTE from `authenticated`, so session-client calls throw
+ *  "permission denied" (the #441 crash on Friends → New Group). */
+export async function createGroup(ownerId: string, name: string, memberIds: string[] = []) {
+  const supabase = getSupabaseServiceClient();
+  const { data, error } = await supabase.rpc("create_group", {
+    p_owner_id: ownerId,
+    p_name: name,
+    p_member_ids: memberIds,
+  });
+  if (error) throw new Error(`Failed to create group: ${error.message}`);
+  return data;
+}

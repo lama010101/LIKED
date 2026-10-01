@@ -222,6 +222,7 @@ export default function FolderView({
       <ShareSheet
         open={shareTarget !== null}
         onClose={() => setShareTarget(null)}
+        shareUrl={`${window.location.origin}/folders/${shareTarget}`}
         loadTargets={async () => {
           const [fr, gr] = await Promise.all([getFriendBarAction(), getGroupBarAction()]);
           return {

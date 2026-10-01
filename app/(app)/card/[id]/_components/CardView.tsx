@@ -79,7 +79,8 @@ export default function CardView({ detail }: { detail: CardDetail }) {
         <Crumbs items={[{ href: "/feed", label: t("nav.home") }, { label: hasDistinctTitle ? node.title! : t("card.untitled") }]} />
       </div>
 
-      {/* YouTube cards embed the player inside the card (UX-BATCH-003). */}
+      {/* YouTube cards embed the player inside the card (UX-BATCH-003);
+          the embed REPLACES the hero image (they must not render together). */}
       {(() => { const ytId = youtubeVideoId(node.url); return ytId ? (
         <div className="cv-yt">
           <iframe
@@ -90,7 +91,7 @@ export default function CardView({ detail }: { detail: CardDetail }) {
           />
         </div>
       ) : null; })()}
-      {node.thumbnail_key && (
+      {!youtubeVideoId(node.url) && node.thumbnail_key && (
         // eslint-disable-next-line @next/next/no-img-element
         <img className="cv-hero" src={`${THUMB_BASE}${node.thumbnail_key}`} alt="" />
       )}
@@ -169,6 +170,7 @@ export default function CardView({ detail }: { detail: CardDetail }) {
       <ShareSheet
         open={shareOpen}
         onClose={() => setShareOpen(false)}
+        shareUrl={`${window.location.origin}/card/${node.id}`}
         loadTargets={async () => {
           const [fr, gr] = await Promise.all([getFriendBarAction(), getGroupBarAction()]);
           return {
