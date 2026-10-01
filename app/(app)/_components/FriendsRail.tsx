@@ -17,7 +17,8 @@ export default function FriendsRail({ friends, horizontal = false }: { friends: 
         .filter((f) => f.user_id)
         .map((f) => (
           <Link key={f.user_id} href={`/feed?friend=${f.user_id}`} className="rail-item" title={f.display_name ?? ""}>
-            <Avatar userId={f.user_id!} avatarKey={f.avatar_key} name={f.display_name ?? "?"} size={40} />
+            {/* Top strip avatars are 2× the left-panel size (UX-TOPRAIL-AVATAR-001) */}
+            <Avatar userId={f.user_id!} avatarKey={f.avatar_key} name={f.display_name ?? "?"} size={horizontal ? 80 : 40} />
             <span className="rail-label">{f.display_name}</span>
           </Link>
         ))}
