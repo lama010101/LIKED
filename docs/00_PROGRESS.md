@@ -835,3 +835,8 @@ Applied to task/feature entries going forward. Existing entries retain their ✅
 | Task ID | Item | Status | Notes |
 |---|---|---|---|
 | UX-GOOGLE-AVATAR-001 | Lazy Google-avatar sync so all avatars show the Google profile pic | ✅ | `app/lib/actions/profile.ts`: `getSessionUserId` refactored onto new `getSessionAuthUser()` (returns {supabase, user}); new `syncGoogleAvatar()` — reads `user_metadata.avatar_url`/`picture` (fallback: `identities[provider=google|first].identity_data.avatar_url`/`picture`), writes `users.avatar_key` via `updateAvatar` only when missing/changed, and never overwrites an uploaded avatar (non-http keys). Covers users created before migration 134's backfill ran + refreshes changed Google pics. `app/(app)/_components/AppShell.tsx`: one-shot `useEffect` calls the action and `router.refresh()`es only when it actually updated. Avatar already renders http(s) keys (migration-134 isomorphic `avatarUrl`); initials remain the fallback for NULL keys. Verify: `tsc --noEmit` 0, `eslint` 0. |
+
+### UX-MODAL-STACK-001 (2026-10-01)
+| Task ID | Item | Status | Notes |
+|---|---|---|---|
+| UX-MODAL-STACK-001 | Fix mobile "Panel view" modal rendered under the bottom bar | ✅ | `app/(app)/_components/AppShell.tsx`: the switcher `<Modal>` was rendered inside `.shell-header` (`position:sticky; z-index:30` → own stacking context), trapping its `z-index:60` backdrop below `.shell-bottom` (z-40) — on ≤700px the sheet's FOLDERS/FRIENDS items were hit-test-unreachable and clicks fell through to bottom-bar buttons (found in e2e). Moved the Modal to after `</header>` (sibling of `SettingsModal`, inside `.shell-main` which creates no stacking context) — DOM placement only, no behavior/style changes. Verify: `tsc --noEmit` 0, `eslint` 0. |
