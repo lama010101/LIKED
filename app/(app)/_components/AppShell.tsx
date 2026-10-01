@@ -217,7 +217,7 @@ export default function AppShell({
             aria-pressed={meActive}
             aria-label={t("nav.me")}
           >
-            <Avatar userId={user.id} avatarKey={user.avatar_key} name={user.display_name ?? ""} size={56} />
+            <Avatar userId={user.id} avatarKey={user.avatar_key} name={user.display_name ?? ""} size={56} active={meActive} />
             <span>{t("nav.me")}</span>
           </button>
         </nav>

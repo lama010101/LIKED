@@ -825,3 +825,8 @@ Applied to task/feature entries going forward. Existing entries retain their ✅
 | Task ID | Item | Status | Notes |
 |---|---|---|---|
 | UX-TOPRAIL-AVATAR-001 | Double the friends avatars in the top strip | ✅ | `app/(app)/_components/FriendsRail.tsx`: friend `Avatar` `size={40}` → `size={horizontal ? 80 : 40}` — the `.shell-toprail` horizontal rail (friends-top layout) shows 80px avatars; the left-panel rail keeps 40px. Verify: `tsc --noEmit` 0, `eslint` 0. |
+
+### UX-AVATAR-SELECT-001 (2026-10-01)
+| Task ID | Item | Status | Notes |
+|---|---|---|---|
+| UX-AVATAR-SELECT-001 | Circle the selected avatar (friend filter / Me filter) | ✅ | `Avatar`'s existing-but-unused `active` prop (`av-active` class) wired: `app/(app)/_components/FriendsRail.tsx` reads `useSearchParams().get("friend")` → `active={friendActive === f.user_id}` on each friend avatar (both panel + top-strip variants); `app/(app)/_components/AppShell.tsx` bottom-bar Me `Avatar` gets `active={meActive}` (`?me=1` on `/feed`). `app/globals.css`: `.av-active` strengthened 2px→`outline: 3px solid var(--accent); outline-offset: 2px` so the selection circle is unmissable. Verify: `tsc --noEmit` 0, `eslint` 0. |

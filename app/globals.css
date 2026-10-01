@@ -2134,7 +2134,7 @@ html[data-layout="friends-top"] .feed-home .folder-section { display: none; }
 /* Avatar */
 .av { border-radius: 50%; overflow: hidden; background: var(--surface-4); display: inline-flex; align-items: center; justify-content: center; font-weight: 700; color: var(--text-1); flex-shrink: 0; }
 .av img { width: 100%; height: 100%; object-fit: cover; }
-.av-active { outline: 2px solid var(--accent); }
+.av-active { outline: 3px solid var(--accent); outline-offset: 2px; }
 
 /* Mobile bottom bar: Home / Add / Me */
 .shell-bottom { display: none; }
