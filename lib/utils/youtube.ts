@@ -20,5 +20,7 @@ export function youtubeVideoId(url: string | null | undefined): string | null {
 }
 
 export function youtubeEmbedUrl(videoId: string, autoplay = true): string {
-  return `https://www.youtube-nocookie.com/embed/${videoId}${autoplay ? "?autoplay=1" : ""}`;
+  // youtube-nocookie.com is blocked by some networks/browsers — use the
+  // standard embed host (UX-BATCH-004: "This content is blocked" fix).
+  return `https://www.youtube.com/embed/${videoId}?rel=0${autoplay ? "&autoplay=1" : ""}`;
 }

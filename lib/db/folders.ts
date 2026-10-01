@@ -210,3 +210,22 @@ export async function getFolderById(
 
   return data as unknown as Folder;
 }
+
+/** Node → folder map via folder_edges (RLS: any authenticated user may
+ *  read folder_edges). Used by the feed to label each card with the
+ *  folder it belongs to (UX-BATCH-004). First folder wins when a node
+ *  sits in several folders. */
+export async function getFoldersForNodes(nodeIds: string[]): Promise<Record<string, string>> {
+  const map: Record<string, string> = {};
+  if (nodeIds.length === 0) return map;
+  const supabase = await getSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("folder_edges")
+    .select("node_id, folder_id")
+    .in("node_id", nodeIds);
+  if (error) throw new Error(`Failed to fetch node folders: ${error.message}`);
+  for (const row of data ?? []) {
+    if (!map[row.node_id]) map[row.node_id] = row.folder_id;
+  }
+  return map;
+}

@@ -9,7 +9,7 @@ import { useCallback, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   moveNodeToFolderAction, moveFolderAction, renameFolderAction,
   shareFolderV2Action, trashFolderAction, type Mvp2Folder,
@@ -137,8 +137,26 @@ export default function FolderRail({ folders, onAdd, onChanged, onSelect }: {
     }
   };
 
+  // Permanent "All" root entry pinned first (UX-BATCH-004): selecting it
+  // clears the folder filter → unfiltered feed. Exempt from sorting.
+  const sp = useSearchParams();
+  const allActive = !sp.get("folder") && !sp.get("friend") && !sp.get("me");
+
   return (
     <div className="rail folder-rail">
+      <Link
+        href="/feed"
+        className={`rail-item fr-item fr-tile fr-all ${allActive ? "fr-over" : ""}`}
+        title={t("feed.all")}
+        onClick={(e) => { e.preventDefault(); onSelect?.(); router.push("/feed"); }}
+      >
+        <span className="fr-cover fr-cover-empty fr-all-cover">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg>
+        </span>
+        <span className="fr-meta">
+          <span className="rail-label fr-name">{t("feed.all")}</span>
+        </span>
+      </Link>
       <div className="fr-sort seg" role="group" aria-label={t("folder.sort")}>
         <button
           type="button"
@@ -203,6 +221,7 @@ export default function FolderRail({ folders, onAdd, onChanged, onSelect }: {
           <ShareSheet
             open={shareOpen}
             onClose={() => setShareOpen(false)}
+            shareUrl={`${window.location.origin}/folders/${menuFolder.id}`}
             loadTargets={async () => {
               const [fr, gr] = await Promise.all([getFriendBarAction(), getGroupBarAction()]);
               return {

@@ -21,7 +21,7 @@ const THUMB_BASE = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/pu
 /** One feed card — pure render of get_feed output. Draggable for folder moves.
  *  ⋯ menu: move / share / trash. Menu modals portal to <body> because the
  *  card is wrapped in a <Link> and clips overflow. */
-export default function CardItem({ node }: { node: FeedNode }) {
+export default function CardItem({ node, folder }: { node: FeedNode; folder?: { id: string; name: string } | null }) {
   const t = useTranslations();
   const router = useRouter();
   const isOwn = node.direction !== "received";
@@ -99,6 +99,23 @@ export default function CardItem({ node }: { node: FeedNode }) {
             </span>
           )}
           {node.avg_rating != null && <span className="card-rating">★ {Math.round(node.avg_rating)}</span>}
+          {/* Created date+time (UX-BATCH-004). */}
+          <span className="card-date" suppressHydrationWarning>
+            {new Date(node.created_at).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}
+          </span>
+          {folder && (
+            <span
+              className="card-folder"
+              role="link"
+              tabIndex={0}
+              title={folder.name}
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push(`/feed?folder=${folder.id}`); }}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); router.push(`/feed?folder=${folder.id}`); } }}
+            >
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg>
+              {folder.name}
+            </span>
+          )}
           {node.tags?.slice(0, 3).map((tag) => (
             <span
               key={tag.tag_id}
@@ -133,6 +150,7 @@ export default function CardItem({ node }: { node: FeedNode }) {
           <ShareSheet
             open={shareOpen}
             onClose={() => setShareOpen(false)}
+            shareUrl={`${window.location.origin}/card/${node.node_id}`}
             loadTargets={async () => {
               const [fr, gr] = await Promise.all([getFriendBarAction(), getGroupBarAction()]);
               return {

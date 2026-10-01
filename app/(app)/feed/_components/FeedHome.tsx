@@ -6,14 +6,14 @@
  * list (default), masonry, columns. Horiz/FreeGrid are gone.
  */
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { FeedNode, FeedParams } from "@/lib/types/feed";
 import { fetchFeedPageAction } from "@/app/lib/actions/feed";
 import type { Mvp2Folder } from "@/app/lib/actions/mvp2";
-import { moveNodeToFolderAction } from "@/app/lib/actions/mvp2";
+import { getNodeFoldersAction, moveNodeToFolderAction } from "@/app/lib/actions/mvp2";
 import { toast } from "@/lib/store/toastStore";
 import CardItem from "../../_components/CardItem";
 import ViewSwitch, { useCardView } from "../../_components/ViewSwitch";
@@ -37,6 +37,21 @@ export default function FeedHome({
   const [nodes, setNodes] = useState(initialNodes);
   const [cursor, setCursor] = useState(nextCursor);
   const [loading, setLoading] = useState(false);
+  // Card ordering pref (UX-BATCH-004): "created" (default, newest first)
+  // or "alpha". Persisted in localStorage, synced via liked:prefs — same
+  // store mechanism as the folder sort in FolderRail.
+  const subscribePrefs = useCallback((onChange: () => void) => {
+    window.addEventListener("liked:prefs", onChange);
+    return () => window.removeEventListener("liked:prefs", onChange);
+  }, []);
+  const cardSort = useSyncExternalStore(
+    subscribePrefs,
+    () => (localStorage.getItem("liked.cardSort") === "alpha" ? "alpha" : "created"),
+    () => "created"
+  );
+  const sortedNodes = cardSort === "alpha"
+    ? [...nodes].sort((a, b) => (a.title ?? a.text_content ?? "").localeCompare(b.title ?? b.text_content ?? ""))
+    : nodes;
 
   // Resync on router.refresh(): refresh delivers new props without remounting
   // (the key only covers params), so paginated state would otherwise stay
@@ -47,6 +62,18 @@ export default function FeedHome({
     setNodes(initialNodes);
     setCursor(nextCursor);
   }
+
+  // Card → folder labels (UX-BATCH-004): lazily resolve folder_edges for
+  // each new batch of nodes, keyed map survives pagination.
+  const [nodeFolders, setNodeFolders] = useState<Record<string, string>>({});
+  useEffect(() => {
+    const missing = nodes.map((n) => n.node_id).filter((id) => !(id in nodeFolders));
+    if (missing.length === 0) return;
+    getNodeFoldersAction(missing)
+      .then((map) => setNodeFolders((prev) => ({ ...prev, ...map })))
+      .catch(() => {});
+  }, [nodes, nodeFolders]);
+  const folderName = (id: string | undefined) => (id ? folders.find((f) => f.id === id)?.name ?? null : null);
 
   const loadMore = useCallback(async () => {
     if (!cursor || loading) return;
@@ -93,18 +120,36 @@ export default function FeedHome({
 
       <div className="feed-head">
         <h2 className="sec-title">{query ? `"${query}"` : activeFolderId ? (folders.find((f) => f.id === activeFolderId)?.name ?? t("feed.cards")) : meView ? t("nav.me") : t("feed.cards")}</h2>
-        <ViewSwitch view={view} onPick={pickView} />
+        <div className="feed-head-side">
+          <div className="seg" role="group" aria-label={t("folder.sort")}>
+            <button
+              type="button"
+              className={`seg-btn ${cardSort === "created" ? "seg-on" : ""}`}
+              onClick={() => { localStorage.setItem("liked.cardSort", "created"); window.dispatchEvent(new Event("liked:prefs")); }}
+            >{t("folder.sortCreated")}</button>
+            <button
+              type="button"
+              className={`seg-btn ${cardSort === "alpha" ? "seg-on" : ""}`}
+              onClick={() => { localStorage.setItem("liked.cardSort", "alpha"); window.dispatchEvent(new Event("liked:prefs")); }}
+            >{t("folder.sortAlpha")}</button>
+          </div>
+          <ViewSwitch view={view} onPick={pickView} />
+        </div>
       </div>
 
       {nodes.length === 0 ? (
         <p className="empty-note">{query ? t("feed.emptySearch", { q: query }) : t("feed.empty")}</p>
       ) : (
         <div className={`cards cards-${view}`}>
-          {nodes.map((n) => (
-            <Link key={n.node_id} href={`/card/${n.node_id}`} className="card-link">
-              <CardItem node={n} />
-            </Link>
-          ))}
+          {sortedNodes.map((n) => {
+            const fid = nodeFolders[n.node_id];
+            const fname = folderName(fid);
+            return (
+              <Link key={n.node_id} href={`/card/${n.node_id}`} className="card-link">
+                <CardItem node={n} folder={fid && fname ? { id: fid, name: fname } : null} />
+              </Link>
+            );
+          })}
         </div>
       )}
 

@@ -19,12 +19,16 @@ export interface ShareTargets {
 const PERMS = ["view", "comment", "contribute", "edit", "reshare"] as const;
 
 export default function ShareSheet({
-  open, onClose, loadTargets, onShare,
+  open, onClose, loadTargets, onShare, shareUrl,
 }: {
   open: boolean;
   onClose: () => void;
   loadTargets: () => Promise<ShareTargets>;
   onShare: (sel: { permission: string; userIds: string[]; groupIds: string[]; allFriends: boolean }) => Promise<void>;
+  /** External link for copy / native share (UX-BATCH-004).
+   *  Note: recipients still need an account with access — anonymous
+   *  public links need a share-token migration (flagged to user). */
+  shareUrl?: string;
 }) {
   const t = useTranslations();
   const [targets, setTargets] = useState<ShareTargets>({ friends: [], groups: [] });
@@ -61,6 +65,31 @@ export default function ShareSheet({
 
   return (
     <Modal open={open} onClose={onClose} title={t("share.title")}>
+      {shareUrl && (
+        <div className="share-link">
+          <button
+            type="button"
+            className="btn share-copy"
+            onClick={() => {
+              navigator.clipboard.writeText(shareUrl).then(
+                () => toast.success(t("share.linkCopied")),
+                () => toast.error(t("common.error"))
+              );
+            }}
+          >
+            {t("share.copyLink")}
+          </button>
+          {typeof navigator !== "undefined" && !!navigator.share && (
+            <button
+              type="button"
+              className="btn share-native"
+              onClick={() => navigator.share({ url: shareUrl }).catch(() => {})}
+            >
+              {t("share.shareVia")}
+            </button>
+          )}
+        </div>
+      )}
       <label className="fld">
         <span>{t("share.permission")}</span>
         <select value={perm} onChange={(e) => setPerm(e.target.value)}>

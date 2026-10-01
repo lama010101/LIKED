@@ -12,7 +12,7 @@
     "extension": "Extension Chrome",
     "organize": "Organiser",
     "signOut": "Se déconnecter",
-    "searchPlaceholder": "Rechercher vos cartes…",
+    "searchPlaceholder": "Rechercher…",
     "back": "Retour",
     "togglePanel": "Afficher/masquer le panneau",
     "panelView": "Vue du panneau",
@@ -50,7 +50,8 @@
     "viewMasonry": "Maçonnerie",
     "viewColumns": "Colonnes",
     "loadMore": "Charger plus",
-    "sharedWithYou": "Partagés avec vous"
+    "sharedWithYou": "Partagés avec vous",
+    "all": "Tout"
   },
   "card": {
     "open": "Ouvrir",
@@ -111,7 +112,10 @@
     "changePermission": "Changer la permission",
     "ownerOnly": "Vous seul pouvez voir qui a accès.",
     "noFriends": "Pas encore d'amis — invitez quelqu'un d'abord.",
-    "snapshotNote": "Les partages à un groupe ou à « tous les amis » sont un instantané des membres actuels."
+    "snapshotNote": "Les partages à un groupe ou à « tous les amis » sont un instantané des membres actuels.",
+    "copyLink": "Copier le lien",
+    "shareVia": "Partager…",
+    "linkCopied": "Lien copié"
   },
   "friends": {
     "title": "Amis et groupes",
