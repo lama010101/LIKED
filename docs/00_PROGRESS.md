@@ -879,3 +879,8 @@ Applied to task/feature entries going forward. Existing entries retain their ✅
 | UX-BATCH-004H | Friend panel items = 80px disk + name under | ✅ | Column layout for `.shell-rail` friend items at all widths. |
 | UX-BATCH-004I | Card sort | ✅ | `liked.cardSort` pref — Creation date (default) / Alphabetical seg in feed head. |
 | FIX-GROUP-001 | Group creation #441 | ✅ | `createGroupAction` used sessionRpc but migration 093 revoked `create_group` from `authenticated` → service-client call via `lib/db/friends.createGroup`. |
+
+### FIX-SCROLL-001 (2026-10-01)
+| Task ID | Item | Status | Notes |
+|---|---|---|---|
+| FIX-SCROLL-001 | Pages can't scroll after UX-BATCH-004 shell restructure | ✅ | `app/globals.css`: `.shell-content` (flex item of the new `.shell-inner` column) and `.rail` (flex item of `.shell-rail` column) were missing `min-height: 0` — `min-height:auto` kept them at content height, so `overflow-y:auto` never engaged and `overflow:hidden` ancestors clipped the overflow → every page unscrollable. Added `min-height: 0` to both; the `.shell-body` link already had it. |
