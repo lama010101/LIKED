@@ -153,6 +153,29 @@ export async function updateNodeTitle(
 }
 
 /**
+ * Update the node text content (owner only). Used by the click-to-edit
+ * note body in the Card Detail sheet (UX-BATCH-002). Table update — same
+ * owner guard as update_node_title, enforced via the owner_id filter.
+ */
+export async function updateNodeText(
+  userId: string,
+  nodeId: string,
+  text: string
+): Promise<void> {
+  const trimmed = text.trim();
+  if (!trimmed || trimmed.length > 20000) throw new Error("Invalid text");
+  const supabase = getSupabaseServiceClient();
+
+  const { error } = await supabase
+    .from("nodes")
+    .update({ text_content: trimmed })
+    .eq("id", nodeId)
+    .eq("owner_id", userId);
+
+  if (error) throw new Error(error.message);
+}
+
+/**
  * Best-effort view-count bump for the sort cache. Called when the user
  * opens the Card Detail sheet (PRD §14 meta pills need current counts).
  */

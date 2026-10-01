@@ -2091,7 +2091,7 @@ body {
    ============================================================ */
 
 .shell { display: flex; min-height: 100dvh; background: var(--bg); color: var(--text-1); }
-.shell-rail { width: 360px; flex-shrink: 0; border-right: 1px solid var(--surface-3); padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.shell-rail { width: 280px; flex-shrink: 0; border-right: 1px solid var(--surface-3); padding: 12px; display: flex; flex-direction: column; gap: 12px; }
 .shell-logo-img { display: flex; align-items: center; flex-shrink: 0; }
 .shell-logo-img img { border-radius: 6px; display: block; }
 .bb-logo { border-radius: 5px; display: block; }
@@ -2106,12 +2106,13 @@ body {
 .icon-btn:hover { background: var(--surface-2); color: var(--text-1); }
 .badge { position: absolute; top: 2px; right: 0; background: var(--accent); color: #fff; font-size: 10px; font-weight: 700; border-radius: 999px; min-width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; padding: 0 4px; }
 
-/* Left panel — friends grid (disks) / folders grid (rectangular cover tiles).
-   Desktop: friends 4-col grid, folders 3-col grid (UX-BATCH-001, Google-Flow
-   style). Mobile: panel = 50vw, grids drop to 3/2 cols (media query below). */
-.rail { display: grid; grid-template-columns: repeat(4, 1fr); align-content: start; justify-items: center; gap: 14px 8px; overflow-y: auto; flex: 1; }
-.rail-item { display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: var(--text-2); }
-.rail-label { font-size: 11px; max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; }
+/* Left panel — one friend/folder per row (UX-BATCH-002). Friends = disk +
+   name; folders = rectangular cover thumb + name/count. Panel = 280px
+   desktop / 50vw mobile. */
+.rail { display: flex; flex-direction: column; align-items: stretch; gap: 4px; overflow-y: auto; flex: 1; }
+.rail-item { display: flex; flex-direction: row; align-items: center; gap: 10px; text-decoration: none; color: var(--text-2); padding: 6px 8px; border-radius: 10px; }
+.rail-item:hover { background: var(--surface-2); }
+.rail-label { font-size: var(--text-sm, 12px); font-weight: 600; min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; }
 .rail-plus { width: 40px; height: 40px; border-radius: 50%; border: 1px dashed var(--text-3); display: flex; align-items: center; justify-content: center; font-size: 20px; color: var(--text-3); }
 .rail-manage:hover .rail-plus { border-color: var(--accent); color: var(--accent); }
 
@@ -2122,18 +2123,30 @@ html[data-layout="friends-top"] .feed-home .folder-section { display: none; }
 /* Friends sliding rail on top (friends-top layout) */
 .shell-toprail { flex-shrink: 0; border-bottom: 1px solid var(--surface-3); padding: 8px 12px; overflow-x: auto; }
 .rail-h { display: flex; flex-direction: row; align-items: center; gap: 14px; overflow-x: auto; overflow-y: hidden; flex: none; }
+.rail-h .rail-item { flex-direction: column; align-items: center; gap: 4px; padding: 4px; }
+.rail-h .rail-label { flex: none; max-width: 80px; text-align: center; font-size: 11px; font-weight: 400; }
 
-/* Folders in the left panel (friends-top layout) — rectangular cover tiles */
-.shell-rail.rail-folders { width: 470px; }
-.rail-folders .rail { grid-template-columns: repeat(3, 1fr); justify-items: stretch; gap: 14px 12px; }
-.rail-folders .rail-item { align-items: stretch; gap: 6px; }
-.fr-cover { display: block; width: 100%; aspect-ratio: 16/10; object-fit: cover; border-radius: 10px; background: var(--surface-2); }
+/* Folders in the left panel (friends-top layout) — rectangular cover rows */
+.fr-sort { align-self: center; margin-bottom: 4px; }
+.fr-sort .seg-btn { padding: 4px 10px; font-size: 11px; }
+.fr-cover { display: block; width: 64px; height: 40px; flex-shrink: 0; object-fit: cover; border-radius: 8px; background: var(--surface-2); }
 .fr-cover-empty { display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.85); }
-.rail-folders .rail-label { min-width: 0; max-width: none; text-align: left; font-size: var(--text-sm, 12px); font-weight: 600; }
-.fr-count { font-size: 10px; color: var(--text-3); text-align: left; }
+.fr-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.fr-count { font-size: 10px; color: var(--text-3); }
 .fr-item.fr-over .fr-cover { outline: 2px solid var(--accent); outline-offset: -2px; }
-.fr-add { grid-column: 1 / -1; flex-direction: row; justify-content: center; gap: 8px; border: none; background: none; font: inherit; cursor: pointer; padding: 8px; }
-.fr-add .rail-plus { width: 28px; height: 28px; font-size: 16px; }
+.fr-add { border: none; background: none; font: inherit; cursor: pointer; }
+
+/* Note click-to-edit (UX-BATCH-002) */
+.cv-text-editable { cursor: text; }
+.cv-note-edit { display: flex; flex-direction: column; gap: 8px; }
+.cv-note-textarea { width: 100%; resize: vertical; font: inherit; line-height: 1.5; }
+.cv-note-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+/* Search submit inside the input (UX-BATCH-002) */
+.shell-search { position: relative; }
+.shell-search input { padding-right: 40px; }
+.search-go { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); width: 30px; height: 30px; border-radius: 50%; border: none; background: var(--accent); color: #fff; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+.search-go:hover { background: var(--accent-light); }
 
 /* Avatar */
 .av { border-radius: 50%; overflow: hidden; background: var(--surface-4); display: inline-flex; align-items: center; justify-content: center; font-weight: 700; color: var(--text-1); flex-shrink: 0; }
@@ -2145,11 +2158,9 @@ html[data-layout="friends-top"] .feed-home .folder-section { display: none; }
 .fab { position: fixed; right: 20px; bottom: 24px; width: 56px; height: 56px; border-radius: 50%; background: var(--accent); color: #fff; border: none; font-size: 24px; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-fab, 0 8px 24px rgba(255,59,48,.3)); cursor: pointer; z-index: 40; }
 
 @media (max-width: 700px) {
-  /* Panel = 50% of the viewport; grids compress (UX-BATCH-001). */
-  .shell-rail { width: 50vw; padding: 10px; }
-  .shell-rail.rail-folders { width: 50vw; }
-  .rail { grid-template-columns: repeat(3, 1fr); padding-bottom: 80px; }
-  .rail-folders .rail { grid-template-columns: repeat(2, 1fr); }
+  /* Panel = 50% of the viewport, one item per row (UX-BATCH-002). */
+  .shell-rail { width: 50vw; padding: 8px; }
+  .rail { padding-bottom: 80px; }
   .fab { display: none; }
   /* Tighter mobile topbar (Google-Flow-style compact header). */
   .shell-header { gap: 6px; padding: 8px 10px; }
