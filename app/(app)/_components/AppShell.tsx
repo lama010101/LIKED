@@ -142,24 +142,6 @@ export default function AppShell({
               {layout === "friends-top" ? t("nav.folders") : t("nav.friends")}
             </span>
           </button>
-          <Modal open={switchOpen} onClose={() => setSwitchOpen(false)} title={t("nav.panelView")}>
-            <div className="menu-list">
-              <button
-                type="button"
-                className="menu-item"
-                onClick={() => { setSwitchOpen(false); setLayoutPref("friends-top"); }}
-              >
-                <FolderGlyph /> {t("nav.folders")}
-              </button>
-              <button
-                type="button"
-                className="menu-item"
-                onClick={() => { setSwitchOpen(false); setLayoutPref("friends-left"); }}
-              >
-                <FriendsGlyph /> {t("nav.friends")}
-              </button>
-            </div>
-          </Modal>
           <form onSubmit={onSearchSubmit} className="shell-search" role="search">
             <input
               value={search}
@@ -187,6 +169,28 @@ export default function AppShell({
           </button>
         </header>
         <SettingsModal user={user} open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+        {/* Panel-view switcher — rendered AFTER </header>, not inside it:
+            .shell-header is sticky z-30, so a modal rendered inside it is
+            trapped under .shell-bottom (z-40) on mobile and its menu items
+            can't be clicked (found in e2e). */}
+        <Modal open={switchOpen} onClose={() => setSwitchOpen(false)} title={t("nav.panelView")}>
+          <div className="menu-list">
+            <button
+              type="button"
+              className="menu-item"
+              onClick={() => { setSwitchOpen(false); setLayoutPref("friends-top"); }}
+            >
+              <FolderGlyph /> {t("nav.folders")}
+            </button>
+            <button
+              type="button"
+              className="menu-item"
+              onClick={() => { setSwitchOpen(false); setLayoutPref("friends-left"); }}
+            >
+              <FriendsGlyph /> {t("nav.friends")}
+            </button>
+          </div>
+        </Modal>
 
         {/* Friends sliding rail on top — when layout pref moves folders to the left panel */}
         {layout === "friends-top" && (
