@@ -33,7 +33,12 @@ export default function CardView({ detail }: { detail: CardDetail }) {
 
   // A note whose title is unset or just echoes its content shows the body
   // once — crumb and heading fall back to "untitled" instead of duplicating.
-  const hasDistinctTitle = !!node.title && node.title !== node.text_content;
+  // Auto-derived titles (creation copies first ~120 chars of the body) count
+  // as echoes in either direction so truncated bodies don't leak into the
+  // crumb/heading (UX-BATCH-002).
+  const text0 = node.text_content ?? "";
+  const isAutoTitle = !!node.title && !!text0 && (text0.startsWith(node.title) || node.title.startsWith(text0));
+  const hasDistinctTitle = !!node.title && !isAutoTitle;
 
   const saveTitle = async () => {
     const res = await updateNodeTitleAction(node.id, title.trim());
@@ -43,6 +48,11 @@ export default function CardView({ detail }: { detail: CardDetail }) {
   const saveNote = async () => {
     setNoteSaving(true);
     const res = await updateNodeTextAction(node.id, noteDraft.trim());
+    // Auto-derived title follows the body it echoes (else the stale old
+    // body surfaces as crumb/heading after the first edit).
+    if (res.ok && isAutoTitle) {
+      await updateNodeTitleAction(node.id, noteDraft.trim().slice(0, 120));
+    }
     setNoteSaving(false);
     if (res.ok) { setNoteEditing(false); router.refresh(); } else { toast.error(res.error); }
     return res.ok;
