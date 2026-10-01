@@ -207,6 +207,21 @@
     "insideHint": "Le nouveau dossier sera créé dans : {folder}",
     "create": "Ajouter la carte",
     "createFolder": "Créer le dossier",
-    "added": "Ajouté."
+    "added": "Ajouté.",
+    "youtube": "YouTube",
+    "ytPlaceholder": "Rechercher des vidéos YouTube…",
+    "ytSearching": "Recherche YouTube…",
+    "ytNoResults": "Aucune vidéo trouvée",
+    "ytTypeToSearch": "Tapez pour rechercher des vidéos YouTube",
+    "ytNotConnected": "Connectez votre compte YouTube pour rechercher des vidéos.",
+    "ytConnect": "Connecter YouTube",
+    "ytAdd": "Ajouter",
+    "ytAdded": "Ajouté",
+    "ytSaving": "Enregistrement…",
+    "ytSaved": "Enregistré !",
+    "ytSavedYouTube": "Enregistré dans votre dossier YouTube !",
+    "ytDuplicate": "Déjà dans votre flux.",
+    "ytFailed": "Échec de l'enregistrement de la vidéo.",
+    "ytNetworkError": "Erreur réseau. Veuillez réessayer."
   }
 }

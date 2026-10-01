@@ -207,6 +207,21 @@
     "insideHint": "The new folder will be created inside: {folder}",
     "create": "Add card",
     "createFolder": "Create folder",
-    "added": "Added."
+    "added": "Added.",
+    "youtube": "YouTube",
+    "ytPlaceholder": "Search YouTube videos…",
+    "ytSearching": "Searching YouTube…",
+    "ytNoResults": "No videos found",
+    "ytTypeToSearch": "Type to search YouTube videos",
+    "ytNotConnected": "Connect your YouTube account to search videos.",
+    "ytConnect": "Connect YouTube",
+    "ytAdd": "Add",
+    "ytAdded": "Added",
+    "ytSaving": "Saving…",
+    "ytSaved": "Saved!",
+    "ytSavedYouTube": "Saved to your YouTube folder!",
+    "ytDuplicate": "Already in your feed.",
+    "ytFailed": "Failed to save video.",
+    "ytNetworkError": "Network error. Please try again."
   }
 }

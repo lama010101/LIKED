@@ -207,6 +207,21 @@
     "insideHint": "โฟลเดอร์ใหม่จะถูกสร้างใน: {folder}",
     "create": "เพิ่มการ์ด",
     "createFolder": "สร้างโฟลเดอร์",
-    "added": "เพิ่มแล้ว"
+    "added": "เพิ่มแล้ว",
+    "youtube": "YouTube",
+    "ytPlaceholder": "ค้นหาวิดีโอ YouTube…",
+    "ytSearching": "กำลังค้นหา YouTube…",
+    "ytNoResults": "ไม่พบวิดีโอ",
+    "ytTypeToSearch": "พิมพ์เพื่อค้นหาวิดีโอ YouTube",
+    "ytNotConnected": "เชื่อมต่อบัญชี YouTube เพื่อค้นหาวิดีโอ",
+    "ytConnect": "เชื่อมต่อ YouTube",
+    "ytAdd": "เพิ่ม",
+    "ytAdded": "เพิ่มแล้ว",
+    "ytSaving": "กำลังบันทึก…",
+    "ytSaved": "บันทึกแล้ว!",
+    "ytSavedYouTube": "บันทึกในโฟลเดอร์ YouTube ของคุณ!",
+    "ytDuplicate": "มีอยู่ในฟีดแล้ว",
+    "ytFailed": "บันทึกวิดีโอไม่สำเร็จ",
+    "ytNetworkError": "ข้อผิดพลาดเครือข่าย โปรดลองอีกครั้ง"
   }
 }
