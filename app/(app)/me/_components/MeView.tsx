@@ -101,10 +101,7 @@ export default function MeView({ user }: { user: SessionUser }) {
       </section>
 
       <section className="me-card">
-        <div className="row">
-          <YouTubeSyncButton />
-          <span className="settings-email">{t("nav.youtubeSync")}</span>
-        </div>
+        <YouTubeSyncButton />
         <a className="btn" href="/friends">{t("nav.friends")}</a>
         <a className="btn" href="/youtube">{t("nav.youtube")}</a>
         <a className="btn" href="/extension/install">{t("nav.extension")}</a>
