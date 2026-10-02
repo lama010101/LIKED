@@ -879,3 +879,8 @@ Applied to task/feature entries going forward. Existing entries retain their ✅
 | UX-BATCH-004H | Friend panel items = 80px disk + name under | ✅ | Column layout for `.shell-rail` friend items at all widths. |
 | UX-BATCH-004I | Card sort | ✅ | `liked.cardSort` pref — Creation date (default) / Alphabetical seg in feed head. |
 | FIX-GROUP-001 | Group creation #441 | ✅ | `createGroupAction` used sessionRpc but migration 093 revoked `create_group` from `authenticated` → service-client call via `lib/db/friends.createGroup`. |
+
+### FIX-SCROLL-002 (2026-10-02)
+| Task ID | Item | Status | Notes |
+|---|---|---|---|
+| FIX-SCROLL-002 | All authed shell pages unscrollable when content exceeds viewport | ✅ | `globals.css`: `.shell-main` gained `min-height: 0`. Since UX-BATCH-003 made `.shell` fixed (`height:100dvh; overflow:hidden`), `.shell-main`'s default `min-height:auto` kept it at min-content height → the whole `.shell-body/.shell-inner/.shell-content` column grew past the viewport and was clipped, so `overflow-y:auto` never engaged (wheel dead, bottom content unreachable) on `/feed`, `/me`, `/friends`, `/organize`, `/folders/*`, `/card/*`, both rails — every viewport shorter than ~content height, incl. all mobile. Verified live in prod: patching `min-height:0` restored scroll on every page (scrollTop 0→240+). |
