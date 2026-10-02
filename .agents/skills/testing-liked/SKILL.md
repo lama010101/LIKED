@@ -57,3 +57,26 @@ No node/playwright needed — python works:
 ## Annotations
 
 Use `annotate_recording` for setup/test_start/assertion. Maximize Chrome before recording (`wmctrl -r :ACTIVE: -b add,maximized_vert,maximized_horz`).
+
+## Local dev server quirks (verified Oct 2026)
+
+- `npm`/`node` are NOT on the default PATH of exec shells — prepend `export PATH=~/.nvm/versions/node/v20.20.2/bin:$PATH`.
+- `npm run dev` serves on **:3001** (`next dev --port 3001`), not :3000.
+- Required env in `.env.local` (gitignored): `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. Optional: `NEXT_PUBLIC_APP_URL`, `SUPABASE_SECRET_KEY`.
+- `next dev` auto-appends a `nextjs-agent-rules` block to tracked `CLAUDE.md` — `git checkout CLAUDE.md` before declaring the tree clean.
+
+## Dead DEV project → point local dev at PROD Supabase
+
+If `*.supabase.co` for the DEV ref fails DNS (project paused/deleted — `getent hosts <ref>.supabase.co` to check):
+
+1. Prod ref for LIKED = `lzkzfqshnjvlzosnntfx` (prod site = liked-zeta.vercel.app).
+2. The publishable key is public client config: `curl -s https://liked-zeta.vercel.app/login | grep -o 'src="[^"]*\.js"'`, fetch the chunks, `grep -oh "sb_publishable_[A-Za-z0-9_]*"`.
+3. `.env.local`: `NEXT_PUBLIC_SUPABASE_URL=https://lzkzfqshnjvlzosnntfx.supabase.co`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<key>`.
+4. Password grant + `sb-lzkzfqshnjvlzosnntfx-auth-token` cookie works as above (e2e-test@liked.app exists on prod).
+
+## Missing SUPABASE_SECRET_KEY → getSessionUser redirect loop
+
+`getSessionUser()` (app/lib/actions/session.ts) does a `public.users` lookup via `getSupabaseServiceClient()` which **throws without `SUPABASE_SECRET_KEY`** → returns null → `/feed`↔`/login` redirect loop (middleware getUser succeeds, layout check fails — signature: `/login` 307→`/feed` while `/feed` 307→`/login` on the same cookie).
+
+- Best fix: request `SUPABASE_SECRET_KEY` (service-role / `sb_secret_*`) for the project.
+- Test-only fallback: temporarily change the `getSupabaseServiceClient()` call in `getSessionUser` to `await getSupabaseServerClient()` (already imported). The users row IS readable under RLS with the user's own JWT. Revert after the run and disclose. `getFriendBar` also uses the service client → friends rail degrades to empty (caught → `[]`), acceptable for nav testing.

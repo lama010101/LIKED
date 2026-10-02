@@ -10,6 +10,7 @@ import { setTheme } from "../../_components/ThemeSync";
 import { getLayoutPref, setLayoutPref } from "../../_components/prefs";
 import Avatar from "../../_components/Avatar";
 import Crumbs from "../../_components/Crumbs";
+import YouTubeSyncButton from "../../_components/YouTubeSyncButton";
 import { toast } from "@/lib/store/toastStore";
 import { LOCALES } from "@/i18n/locales";
 
@@ -52,6 +53,7 @@ export default function MeView({ user }: { user: SessionUser }) {
 
       <section className="me-card">
         <Avatar userId={user.id} avatarKey={user.avatar_key} name={user.display_name ?? ""} size={64} />
+        {user.email && <div className="settings-email">{user.email}</div>}
         <label className="fld">
           <span>{t("me.displayName")}</span>
           <div className="row">
@@ -99,6 +101,10 @@ export default function MeView({ user }: { user: SessionUser }) {
       </section>
 
       <section className="me-card">
+        <div className="row">
+          <YouTubeSyncButton />
+          <span className="settings-email">{t("nav.youtubeSync")}</span>
+        </div>
         <a className="btn" href="/friends">{t("nav.friends")}</a>
         <a className="btn" href="/youtube">{t("nav.youtube")}</a>
         <a className="btn" href="/extension/install">{t("nav.extension")}</a>
