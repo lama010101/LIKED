@@ -2376,5 +2376,6 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
 .settings-name { display: flex; gap: 8px; }
 .settings-name input { flex: 1; }
 .settings-email { margin-top: 4px; font-size: var(--text-sm, 12px); color: var(--text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.settings-actions { display: flex; gap: 10px; justify-content: space-between; align-items: center; }
+.settings-actions { display: flex; flex-direction: column; gap: 8px; }
+.settings-actions .btn { justify-content: center; padding: 10px 14px; }
 .feed-head-side { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }

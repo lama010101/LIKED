@@ -99,6 +99,10 @@ export default function SettingsModal({ user, open, onClose }: { user: SessionUs
         <div className="settings-actions">
           <YouTubeSyncButton />
           <Link href="/me" className="btn" onClick={onClose}>{t("nav.me")}</Link>
+          <Link href="/friends" className="btn" onClick={onClose}>{t("nav.friends")}</Link>
+          <Link href="/youtube" className="btn" onClick={onClose}>{t("nav.youtube")}</Link>
+          <Link href="/extension/install" className="btn" onClick={onClose}>{t("nav.extension")}</Link>
+          <Link href="/trash" className="btn" onClick={onClose}>{t("nav.trash")}</Link>
           <button className="btn btn-danger" onClick={signOut}>{t("nav.signOut")}</button>
         </div>
       </div>

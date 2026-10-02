@@ -884,3 +884,8 @@ Applied to task/feature entries going forward. Existing entries retain their ✅
 | Task ID | Item | Status | Notes |
 |---|---|---|---|
 | FIX-SCROLL-002 | All authed shell pages unscrollable when content exceeds viewport | ✅ | `globals.css`: `.shell-main` gained `min-height: 0`. Since UX-BATCH-003 made `.shell` fixed (`height:100dvh; overflow:hidden`), `.shell-main`'s default `min-height:auto` kept it at min-content height → the whole `.shell-body/.shell-inner/.shell-content` column grew past the viewport and was clipped, so `overflow-y:auto` never engaged (wheel dead, bottom content unreachable) on `/feed`, `/me`, `/friends`, `/organize`, `/folders/*`, `/card/*`, both rails — every viewport shorter than ~content height, incl. all mobile. Verified live in prod: patching `min-height:0` restored scroll on every page (scrollTop 0→240+). |
+
+### UX-SETTINGS-FULLME-001 (2026-10-01)
+| Task ID | Item | Status | Notes |
+|---|---|---|---|
+| UX-SETTINGS-FULLME-001 | Settings modal shows full Me content | ✅ | `SettingsModal.tsx`: `.settings-actions` now mirrors the /me links card — Sync YouTube, Me, Friends, YouTube, Chrome extension (`/extension/install`), Trash, Sign out — all labeled `.btn`s; every nav link closes the modal. `YouTubeSyncButton.tsx`: `icon-btn` (icon-only) → labeled `.btn` (icon + `nav.youtubeSync` text); the component was only used here. `globals.css`: `.settings-actions` becomes a column of full-width centered buttons. Verify: `tsc --noEmit` 0, `eslint` 0. |
