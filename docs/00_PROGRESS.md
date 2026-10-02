@@ -884,3 +884,13 @@ Applied to task/feature entries going forward. Existing entries retain their ✅
 | Task ID | Item | Status | Notes |
 |---|---|---|---|
 | UX-RAIL-FRIENDFOLDERS-001 | Friend filter → left-panel folder rail lists only that friend's shared folders | ✅ | `app/(app)/_components/AppShell.tsx`: `friendId` derived from `useSearchParams().get("friend")`; `refreshFolders` additionally fetches `getFoldersAction({ friendId })` into a separate `railFolders` state when a friend is selected (re-runs on param change via the callback dep); `<FolderRail>` receives `friendId ? railFolders : folders`. SQL-only filtering (existing `get_folders p_friend_id` = owner-friend + edge-visibility, same semantics as the `/feed` folder section); `folders` stays the unfiltered set for `AddSheet` pickers so the + flow isn't scoped to the friend. Verify: `tsc --noEmit` 0, `eslint` 0. |
+
+### FIX-SCROLL-002 (2026-10-02)
+| Task ID | Item | Status | Notes |
+|---|---|---|---|
+| FIX-SCROLL-002 | All authed shell pages unscrollable when content exceeds viewport | ✅ | `globals.css`: `.shell-main` gained `min-height: 0`. Since UX-BATCH-003 made `.shell` fixed (`height:100dvh; overflow:hidden`), `.shell-main`'s default `min-height:auto` kept it at min-content height → the whole `.shell-body/.shell-inner/.shell-content` column grew past the viewport and was clipped, so `overflow-y:auto` never engaged (wheel dead, bottom content unreachable) on `/feed`, `/me`, `/friends`, `/organize`, `/folders/*`, `/card/*`, both rails — every viewport shorter than ~content height, incl. all mobile. Verified live in prod: patching `min-height:0` restored scroll on every page (scrollTop 0→240+). |
+
+### UX-SETTINGS-NAV-001 (2026-10-02)
+| Task ID | Item | Status | Notes |
+|---|---|---|---|
+| UX-SETTINGS-NAV-001 | Header settings gear opens the Me page (profile + settings + features) instead of a modal | ✅ | `AppShell.tsx`: gear `icon-btn` button → `<Link href="/me">` (same pattern as notifications/organize icons); `settingsOpen` state + `SettingsModal` import/render removed. `SettingsModal.tsx` deleted (UX-SETTINGS-BTN-001 superseded — no dual settings surface). `MeView.tsx`: profile card gains `user.email` row; features card gains `<YouTubeSyncButton/>` row — both migrated from the deleted modal so nothing it surfaced is lost. `globals.css`: dead `.settings-modal/-profile/-id/-name/-actions` rules removed; `.settings-email` kept (now used by MeView). Verify: `tsc --noEmit` 0, `eslint` 0. |

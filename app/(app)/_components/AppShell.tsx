@@ -13,7 +13,6 @@ import Link from "next/link";
 import Avatar from "./Avatar";
 import ThemeSync from "./ThemeSync";
 import AddSheet from "./AddSheet";
-import SettingsModal from "./SettingsModal";
 import FriendsRail from "./FriendsRail";
 import FolderRail from "./FolderRail";
 import Modal from "./Modal";
@@ -52,7 +51,6 @@ export default function AppShell({
   const [layout, setLayout] = useState<LayoutPref>("friends-left");
   const [railOpen, setRailOpenState] = useState(true);
   const [switchOpen, setSwitchOpen] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const clickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Desktop panel width — drag-resizable (UX-BATCH-004), persisted in
   // localStorage. Applied as a CSS var; mobile (≤700px) always uses 50vw.
@@ -187,21 +185,15 @@ export default function AppShell({
           <Link href="/organize" className="icon-btn" aria-label={t("nav.organize")}>
             <OrganizeIcon />
           </Link>
-          <button
-            type="button"
-            className="icon-btn"
-            onClick={() => setSettingsOpen(true)}
-            aria-label={t("nav.settings")}
-            title={t("nav.settings")}
-          >
+          <Link href="/me" className="icon-btn" aria-label={t("nav.settings")} title={t("nav.settings")}>
             <GearIcon />
-          </button>
+          </Link>
         </header>
-        <SettingsModal user={user} open={settingsOpen} onClose={() => setSettingsOpen(false)} />
         {/* Panel-view switcher — rendered AFTER </header>, not inside it:
             .shell-header is sticky z-30, so a modal rendered inside it is
             trapped under .shell-bottom (z-40) on mobile and its menu items
-            can't be clicked (found in e2e). */}
+            can't be clicked (found in e2e). Rendered inside .shell-main,
+            which creates no stacking context. */}
         <Modal open={switchOpen} onClose={() => setSwitchOpen(false)} title={t("nav.panelView")}>
           <div className="menu-list">
             <button

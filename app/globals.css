@@ -2105,7 +2105,7 @@ body {
 .shell-logo-img { display: flex; align-items: center; flex-shrink: 0; }
 .shell-logo-img img { border-radius: 6px; display: block; }
 .bb-logo { border-radius: 5px; display: block; }
-.shell-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.shell-main { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
 .shell-header { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-bottom: 1px solid var(--surface-3); position: sticky; top: 0; background: var(--bg); z-index: 30; }
 .shell-search { flex: 1; max-width: 560px; }
 .shell-search input { width: 100%; background: var(--surface-2); border: 1px solid var(--surface-3); border-radius: 999px; padding: 8px 16px; color: var(--text-1); font-size: var(--text-md, 14px); }
@@ -2370,11 +2370,5 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
 .rail-toggle:hover { background: var(--surface-2); }
 .rail-toggle-label { text-transform: uppercase; }
 .rail-toggle[aria-pressed="false"] { color: var(--text-3); }
-.settings-modal { display: flex; flex-direction: column; gap: 14px; }
-.settings-profile { display: flex; align-items: center; gap: 12px; }
-.settings-id { flex: 1; min-width: 0; }
-.settings-name { display: flex; gap: 8px; }
-.settings-name input { flex: 1; }
 .settings-email { margin-top: 4px; font-size: var(--text-sm, 12px); color: var(--text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.settings-actions { display: flex; gap: 10px; justify-content: space-between; align-items: center; }
 .feed-head-side { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
