@@ -885,6 +885,11 @@ Applied to task/feature entries going forward. Existing entries retain their ✅
 |---|---|---|---|
 | UX-RAIL-FRIENDFOLDERS-001 | Friend filter → left-panel folder rail lists only that friend's shared folders | ✅ | `app/(app)/_components/AppShell.tsx`: `friendId` derived from `useSearchParams().get("friend")`; `refreshFolders` additionally fetches `getFoldersAction({ friendId })` into a separate `railFolders` state when a friend is selected (re-runs on param change via the callback dep); `<FolderRail>` receives `friendId ? railFolders : folders`. SQL-only filtering (existing `get_folders p_friend_id` = owner-friend + edge-visibility, same semantics as the `/feed` folder section); `folders` stays the unfiltered set for `AddSheet` pickers so the + flow isn't scoped to the friend. Verify: `tsc --noEmit` 0, `eslint` 0. |
 
+### FIX-SCROLL-001 (2026-10-01)
+| Task ID | Item | Status | Notes |
+|---|---|---|---|
+| FIX-SCROLL-001 | Pages can't scroll after UX-BATCH-004 shell restructure | ✅ | `app/globals.css`: every column flex item in the fixed-viewport chain needs `min-height: 0` to shrink below content height — `.shell-main`, `.shell-content` (inside `.shell-inner`), and `.rail` (inside `.shell-rail`) were all missing it while `overflow:hidden` ancestors clipped the overflow → every page unscrollable (live DOM check: `.shell` 993px vs `.shell-main` 3524px). Added `min-height: 0` to all three; `.shell-body` already had it. E2e-verified: wheel/keys scroll, rail scrolls independently, mobile bottom bar pinned. |
+
 ### FIX-SCROLL-002 (2026-10-02)
 | Task ID | Item | Status | Notes |
 |---|---|---|---|

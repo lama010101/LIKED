@@ -2110,7 +2110,9 @@ body {
 .shell-search { flex: 1; max-width: 560px; }
 .shell-search input { width: 100%; background: var(--surface-2); border: 1px solid var(--surface-3); border-radius: 999px; padding: 8px 16px; color: var(--text-1); font-size: var(--text-md, 14px); }
 .shell-search input:focus { outline: none; border-color: var(--accent); }
-.shell-content { flex: 1; padding: 16px; overflow-y: auto; padding-bottom: 88px; }
+/* min-height:0 lets the flex item shrink below content height so its own
+   overflow-y:auto engages — without it the page is clipped and can't scroll. */
+.shell-content { flex: 1; min-height: 0; padding: 16px; overflow-y: auto; padding-bottom: 88px; }
 
 .icon-btn { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%; border: none; background: transparent; color: var(--text-2); cursor: pointer; text-decoration: none; }
 .icon-btn:hover { background: var(--surface-2); color: var(--text-1); }
@@ -2119,7 +2121,7 @@ body {
 /* Left panel — one friend/folder per row (UX-BATCH-002). Friends = disk +
    name; folders = rectangular cover thumb + name/count. Panel = 280px
    desktop / 50vw mobile. */
-.rail { display: flex; flex-direction: column; align-items: stretch; gap: 4px; overflow-y: auto; flex: 1; }
+.rail { display: flex; flex-direction: column; align-items: stretch; gap: 4px; overflow-y: auto; flex: 1; min-height: 0; }
 .rail-item { display: flex; flex-direction: row; align-items: center; gap: 10px; text-decoration: none; color: var(--text-2); padding: 6px 8px; border-radius: 10px; }
 .rail-item:hover { background: var(--surface-2); }
 .rail-label { font-size: var(--text-sm, 12px); font-weight: 600; min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; }
