@@ -900,6 +900,11 @@ Applied to task/feature entries going forward. Existing entries retain their ✅
 |---|---|---|---|
 | UX-SETTINGS-NAV-001 | Header settings gear opens the Me page (profile + settings + features) instead of a modal | ✅ | `AppShell.tsx`: gear `icon-btn` button → `<Link href="/me">` (same pattern as notifications/organize icons); `settingsOpen` state + `SettingsModal` import/render removed. `SettingsModal.tsx` deleted (UX-SETTINGS-BTN-001 superseded — no dual settings surface). `MeView.tsx`: profile card gains `user.email` row; features card gains `<YouTubeSyncButton/>` row — both migrated from the deleted modal so nothing it surfaced is lost. `globals.css`: dead `.settings-modal/-profile/-id/-name/-actions` rules removed; `.settings-email` kept (now used by MeView). Verify: `tsc --noEmit` 0, `eslint` 0. |
 
+### UX-YTSYNC-LABEL-001 (2026-10-02)
+| Task ID | Item | Status | Notes |
+|---|---|---|---|
+| UX-YTSYNC-LABEL-001 | Sync YouTube = prominent labeled button | ✅ | `YouTubeSyncButton.tsx`: `icon-btn` (icon-only) → labeled `.btn` (icon + `nav.youtubeSync` text) — matches the other full-width buttons in the /me features card. `MeView.tsx`: redundant caption span + `.row` wrapper removed (button self-labels now). Verify: `tsc --noEmit` 0, `eslint` 0. |
+
 ### FIX-EXT-PROD-001 (2026-10-03)
 | Task ID | Item | Status | Notes |
 |---|---|---|---|

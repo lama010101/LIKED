@@ -85,13 +85,14 @@ export default function YouTubeSyncButton() {
   return (
     <>
       <button
-        className="icon-btn"
+        className="btn"
         onClick={onClick}
         disabled={syncing}
         aria-label={t("nav.youtubeSync")}
         title={t("nav.youtubeSync")}
       >
         <YouTubeIcon spinning={syncing} />
+        <span>{t("nav.youtubeSync")}</span>
       </button>
       <Modal open={consentOpen} onClose={() => setConsentOpen(false)} title={t("youtube.consentTitle")}>
         <p>{t("youtube.consentBody")}</p>
