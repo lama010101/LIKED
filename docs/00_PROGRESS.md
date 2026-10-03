@@ -880,6 +880,11 @@ Applied to task/feature entries going forward. Existing entries retain their ✅
 | UX-BATCH-004I | Card sort | ✅ | `liked.cardSort` pref — Creation date (default) / Alphabetical seg in feed head. |
 | FIX-GROUP-001 | Group creation #441 | ✅ | `createGroupAction` used sessionRpc but migration 093 revoked `create_group` from `authenticated` → service-client call via `lib/db/friends.createGroup`. |
 
+### UX-RAIL-FRIENDFOLDERS-001 (2026-10-01)
+| Task ID | Item | Status | Notes |
+|---|---|---|---|
+| UX-RAIL-FRIENDFOLDERS-001 | Friend filter → left-panel folder rail lists only that friend's shared folders | ✅ | `app/(app)/_components/AppShell.tsx`: `friendId` derived from `useSearchParams().get("friend")`; `refreshFolders` additionally fetches `getFoldersAction({ friendId })` into a separate `railFolders` state when a friend is selected (re-runs on param change via the callback dep); `<FolderRail>` receives `friendId ? railFolders : folders`. SQL-only filtering (existing `get_folders p_friend_id` = owner-friend + edge-visibility, same semantics as the `/feed` folder section); `folders` stays the unfiltered set for `AddSheet` pickers so the + flow isn't scoped to the friend. Verify: `tsc --noEmit` 0, `eslint` 0. |
+
 ### FIX-SCROLL-002 (2026-10-02)
 | Task ID | Item | Status | Notes |
 |---|---|---|---|

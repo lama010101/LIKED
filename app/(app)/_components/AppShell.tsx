@@ -42,7 +42,12 @@ export default function AppShell({
   const [search, setSearch] = useState("");
   const searchParams = useSearchParams();
   const meActive = pathname === "/feed" && searchParams.get("me") === "1";
+  const friendId = searchParams.get("friend");
   const [folders, setFolders] = useState<Mvp2Folder[]>([]);
+  // Friend filter active → left-panel rail lists only folders that friend
+  // shared with me (get_folders p_friend_id). `folders` stays the full set
+  // for AddSheet pickers.
+  const [railFolders, setRailFolders] = useState<Mvp2Folder[]>([]);
   const [layout, setLayout] = useState<LayoutPref>("friends-left");
   const [railOpen, setRailOpenState] = useState(true);
   const [switchOpen, setSwitchOpen] = useState(false);
@@ -80,7 +85,8 @@ export default function AppShell({
 
   const refreshFolders = useCallback(() => {
     getFoldersAction().then(setFolders).catch(() => {});
-  }, []);
+    if (friendId) getFoldersAction({ friendId }).then(setRailFolders).catch(() => {});
+  }, [friendId]);
   useEffect(refreshFolders, [refreshFolders]);
 
   // Apply persisted layout/rail prefs + stay in sync with changes from /me.
@@ -216,7 +222,7 @@ export default function AppShell({
             style={railW ? ({ "--rail-w": `${railW}px` } as React.CSSProperties) : undefined}
           >
             {layout === "friends-top" ? (
-              <FolderRail folders={folders} onAdd={() => openAdd("folder")} onChanged={refreshFolders} />
+              <FolderRail folders={friendId ? railFolders : folders} onAdd={() => openAdd("folder")} onChanged={refreshFolders} />
             ) : (
               <FriendsRail friends={friends} query={searchParams.get("q")} />
             )}
