@@ -104,7 +104,7 @@ Present in the production CSP; only dev tooling needs it. Drop `'unsafe-eval'` f
 | P3-3 stale types | `scripts/generate-types.ts` rerun | `direct_share`/`get_social_timeline` gone; new RPCs typed |
 | P3-4 direct write | Migration **138** `update_node_text` RPC; `cardDetail.ts` calls it | gate probe → 'Caller does not match user_id' |
 | P3-5 move loop | Migration **139** `move_node_everywhere` (one transaction, same per-source rights check) | grant = authenticated only |
-| P3-6 proxy list | covers `/feed /trash /youtube /me /folders /card /friends /organize /notifications` | — |
+| P3-6 proxy list | covers all `(app)` routes; `/social` retained — `e2e/navigation-unauth.spec.ts` asserts it redirects | e2e `/social` → `/login` green |
 | P3-7 CSP | dropped `script-src 'unsafe-eval'` | build passes |
 | P3-8 _archive tests | vitest `exclude` adds `_archive/**` | 72/72 tests |
 
