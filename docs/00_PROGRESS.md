@@ -889,3 +889,8 @@ Applied to task/feature entries going forward. Existing entries retain their ✅
 | Task ID | Item | Status | Notes |
 |---|---|---|---|
 | UX-SETTINGS-NAV-001 | Header settings gear opens the Me page (profile + settings + features) instead of a modal | ✅ | `AppShell.tsx`: gear `icon-btn` button → `<Link href="/me">` (same pattern as notifications/organize icons); `settingsOpen` state + `SettingsModal` import/render removed. `SettingsModal.tsx` deleted (UX-SETTINGS-BTN-001 superseded — no dual settings surface). `MeView.tsx`: profile card gains `user.email` row; features card gains `<YouTubeSyncButton/>` row — both migrated from the deleted modal so nothing it surfaced is lost. `globals.css`: dead `.settings-modal/-profile/-id/-name/-actions` rules removed; `.settings-email` kept (now used by MeView). Verify: `tsc --noEmit` 0, `eslint` 0. |
+
+### FIX-EXT-PROD-001 (2026-10-03)
+| Task ID | Item | Status | Notes |
+|---|---|---|---|
+| FIX-EXT-PROD-001 | Packaged extension pointed to localhost | ✅ | Regression from 116a37e (P12): `extension/dist` + `public/liked-extension.zip`/`.crx` were rebuilt without `LIKED_API_URL` → esbuild default `http://localhost:3000` baked into `popup.js`; fresh installs hit localhost while the Sep-23 EXT-PROD-001 build (prod-baked) still works. Rebuilt with `LIKED_API_URL=https://liked-zeta.vercel.app npm run build` (extension/) + `npm run zip:extension`. `.crx` not repacked — pinned key `~/.liked-extension/liked-extension-key.pem` is not on this box; owner must rerun `npm run crx:extension`. Verify: `grep liked-zeta extension/dist/popup.js` + zip popup.js → prod URL present. |
