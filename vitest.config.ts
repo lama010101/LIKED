@@ -9,7 +9,7 @@ export default defineConfig({
   },
   test: {
     include: ["**/*.test.ts"],
-    exclude: ["node_modules/**", "e2e/**", ".next/**", "extension/**"],
+    exclude: ["node_modules/**", "e2e/**", ".next/**", "extension/**", "_archive/**"],
     environment: "node",
     globals: false,
   },

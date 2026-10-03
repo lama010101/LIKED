@@ -34,13 +34,13 @@ test.describe("Trash page — authenticated user", () => {
     expect(text?.toLowerCase()).toMatch(/trash|empty|nothing|no .*(card|item)/i);
   });
 
-  test("trash badge count appears in sidebar", async ({ page }) => {
-    await page.goto("/feed");
-    await expect(page).toHaveURL(/\/feed/);
+  test("trash link appears on the Me page", async ({ page }) => {
+    await page.goto("/me");
+    await expect(page).toHaveURL(/\/me/);
 
-    // The V2 sidebar's Trash nav item is a link (Library section);
-    // on mobile the AppHeader Trash icon link has aria-label="Trash".
-    const trashLink = page.getByRole("link", { name: /^trash$/i }).first();
+    // UX-NAV-SYNC-001 moved the Trash entry point out of the header/sidebar
+    // onto the Me page (MeView renders <a class="btn" href="/trash">).
+    const trashLink = page.getByRole("link", { name: /trash/i }).first();
     await expect(trashLink).toBeVisible();
   });
 

@@ -6,10 +6,10 @@
  * list (default), masonry, columns. Horiz/FreeGrid are gone.
  */
 
-import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { FeedNode, FeedParams } from "@/lib/types/feed";
 import { fetchFeedPageAction } from "@/app/lib/actions/feed";
 import type { Mvp2Folder } from "@/app/lib/actions/mvp2";
@@ -37,21 +37,16 @@ export default function FeedHome({
   const [nodes, setNodes] = useState(initialNodes);
   const [cursor, setCursor] = useState(nextCursor);
   const [loading, setLoading] = useState(false);
-  // Card ordering pref (UX-BATCH-004): "created" (default, newest first)
-  // or "alpha". Persisted in localStorage, synced via liked:prefs — same
-  // store mechanism as the folder sort in FolderRail.
-  const subscribePrefs = useCallback((onChange: () => void) => {
-    window.addEventListener("liked:prefs", onChange);
-    return () => window.removeEventListener("liked:prefs", onChange);
-  }, []);
-  const cardSort = useSyncExternalStore(
-    subscribePrefs,
-    () => (localStorage.getItem("liked.cardSort") === "alpha" ? "alpha" : "created"),
-    () => "created"
-  );
-  const sortedNodes = cardSort === "alpha"
-    ? [...nodes].sort((a, b) => (a.title ?? a.text_content ?? "").localeCompare(b.title ?? b.text_content ?? ""))
-    : nodes;
+  // Card ordering (AUDIT-09 P2-1): the sort is a get_feed input
+  // (p_sort), not a client-side reorder — the seg writes ?sort= into
+  // the URL so the server re-fetches in SQL order (incl. pagination).
+  const searchParams = useSearchParams();
+  const cardSort = feedParams.p_sort === "alpha" ? "alpha" : "created";
+  const setCardSort = (v: "created" | "alpha") => {
+    const sp = new URLSearchParams(searchParams.toString());
+    if (v === "alpha") sp.set("sort", "alpha"); else sp.delete("sort");
+    router.push(`/feed?${sp.toString()}`);
+  };
 
   // Resync on router.refresh(): refresh delivers new props without remounting
   // (the key only covers params), so paginated state would otherwise stay
@@ -125,12 +120,12 @@ export default function FeedHome({
             <button
               type="button"
               className={`seg-btn ${cardSort === "created" ? "seg-on" : ""}`}
-              onClick={() => { localStorage.setItem("liked.cardSort", "created"); window.dispatchEvent(new Event("liked:prefs")); }}
+              onClick={() => setCardSort("created")}
             >{t("folder.sortCreated")}</button>
             <button
               type="button"
               className={`seg-btn ${cardSort === "alpha" ? "seg-on" : ""}`}
-              onClick={() => { localStorage.setItem("liked.cardSort", "alpha"); window.dispatchEvent(new Event("liked:prefs")); }}
+              onClick={() => setCardSort("alpha")}
             >{t("folder.sortAlpha")}</button>
           </div>
           <ViewSwitch view={view} onPick={pickView} />
@@ -141,7 +136,7 @@ export default function FeedHome({
         <p className="empty-note">{query ? t("feed.emptySearch", { q: query }) : t("feed.empty")}</p>
       ) : (
         <div className={`cards cards-${view}`}>
-          {sortedNodes.map((n) => {
+          {nodes.map((n) => {
             const fid = nodeFolders[n.node_id];
             const fname = folderName(fid);
             return (
