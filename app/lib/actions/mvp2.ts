@@ -432,8 +432,8 @@ export async function getYoutubeConsentAction(): Promise<boolean> {
   const supabase = await getSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return false;
-  const db = getSupabaseServiceClient();
-  const { data } = await db.from("users").select("youtube_import_consent_at").eq("id", user.id).single();
+  // users_select_scoped permits id = auth.uid() — self-read needs no service key.
+  const { data } = await supabase.from("users").select("youtube_import_consent_at").eq("id", user.id).single();
   return !!data?.youtube_import_consent_at;
 }
 

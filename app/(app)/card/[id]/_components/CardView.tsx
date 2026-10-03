@@ -25,6 +25,9 @@ export default function CardView({ detail }: { detail: CardDetail }) {
   const [title, setTitle] = useState(node.title ?? "");
   const [editing, setEditing] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  // window.origin is unavailable during SSR — resolved when the user
+  // opens the sheet (click always runs client-side).
+  const [shareUrl, setShareUrl] = useState(`/card/${node.id}`);
   // Click-to-edit note body (UX-BATCH-002): Undo restores the saved text,
   // Cancel discards, Save persists; back arrow auto-saves.
   const [noteEditing, setNoteEditing] = useState(false);
@@ -155,7 +158,7 @@ export default function CardView({ detail }: { detail: CardDetail }) {
       )}
 
       <div className="folder-actions">
-        <button className="btn" onClick={() => setShareOpen(true)}>{t("common.share")}</button>
+        <button className="btn" onClick={() => { setShareUrl(`${window.location.origin}/card/${node.id}`); setShareOpen(true); }}>{t("common.share")}</button>
         {isOwner && <button className="btn btn-danger" onClick={onTrash}>{t("card.deleteCard")}</button>}
       </div>
 
@@ -170,7 +173,7 @@ export default function CardView({ detail }: { detail: CardDetail }) {
       <ShareSheet
         open={shareOpen}
         onClose={() => setShareOpen(false)}
-        shareUrl={`${window.location.origin}/card/${node.id}`}
+        shareUrl={shareUrl}
         loadTargets={async () => {
           const [fr, gr] = await Promise.all([getFriendBarAction(), getGroupBarAction()]);
           return {
