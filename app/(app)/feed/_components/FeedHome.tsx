@@ -18,6 +18,7 @@ import { toast } from "@/lib/store/toastStore";
 import CardItem from "../../_components/CardItem";
 import ViewSwitch, { useCardView } from "../../_components/ViewSwitch";
 import Avatar from "../../_components/Avatar";
+import { getLayoutPref, type LayoutPref } from "../../_components/prefs";
 import FolderTile from "./FolderTile";
 import type { FriendBarEntry } from "@/lib/db/friends";
 
@@ -53,6 +54,10 @@ export default function FeedHome({
     () => (localStorage.getItem("liked.cardSort") === "alpha" ? "alpha" : "created"),
     () => "created"
   );
+  // Layout pref — under friends-top the body .folder-section is display:none
+  // (folders live in the left rail), so folder hits can't count as visible
+  // search results there or suppressCards would blank the page.
+  const layout = useSyncExternalStore(subscribePrefs, getLayoutPref, () => "friends-left" as LayoutPref);
   const sortedNodes = cardSort === "alpha"
     ? [...nodes].sort((a, b) => (a.title ?? a.text_content ?? "").localeCompare(b.title ?? b.text_content ?? ""))
     : nodes;
@@ -107,7 +112,9 @@ export default function FeedHome({
     : [];
   // If a search matched folders/friends but zero cards, skip the cards
   // block entirely — the sections above already communicate results.
-  const suppressCards = !!query && nodes.length === 0 && (folders.length > 0 || matchingFriends.length > 0);
+  // (Folder hits only count when the folder section is actually visible.)
+  const suppressCards = !!query && nodes.length === 0 &&
+    (matchingFriends.length > 0 || (layout !== "friends-top" && folders.length > 0));
 
   // DnD: card dropped on a folder tile → move_node_to_folder RPC.
   const onDropToFolder = useCallback(async (nodeId: string, targetFolderId: string) => {
