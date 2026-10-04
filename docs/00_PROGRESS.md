@@ -909,3 +909,8 @@ Applied to task/feature entries going forward. Existing entries retain their ✅
 | Task ID | Item | Status | Notes |
 |---|---|---|---|
 | FIX-EXT-PROD-001 | Packaged extension pointed to localhost | ✅ | Regression from 116a37e (P12): `extension/dist` + `public/liked-extension.zip`/`.crx` were rebuilt without `LIKED_API_URL` → esbuild default `http://localhost:3000` baked into `popup.js`; fresh installs hit localhost while the Sep-23 EXT-PROD-001 build (prod-baked) still works. Rebuilt with `LIKED_API_URL=https://liked-zeta.vercel.app npm run build` (extension/) + `npm run zip:extension`. `.crx` not repacked — pinned key `~/.liked-extension/liked-extension-key.pem` is not on this box; owner must rerun `npm run crx:extension`. Verify: `grep liked-zeta extension/dist/popup.js` + zip popup.js → prod URL present. |
+
+### UX-SEARCH-GROUPS-001 (2026-10-03)
+| Task ID | Item | Status | Notes |
+|---|---|---|---|
+| UX-SEARCH-GROUPS-001 | Grouped search results on ?q= | ✅ | `/feed?q=` now renders three sections: Folders (already filtered by `get_folders p_search`), Friends (new section — `getFriendBarAction` fetched only when `q` present, filtered client-side with the same rule as FriendsRail: `user_id` set + `display_name` substring, case-insensitive; items link to `/feed?friend=<id>`), and Cards (`get_feed p_search_query` as before). When a search hits folders/friends but zero cards, the cards block is suppressed so no misleading "No results" shows under real hits; zero hits anywhere keeps the existing `feed.emptySearch` line. `globals.css`: `.friend-section/.friend-row` mirroring `.folder-row` + `.rail-h` item layout. No new i18n keys (reuses `feed.folders`, `nav.friends`, `feed.cards`). Verify: `tsc --noEmit` 0, `eslint` 0, `next build` clean. |

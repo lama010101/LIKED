@@ -1,5 +1,5 @@
 import { getFeed } from "@/lib/db/feed";
-import { getSessionUser } from "@/app/lib/actions/session";
+import { getSessionUser, getFriendBarAction } from "@/app/lib/actions/session";
 import { getFoldersAction } from "@/app/lib/actions/mvp2";
 import FeedHome from "./_components/FeedHome";
 import { redirect } from "next/navigation";
@@ -38,9 +38,11 @@ export default async function FeedPage({
     p_sort: sort,
   } as import("@/lib/types/feed").FeedParams;
 
-  const [feed, folders] = await Promise.all([
+  const [feed, folders, friends] = await Promise.all([
     getFeed(params, true),
     getFoldersAction({ search: q, tagIds: tag ? [tag] : null, friendId: me ? user.id : friend }),
+    // Grouped search results (UX-SEARCH-GROUPS-001): only needed under ?q=.
+    q ? getFriendBarAction().catch(() => []) : Promise.resolve([]),
   ]);
 
   return (
@@ -56,6 +58,7 @@ export default async function FeedPage({
       query={q}
       meView={me}
       activeFolderId={folder}
+      friends={friends}
     />
   );
 }

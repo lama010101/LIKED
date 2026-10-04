@@ -17,10 +17,12 @@ import { getNodeFoldersAction, moveNodeToFolderAction } from "@/app/lib/actions/
 import { toast } from "@/lib/store/toastStore";
 import CardItem from "../../_components/CardItem";
 import ViewSwitch, { useCardView } from "../../_components/ViewSwitch";
+import Avatar from "../../_components/Avatar";
 import FolderTile from "./FolderTile";
+import type { FriendBarEntry } from "@/lib/db/friends";
 
 export default function FeedHome({
-  initialNodes, totalCount, nextCursor, folders, feedParams, query, meView, activeFolderId,
+  initialNodes, totalCount, nextCursor, folders, feedParams, query, meView, activeFolderId, friends,
 }: {
   initialNodes: FeedNode[];
   totalCount: number;
@@ -30,6 +32,8 @@ export default function FeedHome({
   query: string | null;
   meView: boolean;
   activeFolderId: string | null;
+  /** Full friend bar entries — only fetched/passed under a search (?q=). */
+  friends: FriendBarEntry[];
 }) {
   const t = useTranslations();
   const router = useRouter();
@@ -93,6 +97,18 @@ export default function FeedHome({
     }
   }, [cursor, loading, feedParams, t]);
 
+  // Grouped search results (UX-SEARCH-GROUPS-001): under ?q=, friends
+  // matching the term render as their own section next to the already
+  // filtered folder + card sections. Same match semantics as FriendsRail
+  // (user_id present, display_name substring, case-insensitive).
+  const qLower = (query ?? "").trim().toLowerCase();
+  const matchingFriends = qLower
+    ? friends.filter((f) => f.user_id && (f.display_name ?? "").toLowerCase().includes(qLower))
+    : [];
+  // If a search matched folders/friends but zero cards, skip the cards
+  // block entirely — the sections above already communicate results.
+  const suppressCards = !!query && nodes.length === 0 && (folders.length > 0 || matchingFriends.length > 0);
+
   // DnD: card dropped on a folder tile → move_node_to_folder RPC.
   const onDropToFolder = useCallback(async (nodeId: string, targetFolderId: string) => {
     try {
@@ -118,6 +134,23 @@ export default function FeedHome({
         </section>
       )}
 
+      {/* Friends section — grouped search results (UX-SEARCH-GROUPS-001) */}
+      {matchingFriends.length > 0 && (
+        <section className="friend-section">
+          <h2 className="sec-title">{t("nav.friends")}</h2>
+          <div className="friend-row">
+            {matchingFriends.map((f) => (
+              <Link key={f.user_id} href={`/feed?friend=${f.user_id}`} className="rail-item" title={f.display_name ?? ""}>
+                <Avatar userId={f.user_id!} avatarKey={f.avatar_key} name={f.display_name ?? "?"} size={80} />
+                <span className="rail-label">{f.display_name}</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {!suppressCards && (
+        <>
       <div className="feed-head">
         <h2 className="sec-title">{query ? `"${query}"` : activeFolderId ? (folders.find((f) => f.id === activeFolderId)?.name ?? t("feed.cards")) : meView ? t("nav.me") : t("feed.cards")}</h2>
         <div className="feed-head-side">
@@ -157,6 +190,8 @@ export default function FeedHome({
         <button className="btn load-more" onClick={loadMore} disabled={loading}>
           {loading ? t("common.loading") : `${t("feed.loadMore")} (${nodes.length}/${totalCount})`}
         </button>
+      )}
+        </>
       )}
     </div>
   );
