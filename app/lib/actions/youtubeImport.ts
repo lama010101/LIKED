@@ -17,10 +17,8 @@
 
 import { revalidatePath } from "next/cache";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
-import { getSupabaseServiceClient } from "@/lib/supabase/service";
-import { importUrl, DuplicateNodeError } from "@/lib/db/nodes";
-import { getStoredYouTubeToken, fetchVideoCategoryName } from "@/lib/youtube/client";
-import { downloadAndUploadThumbnail } from "@/app/lib/actions/createNode";
+import { DuplicateNodeError } from "@/lib/db/nodes";
+import { importYouTubeVideoForUser } from "@/lib/youtube/sync";
 
 export type YouTubeImportResult =
   | { ok: true; nodeId: string }
@@ -75,76 +73,22 @@ export async function importYouTubeActivity(
     return { ok: false, error: "Invalid URL.", code: "invalid" };
   }
 
-  // 3. Resolve user's preferred language
-  let languageCode = input.languageCode ?? "en";
+  // 3-7. Shared per-video core (lib/youtube/sync.ts): language → category
+  //      tag → thumbnail → atomic import_url RPC (single transaction).
+  //      Auto-folder "YouTube" inside the RPC; explicit targetFolderId wins.
   try {
-    const db = getSupabaseServiceClient();
-    const { data: userRow } = await db
-      .from("users")
-      .select("language_code")
-      .eq("id", user.id)
-      .single();
-    if (userRow?.language_code) {
-      languageCode = userRow.language_code.slice(0, 8);
-    }
-  } catch {
-    // Fall back to 'en' — non-fatal.
-  }
-
-  // 4. Fetch video category name from YouTube API (for auto-tagging)
-  let categoryTagName: string | null = null;
-  if (input.categoryId) {
-    const tokenResult = await getStoredYouTubeToken(user.id);
-    if (tokenResult.ok) {
-      categoryTagName = await fetchVideoCategoryName(
-        tokenResult.token.accessToken,
-        input.categoryId
-      );
-    }
-  }
-
-  // 5. Build auto-tags: "YouTube" + channel name + category name (deduped)
-  const tagLabels = Array.from(
-    new Set(
-      [
-        "YouTube",
-        input.channelTitle?.trim() || null,
-        categoryTagName,
-      ]
-        .filter((t): t is string => !!t && t.length > 0)
-    )
-  );
-
-  // 6. Download + upload thumbnail to Storage
-  let thumbnailKey: string | null = null;
-  const thumbUrl = input.thumbnailUrl?.trim() || null;
-  if (thumbUrl) {
-    thumbnailKey = await downloadAndUploadThumbnail(thumbUrl, user.id);
-  }
-
-  // 7. Atomic write via import_url RPC (single transaction, Rule 9 compliant).
-  //    Auto-folder assignment happens inside the RPC (p_auto_folder_name="YouTube"
-  //    → folder created in the same transaction). No post-write folder call
-  //    needed (AUDIT-06 P1-4).
-  try {
-    const node = await importUrl(user.id, {
+    const nodeId = await importYouTubeVideoForUser(user.id, {
       url,
-      title: input.title?.trim() || null,
-      thumbnailKey,
-      languageCode,
-      description: input.description?.trim() || null,
-      newTagLabels: tagLabels,
-      existingTagIds: [],
-      // N12 (Option B): an explicit folder context wins; when none is set
-      // the RPC falls back to p_auto_folder_name="YouTube".
-      folderId: input.targetFolderId ?? null,
-      note: null,
-      nodeType: "video",
-      autoFolderName: "YouTube",
+      title: input.title,
+      description: input.description,
+      channelTitle: input.channelTitle,
+      categoryId: input.categoryId,
+      thumbnailUrl: input.thumbnailUrl,
+      targetFolderId: input.targetFolderId,
     });
 
     revalidatePath("/feed");
-    return { ok: true, nodeId: node.id };
+    return { ok: true, nodeId };
   } catch (err) {
     if (err instanceof DuplicateNodeError) {
       return {
