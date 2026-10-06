@@ -936,6 +936,11 @@ Applied to task/feature entries going forward. Existing entries retain their ✅
 |---|---|---|---|
 | FIX-MODAL-PORTAL-NAV-001 | ⋯ menu sometimes navigates to card detail | ✅ | Root cause: `createPortal` bubbles synthetic events through the React tree — `ItemMenu`'s modal (portaled to `document.body` inside `<Link href="/card/[id]">`) leaked backdrop clicks to the anchor → `onClose` fired AND the Link navigated (menu closes → detail opens; a 2nd click of a double-click on ⋯ lands on the just-opened backdrop → "directly detail"). Clicks inside `.modal` were already `stopPropagation`'d (menu items safe) — only `.modal-backdrop` `onClick={onClose}` wasn't stopped. Fix: `Modal.tsx` backdrop `onClick` now `e.stopPropagation(); onClose()`. Covers every Modal consumer (ItemMenu, FolderPickModal, ShareSheet + 7 more — modal clicks should never reach background UI). Single file, single handler. Verify: `tsc --noEmit` 0. |
 
+### UX-MOVENEWFOLDER-001 (2026-10-06)
+| Task ID | Item | Status | Notes |
+|---|---|---|---|
+| UX-MOVENEWFOLDER-001 | Move-to-folder sheet can create the destination folder | ✅ | `app/(app)/_components/FolderPickModal.tsx`: the destination `<select>` gains a `+ New folder` option (sentinel `__new__`); picking it reveals an autofocused name input (`folder.namePlaceholder`, Enter submits). Confirm with `__new__` runs `createFolderAction({name})` → `onPick(newId)` — the existing per-caller move then files the card/folder into the brand-new root folder. Error path keeps the sheet open with `toast.error`. Reuses existing i18n keys (`folder.new`, `folder.namePlaceholder`, `common.name`) — en/fr/th already covered. One component change → applies to every move entry point: card ⋯ (CardItem), folder tile ⋯ (FolderTile), rail ⋯ (FolderRail), subfolder ⋯ (FolderView). Cycle-safe for reparents (fresh folder has no subtree). Verify: `tsc --noEmit` 0; eslint 0. |
+
 ### YT-SYNC-CRON-001 (2026-10-04)
 | Task ID | Item | Status | Notes |
 |---|---|---|---|
