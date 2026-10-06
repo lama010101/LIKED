@@ -126,6 +126,19 @@ export async function importUrl(body: ImportRequest): Promise<ImportSuccess> {
   return parseJson<ImportSuccess>(res);
 }
 
+export interface UrlStatus {
+  success: true;
+  saved: boolean;
+  nodeId: string | null;
+}
+
+export async function getUrlStatus(url: string): Promise<UrlStatus> {
+  const res = await authedFetch(`/api/extension/status?url=${encodeURIComponent(url)}`, {
+    method: "GET",
+  });
+  return parseJson<UrlStatus>(res);
+}
+
 export async function getFolders(): Promise<Folder[]> {
   const res = await authedFetch("/api/extension/folders", { method: "GET" });
   return parseJson<Folder[]>(res);

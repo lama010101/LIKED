@@ -20,7 +20,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-ext-theme="light"]) {
     --bg: #0d0e11;
     --surface-1: #15171c;
     --surface-2: #1d2026;
@@ -34,6 +34,22 @@
     --accent-ink: #0d0e11;
     --accent-soft: #1d2026;
   }
+}
+
+/* A dark picked background forces the dark palette even under a light
+   system theme (EXT-THEME-001). */
+:root[data-ext-theme="dark"] {
+  --surface-1: #15171c;
+  --surface-2: #1d2026;
+  --surface-3: #262a31;
+  --border-1: #262a31;
+  --border-2: #353a44;
+  --text-1: #f3f4f6;
+  --text-2: #c1c5cc;
+  --text-3: #8a9099;
+  --accent: #f3f4f6;
+  --accent-ink: #0d0e11;
+  --accent-soft: #1d2026;
 }
 
 * {
@@ -337,4 +353,79 @@ body {
 .muted {
   color: var(--text-3);
   font-size: 11px;
+}
+
+/* Appearance: background-color picker (EXT-THEME-001) */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  border-radius: var(--r-full);
+  background: transparent;
+  cursor: pointer;
+}
+.theme-toggle:hover {
+  background: var(--surface-2);
+}
+.theme-toggle .theme-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: conic-gradient(#f87171, #fbbf24, #34d399, #60a5fa, #f87171);
+  border: 1px solid var(--border-2);
+}
+.theme-row {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: -4px 0 10px;
+  padding: 6px 8px;
+  border: 1px solid var(--border-1);
+  border-radius: var(--r-md);
+  background: var(--surface-1);
+}
+.theme-row.open {
+  display: flex;
+}
+.swatch {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--border-2);
+  background: var(--surface-2);
+  color: var(--text-3);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+.swatch.auto {
+  background: linear-gradient(135deg, #ffffff 50%, #0d0e11 50%);
+}
+.swatch.selected {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.swatch.custom {
+  cursor: pointer;
+  padding: 0;
+  overflow: hidden;
+}
+input[type="color"].swatch::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+input[type="color"].swatch::-webkit-color-swatch {
+  border: none;
+  border-radius: 50%;
 }
