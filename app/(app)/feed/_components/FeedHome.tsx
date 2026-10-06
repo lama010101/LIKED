@@ -42,25 +42,14 @@ export default function FeedHome({
   const [nodes, setNodes] = useState(initialNodes);
   const [cursor, setCursor] = useState(nextCursor);
   const [loading, setLoading] = useState(false);
-  // Card ordering pref (UX-BATCH-004): "created" (default, newest first)
-  // or "alpha". Persisted in localStorage, synced via liked:prefs — same
-  // store mechanism as the folder sort in FolderRail.
+  // Layout pref — under friends-top the body .folder-section is display:none
+  // (folders live in the left rail), so folder hits can't count as visible
+  // search results there or suppressCards would blank the page.
   const subscribePrefs = useCallback((onChange: () => void) => {
     window.addEventListener("liked:prefs", onChange);
     return () => window.removeEventListener("liked:prefs", onChange);
   }, []);
-  const cardSort = useSyncExternalStore(
-    subscribePrefs,
-    () => (localStorage.getItem("liked.cardSort") === "alpha" ? "alpha" : "created"),
-    () => "created"
-  );
-  // Layout pref — under friends-top the body .folder-section is display:none
-  // (folders live in the left rail), so folder hits can't count as visible
-  // search results there or suppressCards would blank the page.
   const layout = useSyncExternalStore(subscribePrefs, getLayoutPref, () => "friends-left" as LayoutPref);
-  const sortedNodes = cardSort === "alpha"
-    ? [...nodes].sort((a, b) => (a.title ?? a.text_content ?? "").localeCompare(b.title ?? b.text_content ?? ""))
-    : nodes;
 
   // Resync on router.refresh(): refresh delivers new props without remounting
   // (the key only covers params), so paginated state would otherwise stay
@@ -161,18 +150,6 @@ export default function FeedHome({
       <div className="feed-head">
         <h2 className="sec-title">{query ? `"${query}"` : activeFolderId ? (folders.find((f) => f.id === activeFolderId)?.name ?? t("feed.cards")) : meView ? t("nav.me") : t("feed.cards")}</h2>
         <div className="feed-head-side">
-          <div className="seg" role="group" aria-label={t("folder.sort")}>
-            <button
-              type="button"
-              className={`seg-btn ${cardSort === "created" ? "seg-on" : ""}`}
-              onClick={() => { localStorage.setItem("liked.cardSort", "created"); window.dispatchEvent(new Event("liked:prefs")); }}
-            >{t("folder.sortCreated")}</button>
-            <button
-              type="button"
-              className={`seg-btn ${cardSort === "alpha" ? "seg-on" : ""}`}
-              onClick={() => { localStorage.setItem("liked.cardSort", "alpha"); window.dispatchEvent(new Event("liked:prefs")); }}
-            >{t("folder.sortAlpha")}</button>
-          </div>
           <ViewSwitch view={view} onPick={pickView} />
         </div>
       </div>
@@ -181,7 +158,7 @@ export default function FeedHome({
         <p className="empty-note">{query ? t("feed.emptySearch", { q: query }) : t("feed.empty")}</p>
       ) : (
         <div className={`cards cards-${view}`}>
-          {sortedNodes.map((n) => {
+          {nodes.map((n) => {
             const fid = nodeFolders[n.node_id];
             const fname = folderName(fid);
             return (
