@@ -94,3 +94,11 @@ The move-to-folder picker uses a native `<select>`. In recordings, click it once
 
 - Best fix: request `SUPABASE_SECRET_KEY` (service-role / `sb_secret_*`) for the project.
 - Test-only fallback: temporarily change the `getSupabaseServiceClient()` call in `getSessionUser` to `await getSupabaseServerClient()` (already imported). The users row IS readable under RLS with the user's own JWT. Revert after the run and disclose. `getFriendBar` also uses the service client → friends rail degrades to empty (caught → `[]`), acceptable for nav testing.
+
+## Grouped search + auto-tag testing (verified 2026-10-06)
+
+- `?group=` (theme|channel|folder) only applies under `?q=` — client-side regroup, no refetch (FeedHome's remount key excludes `group`).
+- `?q=test` on e2e-test@liked.app exercises every section at once: friends + shared-folder + ~139 card matches. Its ~210 synthetic YT cards have fake URLs → oEmbed yields no channel_title → correctly stay "Uncategorized" under `?group=channel`; non-YT links group by hostname (e.g. `example.com`). Use real YouTube imports for real channel names.
+- "✨ Tag my cards" labels the VISIBLE unclassified count but classifies ALL own unclassified nodes (cap 200, ~4-6 min) — poll `node_classifications` row growth via psql as the progress signal.
+- Classification is own-only: `direction='received'` cards always stay "Uncategorized" — not a bug.
+- `?group=folder` works pre-tag off `folder_edges`; theme/channel need classification rows.
