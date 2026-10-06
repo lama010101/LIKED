@@ -74,6 +74,20 @@ If `*.supabase.co` for the DEV ref fails DNS (project paused/deleted — `getent
 3. `.env.local`: `NEXT_PUBLIC_SUPABASE_URL=https://lzkzfqshnjvlzosnntfx.supabase.co`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<key>`.
 4. Password grant + `sb-lzkzfqshnjvlzosnntfx-auth-token` cookie works as above (e2e-test@liked.app exists on prod).
 
+## Vercel PR previews are behind Vercel SSO (verified 2026-10-06)
+
+`liked-git-*-lolo-0df7.vercel.app` redirects to `vercel.com/login` (deployment protection). Password-grant + cookie auth does NOT work there — always run `npm run dev` locally for authenticated e2e. Dev needs `SUPABASE_SECRET_KEY` (repo secret `secret:repo:lama010101/LIKED:SUPABASE_SECRET_KEY`) bound in the exec env — `.env.local` only carries the two public `NEXT_PUBLIC_*` vars.
+
+## Verifying card→folder moves: stale chip on /feed
+
+`FeedHome`'s `nodeFolders` client map only fetches ids not already cached and is NOT refetched on `router.refresh()`. Right after a move, the card's folder chip on `/feed` still shows the OLD folder (e.g. "Unsorted") — a pre-existing quirk, not a move failure. Verify membership on `/feed?folder=<folderId>` instead: `feed/page.tsx` keys `FeedHome` on the `folder` param so that URL remounts and refetches chips. Folder tile counts are server-rendered and trustworthy immediately.
+
+Note: `folder_edges` rows include the system "Unsorted" folder — every new card shows an "Unsorted" chip until moved.
+
+## Native <select> interaction (FolderPickModal)
+
+The move-to-folder picker uses a native `<select>`. In recordings, click it once to open the native dropdown, then click the option row directly (options render ~19px apart).
+
 ## Missing SUPABASE_SECRET_KEY → getSessionUser redirect loop
 
 `getSessionUser()` (app/lib/actions/session.ts) does a `public.users` lookup via `getSupabaseServiceClient()` which **throws without `SUPABASE_SECRET_KEY`** → returns null → `/feed`↔`/login` redirect loop (middleware getUser succeeds, layout check fails — signature: `/login` 307→`/feed` while `/feed` 307→`/login` on the same cookie).

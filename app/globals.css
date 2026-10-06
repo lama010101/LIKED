@@ -2380,3 +2380,11 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
 .rail-toggle[aria-pressed="false"] { color: var(--text-3); }
 .settings-email { margin-top: 4px; font-size: var(--text-sm, 12px); color: var(--text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .feed-head-side { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+/* Grouped search (query view) */
+.autotag-btn { margin: 8px 0 4px; }
+.feed-groups { display: flex; flex-direction: column; gap: 18px; }
+.feed-group-title { font-size: var(--text-lg, 16px); margin: 0 0 10px; display: flex; align-items: baseline; gap: 8px; }
+.feed-group-count { font-size: var(--text-sm, 12px); color: var(--text-3); font-weight: 400; }
+.feed-subgroup { margin: 6px 0 12px 12px; }
+.feed-subgroup-title { font-size: var(--text-md, 14px); color: var(--text-2); margin: 0 0 8px; display: flex; align-items: baseline; gap: 8px; }

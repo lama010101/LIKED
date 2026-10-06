@@ -599,6 +599,33 @@ export interface Database {
         }
         Relationships: []
       }
+      node_classifications: {
+        Row: {
+          node_id: string
+          owner_id: string
+          theme: string | null
+          subtheme: string | null
+          channel_title: string | null
+          updated_at: string
+        }
+        Insert: {
+          node_id: string
+          owner_id: string
+          theme: string | null
+          subtheme: string | null
+          channel_title: string | null
+          updated_at?: string
+        }
+        Update: {
+          node_id?: string | null
+          owner_id?: string | null
+          theme?: string | null
+          subtheme?: string | null
+          channel_title?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       node_messages: {
         Row: {
           id: string
@@ -1833,6 +1860,11 @@ export interface Database {
         Returns: any
       }
       set_limit: {
+        Args: {
+        }
+        Returns: any
+      }
+      set_node_classifications: {
         Args: {
         }
         Returns: any

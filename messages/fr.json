@@ -236,5 +236,15 @@
     "ytDuplicate": "Déjà dans votre flux.",
     "ytFailed": "Échec de l'enregistrement de la vidéo.",
     "ytNetworkError": "Erreur réseau. Veuillez réessayer."
+  },
+  "search": {
+    "groupBy": "Regrouper par",
+    "theme": "Thème",
+    "channel": "Chaîne",
+    "folder": "Dossier",
+    "unclassified": "Non classé",
+    "noFolder": "Sans dossier",
+    "tagAll": "✨ Taguer mes cartes ({count} à taguer)",
+    "tagging": "Étiquetage…"
   }
 }
