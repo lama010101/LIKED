@@ -9,6 +9,7 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { getSupabaseServiceClient } from "@/lib/supabase/service";
 import { cookies } from "next/headers";
+import { after } from "next/server";
 import { revalidatePath } from "next/cache";
 import { LOCALE_COOKIE, isLocale, type Locale } from "@/i18n/locales";
 
@@ -360,6 +361,106 @@ export async function rateFolderAction(folderId: string, score: number) {
   await rpc("rate_folder", { p_folder_id: folderId, p_score: score });
 }
 
+// ── grouped-search classification ─────────────────────────────
+
+export interface NodeContext {
+  theme: string | null;
+  subtheme: string | null;
+  channelTitle: string | null;
+  folderId: string | null;
+  folderName: string | null;
+}
+
+/** node_id → {theme, subtheme, channelTitle, folder} map for grouped search
+ *  rendering. Reads node_classifications + folder_edges under RLS (same
+ *  pattern as getNodeFoldersAction). */
+export async function getNodeContextAction(nodeIds: string[]): Promise<Record<string, NodeContext>> {
+  const map: Record<string, NodeContext> = {};
+  if (nodeIds.length === 0) return map;
+  const supabase = await getSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return map;
+
+  const [clsRes, edgeRes] = await Promise.all([
+    supabase
+      .from("node_classifications")
+      .select("node_id, theme, subtheme, channel_title")
+      .eq("owner_id", user.id)
+      .in("node_id", nodeIds),
+    supabase
+      .from("folder_edges")
+      .select("node_id, folder_id")
+      .in("node_id", nodeIds),
+  ]);
+
+  const folderIds = Array.from(new Set((edgeRes.data ?? []).map((r) => r.folder_id as string)));
+  const folderNameById = new Map<string, string>();
+  if (folderIds.length > 0) {
+    const { data: folderRows } = await supabase
+      .from("folders")
+      .select("id, name")
+      .in("id", folderIds);
+    for (const f of folderRows ?? []) folderNameById.set(f.id as string, f.name as string);
+  }
+  const folderByNode = new Map<string, string>();
+  for (const r of edgeRes.data ?? []) {
+    if (!folderByNode.has(r.node_id as string)) folderByNode.set(r.node_id as string, r.folder_id as string);
+  }
+
+  for (const id of nodeIds) {
+    const cls = (clsRes.data ?? []).find((r) => r.node_id === id);
+    const folderId = folderByNode.get(id) ?? null;
+    map[id] = {
+      theme: (cls?.theme as string | null) ?? null,
+      subtheme: (cls?.subtheme as string | null) ?? null,
+      channelTitle: (cls?.channel_title as string | null) ?? null,
+      folderId,
+      folderName: folderId ? folderNameById.get(folderId) ?? null : null,
+    };
+  }
+  return map;
+}
+
+/** Server-side auto-tag trigger: classify the caller's own nodes
+ *  (theme/subtheme/channel) for grouped search. Fire-and-forget safe. */
+export async function autoTagNodesAction(nodeIds: string[]): Promise<ClassifyCount> {
+  const supabase = await getSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { candidates: 0, themed: 0, channeled: 0 };
+  const { classifyNodesForUser } = await import("@/lib/ai/classify");
+  return classifyNodesForUser(user.id, nodeIds);
+}
+
+interface ClassifyCount {
+  candidates: number;
+  themed: number;
+  channeled: number;
+}
+
+/** ids of the caller's own nodes with no theme yet (search-page backfill). */
+export async function getUnclassifiedOwnNodesAction(limit = 200): Promise<string[]> {
+  const supabase = await getSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+  const { data: nodes } = await supabase
+    .from("nodes")
+    .select("id")
+    .eq("owner_id", user.id)
+    .is("deleted_at", null)
+    .order("created_at", { ascending: false })
+    .limit(Math.min(limit, 500));
+  if (!nodes?.length) return [];
+  const ids = nodes.map((n) => n.id as string);
+  const { data: cls } = await supabase
+    .from("node_classifications")
+    .select("node_id")
+    .eq("owner_id", user.id)
+    .in("node_id", ids)
+    .not("theme", "is", null);
+  const themed = new Set((cls ?? []).map((r) => r.node_id as string));
+  return ids.filter((id) => !themed.has(id));
+}
+
 // ── organize ───────────────────────────────────────────────────
 
 export async function createOrganizeBatchAction(sourceFolderId: string): Promise<string> {
@@ -484,6 +585,17 @@ export async function createCardAction(input: {
       return { ok: true, nodeId: res.nodeId, error: e instanceof Error ? e.message : "folder move failed" };
     }
   }
+  // Grouped-search classification — post-response, fail-soft.
+  const newNodeId = res.nodeId;
+  after(async () => {
+    try {
+      const { classifyNodesForUser } = await import("@/lib/ai/classify");
+      const supabase = await getSupabaseServerClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) await classifyNodesForUser(user.id, [newNodeId]);
+    } catch {}
+  });
+
   revalidatePath("/feed");
   return { ok: true, nodeId: res.nodeId };
 }

@@ -130,3 +130,134 @@ export async function suggestCategorization(input: {
   }
   return null;
 }
+
+// ── grouped-search classification ─────────────────────────────
+// One call classifies a BATCH of cards into (theme, subtheme) —
+// the free tier caps ~50 calls/day, so batching is what makes a
+// backfill over a full library feasible. The user's existing theme
+// vocabulary is passed so the model reuses labels instead of
+// inventing synonyms (keeps groups stable across calls).
+
+export interface ThemeClassifyItem {
+  id: string;
+  title: string;
+  description: string | null;
+  channelTitle: string | null;
+  folderName: string | null;
+}
+
+export interface ThemeClassification {
+  id: string;
+  theme: string;
+  subtheme: string | null;
+}
+
+const BATCH_SCHEMA = {
+  type: "json_schema",
+  json_schema: {
+    name: "theme_classifications",
+    strict: true,
+    schema: {
+      type: "object",
+      properties: {
+        items: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              id: { type: "string" },
+              theme: { type: "string" },
+              subtheme: { type: ["string", "null"] },
+            },
+            required: ["id", "theme", "subtheme"],
+            additionalProperties: false,
+          },
+        },
+      },
+      required: ["items"],
+      additionalProperties: false,
+    },
+  },
+} as const;
+
+export async function classifyThemesBatch(
+  items: ThemeClassifyItem[],
+  existingThemes: string[]
+): Promise<ThemeClassification[] | null> {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey || items.length === 0) return null;
+
+  const cards = items
+    .map((c, i) => {
+      const bits = [`${i + 1}. id=${c.id}`, `   title: ${c.title}`];
+      if (c.channelTitle) bits.push(`   channel/site: ${c.channelTitle}`);
+      if (c.folderName) bits.push(`   user folder: ${c.folderName}`);
+      if (c.description) bits.push(`   description: ${c.description.slice(0, 300)}`);
+      return bits.join("\n");
+    })
+    .join("\n");
+
+  const prompt = [
+    "You are classifying a user's saved cards (links, videos, notes) for grouped search results.",
+    "For EACH card output one entry:",
+    '  - "id": the card id exactly as given',
+    '  - "theme": a short broad genre (e.g. "AI Tools", "News", "Music", "Cooking", "Programming")',
+    '  - "subtheme": a short sub-genre inside the theme (e.g. under "AI Tools": "Image generation", "Music creation", "Coding assistants", "Video generation"; under "AI": "News", "Benchmarks", "Tutorials") or null when it does not fit',
+    "Reuse the user's existing themes verbatim whenever a card fits one — do NOT invent near-duplicate labels.",
+    "Theme and subtheme must be short (1-4 words), Title Case, in the card's own language.",
+    "Respond with JSON only.",
+    "",
+    `Existing themes: ${existingThemes.join(", ") || "(none yet)"}`,
+    "",
+    "Cards:",
+    cards,
+  ].join("\n");
+
+  const MAX_ATTEMPTS = 3;
+  const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      const res = await fetch(ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: MODEL,
+          messages: [{ role: "user", content: prompt }],
+          response_format: BATCH_SCHEMA,
+        }),
+      });
+      const body = await res.text();
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = JSON.parse(body) as {
+        choices?: { message?: { content?: string } }[];
+        error?: { message?: string; code?: number };
+      };
+      if (data.error) throw new Error(`embedded error ${data.error.code ?? "?"}: ${data.error.message ?? "unknown"}`);
+      const text = data.choices?.[0]?.message?.content;
+      if (!text) throw new Error("empty content");
+      const parsed = JSON.parse(text) as { items?: Partial<ThemeClassification>[] };
+      const byId = new Set(items.map((i) => i.id));
+      return (parsed.items ?? [])
+        .filter((r): r is ThemeClassification => typeof r?.id === "string" && byId.has(r.id) && typeof r?.theme === "string" && !!r.theme.trim())
+        .map((r) => ({
+          id: r.id,
+          theme: r.theme.trim().slice(0, 60),
+          subtheme: typeof r.subtheme === "string" && r.subtheme.trim() ? r.subtheme.trim().slice(0, 60) : null,
+        }));
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (attempt < MAX_ATTEMPTS) {
+        logger.warn(`[openrouter] classify attempt ${attempt}/${MAX_ATTEMPTS} failed (${msg}); retrying in ${attempt}s`);
+        await sleep(attempt * 1000);
+      } else {
+        logger.warn(`[openrouter] classify failed after ${MAX_ATTEMPTS} attempts: ${msg}`);
+        return null;
+      }
+    }
+  }
+  return null;
+}

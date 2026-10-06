@@ -236,5 +236,15 @@
     "ytDuplicate": "Already in your feed.",
     "ytFailed": "Failed to save video.",
     "ytNetworkError": "Network error. Please try again."
+  },
+  "search": {
+    "groupBy": "Group by",
+    "theme": "Theme",
+    "channel": "Channel",
+    "folder": "Folder",
+    "unclassified": "Uncategorized",
+    "noFolder": "No folder",
+    "tagAll": "✨ Tag my cards ({count} to tag)",
+    "tagging": "Tagging…"
   }
 }

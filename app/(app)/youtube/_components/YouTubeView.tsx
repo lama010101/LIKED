@@ -58,8 +58,16 @@ export default function YouTubeView({ consent }: { consent: boolean }) {
     stopRef.current = false;
     setProgOpen(true);
     try {
-      const count = await runYouTubeImport((n) => setProgress(`${n}`), () => stopRef.current);
+      const { count, nodeIds } = await runYouTubeImport((n) => setProgress(`${n}`), () => stopRef.current);
       toast.success(`✓ ${count}`);
+      // Fire-and-forget: theme/channel classification for grouped search.
+      if (nodeIds.length > 0) {
+        fetch("/api/classify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ node_ids: nodeIds }),
+        }).catch(() => {});
+      }
       router.refresh();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : t("common.error"));

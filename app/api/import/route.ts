@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import {
   getSupabaseClientFromBearer,
   extensionCorsHeaders,
@@ -206,6 +206,15 @@ export async function POST(req: NextRequest) {
   // 5. Auto-folder assignment happened inside the import_url RPC
   //    (p_auto_folder_name=NULL → "Unsorted" in the same transaction).
   //    No post-write folder call needed (AUDIT-06 P1-4).
+
+  // 6. Grouped-search classification (theme/channel) — post-response,
+  //    fail-soft; the save itself is already durable.
+  after(async () => {
+    try {
+      const { classifyNodesForUser } = await import("@/lib/ai/classify");
+      await classifyNodesForUser(user.id, [nodeId]);
+    } catch {}
+  });
 
   return NextResponse.json(
     { success: true, nodeId, alreadyExists: false },

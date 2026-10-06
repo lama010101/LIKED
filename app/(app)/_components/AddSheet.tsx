@@ -120,6 +120,12 @@ export default function AddSheet({
       if (result.ok) {
         toast.success(targetFolderId ? t("add.ytSaved") : t("add.ytSavedYouTube"));
         setYtAdded((prev) => new Set(prev).add(v.id));
+        // Fire-and-forget: theme/channel classification for grouped search.
+        fetch("/api/classify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ node_ids: [result.nodeId] }),
+        }).catch(() => {});
         onCreated?.();
       } else if (result.code === "duplicate") {
         toast.success(t("add.ytDuplicate"));
