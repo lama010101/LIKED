@@ -1219,17 +1219,7 @@ export interface Database {
         }
         Returns: any
       }
-      delete_folder: {
-        Args: {
-        }
-        Returns: any
-      }
       delete_group: {
-        Args: {
-        }
-        Returns: any
-      }
-      direct_share: {
         Args: {
         }
         Returns: any
@@ -1315,23 +1305,37 @@ export interface Database {
             total_count: number
           }[]
       }
-      get_folder_access_users: {
+      get_folder: {
         Args: {
           p_folder_id: string | null
-          p_requester_id: string | null
         }
         Returns: {
-            user_id: string
-            display_name: string
-            avatar_key: string
+            id: string
+            name: string
+            description: string
+            owner_id: string
+            owner_name: string
+            parent_folder_id: string
+            color_hex: string
+            system_kind: string
+            created_at: string
+            my_permission: string
+            is_shared: boolean
+            breadcrumb: Json
+            children: Json
+            node_ids: string[]
           }[]
       }
-      get_folder_memberships: {
+      get_folder_access: {
         Args: {
           p_folder_id: string | null
         }
         Returns: {
-            node_id: string
+            grantee_id: string
+            display_name: string
+            avatar_key: string
+            permission: string
+            granted_at: string
           }[]
       }
       get_folder_permission: {
@@ -1346,12 +1350,40 @@ export interface Database {
         Returns: {
             id: string
             name: string
+            description: string
             owner_id: string
+            owner_name: string
             parent_folder_id: string
             is_project: boolean
             color_hex: string
+            system_kind: string
             deleted_at: string
             created_at: string
+            my_permission: string
+          }[]
+      }
+      get_folders: {
+        Args: {
+          p_parent_folder_id?: string | null
+          p_search?: string | null
+          p_tag_ids?: string[] | null
+          p_friend_id?: string | null
+          p_sort?: string | null
+        }
+        Returns: {
+            id: string
+            name: string
+            description: string
+            owner_id: string
+            owner_name: string
+            parent_folder_id: string
+            color_hex: string
+            system_kind: string
+            created_at: string
+            my_permission: string
+            is_shared: boolean
+            node_count: number
+            thumbnails: Json
           }[]
       }
       get_friend_bar: {
@@ -1375,6 +1407,19 @@ export interface Database {
             user_id: string
             display_name: string
             avatar_key: string
+          }[]
+      }
+      get_node_access: {
+        Args: {
+          p_node_id: string | null
+        }
+        Returns: {
+            user_id: string
+            display_name: string
+            avatar_key: string
+            permission: string
+            cause_id: string
+            created_at: string
           }[]
       }
       get_node_friend_ratings: {
@@ -1415,45 +1460,52 @@ export interface Database {
         }
         Returns: any
       }
-      get_or_create_unsorted_folder: {
+      get_organize_batch: {
         Args: {
-        }
-        Returns: any
-      }
-      get_social_timeline: {
-        Args: {
-          p_user_id: string | null
-          p_language_code?: string | null
-          p_cursor_created_at?: string | null
-          p_cursor_id?: string | null
-          p_limit?: number | null
+          p_batch_id: string | null
         }
         Returns: {
-            kind: string
+            item_id: string
+            node_id: string
+            node_title: string
+            node_thumbnail: string
+            status: string
+            target_folder_id: string
+            target_folder_name: string
+            new_folder_name: string
+            tag_labels: string[]
+            reason: string
+          }[]
+      }
+      get_organize_batches: {
+        Args: {
+        }
+        Returns: {
             id: string
+            source_folder_id: string
+            source_folder_name: string
+            status: string
+            item_count: number
+            proposed_count: number
             created_at: string
-            url: string
-            text_content: string
-            title: string
-            thumbnail_key: string
-            owner_id: string
-            direction: string
-            sender_id: string
-            sender_name: string
-            sender_avatar_key: string
-            avg_rating: number
-            tags: Json
-            folder_name: string
-            folder_color: string
-            folder_count: number
-            folder_thumbnails: Json
-            total_count: number
           }[]
       }
       get_trash_count: {
         Args: {
         }
         Returns: any
+      }
+      get_trash_items: {
+        Args: {
+        }
+        Returns: {
+            item_type: string
+            id: string
+            title: string
+            thumbnail_key: string
+            trash_batch_id: string
+            deleted_at: string
+          }[]
       }
       get_unread_notification_count: {
         Args: {
@@ -1529,16 +1581,6 @@ export interface Database {
         Returns: any
       }
       group_is_owned: {
-        Args: {
-        }
-        Returns: any
-      }
-      group_share: {
-        Args: {
-        }
-        Returns: any
-      }
-      group_unshare: {
         Args: {
         }
         Returns: any
@@ -1672,12 +1714,30 @@ export interface Database {
         }
         Returns: any
       }
+      list_notifications: {
+        Args: {
+          p_limit?: number | null
+          p_before?: string | null
+        }
+        Returns: {
+            id: string
+            type: string
+            payload: Json
+            read: boolean
+            created_at: string
+          }[]
+      }
       mark_notifications_read: {
         Args: {
         }
         Returns: any
       }
       move_folder: {
+        Args: {
+        }
+        Returns: any
+      }
+      move_node_everywhere: {
         Args: {
         }
         Returns: any
@@ -1737,17 +1797,7 @@ export interface Database {
         }
         Returns: any
       }
-      revoke_folder_admin: {
-        Args: {
-        }
-        Returns: any
-      }
       revoke_folder_grant: {
-        Args: {
-        }
-        Returns: any
-      }
-      revoke_group_admin: {
         Args: {
         }
         Returns: any
@@ -1803,11 +1853,6 @@ export interface Database {
         Returns: any
       }
       set_youtube_import_consent: {
-        Args: {
-        }
-        Returns: any
-      }
-      share_folder: {
         Args: {
         }
         Returns: any
@@ -1882,11 +1927,6 @@ export interface Database {
         }
         Returns: any
       }
-      unshare_folder_op: {
-        Args: {
-        }
-        Returns: any
-      }
       update_avatar_key: {
         Args: {
           p_user_id: string | null
@@ -1906,6 +1946,11 @@ export interface Database {
             success: boolean
             error_code: string
           }[]
+      }
+      update_node_text: {
+        Args: {
+        }
+        Returns: any
       }
       update_node_title: {
         Args: {
