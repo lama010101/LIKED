@@ -2,7 +2,6 @@
 
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
-import { getSupabaseServiceClient } from "@/lib/supabase/service";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { getFriendBar, FriendBarEntry, getGroupBar, GroupBarEntry } from "@/lib/db/friends";
 
@@ -34,8 +33,9 @@ export async function getSessionUser(): Promise<SessionUser | null> {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return null;
 
-    const db = getSupabaseServiceClient();
-    const { data } = await db
+    // users_select_scoped allows id = auth.uid() — the user-scoped client
+    // suffices for this self-read; no service key required.
+    const { data } = await supabase
       .from("users")
       .select("id, display_name, avatar_key, language_code")
       .eq("id", user.id)

@@ -9,7 +9,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { FeedNode, FeedParams } from "@/lib/types/feed";
 import { fetchFeedPageAction } from "@/app/lib/actions/feed";
 import type { Mvp2Folder } from "@/app/lib/actions/mvp2";
@@ -37,6 +37,16 @@ export default function FeedHome({
   const [nodes, setNodes] = useState(initialNodes);
   const [cursor, setCursor] = useState(nextCursor);
   const [loading, setLoading] = useState(false);
+  // Card ordering (AUDIT-09 P2-1): the sort is a get_feed input
+  // (p_sort), not a client-side reorder — the seg writes ?sort= into
+  // the URL so the server re-fetches in SQL order (incl. pagination).
+  const searchParams = useSearchParams();
+  const cardSort = feedParams.p_sort === "alpha" ? "alpha" : "created";
+  const setCardSort = (v: "created" | "alpha") => {
+    const sp = new URLSearchParams(searchParams.toString());
+    if (v === "alpha") sp.set("sort", "alpha"); else sp.delete("sort");
+    router.push(`/feed?${sp.toString()}`);
+  };
 
   // Resync on router.refresh(): refresh delivers new props without remounting
   // (the key only covers params), so paginated state would otherwise stay
@@ -106,6 +116,18 @@ export default function FeedHome({
       <div className="feed-head">
         <h2 className="sec-title">{query ? `"${query}"` : activeFolderId ? (folders.find((f) => f.id === activeFolderId)?.name ?? t("feed.cards")) : meView ? t("nav.me") : t("feed.cards")}</h2>
         <div className="feed-head-side">
+          <div className="seg" role="group" aria-label={t("folder.sort")}>
+            <button
+              type="button"
+              className={`seg-btn ${cardSort === "created" ? "seg-on" : ""}`}
+              onClick={() => setCardSort("created")}
+            >{t("folder.sortCreated")}</button>
+            <button
+              type="button"
+              className={`seg-btn ${cardSort === "alpha" ? "seg-on" : ""}`}
+              onClick={() => setCardSort("alpha")}
+            >{t("folder.sortAlpha")}</button>
+          </div>
           <ViewSwitch view={view} onPick={pickView} />
         </div>
       </div>

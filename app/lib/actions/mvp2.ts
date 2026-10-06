@@ -48,6 +48,7 @@ export async function getFoldersAction(opts?: {
   search?: string | null;
   tagIds?: string[] | null;
   friendId?: string | null;
+  sort?: "created" | "alpha" | "name" | null;
 }): Promise<Mvp2Folder[]> {
   const rpc = await sessionRpc();
   return (await rpc("get_folders", {
@@ -55,6 +56,7 @@ export async function getFoldersAction(opts?: {
     p_search: opts?.search ?? null,
     p_tag_ids: opts?.tagIds ?? null,
     p_friend_id: opts?.friendId ?? null,
+    p_sort: opts?.sort === "created" ? "created" : "name",
   })) as Mvp2Folder[];
 }
 
@@ -226,32 +228,16 @@ export async function moveNodeToFolderAction(nodeId: string, fromFolderId: strin
 }
 
 /** Move a card to a folder — files it out of every folder it is currently in
- *  (single-membership app convention). One move_node_to_folder RPC per
- *  source folder; each call is itself atomic. */
+ *  (single-membership app convention). One move_node_everywhere RPC — the
+ *  whole add+remove runs in a single transaction (AUDIT-09 P3-5). */
 export async function moveNodeEverywhereAction(nodeId: string, targetFolderId: string) {
   const rpc = await sessionRpc();
   const supabase = await getSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const { data: cur } = await supabase
-    .from("folder_edges")
-    .select("folder_id")
-    .eq("node_id", nodeId);
-  const sources = (cur ?? [])
-    .map((r: { folder_id: string }) => r.folder_id)
-    .filter((id: string) => id !== targetFolderId);
-  if (sources.length === 0) {
-    await rpc("move_node_to_folder", {
-      p_node_id: nodeId, p_target_folder_id: targetFolderId,
-      p_source_folder_id: null, p_user_id: user?.id ?? null,
-    });
-  } else {
-    for (const src of sources) {
-      await rpc("move_node_to_folder", {
-        p_node_id: nodeId, p_target_folder_id: targetFolderId,
-        p_source_folder_id: src, p_user_id: user?.id ?? null,
-      });
-    }
-  }
+  await rpc("move_node_everywhere", {
+    p_node_id: nodeId, p_target_folder_id: targetFolderId,
+    p_user_id: user?.id ?? null,
+  });
   revalidatePath("/feed");
 }
 
@@ -446,8 +432,8 @@ export async function getYoutubeConsentAction(): Promise<boolean> {
   const supabase = await getSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return false;
-  const db = getSupabaseServiceClient();
-  const { data } = await db.from("users").select("youtube_import_consent_at").eq("id", user.id).single();
+  // users_select_scoped permits id = auth.uid() — self-read needs no service key.
+  const { data } = await supabase.from("users").select("youtube_import_consent_at").eq("id", user.id).single();
   return !!data?.youtube_import_consent_at;
 }
 
