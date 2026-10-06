@@ -5,6 +5,11 @@
 //     → idle (tab preview + Save + Advanced toggle)
 //     → saving → saved ✓ / already-saved / error
 //
+// On open, GET /api/extension/status?url=… marks the popup "already saved"
+// when the URL is already in the user's library (EXT-STATUS-001).
+// Appearance: a persisted popup background color stored in
+// chrome.storage.sync (remembered across the user's Chrome installs).
+//
 // Quick save (default): click "Save" with no advanced fields → POST /api/import
 //   with just { url, clientMetadata }.
 // Advanced: expand to set title, description, folder, existing tag chips,
@@ -15,6 +20,7 @@ import {
   importUrl,
   getFolders,
   getTags,
+  getUrlStatus,
   type Folder,
   type Tag,
   type ApiError,
@@ -105,6 +111,51 @@ async function getActiveTab(): Promise<ActiveTab | null> {
 function openSignIn() {
   chrome.tabs.create({ url: `${likedWebUrl()}/extension/auth` });
 }
+
+// ── Appearance: persisted popup background (EXT-THEME-001) ────────────
+// Stored in chrome.storage.sync so the choice follows the user's Chrome
+// profile. A picked color also forces the light/dark palette via
+// data-ext-theme (luminance decides which keeps contrast).
+const BG_KEY = "liked.popup.bg";
+const BG_SWATCHES: (string | null)[] = [
+  null,        // auto = system light/dark
+  "#ffffff", "#f3f4f6", "#eef4ff", "#f0fdf4", "#faf5ff", "#fff7ed",
+  "#1f2937", "#0d0e11",
+];
+
+function isLightColor(hex: string): boolean {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+  if (!m) return true;
+  const n = parseInt(m[1], 16);
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  // Rec. 601 perceived luminance, 0..255.
+  return 0.299 * r + 0.587 * g + 0.114 * b > 140;
+}
+
+function applyBg(hex: string | null) {
+  const root = document.documentElement;
+  if (!hex) {
+    delete root.dataset.extTheme;
+    root.style.removeProperty("--bg");
+    return;
+  }
+  root.dataset.extTheme = isLightColor(hex) ? "light" : "dark";
+  root.style.setProperty("--bg", hex);
+}
+
+async function initAppearance(): Promise<string | null> {
+  try {
+    const stored = await chrome.storage.sync.get(BG_KEY);
+    const hex = typeof stored[BG_KEY] === "string" ? (stored[BG_KEY] as string) : null;
+    applyBg(hex);
+    return hex;
+  } catch {
+    return null;
+  }
+}
+
+// Apply the stored color as early as possible — before first paint.
+void initAppearance();
 
 function openInLiked() {
   // The feed page does not support a ?node= highlight param, so we just
@@ -219,21 +270,81 @@ async function renderReady(root: HTMLElement, tab: ActiveTab) {
     }
   );
 
+  // Appearance control: a small palette button in the header toggles a
+  // swatch row; the choice persists via chrome.storage.sync.
+  const themeRow = h("div", { className: "theme-row" });
+  const themeToggle = h(
+    "button",
+    {
+      className: "theme-toggle",
+      type: "button",
+      title: t("popupBg"),
+      "aria-label": t("popupBg"),
+      onClick: () => themeRow.classList.toggle("open"),
+    },
+    [h("span", { className: "theme-dot" }, [])]
+  );
   const header = h("div", { className: "header" }, [
     h("h1", {}, [t("saveTo")]),
-    h(
-      "button",
-      {
-        className: "signout",
-        onClick: async () => {
-          await signOut();
-          render();
+    h("div", { className: "header-actions" }, [
+      themeToggle,
+      h(
+        "button",
+        {
+          className: "signout",
+          onClick: async () => {
+            await signOut();
+            render();
+          },
         },
-      },
-      [t("signOut")]
-    ),
+        [t("signOut")]
+      ),
+    ]),
   ]);
   root.appendChild(header);
+  root.appendChild(themeRow);
+
+  async function renderThemeRow() {
+    clear(themeRow);
+    const current = (await chrome.storage.sync.get(BG_KEY))[BG_KEY] ?? null;
+    for (const value of BG_SWATCHES) {
+      themeRow.appendChild(
+        h(
+          "button",
+          {
+            type: "button",
+            className: `swatch${value === current ? " selected" : ""}${value === null ? " auto" : ""}`,
+            style: value ? `background: ${value}` : "",
+            title: value ?? t("bgAuto"),
+            "aria-label": value ?? t("bgAuto"),
+            onClick: async () => {
+              if (value) await chrome.storage.sync.set({ [BG_KEY]: value });
+              else await chrome.storage.sync.remove(BG_KEY);
+              applyBg(value);
+              renderThemeRow();
+            },
+          },
+          value === null ? ["A"] : []
+        )
+      );
+    }
+    // Custom color picker — swatch-adjacent circle that opens <input type=color>.
+    themeRow.appendChild(
+      h("input", {
+        type: "color",
+        className: "swatch custom",
+        value: current && /^#[0-9a-f]{6}$/i.test(current) ? current : "#888888",
+        title: t("popupBg"),
+        oninput: async (e: Event) => {
+          const v = (e.target as HTMLInputElement).value;
+          await chrome.storage.sync.set({ [BG_KEY]: v });
+          applyBg(v);
+          renderThemeRow();
+        },
+      })
+    );
+  }
+  renderThemeRow();
 
   const preview = h("div", { className: "preview" }, [
     h("img", { className: "favicon", src: faviconUrl(tab), alt: "" }),
@@ -473,6 +584,18 @@ async function renderReady(root: HTMLElement, tab: ActiveTab) {
         return;
     }
   }
+
+  // Saved-state on open: check whether this URL is already in the
+  // library and pre-show the status (EXT-STATUS-001). Best-effort — a
+  // failure leaves the popup fully usable.
+  getUrlStatus(tab.url)
+    .then((st) => {
+      if (st.saved && state.save.kind === "idle") {
+        state.save = { kind: "saved", nodeId: st.nodeId ?? "", alreadyExists: true };
+        rerenderStatus();
+      }
+    })
+    .catch(() => undefined);
 
   saveBtn.addEventListener("click", async () => {
     if (state.save.kind === "saving") return;
