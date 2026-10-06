@@ -83,10 +83,17 @@ export default function AppShell({
     el.addEventListener("pointerup", up);
   };
 
+  // Folder-rail ordering pref (liked.folderSort) — ordering happens in
+  // get_folders SQL (p_sort), never client-side (AUDIT-09 P2-1).
+  const folderSort = useSyncExternalStore(
+    subscribePrefs,
+    () => (localStorage.getItem("liked.folderSort") === "alpha" ? "alpha" as const : "created" as const),
+    () => "created" as const
+  );
   const refreshFolders = useCallback(() => {
-    getFoldersAction().then(setFolders).catch(() => {});
-    if (friendId) getFoldersAction({ friendId }).then(setRailFolders).catch(() => {});
-  }, [friendId]);
+    getFoldersAction({ sort: folderSort }).then(setFolders).catch(() => {});
+    if (friendId) getFoldersAction({ friendId, sort: folderSort }).then(setRailFolders).catch(() => {});
+  }, [friendId, folderSort]);
   useEffect(refreshFolders, [refreshFolders]);
 
   // Apply persisted layout/rail prefs + stay in sync with changes from /me.

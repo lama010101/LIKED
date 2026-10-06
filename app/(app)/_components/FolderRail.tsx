@@ -76,7 +76,9 @@ export default function FolderRail({ folders, onAdd, onChanged, onSelect }: {
   };
 
   // Folder ordering pref (UX-BATCH-002): "created" (default, newest first)
-  // or "alpha". Persisted in localStorage, synced via liked:prefs.
+  // or "alpha". Persisted in localStorage, synced via liked:prefs —
+  // AppShell re-fetches get_folders with p_sort so ordering stays in SQL
+  // (AUDIT-09 P2-1); this component renders folders in the order given.
   const subscribePrefs = useCallback((onChange: () => void) => {
     window.addEventListener("liked:prefs", onChange);
     return () => window.removeEventListener("liked:prefs", onChange);
@@ -90,11 +92,6 @@ export default function FolderRail({ folders, onAdd, onChanged, onSelect }: {
     localStorage.setItem("liked.folderSort", v);
     window.dispatchEvent(new Event("liked:prefs"));
   };
-  const sorted = [...folders].sort((a, b) =>
-    sortMode === "alpha"
-      ? a.name.localeCompare(b.name)
-      : new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-  );
 
   const onClick = (e: React.MouseEvent, f: Mvp2Folder) => {
     e.preventDefault();
@@ -169,7 +166,7 @@ export default function FolderRail({ folders, onAdd, onChanged, onSelect }: {
           onClick={() => setSortMode("alpha")}
         >{t("folder.sortAlpha")}</button>
       </div>
-      {sorted.map((f) => (
+      {folders.map((f) => (
         <div key={f.id} className="fr-wrap">
         <Link
           href={`/folders/${f.id}`}

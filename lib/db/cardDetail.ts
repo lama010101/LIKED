@@ -154,23 +154,21 @@ export async function updateNodeTitle(
 
 /**
  * Update the node text content (owner only). Used by the click-to-edit
- * note body in the Card Detail sheet (UX-BATCH-002). Table update — same
- * owner guard as update_node_title, enforced via the owner_id filter.
+ * note body in the Card Detail sheet (UX-BATCH-002). Same owner guard
+ * as update_node_title, enforced inside the RPC (AUDIT-09 P3-4).
  */
 export async function updateNodeText(
   userId: string,
   nodeId: string,
   text: string
 ): Promise<void> {
-  const trimmed = text.trim();
-  if (!trimmed || trimmed.length > 20000) throw new Error("Invalid text");
   const supabase = getSupabaseServiceClient();
 
-  const { error } = await supabase
-    .from("nodes")
-    .update({ text_content: trimmed })
-    .eq("id", nodeId)
-    .eq("owner_id", userId);
+  const { error } = await supabase.rpc("update_node_text", {
+    p_user_id: userId,
+    p_node_id: nodeId,
+    p_text: text,
+  });
 
   if (error) throw new Error(error.message);
 }

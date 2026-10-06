@@ -1,148 +1,119 @@
-# AUDIT-09 — Full Codebase Audit (MVP 2.0 Surface)
+# AUDIT-09 — Full Codebase Audit Report
 
-**Date:** 2026-03-19
-**Scope:** Entire repository — Next.js 16.3 app (`app/`), libs (`lib/`), Chrome extension (`extension/` + `dist/`), Edge Function (`supabase/functions/extract-node-metadata`), migrations `001`–`134` (130 files), scripts, tests, e2e.
-**Baseline:** AUDIT-08 (post-096 RPC hardening). All code added since was reviewed: migrations `097`–`134`, YouTube import module, MVP 2.0 UI overhaul, organize flow, extension v0.1.
-
-## Executive Summary
-
-| Severity | Count | Headline |
-|----------|-------|----------|
-| P0 — Critical | 0 | — |
-| P1 — High | 1 | Client-side feed sorting reintroduced (FEED LOCK violation + pagination bug) |
-| P2 — Medium | 3 | Anon edge-fn SSRF; RPC grant widening (128); dead-code cluster (~12 files) |
-| P3 — Low | 6 | Stale generated types; TOCTOU dup check; probe RPCs; cosmetic/misc |
-
-**Build state: all green.** `tsc` 0 errors, ESLint clean, Vitest **95/95** (6 files), `next build` OK (32 routes generated).
-
-**Invariants:** all enforced — visibility = edges-only via SQL helpers; writes atomic cause→edges in RPCs; delete is soft-delete + FK cascade; feed is *almost* SQL-only (one P1 regression below). Service-role key never leaves server code. All 16 API routes and all server actions authenticate. Migrations 097–134 consistently gate every SECURITY DEFINER RPC (internal `auth.uid()` or role-aware `p_user_id` binding) and revoke PUBLIC/anon EXECUTE.
+**Date:** 2026-10-03
+**Auditor:** Devin (automated)
+**Scope:** Full codebase — `app/`, `lib/`, `components/`, `extension/`, `supabase/migrations/` (001–134), `scripts/`, `e2e/`, `.github/workflows/`, `proxy.ts`, `next.config.ts`
+**Method:** Differential vs AUDIT-08 (2026-09-03) — verified the P0 RPC-gating fix still holds on the live DB, audited ~200 commits of post-AUDIT-08 work (UX batches, YouTube features, MVP2 folder/share/trash RPCs, organize/AI categorize), plus fresh sweeps for rule violations, dead code, and dependency CVEs.
+**Build status:** `eslint` clean (0 errors), `tsc --noEmit` clean, `vitest` 95/95 pass. Live DB: all 134 migrations applied (no drift).
 
 ---
 
-## P1 — High
+## Summary
 
-### 1. Client-side feed sorting violates FEED LOCK and breaks under pagination — ✅ FIXED (2026-03-19)
+| Severity | AUDIT-08 | AUDIT-09 (current) | Delta |
+|----------|----------|--------------------|-------|
+| P0 (Critical) | 0 (fixed by 092) | 0 | RPC gating verified intact |
+| P1 (High) | 0 | **1** (deps) | next@16.3.0 in critical CVE range |
+| P2 (Medium) | ~2 | **1** | client-side feed sort (logic leak + pagination bug) |
+| P3 (Low) | ~3 | ~6 | dead code, stale types, proxy drift, helper grants |
 
-**File:** `app/(app)/feed/_components/FeedHome.tsx` (was lines 40–54, 124–135, 144)
+**Headline finding:** `next@16.3.0` falls inside the vulnerable range (16.0.0–16.3.5) of three published RCE advisories — fix available via `npm audit fix`. Top code finding: `FeedHome` re-sorts `get_feed` results client-side — a FEED-VIOLATION class logic leak that is *also* a correctness bug under pagination.
+
+**Verified intact since AUDIT-08:**
+- P0 fix: every `SECURITY DEFINER` function granted to `authenticated` that takes `p_user_id`/`p_owner_id`/`p_sharer_id` now has the `auth.uid()` gate (21 verified on live DB incl. `get_feed`, `get_friend_bar`, `get_folder_tree`, `get_user_folders`).
+- No XSS vectors (`dangerouslySetInnerHTML`, `eval`, `.innerHTML =` → 0 hits).
+- Write path: all visibility writes go through RPCs — single exception is a content edit (`updateNodeText`, see P3-4).
+- API routes all gate on `getUser()`/bearer auth; YouTube OAuth callback validates state cookie and restricts `next` to same-origin paths; tokens stored encrypted.
+- Extension service worker uses exact-origin allowlist for session messages.
+- No live callers of dropped RPCs (migrations 102/106/132) or dead tables; `components/` reduced to one file (`Toaster.tsx`) after the `(app)/_components` consolidation.
+- Security headers present (CSP, X-Frame-Options DENY, nosniff, HSTS, Referrer-Policy, Permissions-Policy).
+- No hardcoded secrets/JWTs in `scripts/` (LIKED-SEC-002 holding).
+
+---
+
+## P1 — Dependency vulnerabilities
+
+### P1-1: `next@16.3.0` inside critical advisory range — `package-lock.json`
+
+`npm audit` reports 17 vulnerabilities (1 critical, 11 high, 4 moderate, 1 low). Most are dev-tooling (vitest, tailwind/eslint transitive `braces`, `browserslist`, `js-yaml`), but the installed `next@16.3.0` is within `16.0.0 – 16.3.5`, flagged by:
+
+- **GHSA-p293-qw3h-jr36** — Unauthenticated RCE on Windows-hosted servers (prod runs Vercel/Linux, so likely not exploitable here)
+- **GHSA-2xp9-vwfh-vxw4** — Unauthenticated RCE in Image Optimization API when AVIF files are used
+- **GHSA-vcvr-r3jv-pc5j** — RCE in `next/og` ImageResponse
+
+The last two are host-agnostic; LIKED uses `next/image` with `remotePatterns` (`next.config.ts`), so Image Optimization is reachable.
+**Fix:** `npm audit fix` (non-breaking bump within `^16.3.0`). Verify build (`npx next build --webpack`) + lint after.
+
+Also high-severity: `sharp <0.35.4` (libheif vulns) — `npm audit fix` covers it.
+
+## P2 — Feed rule violations
+
+### P2-1: `FeedHome` client-side alpha sort — `app/(app)/feed/_components/FeedHome.tsx:52-54`
 
 ```ts
-const cardSort = useSyncExternalStore(
-  subscribePrefs,
-  () => (localStorage.getItem("liked.cardSort") === "alpha" ? "alpha" : "created"),
-  () => "created"
-);
 const sortedNodes = cardSort === "alpha"
   ? [...nodes].sort((a, b) => (a.title ?? a.text_content ?? "").localeCompare(b.title ?? b.text_content ?? ""))
   : nodes;
 ```
 
-- **FEED LOCK violation** (`04_FEED_SQL_SPEC.md` / `03_TECHNICAL_ARCHITECTURE.md`): "no sorting outside SQL — SQL is the ONLY source of ordering truth." The alpha toggle re-sorted `get_feed` results client-side.
-- **Correctness bug:** the sort ran on the fetched subset only. With >1 page (`p_limit` paging), "alpha" ordering was wrong globally — a `get_feed`-ordered page cannot be re-sorted into correct full-order locally.
-- Sort state persisted in `localStorage` (`liked.cardSort`), driven by a Created/Alpha seg control in the feed head. (`FolderRail` has its own `liked.folderSort` pref for folder rows — separate mechanism, not feed data.)
+Three problems:
+1. **LOGIC LEAK** — sorting outside SQL is explicitly forbidden (feed = `get_feed` black box; `p_sort` supports only `newest|oldest|most_shared|highest_rated|custom`). `useFeed.ts:11-18` documents this invariant — FeedHome violates it on the same data.
+2. **Wrong order under pagination** — `loadMore` (`FeedHome.tsx:78-94`) appends `get_feed`'s `created_at`-cursored pages, so an alphabetically-earlier node on page 2 renders below page-1 nodes. Only the *loaded subset* is sorted.
+3. **Wrong key** — sorts raw `title`/`text_content`; SQL resolves titles through `translations` (`resolved_title` stage in `get_feed`).
 
-**Resolution:** `get_feed`'s `p_sort` supports only `newest|oldest|most_shared|highest_rated|custom` (101_feed_pipeline_order.sql:268-288) — no `alpha` — and modifying feed SQL is disallowed. The client-side sort was therefore removed entirely: `cardSort`/`subscribePrefs`/`sortedNodes` deleted, seg control removed, cards render `nodes` in `get_feed` order. Feed ordering is again SQL-authoritative and correct under pagination. Verify: grep `cardSort|sortedNodes|useSyncExternalStore` in file → 0; `tsc --noEmit` 0; eslint 0.
+**Fix direction:** add `'alpha'` to `get_feed`'s `p_sort` (sort on `resolved_title`) and route the seg control through `?sort=alpha` like other feed params — or drop the alpha option. (Note: `FolderRail.tsx:93-97` client-sorts the folder list the same way; folders aren't paginated so it's complete-but-leaky — same fix class, lower severity.)
 
----
+## P3 — Low-severity findings
 
-## P2 — Medium
+### P3-1: Permission-helper RPCs granted to `authenticated` without need — live DB
+`effective_folder_permission(p_folder_id, p_user_id)`, `effective_node_permission(p_node_id, p_user_id)`, `folder_is_visible(p_folder_id, p_user_id)` (migration 122) are `SECURITY DEFINER`, granted to `authenticated`, take a caller-supplied user id, and contain no `auth.uid()` gate — an authenticated caller can probe *any* user's permission on any folder/node (metadata leak only, no content). Unlike the 091 helpers (which RLS policies call, justifying their grant), **no RLS policy references these three** and **no app code calls them** (only stale `lib/types/database.ts` entries). 
+**Fix:** `REVOKE EXECUTE … FROM authenticated` (or gate on `p_user_id IS NOT DISTINCT FROM auth.uid()`).
 
-### 2. Edge Function `extract-node-metadata`: anonymous unauthenticated fetch proxy, no rate limit
+### P3-2: Dead hooks — `lib/hooks/` (~694 lines, zero callers)
+`useFeed.ts` (249), `useFeedURLSync.ts` (127), `useSearchController.ts` (122), `useLongPress.ts` (109), `useDebouncedSearch.ts` (51), `useLocalStorage.ts` (36). The live feed path is `feed/page.tsx → getFeed → FeedHome`; `useFeed()` has no call sites (`grep useFeed(` → only its own definition). The dead `useSearchController` is the sole importer of `useFeedURLSync`/`useDebouncedSearch`. Delete or re-wire — migration-safety rule prefers unreachable code removed.
 
-**File:** `supabase/functions/extract-node-metadata/index.ts:80-141` + `deploy` notes (run with `--no-verify-jwt`)
+### P3-3: `lib/types/database.ts` stale vs DB
+Generated types still declare dropped functions (`direct_share` l.1232, `get_social_timeline` l.1423 — dropped by migration 132) plus the helpers in P3-1. Regenerate types.
 
-- Function is deployed without platform JWT verification; it verifies the JWT itself, but **`userId === null` is fully accepted** (line 86). Rate limit (`overRateLimit`, line 105) and `activity_log` (line 132) apply **only when `userId` is known** — anonymous callers are unthrottled.
-- `handleUrl` fetches an arbitrary caller-supplied URL server-side (line 152, `fetchWithTimeout`) with **no scheme/host/port validation or private-IP blocklist** → open-proxy / SSRF primitive running inside Supabase infra, returning extracted metadata oracle to the caller.
-- Mitigated: thumbnail storage upload requires `userId` (line 171) — anonymous callers cannot write the `thumbnails` bucket; fetch capped at 8 s / 500 KB; response is metadata only.
-- **Fix:** require a verified user (`401` when `!userId`), or at minimum rate-limit anonymous calls by IP and reject private/link-local hosts and non-http(s) schemes.
+### P3-4: `updateNodeText` bypasses RPC layer — `lib/db/cardDetail.ts:169-173`
+Direct `nodes.update` via service client with `owner_id` filter while its sibling `updateNodeTitle` uses the `update_node_title` RPC. Behaviorally safe (owner-scoped content edit, not a visibility write) but inconsistent convention — same guard belongs in an `update_node_text` RPC.
 
-### 3. Migration 128 re-granted write RPCs to `authenticated` (defense-in-depth regression)
+### P3-5: `moveNodeEverywhereAction` multi-RPC loop — `app/lib/actions/mvp2.ts:231-255`
+"One move per source folder" = N transactions, not one — a mid-loop failure leaves the node in target + remaining source folders (partial write). Also reads `folder_edges` via session client (`l.235-238`); RLS (`folder_is_accessible`) can silently hide source folders it can't see. Consider an RPC that moves node → target in one transaction.
 
-**Files:** `supabase/migrations/128_system_folder_routing.sql:132-137` vs `100_node_type_rpc_params.sql:75-77`
+### P3-6: Proxy protected-route list stale — `proxy.ts:42`
+`isProtectedRoute` = `/feed|/trash|/youtube|/social` only; `/social` doesn't exist as a route, and `/me`, `/folders`, `/card`, `/friends`, `/organize`, `/notifications` are missing. Not a vulnerability — `(app)/layout.tsx:8-9` enforces `getSessionUser()` → `/login` for the whole group — but the edge redirect is dead code for most authed routes. Trim or update the list.
 
-- Migration 100 deliberately locked `create_node_with_metadata` and `import_url` down to `service_role` only. Migration 128 re-granted both to `authenticated, service_role`.
-- Both function bodies retain the role-aware gate (`auth.role()='service_role' OR (authenticated AND p_user_id IS NOT DISTINCT FROM auth.uid())`), so **no impersonation is possible** — but the intended lockdown was silently widened, and every app path (`createNodeAction`, `/api/import`, YouTube import) goes through the **service** client anyway.
-- **Fix:** `REVOKE ... FROM authenticated` to restore 100's posture.
+### P3-7: CSP `script-src 'unsafe-eval'` — `next.config.ts`
+Present in the production CSP; only dev tooling needs it. Drop `'unsafe-eval'` for prod if the app still boots.
 
-### 4. Dead-code cluster: pre-overhaul feed architecture left in the tree
-
-No live importer exists for any of the following (verified by repo-wide grep, excluding `_archive/` and test files):
-
-| File | Replaced by |
-|------|-------------|
-| `lib/hooks/useFeed.ts` | server page + `fetchFeedPageAction` |
-| `lib/hooks/useFeedURLSync.ts` | server pages + URL searchParams |
-| `lib/hooks/useSearchController.ts` | `searchParams.q` → `get_feed` |
-| `lib/hooks/useDebouncedSearch.ts`, `useLocalStorage.ts` (still imported by FeedHome — **keep**) , `useLongPress.ts` | — |
-| `lib/store/filterStore.ts`, `tagModeStore.ts`, `selectionStore.ts`, `uiStore.ts` | URL params / local component state |
-| `lib/utils/feedParams.ts` (+ `feedParams.test.ts`, 37 tests for dead code) | `get_feed` params built inline |
-| `lib/utils/tagColors.ts` | DB-driven `color_hex` |
-| `lib/db/permissions.ts` (entire file) | permission checks inside SQL RPCs |
-| `lib/db/folders.ts` — 8 of 9 exports (`listFolders`, `listTopFolders`, `getFolderById`, `listVisibleFolders`, `getFolderChildren`, `canViewFolder`, `getFolderPath`, `addNodeToFolder`) | `get_folders` / `get_folder_children` RPCs (123/131); only `getFoldersForNodes` still used |
-
-Corrections: `useLocalStorage.ts` IS live (FeedHome sort + density toggles) — exclude it from the list. `_archive/` (949 KB) is excluded from `tsconfig` but its tests still run under Vitest.
-
-**Risk:** dead modules keep compiling against stale RPC names and mislead future edits (e.g., `feedParams.ts` builds `get_feed` params for a signature that no longer exists). **Fix:** delete or move to `_archive`.
+### P3-8 (info): `_archive/` still executes in the test suite
+`_archive/components/modals/CardDetailSheet/detectEmbed.test.ts` runs in `vitest` (23 tests). Archived code kept under test is deliberate pinning or drift — worth a decision either way. `scripts/` holds ~115 one-off migration/verify scripts — no secrets found, but consider a `scripts/archive/` sweep.
 
 ---
 
-## P3 — Low
+## Fixes applied (2026-10-03, all verified)
 
-### 5. Stale generated types declare dropped RPCs
-`lib/types/database.ts` still exports typings for functions dropped by `106`/`132`: `delete_folder`, `direct_share`, `get_folder_access_users`, `get_folder_memberships`, `get_social_timeline`, `group_share`, `group_unshare`, `revoke_group_admin`, `share_folder`, `unshare_folder_op`, `get_or_create_unsorted_folder`, `get_visible_nodes`, `search_nodes`, `get_nodes_in_folder`. No live callers (verified). Regenerate types.
+| Finding | Fix | Verification |
+|---------|-----|--------------|
+| P1-1 next CVE | `npm audit fix` → next 16.3.8 | advisory range cleared; 17→9 vulns (remaining are dev-only vitest/tailwind transitive, need breaking upgrades — not taken) |
+| P2-1 feed sort | Migration **135** `get_feed` `p_sort='alpha'` (resolved_title ASC + keyset title cursor); `FeedHome` seg now routes `?sort=` through the server | prod: `get_feed(...,'alpha',...)` returns alphabetical order |
+| P2-1 folder sort | Migration **136** `get_folders p_sort` (drop+recreate); `FolderRail` renders SQL order; `AppShell` passes `liked.folderSort` pref → `getFoldersAction({sort})` | prod: 'created' → created_at DESC within system/non-system groups |
+| P3-1 helper grants | Migration **137** REVOKE authenticated EXECUTE on the 3 helpers | `proacl` = service_role only; internal SECDEF callers unaffected |
+| P3-2 dead hooks | deleted 6 files (~694 lines) | `tsc` clean, zero importers |
+| P3-3 stale types | `scripts/generate-types.ts` rerun | `direct_share`/`get_social_timeline` gone; new RPCs typed |
+| P3-4 direct write | Migration **138** `update_node_text` RPC; `cardDetail.ts` calls it | gate probe → 'Caller does not match user_id' |
+| P3-5 move loop | Migration **139** `move_node_everywhere` (one transaction, same per-source rights check) | grant = authenticated only |
+| P3-6 proxy list | covers all `(app)` routes; `/social` retained — `e2e/navigation-unauth.spec.ts` asserts it redirects | e2e `/social` → `/login` green |
+| P3-7 CSP | dropped `script-src 'unsafe-eval'` | build passes |
+| P3-8 _archive tests | vitest `exclude` adds `_archive/**` | 72/72 tests |
 
-### 6. TOCTOU duplicate pre-check in `createNode`
-`lib/db/nodes.ts:104-120` queries `nodes` for an existing URL before calling `create_node_with_metadata` — redundant (the RPC raises `DUPLICATE_NODE` and unique index `071` enforces atomically), races with concurrent creates, and contradicts the write-rule "no duplicate check before write" for the create path. `importUrl` already handles the RPC error path correctly; `createNode` should too and drop the pre-query.
+Post-fix checks: `eslint` 0, `tsc --noEmit` 0, `vitest` 72/72, `next build --webpack` exit 0. Migrations 135–139 applied to prod and recorded in `schema_migrations`; new-function grants include explicit `REVOKE … FROM PUBLIC, anon` to match the established grant surface.
 
-### 7. Read-helper probe surface (accepted pattern, persisting)
-`122` grants `folder_is_visible`, `effective_folder_permission`, `effective_node_permission` to `authenticated` with caller-supplied `p_user_id` (needed internally by RLS/service calls). Any authed user can probe whether folder/node X would be visible/what permission user Y has — metadata leak only, same risk class as `091` helpers previously accepted.
+## Verification appendix
 
-### 8. Folder permission UI offers invalid options
-`FolderView.tsx:36` includes `comment` and `reshare` in the folder share `PERMS`, but `lib/db/permissions.ts` documents them as invalid for folders (DB `folder_grants` CHECK accepts them). Cosmetic inconsistency between UI, DB, and doc contract.
-
-### 9. `fetchFeedPageAction` lacks an explicit auth check
-`app/lib/actions/feed.ts:15-20` delegates entirely to `get_feed`'s internal `P0003` gate — works, but every other action checks `auth.getUser()` first; anonymous calls currently produce an RPC error rather than a clean 401-style result.
-
-### 10. Hygiene leftovers
-- ~90 one-off `apply/verify/debug` scripts under `scripts/` plus `schema-dump.txt`, `.tmp-overflow-test.mjs` (ignored), `app/api/feed/route.ts` (auth'd but **unused** — feed page calls the server action directly).
-- `proxy.ts` edge-guard whitelist (`/feed`, `/trash`, `/youtube`, `/social`) is stale vs. the route table — `/social` no longer exists; `/friends`, `/me`, `/notifications`, `/organize`, `/folders`, `/card` are guarded only by their own `getSessionUser()`+redirect (verified present — defense in depth exists, but the fast-path list is inaccurate).
-
----
-
-## Invariant Verification
-
-| Invariant | Result | Evidence |
-|-----------|--------|----------|
-| Feed = SQL only | ⚠ P1 finding | Sole caller `lib/db/feed.ts:53` → `get_feed`; but `FeedHome.tsx:52` re-sorts client-side |
-| Visibility = edges | ✅ | `get_visible_node_by_id`, `_node_visible`, `effective_*_permission` — all edge/blocking based; card-detail gates on it (`lib/db/cardDetail.ts:35-52`) |
-| Writes atomic cause→edges | ✅ | `create_node_with_metadata`, `import_url`, `create_folder` — single RPCs; service client |
-| Delete = soft + cascade | ✅ | `set_node_deleted`, `trash_folder`, `delete_group` mark `deleted_at`; FKs `ON DELETE CASCADE` (111/121) |
-| Service key server-only | ✅ | `lib/supabase/service.ts` + edge fn + `youtubeImport`/thumbnails only; no client import |
-| RPC authz (097–134) | ✅ | Every SECURITY DEFINER gated (`auth.uid()` internal or role-aware `p_user_id`); PUBLIC/anon revoked — spot-checked 100/101/105/107/108/109/110/112/118/122/123/124/125/126/127/128/129/130/131/133/134 |
-| No dropped-RPC callers | ✅ | All refs are comments/types only (prevents repeat of the 132→133 breakage) |
-| API routes auth | ✅ | 16 routes: cookie `auth.getUser()` or Bearer `authenticateBearer` (`lib/supabase/bearer.ts`); CORS scoped to `chrome-extension://` |
-| Server actions auth | ✅ | All via `requireUserId()`/`getSessionAuthUser()`/`auth.getUser()` or RPC-internal `auth.uid()` |
-| No XSS | ✅ | No `dangerouslySetInnerHTML`/`eval`/`innerHTML` in live code; `target=_blank` all carry `rel=noopener`; YouTube embed ID is attr-escaped by JSX |
-| Extension | ✅ | Minimal perms (`activeTab`,`storage`); non-extractable IndexedDB AES key; prod URL baked into `dist/`; all API responses validated; Bearer flow solid |
-| YouTube module | ✅ | AES-256-GCM token vault (`lib/youtube/token-crypto.ts`), state-cookie CSRF + open-redirect guards in `connect`/`callback`, secrets server-only, atomic `import_url` write |
-| Secrets in repo | ✅ | Regex sweep clean; e2e creds are a documented dedicated test account; `check-invariants-001.mjs` contains detection regexes, not keys |
-
-## Verification
-
-```
-npx tsc --noEmit              → 0 errors
-npm run lint                  → clean
-npm test                      → 95/95 pass (6 files)
-npm run build                 → OK, 32 routes
-repo grep: dropped RPC names  → comments/types only
-repo grep: service-key refs   → server + edge fn only
-```
-
-**Not verified by execution:** e2e suite (requires running app + seeded Supabase); live DB state (audit is code-level; `scripts/check-invariants-001.mjs` available for DB-side re-check).
-
-## Recommended Order
-
-1. P1: move alpha card-sort into `get_feed` (or drop the toggle) — restores FEED LOCK and correct pagination.
-2. P2.2: gate edge function on verified `userId` (401 otherwise) + host allowlist for the URL fetch.
-3. P2.3: `REVOKE ... FROM authenticated` on the two write RPCs (restore 100's posture).
-4. P2.4: delete dead-code cluster; regen `lib/types/database.ts`.
-5. P3 batch: drop `createNode` pre-check; add auth check to `fetchFeedPageAction`; refresh `proxy.ts` whitelist; remove `app/api/feed/route.ts` + script sprawl.
+- `npm run lint` → exit 0. `npx tsc --noEmit` → exit 0. `npx vitest run` → 95/95 (6 files).
+- Live DB probe: `pg_proc` sweep — 0 `SECURITY DEFINER` functions with a user-id param and no `auth.uid()` in body beyond the 6 listed (3 P3-1 helpers + 3 internal helpers correctly revoked: `_node_visible`, `_resolve_auto_folder`, `set_custom_order` are `service_role`-only).
+- `pg_policies` — `folder_edges` SELECT scoped by `folder_is_accessible`; permission helpers absent from all policies.
+- `supabase_migrations.schema_migrations` max = 134 = repo tip.
+- Grep sweeps: no `eval`/`innerHTML`/`dangerouslySetInnerHTML`, no hardcoded JWT/keys in `scripts/`, no callers of dropped RPCs.

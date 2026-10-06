@@ -6,10 +6,10 @@
  * list (default), masonry, columns. Horiz/FreeGrid are gone.
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { FeedNode, FeedParams } from "@/lib/types/feed";
 import { fetchFeedPageAction } from "@/app/lib/actions/feed";
 import type { Mvp2Folder } from "@/app/lib/actions/mvp2";
@@ -17,10 +17,13 @@ import { getNodeFoldersAction, moveNodeToFolderAction } from "@/app/lib/actions/
 import { toast } from "@/lib/store/toastStore";
 import CardItem from "../../_components/CardItem";
 import ViewSwitch, { useCardView } from "../../_components/ViewSwitch";
+import Avatar from "../../_components/Avatar";
+import { getLayoutPref, type LayoutPref } from "../../_components/prefs";
 import FolderTile from "./FolderTile";
+import type { FriendBarEntry } from "@/lib/db/friends";
 
 export default function FeedHome({
-  initialNodes, totalCount, nextCursor, folders, feedParams, query, meView, activeFolderId,
+  initialNodes, totalCount, nextCursor, folders, feedParams, query, meView, activeFolderId, friends,
 }: {
   initialNodes: FeedNode[];
   totalCount: number;
@@ -30,6 +33,8 @@ export default function FeedHome({
   query: string | null;
   meView: boolean;
   activeFolderId: string | null;
+  /** Full friend bar entries — only fetched/passed under a search (?q=). */
+  friends: FriendBarEntry[];
 }) {
   const t = useTranslations();
   const router = useRouter();
@@ -37,6 +42,25 @@ export default function FeedHome({
   const [nodes, setNodes] = useState(initialNodes);
   const [cursor, setCursor] = useState(nextCursor);
   const [loading, setLoading] = useState(false);
+  // Card ordering (AUDIT-09 P2-1): the sort is a get_feed input
+  // (p_sort), not a client-side reorder — the seg writes ?sort= into
+  // the URL so the server re-fetches in SQL order (incl. pagination).
+  const searchParams = useSearchParams();
+  const cardSort = feedParams.p_sort === "alpha" ? "alpha" : "created";
+  const setCardSort = (v: "created" | "alpha") => {
+    const sp = new URLSearchParams(searchParams.toString());
+    if (v === "alpha") sp.set("sort", "alpha"); else sp.delete("sort");
+    router.push(`/feed?${sp.toString()}`);
+  };
+
+  // Layout pref — under friends-top the body .folder-section is display:none
+  // (folders live in the left rail), so folder hits can't count as visible
+  // search results there or suppressCards would blank the page.
+  const subscribePrefs = useCallback((onChange: () => void) => {
+    window.addEventListener("liked:prefs", onChange);
+    return () => window.removeEventListener("liked:prefs", onChange);
+  }, []);
+  const layout = useSyncExternalStore(subscribePrefs, getLayoutPref, () => "friends-left" as LayoutPref);
 
   // Resync on router.refresh(): refresh delivers new props without remounting
   // (the key only covers params), so paginated state would otherwise stay
@@ -78,6 +102,20 @@ export default function FeedHome({
     }
   }, [cursor, loading, feedParams, t]);
 
+  // Grouped search results (UX-SEARCH-GROUPS-001): under ?q=, friends
+  // matching the term render as their own section next to the already
+  // filtered folder + card sections. Same match semantics as FriendsRail
+  // (user_id present, display_name substring, case-insensitive).
+  const qLower = (query ?? "").trim().toLowerCase();
+  const matchingFriends = qLower
+    ? friends.filter((f) => f.user_id && (f.display_name ?? "").toLowerCase().includes(qLower))
+    : [];
+  // If a search matched folders/friends but zero cards, skip the cards
+  // block entirely — the sections above already communicate results.
+  // (Folder hits only count when the folder section is actually visible.)
+  const suppressCards = !!query && nodes.length === 0 &&
+    (matchingFriends.length > 0 || (layout !== "friends-top" && folders.length > 0));
+
   // DnD: card dropped on a folder tile → move_node_to_folder RPC.
   const onDropToFolder = useCallback(async (nodeId: string, targetFolderId: string) => {
     try {
@@ -103,9 +141,38 @@ export default function FeedHome({
         </section>
       )}
 
+      {/* Friends section — grouped search results (UX-SEARCH-GROUPS-001) */}
+      {matchingFriends.length > 0 && (
+        <section className="friend-section">
+          <h2 className="sec-title">{t("nav.friends")}</h2>
+          <div className="friend-row">
+            {matchingFriends.map((f) => (
+              <Link key={f.user_id} href={`/feed?friend=${f.user_id}`} className="rail-item" title={f.display_name ?? ""}>
+                <Avatar userId={f.user_id!} avatarKey={f.avatar_key} name={f.display_name ?? "?"} size={80} />
+                <span className="rail-label">{f.display_name}</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {!suppressCards && (
+        <>
       <div className="feed-head">
         <h2 className="sec-title">{query ? `"${query}"` : activeFolderId ? (folders.find((f) => f.id === activeFolderId)?.name ?? t("feed.cards")) : meView ? t("nav.me") : t("feed.cards")}</h2>
         <div className="feed-head-side">
+          <div className="seg" role="group" aria-label={t("folder.sort")}>
+            <button
+              type="button"
+              className={`seg-btn ${cardSort === "created" ? "seg-on" : ""}`}
+              onClick={() => setCardSort("created")}
+            >{t("folder.sortCreated")}</button>
+            <button
+              type="button"
+              className={`seg-btn ${cardSort === "alpha" ? "seg-on" : ""}`}
+              onClick={() => setCardSort("alpha")}
+            >{t("folder.sortAlpha")}</button>
+          </div>
           <ViewSwitch view={view} onPick={pickView} />
         </div>
       </div>
@@ -130,6 +197,8 @@ export default function FeedHome({
         <button className="btn load-more" onClick={loadMore} disabled={loading}>
           {loading ? t("common.loading") : `${t("feed.loadMore")} (${nodes.length}/${totalCount})`}
         </button>
+      )}
+        </>
       )}
     </div>
   );
