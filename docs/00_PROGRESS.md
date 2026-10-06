@@ -936,6 +936,11 @@ Applied to task/feature entries going forward. Existing entries retain their ✅
 |---|---|---|---|
 | FIX-MODAL-PORTAL-NAV-001 | ⋯ menu sometimes navigates to card detail | ✅ | Root cause: `createPortal` bubbles synthetic events through the React tree — `ItemMenu`'s modal (portaled to `document.body` inside `<Link href="/card/[id]">`) leaked backdrop clicks to the anchor → `onClose` fired AND the Link navigated (menu closes → detail opens; a 2nd click of a double-click on ⋯ lands on the just-opened backdrop → "directly detail"). Clicks inside `.modal` were already `stopPropagation`'d (menu items safe) — only `.modal-backdrop` `onClick={onClose}` wasn't stopped. Fix: `Modal.tsx` backdrop `onClick` now `e.stopPropagation(); onClose()`. Covers every Modal consumer (ItemMenu, FolderPickModal, ShareSheet + 7 more — modal clicks should never reach background UI). Single file, single handler. Verify: `tsc --noEmit` 0. |
 
+### UX-SEARCH-GROUPS-001 (2026-10-03)
+| Task ID | Item | Status | Notes |
+|---|---|---|---|
+| UX-SEARCH-GROUPS-001 | Grouped search results on ?q= | ✅ | `/feed?q=` now renders three sections: Folders (already filtered by `get_folders p_search`), Friends (new section — `getFriendBarAction` fetched only when `q` present, filtered client-side with the same rule as FriendsRail: `user_id` set + `display_name` substring, case-insensitive; items link to `/feed?friend=<id>`), and Cards (`get_feed p_search_query` as before). When a search hits folders/friends but zero cards, the cards block is suppressed so no misleading "No results" shows under real hits; zero hits anywhere keeps the existing `feed.emptySearch` line. `globals.css`: `.friend-section/.friend-row` mirroring `.folder-row` + `.rail-h` item layout. No new i18n keys (reuses `feed.folders`, `nav.friends`, `feed.cards`). Verify: `tsc --noEmit` 0, `eslint` 0, `next build` clean. |
+
 ### AUDIT-09-FIXES (2026-10-03)
 | Task ID | Item | Status | Notes |
 |---|---|---|---|
