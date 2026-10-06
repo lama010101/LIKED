@@ -238,7 +238,7 @@ interface PopupState {
   selectedFolderId: string | null;
   selectedTagIds: Set<string>;
   newTagLabels: string[];
-  newTagInput: string;
+  tagQuery: string;
   advancedOpen: boolean;
   titleOverride: string;
   description: string;
@@ -254,7 +254,7 @@ async function renderReady(root: HTMLElement, tab: ActiveTab) {
     selectedFolderId: null,
     selectedTagIds: new Set(),
     newTagLabels: [],
-    newTagInput: "",
+    tagQuery: "",
     advancedOpen: false,
     titleOverride: "",
     description: "",
@@ -445,60 +445,93 @@ async function renderReady(root: HTMLElement, tab: ActiveTab) {
       ])
     );
 
-    // Tags
+    // Tags — one box serves both flows: typing filters existing tags and
+    // "Add" turns the query into a new tag (selects it instead when the
+    // query already matches a tag). The API returns tags most-recently-
+    // used first (migration 140), so the unfiltered list shows the first
+    // 10 most recent.
+    const RECENT_TAG_COUNT = 10;
     const tagChips = h("div", { className: "tag-chips" });
-    if (state.tags.length === 0) {
-      tagChips.appendChild(h("span", { className: "muted" }, [t("noTagsYet")]));
-    } else {
-      for (const t of state.tags) {
+    const newTagChips = h("div", { className: "tag-chips", style: "margin-top: 6px" });
+
+    function renderTagChips() {
+      clear(tagChips);
+      const q = state.tagQuery.trim().toLowerCase();
+      const shown = q
+        ? state.tags.filter((tag) => tag.label.toLowerCase().includes(q))
+        : state.tags.slice(0, RECENT_TAG_COUNT);
+      if (shown.length === 0) {
+        tagChips.appendChild(
+          h("span", { className: "muted" }, [t(q ? "noTagMatches" : "noTagsYet")])
+        );
+      }
+      for (const tag of shown) {
         const chip = h(
           "button",
           {
             type: "button",
-            className: `tag-chip${state.selectedTagIds.has(t.id) ? " selected" : ""}`,
+            className: `tag-chip${state.selectedTagIds.has(tag.id) ? " selected" : ""}`,
             onClick: () => {
-              if (state.selectedTagIds.has(t.id)) {
-                state.selectedTagIds.delete(t.id);
+              if (state.selectedTagIds.has(tag.id)) {
+                state.selectedTagIds.delete(tag.id);
                 chip.classList.remove("selected");
               } else {
-                state.selectedTagIds.add(t.id);
+                state.selectedTagIds.add(tag.id);
                 chip.classList.add("selected");
               }
             },
           },
           [
-            h("span", { className: "dot", style: `background: ${t.colorHex}` }),
-            t.label,
+            h("span", { className: "dot", style: `background: ${tag.colorHex}` }),
+            tag.label,
           ]
         );
         tagChips.appendChild(chip);
       }
-    }
-    advanced.appendChild(
-      h("div", { className: "field" }, [
-        h("label", {}, [t("tagsOptional")]),
-        tagChips,
-      ])
-    );
 
-    // New tag free-text
-    const newTagInput = h("input", {
+      clear(newTagChips);
+      for (const label of state.newTagLabels) {
+        newTagChips.appendChild(
+          h(
+            "button",
+            {
+              type: "button",
+              className: "tag-chip selected",
+              onClick: () => {
+                state.newTagLabels = state.newTagLabels.filter((l) => l !== label);
+                renderTagChips();
+              },
+            },
+            [label, " ×"]
+          )
+        );
+      }
+    }
+
+    const tagQueryInput = h("input", {
       type: "text",
-      value: state.newTagInput,
+      value: state.tagQuery,
       placeholder: t("addTagPh"),
       oninput: (e: Event) => {
-        state.newTagInput = (e.target as HTMLInputElement).value;
+        state.tagQuery = (e.target as HTMLInputElement).value;
+        renderTagChips();
       },
     });
     const addTagBtn = h("button", { type: "button" }, [t("add")]);
     addTagBtn.addEventListener("click", () => {
-      const v = state.newTagInput.trim();
+      const v = state.tagQuery.trim();
       if (!v) return;
-      if (!state.newTagLabels.includes(v)) state.newTagLabels.push(v);
-      state.newTagInput = "";
-      rerenderAdvanced();
+      const existing = state.tags.find((tag) => tag.label.toLowerCase() === v.toLowerCase());
+      if (existing) {
+        state.selectedTagIds.add(existing.id);
+      } else if (!state.newTagLabels.includes(v)) {
+        state.newTagLabels.push(v);
+      }
+      state.tagQuery = "";
+      tagQueryInput.value = "";
+      renderTagChips();
     });
-    newTagInput.addEventListener("keydown", (e: KeyboardEvent) => {
+    tagQueryInput.addEventListener("keydown", (e: KeyboardEvent) => {
       if (e.key === "Enter") {
         e.preventDefault();
         addTagBtn.click();
@@ -506,30 +539,13 @@ async function renderReady(root: HTMLElement, tab: ActiveTab) {
     });
     advanced.appendChild(
       h("div", { className: "field" }, [
-        h("label", {}, [t("newTags")]),
-        h("div", { className: "new-tag-row" }, [newTagInput, addTagBtn]),
-        state.newTagLabels.length > 0
-          ? h(
-              "div",
-              { className: "tag-chips", style: "margin-top: 6px" },
-              state.newTagLabels.map((label) =>
-                h(
-                  "button",
-                  {
-                    type: "button",
-                    className: "tag-chip selected",
-                    onClick: () => {
-                      state.newTagLabels = state.newTagLabels.filter((l) => l !== label);
-                      rerenderAdvanced();
-                    },
-                  },
-                  [label, " ×"]
-                )
-              )
-            )
-          : h("span", { className: "muted" }, []),
+        h("label", {}, [t("tagsOptional")]),
+        h("div", { className: "new-tag-row" }, [tagQueryInput, addTagBtn]),
+        tagChips,
+        newTagChips,
       ])
     );
+    renderTagChips();
   }
 
   advancedToggle.addEventListener("click", () => {

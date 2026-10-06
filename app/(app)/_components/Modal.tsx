@@ -21,7 +21,16 @@ export default function Modal({
 
   if (!open) return null;
   return (
-    <div className="modal-backdrop" onClick={onClose} role="presentation">
+    <div
+      className="modal-backdrop"
+      onClick={(e) => {
+        // Portals bubble through the React tree — without this, a backdrop
+        // click reaches an enclosing <Link> and navigates underneath us.
+        e.stopPropagation();
+        onClose();
+      }}
+      role="presentation"
+    >
       <div
         className="modal"
         role="dialog"
