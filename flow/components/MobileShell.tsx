@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { collectionChildren, useFlow, visibleCards } from "@/store";
-import { Collection } from "@/lib/mock";
+import { collectionChildren, useFlow, visibleCards } from "@/flow/store";
+import { Collection } from "@/flow/lib/mock";
 import CardThumb from "./CardThumb";
 import BatchView from "./BatchView";
 import InspectorContent from "./Inspector";
@@ -211,7 +211,15 @@ function LibraryTab() {
     [cards, activeCollection, activeFriend, sortBy]
   );
   const [shown, setShown] = useState(PAGE);
-  useEffect(() => setShown(PAGE), [activeCollection, activeFriend, sortBy]);
+  const [prevScope, setPrevScope] = useState({ activeCollection, activeFriend, sortBy });
+  if (
+    prevScope.activeCollection !== activeCollection ||
+    prevScope.activeFriend !== activeFriend ||
+    prevScope.sortBy !== sortBy
+  ) {
+    setPrevScope({ activeCollection, activeFriend, sortBy });
+    setShown(PAGE);
+  }
 
   const sentinelRef = useRef<HTMLDivElement>(null);
   useEffect(() => {

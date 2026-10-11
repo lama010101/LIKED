@@ -8,8 +8,8 @@ import {
   SEED_CARDS,
   SEED_COLLECTIONS,
   mockGenerate,
-} from "@/lib/mock";
-import { hasIDB, idbDel, idbGet, idbSet } from "@/lib/idb";
+} from "@/flow/lib/mock";
+import { hasIDB, idbDel, idbGet, idbSet } from "@/flow/lib/idb";
 
 export type ViewMode = "grid" | "batch";
 export type SheetKind = "inspector" | "agent" | "move";

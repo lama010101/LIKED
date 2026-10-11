@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getSessionUser, getFriendBarAction } from "@/app/lib/actions/session";
 import { getUnreadNotificationCountAction } from "@/app/lib/actions/notifications";
 import AppShell from "./_components/AppShell";
+import UixSwitch from "@/components/ui/UixSwitch";
 
 export default async function AppGroupLayout({ children }: { children: React.ReactNode }) {
   const user = await getSessionUser();
@@ -11,8 +12,11 @@ export default async function AppGroupLayout({ children }: { children: React.Rea
     getUnreadNotificationCountAction().catch(() => 0),
   ]);
   return (
-    <AppShell user={user} friends={friends} initialUnread={unread}>
-      {children}
-    </AppShell>
+    <>
+      <AppShell user={user} friends={friends} initialUnread={unread}>
+        {children}
+      </AppShell>
+      <UixSwitch />
+    </>
   );
 }

@@ -1,8 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { AssetCard, thumbGradient } from "@/lib/mock";
-import { useFlow } from "@/store";
+import { AssetCard, thumbGradient } from "@/flow/lib/mock";
+import { useFlow } from "@/flow/store";
 
 export interface CardThumbProps {
   card: AssetCard;

@@ -5,6 +5,10 @@ const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: ["10.188.219.52:3001", "localhost:3000", "localhost:3001", "127.0.0.1:3001"],
+  // ship workspace/ HTML mockups to the /proto/[name] route handler on Vercel
+  outputFileTracingIncludes: {
+    "/proto/[name]": ["./workspace/**/*"],
+  },
   async headers() {
     return [
       {

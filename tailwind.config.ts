@@ -5,6 +5,7 @@ const config: Config = {
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./lib/**/*.{js,ts,jsx,tsx,mdx}",
+    "./flow/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     extend: {
@@ -29,6 +30,14 @@ const config: Config = {
           mine:     "#F5A623",   // --color-mine: amber (Mine tab + own badge; same as --color-accent)
           received: "#3B82F6",   // --color-received: blue (Received tab + received badge)
         },
+        // Flow UIX palette (/flow scope only — see flow/flow.css)
+        ink: "#0a0a0b",
+        panel: "#101013",
+        raise: "#16161a",
+        edge: "#26262c",
+        faint: "#3a3a42",
+        accent: "#7c8cf8",
+        accent2: "#a78bfa",
       },
       zIndex: {
         bars:    "10",  // --z-bars: Friends strip + Folders bar

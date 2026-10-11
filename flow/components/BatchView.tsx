@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
-import { useFlow, visibleCards } from "@/store";
-import { AssetCard, thumbGradient } from "@/lib/mock";
+import { useFlow, visibleCards } from "@/flow/store";
+import { AssetCard, thumbGradient } from "@/flow/lib/mock";
 
 function dayLabel(ts: number): string {
   return new Date(ts).toLocaleDateString(undefined, {

@@ -1,7 +1,7 @@
 "use client";
 
-import { FRIENDS, Friend } from "@/lib/mock";
-import { useFlow } from "@/store";
+import { FRIENDS, Friend } from "@/flow/lib/mock";
+import { useFlow } from "@/flow/store";
 
 /** Count of cards shared by a friend (or a group's members). */
 function useFriendCounts(): (f: Friend) => number {

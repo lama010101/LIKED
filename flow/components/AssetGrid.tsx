@@ -8,8 +8,8 @@ import {
   useState,
 } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { useFlow, visibleCards } from "@/store";
-import { AssetCard } from "@/lib/mock";
+import { useFlow, visibleCards } from "@/flow/store";
+import { AssetCard } from "@/flow/lib/mock";
 import CardThumb from "./CardThumb";
 
 const PAGE = 48;
