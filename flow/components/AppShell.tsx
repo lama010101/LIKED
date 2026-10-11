@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import { initPersistence, useFlow } from "@/store";
-import { useIsDesktop } from "@/hooks/useMediaQuery";
+import { initPersistence, useFlow } from "@/flow/store";
+import { useIsDesktop } from "@/flow/hooks/useMediaQuery";
 import DesktopShell from "./DesktopShell";
 import MobileShell from "./MobileShell";
 

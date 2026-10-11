@@ -5,7 +5,7 @@ import {
   AgentCommand,
   COMMAND_COST,
   useFlow,
-} from "@/store";
+} from "@/flow/store";
 
 /** Parse a chat line into an agent command. */
 export function parseCommand(input: string, ids: string[]): AgentCommand {

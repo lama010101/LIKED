@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { collectionChildren, useFlow } from "@/store";
-import { Collection } from "@/lib/mock";
+import { collectionChildren, useFlow } from "@/flow/store";
+import { Collection } from "@/flow/lib/mock";
 
 function parseDrop(e: React.DragEvent): string[] | null {
   const raw = e.dataTransfer.getData("application/x-flow-ids");

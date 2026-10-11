@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useFlow } from "@/store";
-import { Aspect, thumbGradient } from "@/lib/mock";
+import { useState } from "react";
+import { useFlow } from "@/flow/store";
+import { Aspect, thumbGradient } from "@/flow/lib/mock";
 
 const ASPECTS: Aspect[] = ["16:9", "9:16", "1:1", "4:3", "3:4"];
 
@@ -28,7 +28,11 @@ export default function InspectorContent() {
   const setMobileSheet = useFlow((s) => s.setMobileSheet);
 
   const [draft, setDraft] = useState("");
-  useEffect(() => setDraft(card?.prompt ?? ""), [card?.id, card?.prompt]);
+  const [prev, setPrev] = useState<{ id?: string; prompt?: string }>({});
+  if (prev.id !== card?.id || prev.prompt !== card?.prompt) {
+    setPrev({ id: card?.id, prompt: card?.prompt });
+    setDraft(card?.prompt ?? "");
+  }
 
   if (!card) {
     return (

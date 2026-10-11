@@ -1,6 +1,6 @@
 "use client";
 
-import { SortKey, useFlow } from "@/store";
+import { SortKey, useFlow } from "@/flow/store";
 
 export default function Toolbar() {
   const viewMode = useFlow((s) => s.viewMode);

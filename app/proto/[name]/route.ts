@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { PROTOTYPES } from "@/lib/prototypes";
+import { PROTOTYPES } from "@/flow/lib/prototypes";
 
 export const dynamic = "force-dynamic";
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useFlow } from "@/store";
+import { useFlow } from "@/flow/store";
 import CollectionTree from "./CollectionTree";
 
 export default function Sidebar() {
