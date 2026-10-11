@@ -80,3 +80,8 @@ LIKED.code-workspace
 *.keystore
 *.kdbx
 id_rsa*
+
+# flow-app (standalone UIX rebuild - nested package)
+flow-app/node_modules/
+flow-app/.next/
+flow-app/out/
