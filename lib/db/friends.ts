@@ -43,7 +43,18 @@ export async function getFriendBar(userId: string): Promise<FriendBarEntry[]> {
     throw new Error(`Failed to fetch friend bar: ${error.message}`);
   }
 
-  return (data ?? []) as FriendBarEntry[];
+  // get_friend_bar emits one row per friend_invites row; reciprocal invites
+  // (A→B and B→A) resolve to the same user_id twice, which breaks keyed lists
+  // (FriendsRail key={user_id} → duplicate React keys → dead navigation).
+  // Keep the first (most recent) row per non-null user_id; null-user_id rows
+  // are pending invites and pass through untouched.
+  const seen = new Set<string>();
+  return ((data ?? []) as FriendBarEntry[]).filter((f) => {
+    if (f.user_id == null) return true;
+    if (seen.has(f.user_id)) return false;
+    seen.add(f.user_id);
+    return true;
+  });
 }
 
 /**
