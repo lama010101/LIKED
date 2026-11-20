@@ -9,6 +9,7 @@ import { usePathname } from "next/navigation";
  */
 export default function UixSwitch() {
   const pathname = usePathname();
+  if (process.env.NEXT_PUBLIC_SHOW_FLOW !== "1") return null;
   const onFlow = pathname.startsWith("/flow");
   return (
     <Link
