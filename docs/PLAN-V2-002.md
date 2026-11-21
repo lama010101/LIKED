@@ -1,18 +1,19 @@
-**PRD header (verbatim, `docs/05_PRD_V2_RECOMMENDATION_INBOX.md` lines 1-5, read from the working tree on 2026-11-21; the file is UNCOMMITTED, it is not on `origin/main`):**
+**PRD header (verbatim, `docs/05_PRD_V2_RECOMMENDATION_INBOX.md` lines 1-5; committed as v2.6 on `devin/PLAN-V2-002` by DOCS-V2-001, merges to `main` with PR #37):**
 
 ```
 # LIKED v2 — Recommendation Inbox
 
-**Version:** 2.5
-**Status:** v2.0 APPROVED by Lolo — 2026-11-20. UI design APPROVED by Lolo — 2026-11-21 (boards v2.4). v2.5 = decisions of 2026-11-21 after investigation V2-INV-001 (hybrid architecture, server-mediated guests, YouTube search in P0, stores, shared folders). **Pending: written plan PLAN-V2-002-R1.**
+**Version:** 2.6
+**Status:** v2.0 APPROVED by Lolo — 2026-11-20. UI design APPROVED by Lolo — 2026-11-21 (boards v2.4). v2.5 = decisions of 2026-11-21 after investigation V2-INV-001 (hybrid architecture, server-mediated guests, YouTube search in P0, stores, shared folders). **Plan: PLAN-V2-002 (accepted 2026-11-21, PR #37).** v2.6 = CTO decisions after review of PLAN-V2-002 (2026-11-21).
 **Date:** 2026-11-21
 ```
 
 # PLAN-V2-002 — Revised v2 Recommendation Inbox implementation plan (hybrid architecture, server-mediated guests)
 
 **Project:** LIKED · **Task ID:** PLAN-V2-002-R2 (supersedes the R1 STOP: PRD was v2.1 then) · **Date:** 2026-11-21
+**Status:** Accepted with conditions by CTO 2026-11-21 — see §11 (DV-2 vetoed → hotlink; D-1…D-8 decided in §11.2).
 **Mode:** PLANNING ONLY. No application code, no migration file, nothing applied to the database, no auth setting changed, no secret printed.
-**Authority:** PRD v2.5 is the single authority for scope, UI, decisions D1–D28 and acceptance criteria. It overrides `PLAN-V2-001` (which assumed PRD v2.1 and Supabase anonymous auth).
+**Authority:** PRD v2.6 is the single authority for scope, UI, decisions D1–D31 and acceptance criteria. It overrides `PLAN-V2-001` (which assumed PRD v2.1 and Supabase anonymous auth).
 **Base:** `origin/main` = `dc2a187` (PR #36 merged). Live DB = project `lzkzfqshnjvlzosnntfx`, `supabase_migrations.schema_migrations` max = **141** (VERIFIED, re-queried today). First new migration = **142**.
 
 **Legend.** **VERIFIED** = file:line, SQL + output, or fetched source, all re-checked in this task (or explicitly cited from `docs/V2-INV-001-REPORT.md`, which is on main). **UNVERIFIED** = could not be confirmed, reason stated. **DESIGN** = this plan's proposal.
@@ -39,7 +40,7 @@
 | 10 | YouTube | Search = P2, paste-link only, user-OAuth search left as is | **Guarded server-key search in P0** (cache, per-contributor + global daily budgets, search on submit only, graceful degradation) (D26) | PRD §5.2/§9.4 |
 | 11 | YouTube data at rest | Not addressed | Inbox stores **video ids only**; display data cached ≤ 30 days with a refresh/delete job; no thumbnail copies | D27, PRD §9.4 |
 | 12 | Sign-in scopes | Remove scope from login/signup, "remove or gate" the callback persist | Remove both **and** the callback persist unconditionally. New evidence: the persist helper `upsert`s on every login with `scopes: []`, overwrites `access_token`, resets `last_synced_at` and `revoked_at` (VERIFIED §5.1), so keeping it would corrupt existing YouTube connections | D25 |
-| 13 | Posters | Hotlink `image.tmdb.org` + amend PRD | PRD v2.5 keeps **internal** `poster_key`. Stored in the existing `thumbnails` bucket under a server-chosen random `tmdb/…` key; 6-month refresh/purge. Hotlinking kept only as a deviation alternative (§11) | PRD §7/§8 is binding. TMDB terms fetched today: "Cache, for longer than 6 months, any information…" is prohibited (VERIFIED §6.1) |
+| 13 | Posters | Hotlink `image.tmdb.org` + amend PRD | **PRD v2.6 (CTO after PLAN-V2-002 review): posters are hotlinked from `image.tmdb.org` and never copied.** `items.poster_key` dropped; `items.poster_path` stores the TMDB path text and stays inside the 6-month refresh rule; no `thumbnails`-bucket copies and no poster step in the enrichment/housekeeping jobs. CSP `img-src` + `remotePatterns` for `image.tmdb.org` kept | PRD v2.6 §7/§8 — DV-2 vetoed → hotlink (§11.1). TMDB terms fetched today: "Cache, for longer than 6 months, any information…" is prohibited (VERIFIED §6.1); hotlink display is not caching |
 | 14 | Enrichment queue | `enrichment_jobs UNIQUE(title_id)` | `UNIQUE(item_id, job_kind, param)` (job kinds `details` per TMDB language tag, `availability` per region) | Items are shared across owners with different languages/regions (PRD §6.8, §7) |
 | 15 | Notification | `recommendation_received`, payload with `contributor_name` | Same type, payload carries `contributor_id` (+ name snapshot) so claim/delete can re-point or purge | Needed by claim (§2.8) and guest deletion (§2.10) |
 | 16 | Filters / statuses in P0 | "Platform/type minimal filters in P0" (PLAN-V2-001 J.7) | Follow PRD §12: filter sheet, sort, Watched/Dismissed = **P1** (tabs hidden until then) | PRD v2.5 §12 note |
@@ -167,7 +168,7 @@ CREATE TABLE public.items (
   is_documentary    boolean NOT NULL DEFAULT false, -- TMDB genre 99
   overview          text,                           -- original-language overview (localized texts live in `localized`)
   runtime_min       integer CHECK (runtime_min IS NULL OR runtime_min >= 0),
-  poster_key        text,                           -- TMDB only: key in bucket `thumbnails` ('tmdb/<uuid>.jpg'); NULL for YouTube
+  poster_path       text,                           -- TMDB only: image path ('/abc.jpg'); rendered as an image.tmdb.org hotlink, never copied (PRD v2.6 §7); refreshed under the 6-month rule
   thumb_url         text,                           -- YouTube channel avatar only (cached <=30d); videos derive i.ytimg.com/vi/<id>/hqdefault.jpg from the id
   creator_id        text,                           -- YouTube channel id (an ID: allowed)
   creator_name      text,                           -- YouTube channel title (API data: <=30d)
@@ -372,7 +373,7 @@ CREATE TABLE public.share_links (
 | `public.set_language(text)` | allow `'es'`; also upsert `user_prefs.language_set_at = now()` | VERIFIED: body hard-codes `NOT IN ('en','fr','th')` |
 | `app/lib/actions/profile.ts:176`, `i18n/locales.ts:2` | replace the two hard-coded lists by the single `LANGUAGES` config | VERIFIED: three independent lists exist today (RPC, action, `LOCALES`) |
 | `notifications` | no schema change; new `type = 'recommendation_received'` | VERIFIED: no CHECK on `type` |
-| New private storage rules | none; posters reuse bucket `thumbnails` under `tmdb/<random uuid>.jpg` (service writes) | VERIFIED: `thumbnails_delete_own` requires first folder = `auth.uid()`, so users cannot delete `tmdb/…`; random names defeat path squatting (the insert policy has no path check, PLAN-V2-001 A.8) |
+| New private storage rules | none; **no poster objects are stored at all** — TMDB posters are hotlinks (`items.poster_path` → `image.tmdb.org`), so the `thumbnails` bucket gains no `tmdb/` keys | VERIFIED: `thumbnails_delete_own` requires first folder = `auth.uid()` (PLAN-V2-001 A.8); with nothing stored there is nothing to squat or delete |
 
 ### 1.5 Foreign keys and ON DELETE (summary)
 
@@ -510,7 +511,7 @@ GROUP  BY r.item_id;                                       -- 2 friends, same it
 
 ### 2.4 Receipt read (class S)
 
-`guest_get_receipt(p_ask_token text, p_contributor_id uuid) RETURNS TABLE(item_id uuid, kind text, name text, year int, poster_key text, thumb_url text, rating smallint, platform_text text, comment text, updated_at timestamptz)`. Returns **only rows where `contributor_id = p_contributor_id` and `owner_id = ask.owner_id`**. Nothing from other contributors can be selected (that WHERE clause is the only path). Names use the viewer's language with the §6.3 fallback. The same function powers "returning visitor sees what they already sent" (PRD §5 rules).
+`guest_get_receipt(p_ask_token text, p_contributor_id uuid) RETURNS TABLE(item_id uuid, kind text, name text, year int, poster_path text, thumb_url text, rating smallint, platform_text text, comment text, updated_at timestamptz)`. Returns **only rows where `contributor_id = p_contributor_id` and `owner_id = ask.owner_id`**. Nothing from other contributors can be selected (that WHERE clause is the only path). Names use the viewer's language with the §6.3 fallback. The same function powers "returning visitor sees what they already sent" (PRD §5 rules).
 
 ### 2.5 Owner inbox read, rail, mark-seen (class O)
 
@@ -561,7 +562,7 @@ Why this is implementable under the investigation constraints: **no authenticate
 1. Recommendation with `owner_id = auth.uid()` → else `NOT_FOUND`. Kind `channel` → `UNSUPPORTED_KIND` (DESIGN: PRD says "TMDB title or YouTube video").
 2. **Idempotency:** a `node_items` row for this item whose node is owned by the caller and not trashed → return `{node_id, already:true}`.
 3. Canonical URL: movie `https://www.themoviedb.org/movie/<id>`, series `https://www.themoviedb.org/tv/<id>`, video `https://www.youtube.com/watch?v=<id>`. The video form is identical to the legacy importer (VERIFIED, §1.1), so a video the owner already imported dedupes onto the same node.
-4. `PERFORM import_url(p_owner_id := auth.uid(), p_url := <canonical>, p_title := <localized name>, p_thumbnail_key := <items.poster_key for TMDB, NULL for YouTube>, p_language_code := <owner UI language>, p_node_type := 'link' (TMDB) | 'video' (YouTube), p_description := <localized overview>, p_folder_id := p_folder_id)`. `import_url` already does, in one transaction: insert the node, `nodes_sort_cache`, the `import` cause and the owner edge, file the node into `p_folder_id` after `effective_folder_permission ≥ contribute`, and expand covering grants (VERIFIED, function body). The cause → edges rule is therefore honoured without new edge code.
+4. `PERFORM import_url(p_owner_id := auth.uid(), p_url := <canonical>, p_title := <localized name>, p_thumbnail_key := NULL, p_language_code := <owner UI language>, p_node_type := 'link' (TMDB) | 'video' (YouTube), p_description := <localized overview>, p_folder_id := p_folder_id)`. Posters are hotlinked, never copied (DV-2 vetoed); the promoted card's TMDB poster resolves through `node_items` → `items.poster_path` → `image.tmdb.org` at read time (P1-05). `import_url` already does, in one transaction: insert the node, `nodes_sort_cache`, the `import` cause and the owner edge, file the node into `p_folder_id` after `effective_folder_permission ≥ contribute`, and expand covering grants (VERIFIED, function body). The cause → edges rule is therefore honoured without new edge code.
 5. Insert `node_items(node_id, item_id)` (`ON CONFLICT (node_id) DO NOTHING`).
 6. **Duplicate:** `import_url` raises `DUPLICATE_NODE` (unique `(url, owner_id)`, VERIFIED). The wrapper catches it, selects the existing node by `(url, owner_id)`; if trashed it calls the existing `set_node_deleted(node, false)`; then `add_node_to_folder(node, p_folder_id)` and records the link. No pre-check query runs before the insert (legacy rule: "NO pre-check for duplicates" is a comment in `import_url`).
 7. Folder creation is **not** part of promote: "choose or create a folder" uses the existing `create_folder(p_name, p_parent_folder_id, p_color_hex, p_description)` first (VERIFIED signature). A failed promote leaves at worst an empty folder.
@@ -911,7 +912,7 @@ On a limit hit the route answers `429` with `Retry-After`; nothing is written. R
 ### 6.2 TMDB proxy routes
 
 * `GET /api/ask/search?q=&src=tmdb|youtube` (guest, cookie + token). TMDB branch: server-side `GET https://api.themoviedb.org/3/search/multi?query=<q>&include_adult=false&language=<viewer tag>&page=1` with `Authorization: Bearer ${TMDB_API_READ_ACCESS_TOKEN}` (v4 read token, **server-only env, never `NEXT_PUBLIC_`**), results filtered to `media_type IN ('movie','tv')`, mapped to `{source:'tmdb', kind: movie|series, external_id, title, year, poster_path, vote_average}`. Typeahead: ≥ 2 chars, 300 ms debounce, `ask_search_c` 30/min.
-* **Posters in search results are transient hotlinks** (`https://image.tmdb.org/t/p/w185…`): the result list is not stored, so this is display, not caching. Requires `img-src https://image.tmdb.org` in the CSP and the host in `images.remotePatterns` (small `next.config.ts` change, task P0-11). The stored copy is made only for items that end up in a recommendation (§6.5).
+* **Posters are hotlinks everywhere** (`https://image.tmdb.org/t/p/…` built from the TMDB `poster_path`): search results are not stored, and stored items keep only the path text on `items.poster_path` — no poster bytes are ever copied to our storage or proxied (PRD v2.6 §7; DV-2 vetoed → hotlink). Requires `img-src https://image.tmdb.org` in the CSP and the host in `images.remotePatterns` (small `next.config.ts` change, task P0-11). `poster_path` is TMDB data and stays inside the 6-month refresh rule (§6.5).
 * `POST /api/ask/resolve` body `{source,kind,external_id}` (picked result) **or** `{url}` (paste). The server never fetches the user-supplied URL; it only **parses** it against an allowlist:
 
 | Input | Parse | Calls |
@@ -979,15 +980,15 @@ Quota math examples: 50 searches = 5 000 units; a 30-day refresh of N stored vid
 | YouTube video thumbnail | **not stored**; derived `https://i.ytimg.com/vi/<id>/hqdefault.jpg` (host already in CSP/`remotePatterns`) | — |
 | YouTube search results | `youtube_search_cache` | TTL 12 h, purged daily |
 | TMDB text/ratings | `items.*`, `localized` | cached ≤ **6 months**; refreshed at **5 months** or nulled |
-| TMDB poster | bucket `thumbnails`, key `tmdb/<random uuid>.jpg` (`items.poster_key`) | re-downloaded at 5 months or deleted; server-chosen random names prevent path squatting (the bucket insert policy has no path check, VERIFIED in PLAN-V2-001 A.8) |
+| TMDB poster | **not stored** — `items.poster_path` keeps the TMDB path text; cards render `https://image.tmdb.org/t/p/…` hotlinks (PRD v2.6 §7) | `poster_path` is refreshed/nulled with the 5-month TMDB refresh; nothing is copied to the `thumbnails` bucket |
 | Promoted YouTube node (P1) | `nodes.title` | the legacy exposure is **not** fixed (D-G out of scope), but the new job also refreshes/clears titles of nodes linked through `node_items` (§11 DV-5) |
 
 **Job: `GET /api/cron/housekeeping`** (daily, `Authorization: Bearer ${CRON_SECRET}`; fits the existing daily-cron pattern in `vercel.json`):
 1. **YouTube refresh**: `items` (source youtube) with `fetched_at < now() - interval '20 days'` → batched `videos.list`/`channels.list` (≤ 50 ids per call, ≤ 200 items per run); returned → update fields and `fetched_at`; not returned/private/deleted → `display_status='unavailable'` and `name, creator_name, thumb_url = NULL`.
-2. **TMDB refresh**: `items` (source tmdb) with `fetched_at < now() - interval '5 months'` → refetch details for each tag present in `localized` and re-download the poster; 404 → null the display fields.
+2. **TMDB refresh**: `items` (source tmdb) with `fetched_at < now() - interval '5 months'` → refetch details for each tag present in `localized` (including `poster_path`); 404 → null the display fields. No poster re-download: posters are hotlinks (§6.5 table).
 3. **Unreferenced items**: delete `items` with no `recommendations`, `owner_item_state`, `node_items`, `owner_picks` row and `fetched_at` older than 25 days (YouTube) / 5 months (TMDB) (FKs are RESTRICT, so a referenced item can never be deleted by mistake).
 4. `housekeeping_purge()` (cache, rate limits, budgets, finished deletion jobs), resume stuck `account_deletion_jobs` (§3.5), expire `deletion_requests` unconfirmed after 7 days.
-5. Inactive guest purge (**policy not in the PRD**, §11 D-5).
+5. Inactive guest purge — **decided (§11.2 D-5, PRD v2.6 §10.1): contributors with no activity for 18 months and no claim; implemented in P1-11**, disclosed in the privacy policy.
 
 A test (`P0-22`) fast-forwards `fetched_at` in a rollback transaction and asserts the job leaves **no YouTube display field older than 30 days** (PRD §13 item 15).
 
@@ -995,7 +996,7 @@ A test (`P0-22`) fast-forwards `fetched_at` in a rollback transaction and assert
 
 * All worker writes use the class-S functions of §2.11 (`item_apply_details`, `item_apply_availability`, `enrichment_finish`, `item_refresh_apply`); no direct table writes (REPO-15).
 * Queue `enrichment_jobs` (§1.4); claim with `FOR UPDATE SKIP LOCKED`; retry `run_after = now() + 2^attempts minutes`, 5 attempts then `failed`; all writes idempotent (upserts on unique keys).
-* `details` (param = TMDB tag): TMDB `GET /{movie|tv}/{id}?language=<tag>&append_to_response=videos`, fills base columns (first time), `localized[tag]`, genres, documentary flag (genre 99), trailer URL, rating/votes, then the poster copy; `availability` (param = region): `GET /{movie|tv}/{id}/watch/providers` → `item_availability` rows (Stream/Rent/Buy, link, **no prices**) + an `item_availability_fetch` row (so "Not available in {region}" is an explicit state); TTL 7 days.
+* `details` (param = TMDB tag): TMDB `GET /{movie|tv}/{id}?language=<tag>&append_to_response=videos`, fills base columns (first time), `localized[tag]`, genres, documentary flag (genre 99), trailer URL, rating/votes, `poster_path`; `availability` (param = region): `GET /{movie|tv}/{id}/watch/providers` → `item_availability` rows (Stream/Rent/Buy, link, **no prices**) + an `item_availability_fetch` row (so "Not available in {region}" is an explicit state); TTL 7 days.
 * Triggers: `after()` in the submit route (VERIFIED available), an opportunistic kick when the owner opens the inbox with stale/pending items (read path stays pure SQL; the kick is a separate server call), and `/api/cron/enrich` every minute **only if the Vercel plan allows it** — the plan is UNVERIFIED (existing crons are daily; Hobby limits crons to once per day). On Hobby the worker runs from `after()` and the kicks; the PRD metric "≥ 90 % enriched within 60 s" (§11) is a hypothesis, not a §13 criterion, and is measured, not guaranteed.
 * Skeleton cards: `enrichment_status = 'pending'` renders the title placeholder from the original `items.name` when known (resolve already fetched base facts), so cards are never blank.
 * Attribution: Credits screen with the official TMDB logo (less prominent than the LIKED mark) and the exact notice sentence above, plus the official JustWatch logo and "Streaming availability data is provided by JustWatch." (PRD §6.9). **Commercial-use risk:** TMDB treats fee-charging or revenue-generating recommendation apps as commercial use needing a written agreement (VERIFIED terms text above) — acceptable for the portfolio build; **blocks monetisation and affects store pricing/ads (P3)**.
@@ -1091,13 +1092,13 @@ A test (`P0-22`) fast-forwards `fetched_at` in a rollback transaction and assert
 | **P0-12** | **YouTube guarded search/resolve:** `lib/youtube/serverKey.ts`, cache, budgets, `/api/ask/search` (YT branch), resolve for video/channel URLs | P0-02, P0-03, P0-08, L-YT | repeated identical query = 1 upstream call; global/per-contributor exhaustion → `{status:'busy'}` and TMDB still works; no user OAuth needed | vitest with mocked fetch; budget race test (parallel requests never exceed cap) | L | REVIEW |
 | **P0-13** | `/api/ask/session`, `/r/[token]` landing (server component), name field, Turnstile component, cookie mint | P0-03, P0-08, L-CAPTCHA | no Supabase cookie ever set on `/r/*` (PRD §13 item 1); invalid token → identical 404; 11th mint/h/IP → 429 | e2e (cookie jar assertion), T1/T6 tests | M | REVIEW |
 | **P0-14** | **Friend UI:** add screen (search, tray, Paste row), details with score slider (a11y), `Send to {owner} (N titles)`, single after-submit screen with receipt, language/appearance sheet | P0-09..P0-13 | slider: keyboard + `aria-valuetext`; untouched = null, 0 = 0, Clear = null; receipt shows only own data; 360 px no clipping in 4 languages | e2e (axe + keyboard), Playwright width checks | L | AUTO + REVIEW (UX sign-off) |
-| **P0-15** | **Enrichment worker:** `lib/enrich/processJobs`, TMDB details/availability, YouTube details, poster copy, `after()` kicks, `/api/cron/enrich`, skeleton→complete transitions | P0-02, P0-11 | job states pending→partial→complete; failed path retries ≤ 5; submit latency unaffected (no provider call in the request) | vitest + timed e2e | L | REVIEW |
+| **P0-15** | **Enrichment worker:** `lib/enrich/processJobs`, TMDB details/availability, YouTube details, `after()` kicks, `/api/cron/enrich`, skeleton→complete transitions | P0-02, P0-11 | job states pending→partial→complete; failed path retries ≤ 5; submit latency unaffected (no provider call in the request) | vitest + timed e2e | L | REVIEW |
 | **P0-16** | **Owner inbox UI** `/inbox`: cards (ring, avatars, quote, chips, platforms, skeletons), detail sheet (two rings, trailer, Stream/Rent/Buy), share bar (copy/share, regenerate, disable), `ensure_my_ask` on first load, v2 home switch | P0-04, P0-15, P0-09, P0-10 | two friends, same TMDB title → one card with two recommenders; "In library" marker hidden in P0; Friends/TMDB rings separate and unblended; no TMDB logo/colours/wording in score UI | e2e (two guest sessions + owner) | L | AUTO + REVIEW (design) |
 | **P0-17** | **Friend rail:** avatars, ring, count badge, All sum, single-select, mark-seen on open | P0-16 | PRD §13 item 8 exactly | e2e | M | AUTO |
 | **P0-18** | **Notifications:** `recommendation_received` case in `NotificationsView.tsx` (+ i18n key); email sender (Resend) draining `email_outbox`; owner toggle | P0-03, L-EMAIL | one notification per submission; outbox row only when `notify_email`; sender idempotent; unread count via existing `get_unread_notification_count` | vitest; manual send | M | AUTO |
 | **P0-19** | **Settings + Credits + Sign out:** all §6.9 groups (language works; theme/colour rows hidden until P1), region suggestion, email toggle, version footer, Credits (official TMDB/JustWatch logos + exact notice) | P0-04, P0-09, P0-10 | every row works; Sign out ends this device's session only and deletes nothing | e2e | M | AUTO + REVIEW (legal wording) |
-| **P0-20** | **Account/guest deletion:** reauth routes, `/api/account/delete`, Storage purge, ledger resume, Delete sheet (checkbox), `/account-deleted`, guest "Delete my data", public `/delete-account` + `deletion_requests` routes + `scripts/process-deletion-requests.mjs` | P0-05, P0-08, P0-19 | §3.7 e2e list; wrong Google account → nothing deleted; proof expiry → `REAUTH_REQUIRED`; Ask link → "no longer active" | e2e with a throw-away account; rollback harness | L | REVIEW (destructive) |
-| **P0-21** | Privacy policy + Terms updates (guests/contributors, TMDB, YouTube/Google privacy policy reference, JustWatch, retention, backups ≤ provider retention, deletion paths); footer + Settings links | — | pages reachable from Settings and landing footer; mentions every third party above | e2e link check | M | REVIEW (legal) |
+| **P0-20** | **Account/guest deletion:** reauth routes, `/api/account/delete`, Storage purge, ledger resume, Delete sheet (checkbox), `/account-deleted`, guest "Delete my data", public `/delete-account` + `deletion_requests` routes + `scripts/process-deletion-requests.mjs` | P0-05, P0-08, P0-19 | §3.7 e2e list; wrong Google account → nothing deleted; proof expiry → `REAUTH_REQUIRED`; Ask link → "no longer active"; the delete sheet lists owned groups, chat messages and direct chats | e2e with a throw-away account; rollback harness | L | REVIEW (destructive) |
+| **P0-21** | Privacy policy + Terms updates (guests/contributors, TMDB, YouTube/Google privacy policy reference, JustWatch, retention, backups ≤ provider retention, deletion paths); footer + Settings links | — | pages reachable from Settings and landing footer; mentions every third party above; the privacy policy lists owned groups, chat messages and direct chats (and the 18-month guest retention, PRD v2.6 §10.1) | e2e link check | M | REVIEW (legal) |
 | **P0-22** | **Housekeeping cron** §6.5 | P0-02, P0-11, P0-12, P0-15 | after fast-forwarding `fetched_at` by 31 days no YouTube display field older than 30 days remains; TMDB 6-month purge likewise; stuck deletion jobs resume | vitest + rollback harness | M | REVIEW |
 | **P0-23** | **Threat-model test suite** T1–T17 (automatable subset) | P0-13, P0-14 | all listed tests green (PRD §13 item 13) | vitest route tests + e2e | M | AUTO |
 | **P0-24** | **e2e v2 suite:** guest flow, merge, rail, owner inbox, settings, delete account, language cases, dark first paint, YouTube budget degradation | all UI tasks | `npx playwright test` v2 specs green on CI | e2e | L | AUTO |
@@ -1119,6 +1120,7 @@ Dependency waves: **W0** Lolo manual steps (§10) → **W1** P0-01, P0-02, P0-07
 | **P1-08** | Edit/remove own recommendations (guest) + owner remove/block contributor | P0-14, P0-16 | edit = latest wins; block → `CONTRIBUTOR_BLOCKED` | M | AUTO |
 | **P1-09** | Theme and primary-colour controls (Settings + landing sheet), custom colour | P0-10, P0-19 | persists (cookie for guests, `user_prefs` for owners, copied on claim); all presets pass contrast | M | AUTO |
 | **P1-10** | Re-enrichment on language change | P0-15 | after changing language new enrichment stores `localized[newTag]`, existing items re-enriched in background | S | AUTO |
+| **P1-11** | Guest retention purge (D-5 / PRD v2.6 §10.1): contributors inactive 18 months with no claim are purged; disclosed in the privacy policy | P0-02, P0-20 | purge removes only contributors with `last_seen_at` older than 18 months AND `claimed_by_user_id IS NULL`; claimed contributors and all owners untouched; privacy policy states the 18-month guest retention | S | REVIEW |
 
 ### 8.3 PRD §13 → task map (every item)
 
@@ -1198,7 +1200,7 @@ Exit of P3 planning: S1–S6 each produce a go/no-go note before any store submi
 | L8 | Confirm the **Vercel plan** (cron frequency, function max duration) | Vercel → team settings | P0-15 enrichment cadence | — (design is plan-agnostic) |
 | L9 | Legal: developer legal name and contact for `/delete-account` and the policies, support email, legal review of privacy policy and terms (GDPR for EU/French users) | — | P0-20, P0-21 | **release**, not start |
 | L10 | Translation review: FR and ES by Lolo; **Thai by an external native reviewer** (PRD §9.7) | — | P0-09 catalogs | **release** |
-| L11 | Commit **PRD v2.5** (`docs/05_PRD_V2_RECOMMENDATION_INBOX.md`) to the repo — it is currently an uncommitted working-tree file | git | traceability | — |
+| L11 | Commit the PRD to the repo — **done by DOCS-V2-001**: `docs/05_PRD_V2_RECOMMENDATION_INBOX.md` committed as v2.6 on `devin/PLAN-V2-002` (PR #37) | git | traceability | — |
 | L12 | Decide whether to buy/attach a **custom domain** (email sender, Google authorized domain, universal links for P3) | registrar + Vercel | L4, P3 | — |
 | L13 | Answer the open decisions in §11 (D-1 … D-8) | — | various | per decision |
 | L14 | **Later — YouTube quota audit:** after launch, watch the Quotas page; if usage stays above ~60 % of the daily limit for a week, file Google's quota-extension/compliance-audit form; record the legacy OAuth consumption separately (§6.4 headroom) | Google Cloud Console | operations | — |
@@ -1212,30 +1214,30 @@ Exit of P3 planning: S1–S6 each produce a go/no-go note before any store submi
 
 **No binding decision (D23–D28) was found unworkable.** The following are corrections or additions the CTO may veto:
 
-| # | Proposal | Evidence | If vetoed |
-|---|---|---|---|
-| DV-1 | Do **not** extend `public.users`; use `user_prefs` (§1.2) although PRD §8 lists `users (existing, extended)` | `users_select_scoped` is row-level, so new columns leak to edge-connected friends (VERIFIED) | add the columns to `users`; accept region/email-toggle visibility to friends, or restrict with column privileges |
-| DV-2 | Keep PRD §7's **internal poster copy** (bucket `thumbnails`, `tmdb/<uuid>.jpg`) with a 5-month refresh/purge. The hotlink alternative (PLAN-V2-001 J.1) needs only a CSP/`remotePatterns` change and no refresh job | TMDB terms: 6-month cache cap (VERIFIED, fetched today) | amend PRD §7 to hotlink `image.tmdb.org`; drop the poster copy step in P0-15 |
-| DV-3 | New table `account_deletion_jobs` (not in PRD §8) so deletion finalisation (Storage, auth user, email) is retriable after the DB transaction commits | Storage cannot be deleted with SQL (`protect_objects_delete`, VERIFIED); no FK links `users` to `auth.users` (VERIFIED) | run all stages inline and accept manual repair on failure |
-| DV-4 | "Fresh Google re-auth < 5 minutes" is implemented with a signed one-time proof cookie created after a Google round trip, **not** by reading the JWT `amr` claim | `amr`/`max_age` support UNVERIFIED | none needed; replace with the claim if later verified |
-| DV-5 | The refresh job also refreshes/clears `nodes.title` of **promoted** YouTube nodes (linked through `node_items`), so the new write path does not recreate the legacy 30-day exposure; the legacy exposure itself stays out of scope (D-G) | legacy persists titles/thumbnails and never refreshes (V2-INV E3) | promoted YouTube nodes inherit the legacy exposure |
-| DV-6 | TMDB search-result posters are transient **hotlinks** (CSP `img-src https://image.tmdb.org`), the stored copy only for items that enter a recommendation | PRD §5.2 requires posters in results; CSP currently blocks the host (`next.config.ts:29`, VERIFIED) | proxy posters through our server (this would be caching and falls under the 6-month rule) |
-| DV-7 | Tables added beyond PRD §8: `user_prefs`, `owner_contributor_blocks`, `tmdb_genres`, `item_availability_fetch`, `enrichment_jobs`, `email_outbox`, `rate_limits`, `account_deletion_jobs`, and (P1) `node_items`, `owner_picks`; `share_links` kept | each is required by a PRD requirement (block, genres picker, explicit "not available", async enrichment, email, rate limits, deletion, promote, picks) | each can be folded elsewhere at a cost stated in its section |
-| DV-8 | `asks.token` stored raw (PRD §8) rather than hashed (PLAN-V2-001) | owner must re-copy the link; DB read access already exposes everything | hash + show-once UX |
-| DV-9 | `owner_item_state.library_node_id` (PRD §8) is **not created**; "In library" is derived from `node_items` | the existing Tier-0 check DB-18 requires every FK referencing `nodes` to be `ON DELETE CASCADE` (`scripts/check-invariants-001.mjs:122-128`); a nullable link that survives node deletion needs `SET NULL`, which that check would fail | keep the column without an FK (dangling ids resolved by a join) and relax DB-18 for it |
+| # | Proposal | Evidence | If vetoed | CTO 2026-11-21 |
+|---|---|---|---|---|
+| DV-1 | Do **not** extend `public.users`; use `user_prefs` (§1.2) although PRD §8 lists `users (existing, extended)` | `users_select_scoped` is row-level, so new columns leak to edge-connected friends (VERIFIED) | add the columns to `users`; accept region/email-toggle visibility to friends, or restrict with column privileges | ACCEPTED (PRD v2.6 §8, D30) |
+| DV-2 | Was: keep PRD §7's **internal poster copy** (bucket `thumbnails`, `tmdb/<uuid>.jpg`) with a 5-month refresh/purge | TMDB terms: 6-month cache cap (VERIFIED, fetched today) | amend PRD §7 to hotlink `image.tmdb.org`; drop the poster copy step in P0-15 | **VETOED -> hotlink** — PRD v2.6 §7/§8, D29: posters hotlinked from `image.tmdb.org`, never copied; applied throughout this plan (`items.poster_path` text only, inside the 6-month rule) |
+| DV-3 | New table `account_deletion_jobs` (not in PRD §8) so deletion finalisation (Storage, auth user, email) is retriable after the DB transaction commits | Storage cannot be deleted with SQL (`protect_objects_delete`, VERIFIED); no FK links `users` to `auth.users` (VERIFIED) | run all stages inline and accept manual repair on failure | ACCEPTED |
+| DV-4 | "Fresh Google re-auth < 5 minutes" is implemented with a signed one-time proof cookie created after a Google round trip, **not** by reading the JWT `amr` claim | `amr`/`max_age` support UNVERIFIED | none needed; replace with the claim if later verified | ACCEPTED |
+| DV-5 | The refresh job also refreshes/clears `nodes.title` of **promoted** YouTube nodes (linked through `node_items`), so the new write path does not recreate the legacy 30-day exposure; the legacy exposure itself stays out of scope (D-G) | legacy persists titles/thumbnails and never refreshes (V2-INV E3) | promoted YouTube nodes inherit the legacy exposure | ACCEPTED |
+| DV-6 | All TMDB posters — search results **and** stored items — are hotlinks to `image.tmdb.org` (CSP `img-src https://image.tmdb.org` + `images.remotePatterns`, task P0-11); no poster bytes are stored or proxied | PRD v2.6 §7/D29; CSP currently blocks the host (`next.config.ts:29`, VERIFIED) | proxy posters through our server (that would be caching and falls under the 6-month rule) | ACCEPTED |
+| DV-7 | Tables added beyond PRD §8: `user_prefs`, `owner_contributor_blocks`, `tmdb_genres`, `item_availability_fetch`, `enrichment_jobs`, `email_outbox`, `rate_limits`, `account_deletion_jobs`, and (P1) `node_items`, `owner_picks`; `share_links` kept | each is required by a PRD requirement (block, genres picker, explicit "not available", async enrichment, email, rate limits, deletion, promote, picks) | each can be folded elsewhere at a cost stated in its section | ACCEPTED (support tables enumerated in PRD v2.6 §8 → PLAN-V2-002 §1.4) |
+| DV-8 | `asks.token` stored raw (PRD §8) rather than hashed (PLAN-V2-001) | owner must re-copy the link; DB read access already exposes everything | hash + show-once UX | ACCEPTED |
+| DV-9 | `owner_item_state.library_node_id` (PRD §8) is **not created**; "In library" is derived from `node_items` | the existing Tier-0 check DB-18 requires every FK referencing `nodes` to be `ON DELETE CASCADE` (`scripts/check-invariants-001.mjs:122-128`); a nullable link that survives node deletion needs `SET NULL`, which that check would fail | keep the column without an FK (dangling ids resolved by a join) and relax DB-18 for it | ACCEPTED (PRD v2.6 §8, change-log item 3) |
 
 ### 11.2 Decisions needed from Lolo/CTO (none blocks Wave 1)
 
-| # | Question | Default used in this plan |
-|---|---|---|
-| D-1 | Default post-login home: `/inbox` (v2) or `/feed` (legacy)? Feature flag `V2_DEFAULT_HOME=inbox\|feed` | flag, default `feed` until P0 completes |
-| D-2 | Is the card's friends' average computed over **all** recommenders or only the selected friend? | all recommenders (PRD §6.5 merge rule) |
-| D-3 | CAPTCHA provider (§4.4) | Turnstile |
-| D-4 | Email provider and sending domain (L4) | Resend + owned domain |
-| D-5 | **Guest retention** (PRD silent): purge contributors with no activity (`last_seen_at`) for 18 months and no claim | proposed, **not implemented** until decided |
-| D-6 | Streaming-region default when the IP country is unavailable | no stored default; suggestion from `x-vercel-ip-country` (UNVERIFIED), fallback `US`, always editable |
-| D-7 | Promoting a YouTube **channel** to the Library | not in P1 (`UNSUPPORTED_KIND`) |
-| D-8 | May an account holder recommend to another owner through the same flow? | yes, as an account-backed contributor via the same cookie path (§2.2 step 6); recommending to oneself is rejected |
+| # | Question | Default used in this plan | Decision (CTO 2026-11-21) |
+|---|---|---|---|
+| D-1 | Default post-login home: `/inbox` (v2) or `/feed` (legacy)? Feature flag `V2_DEFAULT_HOME=inbox\|feed` | flag, default `feed` until P0 completes | feature flag, default `feed` |
+| D-2 | Is the card's friends' average computed over **all** recommenders or only the selected friend? | all recommenders (PRD §6.5 merge rule) | all recommenders |
+| D-3 | CAPTCHA provider (§4.4) | Turnstile | Turnstile; proof-of-work fallback if no Cloudflare account by Wave 3 |
+| D-4 | Email provider and sending domain (L4) | Resend + owned domain | Resend; owned domain still to be confirmed by Lolo |
+| D-5 | **Guest retention** (PRD silent): purge contributors with no activity (`last_seen_at`) for 18 months and no claim | proposed, **not implemented** until decided | 18 months, no claim; built in P1 (P1-11); PRD v2.6 §10.1 |
+| D-6 | Streaming-region default when the IP country is unavailable | no stored default; suggestion from `x-vercel-ip-country` (UNVERIFIED), fallback `US`, always editable | as proposed |
+| D-7 | Promoting a YouTube **channel** to the Library | not in P1 (`UNSUPPORTED_KIND`) | channel promote not in P1 |
+| D-8 | May an account holder recommend to another owner through the same flow? | yes, as an account-backed contributor via the same cookie path (§2.2 step 6); recommending to oneself is rejected | account holders may recommend to other owners; self-recommend rejected |
 
 ### 11.3 Risks
 
@@ -1252,7 +1254,7 @@ Exit of P3 planning: S1–S6 each produce a go/no-go note before any store submi
 | R9 | `after()` work is bounded by the function's max duration and the Vercel plan | Medium | small batches, retries via the queue, opportunistic kicks; UNVERIFIED limits (L8) |
 | R10 | Guest identity is per browser: clearing cookies loses it (merge is P2) | Low | documented in the receipt UI; claim by Google |
 | R11 | Supabase default ACLs grant new objects to `anon`/`authenticated` | High if forgotten | mandatory REVOKE block (§1.3) + DB-20/DB-21 |
-| R12 | PRD v2.5 is uncommitted | Low | L11 |
+| R12 | PRD v2.5 was uncommitted | — | resolved: committed as v2.6 on `devin/PLAN-V2-002` (DOCS-V2-001, PR #37) |
 | R13 | `get_inbox` aggregates per request | Low | indexes in §1.4; EXPLAIN on a 5 000-recommendation fixture in P0-04 |
 | R14 | Pre-existing: callback open redirect | Medium | fixed in P0-07 (T15) |
 | R15 | Pre-existing: 2 `users.avatar_key` rows hold external Google URLs against invariant I-12 | Low | outside v2 scope; noted |
