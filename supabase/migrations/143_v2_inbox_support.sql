@@ -26,6 +26,7 @@ CREATE TABLE public.enrichment_jobs (
   UNIQUE (item_id, job_kind, param)
 );
 CREATE INDEX enrichment_jobs_due ON public.enrichment_jobs (run_after) WHERE status = 'pending';
+CREATE INDEX enrichment_jobs_stale ON public.enrichment_jobs (locked_at) WHERE status = 'processing';
 
 ALTER TABLE public.enrichment_jobs ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.enrichment_jobs FROM PUBLIC, anon, authenticated;
@@ -249,8 +250,13 @@ $function$;
 REVOKE ALL ON FUNCTION public.yt_budget_consume(uuid, text, integer, integer, integer) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.yt_budget_consume(uuid, text, integer, integer, integer) TO service_role;
 
--- Claim up to p_limit due jobs for the enrichment worker
--- (FOR UPDATE SKIP LOCKED: two workers never get the same row).
+-- Claim up to p_limit due jobs for the enrichment worker.
+-- Candidates: pending jobs whose run_after has come, plus 'processing'
+-- jobs whose lock is stale (locked_at older than 5 minutes = the worker
+-- died mid-job). FOR UPDATE SKIP LOCKED: two workers never get the same
+-- row. A stale job is reclaimed with attempts+1; if that reaches 5 it is
+-- failed instead ('worker timeout') and items.enrichment_status is
+-- recomputed with the same rule enrichment_finish uses.
 CREATE FUNCTION public.enrichment_claim(p_limit integer)
  RETURNS SETOF public.enrichment_jobs
  LANGUAGE plpgsql
@@ -258,7 +264,10 @@ CREATE FUNCTION public.enrichment_claim(p_limit integer)
  SET search_path = public
 AS $function$
 DECLARE
-  v_ids uuid[];
+  v_claim_ids  uuid[];
+  v_retry_ids  uuid[];
+  v_fail_ids   uuid[];
+  v_fail_items uuid[];
 BEGIN
   IF auth.role() IS DISTINCT FROM 'service_role' THEN
     RAISE EXCEPTION 'not allowed' USING ERRCODE = '42501';
@@ -267,22 +276,58 @@ BEGIN
     RAISE EXCEPTION 'invalid claim limit' USING ERRCODE = '22023';
   END IF;
   WITH picked AS (
-    SELECT j.id
+    SELECT j.id, j.status AS st, j.attempts AS att, j.item_id
     FROM public.enrichment_jobs j
-    WHERE j.status = 'pending' AND j.run_after <= now()
+    WHERE (j.status = 'pending' AND j.run_after <= now())
+       OR (j.status = 'processing' AND j.locked_at < now() - interval '5 minutes')
     ORDER BY j.run_after, j.created_at
-    FOR UPDATE SKIP LOCKED
+    FOR UPDATE OF j SKIP LOCKED
     LIMIT p_limit
+  ),
+  classified AS (
+    SELECT id, item_id,
+           CASE WHEN st = 'processing' AND att + 1 >= 5 THEN 'fail'
+                WHEN st = 'processing' THEN 'retry'
+                ELSE 'claim' END AS action
+    FROM picked
   )
-  SELECT array_agg(id) INTO v_ids FROM picked;
-  IF v_ids IS NULL THEN
-    RETURN;
+  SELECT array_agg(id) FILTER (WHERE action = 'claim'),
+         array_agg(id) FILTER (WHERE action = 'retry'),
+         array_agg(id) FILTER (WHERE action = 'fail'),
+         array_agg(DISTINCT item_id) FILTER (WHERE action = 'fail')
+  INTO v_claim_ids, v_retry_ids, v_fail_ids, v_fail_items
+  FROM classified;
+
+  IF v_fail_ids IS NOT NULL THEN
+    UPDATE public.enrichment_jobs
+    SET status = 'failed', attempts = attempts + 1,
+        last_error = 'worker timeout', locked_at = NULL
+    WHERE id = ANY (v_fail_ids);
+    UPDATE public.items i
+    SET enrichment_status = CASE
+          WHEN EXISTS (SELECT 1 FROM public.enrichment_jobs j
+                       WHERE j.item_id = i.id AND j.status = 'failed')
+          THEN 'failed' ELSE 'complete' END
+    WHERE i.id = ANY (v_fail_items)
+      AND NOT EXISTS (SELECT 1 FROM public.enrichment_jobs j
+                      WHERE j.item_id = i.id AND j.status IN ('pending','processing'));
   END IF;
-  UPDATE public.enrichment_jobs
-  SET status = 'processing', locked_at = now()
-  WHERE id = ANY (v_ids);
+
+  IF v_claim_ids IS NOT NULL THEN
+    UPDATE public.enrichment_jobs
+    SET status = 'processing', locked_at = now()
+    WHERE id = ANY (v_claim_ids);
+  END IF;
+
+  IF v_retry_ids IS NOT NULL THEN
+    UPDATE public.enrichment_jobs
+    SET attempts = attempts + 1, locked_at = now()
+    WHERE id = ANY (v_retry_ids);
+  END IF;
+
   RETURN QUERY
-    SELECT * FROM public.enrichment_jobs WHERE id = ANY (v_ids);
+    SELECT * FROM public.enrichment_jobs
+    WHERE id = ANY (COALESCE(v_claim_ids, '{}'::uuid[]) || COALESCE(v_retry_ids, '{}'::uuid[]));
 END;
 $function$;
 
@@ -497,7 +542,13 @@ GRANT EXECUTE ON FUNCTION public.item_refresh_apply(uuid, jsonb, boolean) TO ser
 
 -- Daily purge (PLAN §2.11/§6.5/§3.5): expired YouTube search cache,
 -- rate-limit windows older than 2 days, YouTube budget days older
--- than 3 days, finished account-deletion jobs older than 30 days.
+-- than 3 days, finished account-deletion jobs older than 30 days,
+-- PII retention: account_deletion_jobs.email is nulled after 30 days
+-- (the confirmation mail is long gone; §3.5 keeps the address only
+-- until sent), and deletion_requests rows are removed once they can
+-- no longer act: 'pending' (never confirmed) after 7 days, terminal
+-- 'done'/'rejected' after 30 days. 'confirmed' and 'processing'
+-- requests are kept — they may still be executed.
 CREATE FUNCTION public.housekeeping_purge()
  RETURNS void
  LANGUAGE plpgsql
@@ -514,6 +565,12 @@ BEGIN
   WHERE day < (now() AT TIME ZONE 'America/Los_Angeles')::date - 3;
   DELETE FROM public.account_deletion_jobs
   WHERE stage = 'done' AND completed_at < now() - interval '30 days';
+  UPDATE public.account_deletion_jobs SET email = NULL
+  WHERE email IS NOT NULL AND created_at < now() - interval '30 days';
+  DELETE FROM public.deletion_requests
+  WHERE (status = 'pending' AND created_at < now() - interval '7 days')
+     OR (status IN ('done','rejected')
+         AND coalesce(completed_at, created_at) < now() - interval '30 days');
 END;
 $function$;
 

@@ -18,7 +18,10 @@
 -- "In library" is derived from node_items (migration 143).
 -- items has NO poster_key (PRD v2.6 §7/D29): posters are hotlinks
 -- from image.tmdb.org built from items.poster_path (text only,
--- inside the 6-month refresh rule).
+-- inside the 6-month refresh rule). URL/path columns rendered as
+-- links or images carry defense-in-depth CHECKs:
+-- trailer_url/thumb_url/item_availability.link must be https://;
+-- poster_path must be a single TMDB path segment ('/abc.jpg').
 -- ============================================================
 
 -- 1. Owner preferences (replaces "extend users")
@@ -87,11 +90,11 @@ CREATE TABLE public.items (
   is_documentary    boolean NOT NULL DEFAULT false, -- TMDB genre 99
   overview          text,                           -- original-language overview (localized texts live in `localized`)
   runtime_min       integer CHECK (runtime_min IS NULL OR runtime_min >= 0),
-  poster_path       text,                           -- TMDB only: image path ('/abc.jpg'); rendered as an image.tmdb.org hotlink, never copied (PRD v2.6 §7); refreshed under the 6-month rule
-  thumb_url         text,                           -- YouTube channel avatar only (cached <=30d); videos derive i.ytimg.com/vi/<id>/hqdefault.jpg from the id
+  poster_path       text CHECK (poster_path IS NULL OR poster_path ~ '^/[A-Za-z0-9._-]+$'),  -- TMDB only: image path ('/abc.jpg'); rendered as an image.tmdb.org hotlink, never copied (PRD v2.6 §7); refreshed under the 6-month rule
+  thumb_url         text CHECK (thumb_url IS NULL OR thumb_url ~ '^https://'),               -- YouTube channel avatar only (cached <=30d); videos derive i.ytimg.com/vi/<id>/hqdefault.jpg from the id
   creator_id        text,                           -- YouTube channel id (an ID: allowed)
   creator_name      text,                           -- YouTube channel title (API data: <=30d)
-  trailer_url       text,
+  trailer_url       text CHECK (trailer_url IS NULL OR trailer_url ~ '^https://'),
   tmdb_rating       numeric(3,1) CHECK (tmdb_rating IS NULL OR tmdb_rating BETWEEN 0 AND 10),
   tmdb_votes        integer CHECK (tmdb_votes IS NULL OR tmdb_votes >= 0),
   localized         jsonb NOT NULL DEFAULT '{}',    -- {"fr-FR":{"name","overview","tagline"}, ...} keyed by TMDB tag
@@ -113,7 +116,7 @@ CREATE TABLE public.item_availability (
   provider_id   integer NOT NULL,
   provider      text NOT NULL,
   offer_type    text NOT NULL CHECK (offer_type IN ('flatrate','rent','buy')),
-  link          text,
+  link          text CHECK (link IS NULL OR link ~ '^https://'),
   logo_key      text,
   fetched_at    timestamptz NOT NULL DEFAULT now(),
   PRIMARY KEY (item_id, region_code, provider_id, offer_type)
