@@ -29,6 +29,7 @@ import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { readFileSync, readdirSync, existsSync } from "fs";
 import { execSync, execFileSync } from "child_process";
+import { deriveV2Tables, probeV2TableSecurity } from "./check-invariants-001.db20.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
@@ -237,6 +238,16 @@ try {
       `SELECT proname FROM pg_proc WHERE pronamespace='public'::regnamespace AND proname = ANY($1)`, [DROPPED]);
     check("DB-19 superseded RPCs dropped (P12)", dropped.rows.length === 0,
       dropped.rows.map((r) => r.proname).join(", ") || "all dropped");
+
+    // DB-20 — V2-W2-P0-06A (PLAN-V2-002 §1.3, §8 P0-06): every table
+    // created by migrations 142/143 must have RLS enabled, zero
+    // pg_policies rows, and no anon/authenticated entries in
+    // information_schema.role_table_grants.
+    const v2Tables = deriveV2Tables(root);
+    console.log(`DB-20 v2 tables derived from migrations 142/143 (${v2Tables.length}): ${v2Tables.join(", ")}`);
+    const db20 = await probeV2TableSecurity(client2, v2Tables);
+    check("DB-20 v2 tables: RLS on, zero policies, no anon/authenticated grants",
+      db20.ok, db20.detail);
   } finally {
     client2.release();
     await pool2.end();
@@ -288,7 +299,7 @@ check("REPO-11 RPC-only writes (edges/causes/folder_edges/folder_tree)", directW
 // every write goes through an RPC. (youtube_connections own-row token
 // storage is the single sanctioned exception.) categorization_suggestions
 // is dropped by P2-08 (F6), at which point its writers disappear.
-const domainWriteRe = /\.from\(\s*["'](tag_edges|folders|nodes|blocks|friend_invites|users|notifications|groups|group_members|ratings|folder_grants|folder_ratings|organize_batches|organize_items)["']\s*\)\s*\.(insert|update|delete|upsert)\(/;
+const domainWriteRe = /\.from\(\s*["'](tag_edges|folders|nodes|blocks|friend_invites|users|notifications|groups|group_members|ratings|folder_grants|folder_ratings|organize_batches|organize_items|user_prefs|contributors|asks|items|item_availability|item_availability_fetch|tmdb_genres|submissions|recommendations|owner_item_state|owner_contributor_blocks|enrichment_jobs|email_outbox|rate_limits|youtube_search_cache|youtube_search_budget|account_deletion_jobs|deletion_requests|node_items)["']\s*\)\s*\.(insert|update|delete|upsert)\(/;
 const domainWrites = srcFiles.filter((f) => domainWriteRe.test(readFileSync(f, "utf8")));
 check("REPO-15 RPC-only writes (all domain tables)", domainWrites.length === 0,
   domainWrites.map((f) => f.replace(root + "\\", "")).join(", ") || "clean");
@@ -376,6 +387,45 @@ const persistHits = srcFiles.filter((f) =>
 check("REPO-18 youtube.readonly scope + persist helper guard",
   ytScopeHits.length === 0 && persistHits.length === 0,
   [...ytScopeHits, ...persistHits].map((f) => f.replace(root + "\\", "")).join(", ") || "clean");
+
+// 16. V2-W2-P0-06A (PLAN-V2-002 §8 REPO-16): guest/class-S RPC names may be
+// called only through getSupabaseServiceClient(); no guest/class-S RPC name
+// may appear in a client component under the ask dirs. Missing dirs are
+// skipped (they ship in later waves) — vacuous PASS, same as REPO-17.
+const ASK_DIRS = ["app/api/ask", "lib/ask"];
+const GUEST_CLASS_S_RPCS = [
+  // guest session + submit/receipt (plan §2.2-§2.4, P0-03 migration 144)
+  "guest_get_ask", "guest_create_contributor", "guest_rename", "guest_touch",
+  "guest_verify", "guest_get_or_create_account_contributor",
+  "submit_recommendations", "guest_get_receipt",
+  // public picks + claim (plan §2.8/§2.9, P1)
+  "get_public_picks", "guest_get_picks", "claim_guest",
+  // account/guest deletion (plan §2.10)
+  "delete_guest_data", "delete_account",
+  // infra/worker class S (migration 143 + P0-03 upsert_item)
+  "rl_hit", "yt_budget_consume", "enrichment_claim", "enrichment_finish",
+  "item_apply_details", "item_apply_availability", "item_refresh_apply",
+  "housekeeping_purge", "upsert_item",
+];
+const guestRpcCallRe = new RegExp(
+  `\\.rpc\\(\\s*["'\`](${GUEST_CLASS_S_RPCS.join("|")})["'\`]`);
+const guestNameRe = new RegExp(`\\b(${GUEST_CLASS_S_RPCS.join("|")})\\b`);
+const askFiles = ASK_DIRS.flatMap((d) => collect(d));
+const askSvcHits = [];
+const askClientHits = [];
+for (const f of askFiles) {
+  const c = readFileSync(f, "utf8");
+  const rel = relOf(f);
+  if (/"use client"|'use client'/.test(c) && guestNameRe.test(c)) askClientHits.push(rel);
+  if (guestRpcCallRe.test(c) && !c.includes("getSupabaseServiceClient")) askSvcHits.push(rel);
+}
+const askDirsPresent = ASK_DIRS.filter((d) => existsSync(join(root, d))).length;
+check("REPO-16 guest/class-S RPCs via service client only; none in client components",
+  askSvcHits.length === 0 && askClientHits.length === 0,
+  askDirsPresent === 0
+    ? `dirs absent (${ASK_DIRS.join(", ")}) — vacuous pass`
+    : [...askSvcHits.map((f) => "svc:" + f), ...askClientHits.map((f) => "client:" + f)].join(", ")
+      || `${askFiles.length} ask files scanned (${askDirsPresent} dirs present)`);
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
