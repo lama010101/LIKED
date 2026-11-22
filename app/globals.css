@@ -134,7 +134,7 @@ input:focus:not(:focus-visible) {
 body {
   background: var(--bg);
   color: var(--text-1);
-  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-sans), var(--font-thai), ui-sans-serif, system-ui, sans-serif;
 }
 
 /* Scrollbar hide utilities */

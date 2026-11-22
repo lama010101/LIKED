@@ -246,5 +246,11 @@
     "noFolder": "Sans dossier",
     "tagAll": "✨ Taguer mes cartes ({count} à taguer)",
     "tagging": "Étiquetage…"
+  },
+  "v2": {
+    "language": {
+      "title": "Langue et apparence",
+      "hint": "Définie par votre navigateur. Les titres, genres et descriptions suivent aussi cette langue."
+    }
   }
 }

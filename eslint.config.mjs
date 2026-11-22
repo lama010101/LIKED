@@ -13,6 +13,21 @@ const eslintConfig = defineConfig([
       ],
     },
   },
+  // P0-09 (PLAN-V2-002 §7.2 item 9): no hard-coded user-visible strings in
+  // the new v2 directories — every UI string goes through next-intl.
+  {
+    files: [
+      "app/inbox/**",
+      "app/r/**",
+      "app/s/**",
+      "app/settings/**",
+      "app/delete-account/**",
+      "components/v2/**",
+    ],
+    rules: {
+      "react/jsx-no-literals": ["error", { noStrings: true }],
+    },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:
