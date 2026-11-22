@@ -1,11 +1,40 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
-export const metadata: Metadata = {
-  title: "Terms of Service - LIKED",
-  description: "The terms and conditions for using LIKED.",
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("legal.terms");
+  return { title: t("metaTitle"), description: t("metaDescription") };
+}
+
+// PLACEHOLDER tokens (plan §10 L9): replace before release.
+// LEGAL_ENTITY = developer legal name; CONTACT_EMAIL = published support address.
+const LEGAL_ENTITY = "[LEGAL ENTITY NAME — PLACEHOLDER]";
+const CONTACT_EMAIL = "[SUPPORT EMAIL — PLACEHOLDER]";
+
+const linkStyle: React.CSSProperties = {
+  color: "var(--accent-light)",
+  fontWeight: 600,
 };
 
-export default function TermsOfServicePage() {
+const rich = {
+  strong: (chunks: React.ReactNode) => (
+    <strong style={{ color: "var(--text-1)" }}>{chunks}</strong>
+  ),
+  contactEmail: () =>
+    CONTACT_EMAIL.includes("@") ? (
+      <a href={`mailto:${CONTACT_EMAIL}`} style={linkStyle}>
+        {CONTACT_EMAIL}
+      </a>
+    ) : (
+      <span style={{ color: "var(--text-1)", fontWeight: 600 }}>
+        {CONTACT_EMAIL}
+      </span>
+    ),
+};
+
+export default async function TermsOfServicePage() {
+  const t = await getTranslations("legal.terms");
   return (
     <div
       style={{
@@ -48,10 +77,10 @@ export default function TermsOfServicePage() {
               marginBottom: 4,
             }}
           >
-            Terms of Service
+            {t("title")}
           </h2>
           <p style={{ fontSize: 13, color: "var(--text-3)" }}>
-            Last updated: September 6, 2026
+            {t("lastUpdated")}
           </p>
         </header>
 
@@ -66,119 +95,72 @@ export default function TermsOfServicePage() {
           }}
         >
           <section>
-            <h3 style={sectionHeading}>1. Acceptance of Terms</h3>
-            <p>
-              By creating an account or otherwise accessing or using LIKED (the
-              &quot;Service&quot;), you agree to be bound by these Terms of
-              Service. If you do not agree, you may not access or use the
-              Service.
-            </p>
+            <h3 style={sectionHeading}>{t("s1.title")}</h3>
+            <p>{t("s1.body")}</p>
           </section>
 
           <section>
-            <h3 style={sectionHeading}>2. Your Account</h3>
-            <p>
-              You are responsible for maintaining the security of your account
-              and for all activity that occurs under your account. You must
-              provide accurate information when registering and keep it up to
-              date. You must be at least 13 years old (or the minimum age
-              required in your jurisdiction) to use the Service.
-            </p>
+            <h3 style={sectionHeading}>{t("s2.title")}</h3>
+            <p>{t("s2.body")}</p>
           </section>
 
           <section>
-            <h3 style={sectionHeading}>3. Your Content</h3>
-            <p>
-              You retain ownership of the content you submit to LIKED. You are
-              solely responsible for your content and for ensuring you have the
-              rights to share it. By submitting content, you grant LIKED a
-              worldwide, non-exclusive, royalty-free license to host, store,
-              display, and transmit that content as necessary to operate the
-              Service.
-            </p>
+            <h3 style={sectionHeading}>{t("s3.title")}</h3>
+            <p>{t("s3.body")}</p>
           </section>
 
           <section>
-            <h3 style={sectionHeading}>4. Acceptable Use</h3>
-            <p>You agree not to:</p>
+            <h3 style={sectionHeading}>{t("s4.title")}</h3>
+            <p>{t("s4.intro")}</p>
             <ul style={{ paddingLeft: 20, display: "flex", flexDirection: "column", gap: 6 }}>
-              <li>Use the Service for any unlawful purpose or in violation of these Terms.</li>
-              <li>Submit content that infringes the rights of others, including intellectual property or privacy rights.</li>
-              <li>Harass, abuse, or harm other users.</li>
-              <li>Attempt to access accounts, data, or systems you are not authorized to access.</li>
-              <li>Interfere with or disrupt the Service or its servers.</li>
+              <li>{t("s4.item1")}</li>
+              <li>{t("s4.item2")}</li>
+              <li>{t("s4.item3")}</li>
+              <li>{t("s4.item4")}</li>
+              <li>{t("s4.item5")}</li>
             </ul>
           </section>
 
           <section>
-            <h3 style={sectionHeading}>5. Visibility and Sharing</h3>
-            <p>
-              LIKED uses an edge-based visibility system. You control who can
-              see your content by creating connections. You are responsible for
-              your sharing decisions. Once content is shared with another user,
-              LIKED cannot guarantee it will not be further shared by that
-              user.
-            </p>
+            <h3 style={sectionHeading}>{t("s5.title")}</h3>
+            <p>{t("s5.body")}</p>
           </section>
 
           <section>
-            <h3 style={sectionHeading}>6. Termination</h3>
-            <p>
-              You may delete your account at any time. We may suspend or
-              terminate your access to the Service if you violate these Terms or
-              if we believe your conduct harms the Service or other users.
-            </p>
+            <h3 style={sectionHeading}>{t("s6.title")}</h3>
+            <p>{t("s6.body")}</p>
           </section>
 
           <section>
-            <h3 style={sectionHeading}>7. Disclaimers</h3>
-            <p>
-              The Service is provided &quot;as is&quot; and &quot;as
-              available&quot; without warranties of any kind, whether express or
-              implied. We do not guarantee that the Service will be
-              uninterrupted, secure, or error-free.
-            </p>
+            <h3 style={sectionHeading}>{t("s7.title")}</h3>
+            <p style={{ marginBottom: 12 }}>{t("s7.deletion")}</p>
+            <p>{t("s7.termination")}</p>
           </section>
 
           <section>
-            <h3 style={sectionHeading}>8. Limitation of Liability</h3>
-            <p>
-              To the maximum extent permitted by law, LIKED and its operators
-              shall not be liable for any indirect, incidental, special, or
-              consequential damages arising from your use of, or inability to
-              use, the Service.
-            </p>
+            <h3 style={sectionHeading}>{t("s8.title")}</h3>
+            <p>{t("s8.body")}</p>
           </section>
 
           <section>
-            <h3 style={sectionHeading}>9. Changes to These Terms</h3>
-            <p>
-              We may modify these Terms from time to time. We will notify you of
-              material changes by posting the updated Terms on this page and
-              updating the &quot;Last updated&quot; date above. Continued use of
-              the Service after changes take effect constitutes acceptance of
-              the revised Terms.
-            </p>
+            <h3 style={sectionHeading}>{t("s9.title")}</h3>
+            <p>{t("s9.body")}</p>
           </section>
 
           <section>
-            <h3 style={sectionHeading}>10. Contact Us</h3>
-            <p>
-              If you have questions about these Terms, please contact us at{" "}
-              <a
-                href="mailto:terms@liked.app"
-                style={{ color: "var(--accent-light)", fontWeight: 600 }}
-              >
-                terms@liked.app
-              </a>
-              .
-            </p>
+            <h3 style={sectionHeading}>{t("s10.title")}</h3>
+            <p>{t("s10.body")}</p>
+          </section>
+
+          <section>
+            <h3 style={sectionHeading}>{t("s11.title")}</h3>
+            <p>{t.rich("s11.contact", { ...rich, entity: LEGAL_ENTITY })}</p>
           </section>
         </div>
 
         <footer style={{ marginTop: 32, paddingTop: 24, borderTop: "1px solid var(--border-1)" }}>
-          <a
-            href="/signup"
+          <Link
+            href="/"
             style={{
               color: "var(--accent-light)",
               fontSize: 14,
@@ -186,8 +168,8 @@ export default function TermsOfServicePage() {
               textDecoration: "none",
             }}
           >
-            &larr; Back to sign up
-          </a>
+            {t("back")}
+          </Link>
         </footer>
       </article>
     </div>

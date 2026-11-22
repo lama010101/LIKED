@@ -252,5 +252,166 @@
       "title": "Langue et apparence",
       "hint": "Définie par votre navigateur. Les titres, genres et descriptions suivent aussi cette langue."
     }
+  },
+  "legal": {
+    "links": {
+      "privacy": "Politique de confidentialité",
+      "terms": "Conditions d'utilisation"
+    },
+    "privacy": {
+      "metaTitle": "Politique de confidentialité",
+      "metaDescription": "Comment LIKED collecte, utilise, partage et protège vos informations.",
+      "title": "Politique de confidentialité",
+      "lastUpdated": "Dernière mise à jour : 22 novembre 2026",
+      "back": "← Retour à LIKED",
+      "intro": "LIKED est une application web de partage de contenu exploité par {entity} (« nous »). LIKED vous permet d'enregistrer des liens et des notes sous forme de cartes, de les organiser avec des dossiers et des étiquettes, de les partager avec les personnes avec qui vous vous connectez, et de recevoir des recommandations d'amis via des liens Ask personnels — l'ami n'a pas besoin de compte. La présente Politique de confidentialité explique quelles informations nous collectons, comment nous les utilisons, avec qui nous les partageons et quels choix vous avez.",
+      "s1": {
+        "title": "1. Informations que nous collectons",
+        "account": "<strong>Informations de compte :</strong> Lorsque vous créez un compte, nous collectons votre adresse e-mail, votre nom d'affichage et votre avatar de profil. Si vous vous inscrivez ou vous connectez avec Google, nous recevons le nom, l'adresse e-mail et la photo de profil associés à votre compte Google, ainsi qu'un identifiant d'authentification attribué par Google. Nous ne demandons ni ne recevons votre mot de passe Google.",
+        "guest": "<strong>Informations sur les invités et contributeurs :</strong> Un ami peut vous envoyer des recommandations via votre lien Ask personnel sans créer de compte. Dans ce cas, nous stockons le nom d'affichage qu'il choisit de donner — déclaratif et non vérifié —, les recommandations qu'il soumet, et un cookie de session aléatoire sur son appareil qui relie ses soumissions entre elles. Les sessions invité ne sont associées à aucune adresse e-mail ni compte Google, sauf si l'invité se connecte ultérieurement et revendique la session.",
+        "content": "<strong>Contenu que vous créez :</strong> Nous stockons les cartes, dossiers, étiquettes, notes texte, liens Ask, recommandations et les connexions que vous créez entre votre contenu et d'autres utilisateurs. Les cartes peuvent inclure des URL, des titres, des descriptions, des images et des métadonnées sur les pages que vous enregistrez. Pour les liens YouTube, nous pouvons récupérer et stocker le titre, la miniature et la durée de la vidéo afin que la carte affiche un aperçu et une lecture intégrée.",
+        "youtube": "<strong>Données YouTube :</strong> Si vous connectez YouTube, nous stockons les jetons OAuth nécessaires pour lire votre activité YouTube en votre nom et importer les vidéos que vous choisissez. Les titres, descriptions et miniatures récupérés via l'API YouTube sont traités comme des données d'affichage : nous les actualisons ou les supprimons dans un délai de 30 jours, conformément aux conditions des services API YouTube.",
+        "usage": "<strong>Données d'utilisation :</strong> Nous collectons automatiquement des informations sur votre interaction avec LIKED, notamment les pages que vous consultez, les actions que vous effectuez, le type approximatif de votre appareil, le type et la version de votre navigateur, ainsi que les dates et heures de vos visites.",
+        "technical": "<strong>Données techniques et d'authentification :</strong> Pour vous garder connecté et sécuriser votre compte, nous stockons des jetons d'authentification et des identifiants de session dans les cookies et le stockage local de votre navigateur. Nous traitons également les adresses IP, les horodatages des requêtes et les journaux d'erreurs à des fins de sécurité, de prévention des abus et de dépannage ; ces journaux de sécurité éphémères sont conservés au maximum 30 jours.",
+        "notCollected": "<strong>Informations que nous ne collectons pas :</strong> Nous ne collectons pas de données de géolocalisation précise, d'informations financières, d'identifiants gouvernementaux, ni le contenu de vos communications sur d'autres plateformes. Nous ne demandons pas l'accès à vos contacts, votre caméra, votre microphone ou les fichiers de votre appareil."
+      },
+      "s2": {
+        "title": "2. Comment nous utilisons vos informations",
+        "intro": "Nous utilisons les informations que nous collectons pour :",
+        "item1": "Créer, maintenir et authentifier votre compte et votre profil.",
+        "item2": "Stocker, afficher et partager le contenu que vous créez selon la visibilité que vous choisissez — par exemple, les recommandations envoyées via votre lien Ask ne sont visibles que par vous, et les éléments d'un dossier partagé avec d'autres personnes sont visibles par les membres de ce dossier.",
+        "item3": "Générer des aperçus et des métadonnées pour les liens que vous enregistrez — par exemple, récupérer le titre et la miniature d'une vidéo YouTube, ou des informations sur des films et séries (titres, résumés, disponibilités) auprès de TMDB et JustWatch.",
+        "item4": "Envoyer des notifications sur les activités pertinentes pour vous, comme les recommandations que des amis vous envoient ou le contenu partagé avec vous par d'autres utilisateurs.",
+        "item5": "Exploiter, surveiller, sécuriser et améliorer le service, notamment pour le débogage et la prévention de la fraude ou des abus.",
+        "item6": "Respecter nos obligations légales et faire appliquer nos Conditions d'utilisation.",
+        "outro": "Nous n'utilisons pas vos informations pour entraîner des modèles automatisés et nous ne vendons pas vos informations personnelles à des tiers."
+      },
+      "s3": {
+        "title": "3. Cookies et stockage local",
+        "body": "LIKED utilise des cookies et le stockage local du navigateur pour vous garder connecté, mémoriser votre session, mémoriser vos préférences (comme la langue, le thème et la couleur principale) et — pour les invités — conserver la session de lien Ask aléatoire décrite ci-dessus. Les jetons d'authentification stockés dans votre navigateur servent uniquement à vérifier votre identité auprès de notre backend et sont supprimés lorsque vous vous déconnectez. Nous n'utilisons pas de cookies pour la publicité intersites ni pour le pistage par des tiers. Vous pouvez effacer les cookies et le stockage local à tout moment dans les paramètres de votre navigateur, ce qui vous déconnectera de LIKED et mettra fin à toute session invité."
+      },
+      "s4": {
+        "title": "4. Services tiers",
+        "intro": "Nous nous appuyons sur les fournisseurs tiers suivants pour exploiter LIKED. Chaque fournisseur ne traite les informations que dans la mesure nécessaire pour fournir le service décrit, et est régi par sa propre politique de confidentialité :",
+        "google": "<strong>Google</strong> — utilisé pour l'authentification « Se connecter avec Google » et, si vous le connectez, pour les fonctionnalités YouTube. Lorsque vous utilisez la connexion Google, Google partage avec LIKED votre nom, votre adresse e-mail et votre photo de profil. Google dépose également ses propres cookies dans le cadre du processus de connexion. Consultez la <googlePrivacyLink>Politique de confidentialité de Google</googlePrivacyLink>.",
+        "youtube": "<strong>Services API YouTube</strong> — lorsque vous connectez YouTube, LIKED accède à l'API YouTube Data en votre nom pour lire vos mentions J'aime et vos abonnements et importer les vidéos que vous choisissez. Les données d'affichage YouTube (titres, descriptions, miniatures) sont actualisées ou supprimées dans un délai de 30 jours. Vous pouvez révoquer l'accès de LIKED à tout moment depuis la page <googlePermissionsLink>autorisations de votre compte Google</googlePermissionsLink> ou via l'option Déconnecter dans les paramètres YouTube de LIKED. Consultez les <youtubeTermsLink>conditions des services API YouTube</youtubeTermsLink> et la <googlePrivacyLink>Politique de confidentialité de Google</googlePrivacyLink>.",
+        "supabase": "<strong>Supabase</strong> — notre fournisseur de base de données et d'authentification. Supabase stocke vos données de compte, votre contenu et les informations de session en notre nom dans la région où notre projet est hébergé. Consultez la <supabasePrivacyLink>Politique de confidentialité de Supabase</supabasePrivacyLink>.",
+        "vercel": "<strong>Vercel</strong> — notre hébergeur. Vercel sert le site LIKED et peut enregistrer des métadonnées de requêtes (comme l'adresse IP et l'heure de la requête) à des fins de diffusion, de sécurité et de performance. Consultez la <vercelPrivacyLink>Politique de confidentialité de Vercel</vercelPrivacyLink>.",
+        "tmdb": "<strong>TMDB</strong> — nous récupérons les métadonnées de films et de séries (titres, résumés, genres, disponibilités) auprès de The Movie Database pour enrichir les cartes que vous enregistrez. Consultez <tmdbLink>The Movie Database</tmdbLink>.",
+        "justwatch": "<strong>JustWatch</strong> — les données de disponibilité en streaming affichées sur les cartes sont fournies par JustWatch. Consultez <justwatchLink>JustWatch</justwatchLink>.",
+        "outro": "Lorsque vous enregistrez un lien, nous pouvons récupérer des métadonnées publiques (comme un titre de page ou une image) auprès du site lié. Ce site peut enregistrer la requête de manière indépendante. Nous ne partageons pas les informations de votre compte avec ces sites."
+      },
+      "s5": {
+        "title": "5. Partage et visibilité",
+        "body": "LIKED repose sur des connexions que vous créez explicitement : le contenu que vous partagez n'est visible que par les utilisateurs auxquels vous vous êtes connecté, selon les connexions que vous créez. Nous ne rendons pas votre contenu public sauf si vous le choisissez. Les recommandations envoyées via un lien Ask ne sont visibles que par le propriétaire du lien Ask. Si vous ajoutez un élément à un dossier partagé avec d'autres personnes, chaque membre de ce dossier peut le voir — les dossiers partagés sont collaboratifs par conception. Nous ne partageons des informations avec nos fournisseurs de services (listés ci-dessus) que dans la mesure nécessaire pour exploiter LIKED, et nous pouvons divulguer des informations lorsque la loi l'exige ou pour protéger nos droits, nos utilisateurs ou le service."
+      },
+      "s6": {
+        "title": "6. Conservation des données",
+        "intro": "Nous conservons vos informations de compte et votre contenu tant que votre compte est actif ou que votre session invité n'est pas revendiquée. Plus précisément :",
+        "item1": "Le contenu que vous supprimez est déplacé vers la corbeille et peut être restauré ; il peut être définitivement supprimé ensuite.",
+        "item2": "Les journaux d'authentification et les journaux de sécurité éphémères sont conservés au maximum 30 jours.",
+        "item3": "Les invités sans activité pendant 18 mois et sans revendication de compte sont purgés, y compris leur profil de contributeur et toutes les soumissions et recommandations qu'ils ont envoyées.",
+        "item4": "Les données d'affichage YouTube récupérées via l'API sont actualisées ou supprimées dans un délai de 30 jours.",
+        "item5": "Lorsque vous supprimez votre compte, les sauvegardes peuvent ne conserver les données supprimées que jusqu'à leur expiration selon les calendriers de conservation des sauvegardes de nos fournisseurs.",
+        "outro": "Vous pouvez demander à tout moment la suppression de votre compte et des données associées — voir la section 7."
+      },
+      "s7": {
+        "title": "7. Suppression du compte et des données",
+        "intro": "Vous pouvez supprimer vos données de trois façons :",
+        "path1": "Utilisateurs connectés : Paramètres → Supprimer le compte vous demande de re-confirmer avec Google, puis supprime votre compte immédiatement — il n'y a pas de période de grâce.",
+        "path2": "Toute personne peut utiliser la page publique /delete-account sur le web : connectez-vous avec Google pour supprimer directement, ou soumettez une demande de suppression par e-mail que nous traitons sous 30 jours.",
+        "path3": "Invités : la fiche ami propose « Supprimer mes données », qui retire immédiatement le profil de contributeur ainsi que toutes les soumissions et recommandations envoyées.",
+        "ownTitle": "La suppression de votre compte retire :",
+        "own1": "votre Bibliothèque — cartes, dossiers, étiquettes et tout ce que des amis vous ont recommandé — ainsi que vos sélections, votre lien Ask, vos notifications, vos paramètres, votre avatar et vos miniatures stockés, et votre compte de connexion lui-même ;",
+        "othersTitle": "Elle modifie également ce que voient les autres personnes :",
+        "other1": "les groupes que vous possédez sont supprimés, leurs autres membres les perdent ;",
+        "other2": "les messages de chat que vous avez envoyés sont supprimés, et les conversations directes dont vous faites partie sont supprimées — l'autre personne perd cette conversation ;",
+        "other3": "les éléments que vous avez ajoutés à des dossiers partagés avec d'autres personnes sont retirés de ces dossiers ;",
+        "other4": "les recommandations que vous avez envoyées sont retirées de chaque boîte de réception, et les compteurs d'amis et moyennes de score concernés sont mis à jour.",
+        "kept": "Nous ne conservons que le catalogue partagé des titres et leurs disponibilités, qui ne sont pas liés à vous et peuvent être affichés sur les cartes d'autres utilisateurs.",
+        "outro": "La suppression est définitive et immédiate. Si vous souhaitez seulement vous déconnecter, utilisez Se déconnecter : cela met fin à la session sur cet appareil uniquement et ne supprime rien."
+      },
+      "s8": {
+        "title": "8. Sécurité",
+        "body": "Nous prenons des mesures raisonnables pour protéger vos informations, notamment une authentification chiffrée, des contrôles d'accès et des politiques de sécurité de base de données au niveau des lignes qui limitent l'accès aux données aux utilisateurs autorisés. Cependant, aucune méthode de transmission ou de stockage n'est totalement sûre et nous ne pouvons garantir une sécurité absolue. Nous informerons les utilisateurs concernés de tout incident de sécurité important conformément à la loi applicable."
+      },
+      "s9": {
+        "title": "9. Vos droits et choix",
+        "body": "Selon votre juridiction, vous pouvez avoir le droit d'accéder à vos informations personnelles, de les rectifier, de les exporter ou de les supprimer, et de vous opposer à certains traitements ou d'en limiter la portée. Vous pouvez mettre à jour les informations de votre profil dans l'application, supprimer du contenu directement depuis votre bibliothèque, choisir votre langue, votre thème et votre couleur principale, et vous déconnecter à tout moment — la déconnexion met fin à la session sur cet appareil uniquement. Pour exercer d'autres droits, y compris la suppression complète du compte, utilisez les options de suppression de la section 7 ou contactez-nous aux coordonnées ci-dessous."
+      },
+      "s10": {
+        "title": "10. Transferts internationaux de données",
+        "body": "LIKED et ses fournisseurs de services traitent et stockent des données dans des régions qui peuvent différer de votre pays de résidence. En utilisant LIKED, vous reconnaissez que vos informations peuvent être transférées vers ces régions et y être traitées, sous réserve des lois applicables en matière de protection des données."
+      },
+      "s11": {
+        "title": "11. Confidentialité des enfants",
+        "body": "LIKED ne s'adresse pas aux enfants de moins de 13 ans (ou de l'âge minimum requis dans votre juridiction). Nous ne collectons pas sciemment d'informations personnelles auprès d'enfants. Si vous pensez que nous avons collecté des informations auprès d'un enfant, veuillez nous contacter et nous les supprimerons."
+      },
+      "s12": {
+        "title": "12. Modifications de cette politique",
+        "body": "Nous pouvons mettre à jour la présente Politique de confidentialité de temps à autre. Nous vous informerons des modifications importantes en publiant la politique mise à jour sur cette page et en actualisant la date « Dernière mise à jour » ci-dessus. L'utilisation continue de LIKED après une modification vaut acceptation de la politique mise à jour."
+      },
+      "s13": {
+        "title": "13. Nous contacter",
+        "contact": "Si vous avez des questions sur la présente Politique de confidentialité ou si vous souhaitez exercer vos droits sur les données, veuillez contacter {entity} à <contactEmail>notre équipe vie privée</contactEmail>."
+      }
+    },
+    "terms": {
+      "metaTitle": "Conditions d'utilisation",
+      "metaDescription": "Les conditions d'utilisation de LIKED.",
+      "title": "Conditions d'utilisation",
+      "lastUpdated": "Dernière mise à jour : 22 novembre 2026",
+      "back": "← Retour à LIKED",
+      "s1": {
+        "title": "1. Acceptation des conditions",
+        "body": "En créant un compte ou en accédant ou en utilisant LIKED (le « Service »), vous acceptez d'être lié par les présentes Conditions d'utilisation et notre Politique de confidentialité. Si vous n'êtes pas d'accord, vous ne pouvez pas accéder au Service ni l'utiliser. Certaines fonctionnalités — comme l'envoi de recommandations à un ami via son lien Ask — peuvent être utilisées sans compte ; ces utilisations sont également régies par les présentes Conditions."
+      },
+      "s2": {
+        "title": "2. Votre compte",
+        "body": "Vous êtes responsable du maintien de la sécurité de votre compte et de toute activité qui s'y déroule. Vous devez fournir des informations exactes lors de l'inscription et les tenir à jour. Vous devez avoir au moins 13 ans (ou l'âge minimum requis dans votre juridiction) pour utiliser le Service. La connexion est assurée par Google ; nous ne recevons que vos informations de profil de base (nom, adresse e-mail et photo de profil)."
+      },
+      "s3": {
+        "title": "3. Votre contenu",
+        "body": "Vous conservez la propriété du contenu que vous soumettez à LIKED — y compris les cartes, notes, dossiers, étiquettes et les recommandations que vous envoyez via des liens Ask. Vous êtes seul responsable de votre contenu et de vous assurer que vous disposez des droits nécessaires pour le partager. Les noms d'affichage des contributeurs sont déclaratifs et non vérifiés. En soumettant du contenu, vous accordez à LIKED une licence mondiale, non exclusive et libre de droits pour héberger, stocker, afficher et transmettre ce contenu dans la mesure nécessaire pour exploiter le Service."
+      },
+      "s4": {
+        "title": "4. Utilisation acceptable",
+        "intro": "Vous acceptez de ne pas :",
+        "item1": "Utiliser le Service à des fins illégales ou en violation des présentes Conditions.",
+        "item2": "Soumettre du contenu qui porte atteinte aux droits d'autrui, y compris les droits de propriété intellectuelle ou la vie privée.",
+        "item3": "Harceler, abuser ou nuire à d'autres utilisateurs, ou soumettre des recommandations ou des noms destinés à tromper ou à se faire passer pour quelqu'un d'autre.",
+        "item4": "Tenter d'accéder à des comptes, des données ou des systèmes auxquels vous n'êtes pas autorisé à accéder.",
+        "item5": "Perturber ou interrompre le Service ou ses serveurs, notamment en surchargeant les liens Ask ou les points d'entrée des recommandations."
+      },
+      "s5": {
+        "title": "5. Visibilité et partage",
+        "body": "LIKED utilise des connexions que vous créez explicitement pour contrôler la visibilité : le contenu que vous partagez n'est visible que par les utilisateurs auxquels vous vous êtes connecté. Les recommandations envoyées via un lien Ask ne sont visibles que par le propriétaire de ce lien. Les éléments ajoutés à un dossier partagé avec d'autres personnes sont visibles par tous les membres de ce dossier — les dossiers partagés sont collaboratifs. Nous ne pouvons garantir que le contenu partagé avec un autre utilisateur ne sera pas partagé à nouveau par cet utilisateur."
+      },
+      "s6": {
+        "title": "6. Services tiers",
+        "body": "LIKED s'appuie sur des services tiers — notamment Google (connexion et YouTube), The Movie Database (TMDB) et JustWatch — chacun régi par ses propres conditions et politiques de confidentialité. Votre utilisation des fonctionnalités YouTube est également soumise aux Conditions d'utilisation de YouTube et aux conditions des services API YouTube. Nous ne sommes pas responsables des services ni du contenu tiers."
+      },
+      "s7": {
+        "title": "7. Résiliation et suppression du compte",
+        "deletion": "Vous pouvez supprimer votre compte à tout moment — dans l'application via Paramètres → Supprimer le compte, sur la page publique /delete-account, ou par demande par e-mail — et les données invité peuvent être supprimées depuis la fiche ami. La suppression est immédiate et définitive ; ce qui est supprimé et ce qui change pour les autres personnes (comme les groupes que vous possédez, les messages de chat que vous avez envoyés et les conversations directes dont vous faites partie) est décrit dans notre Politique de confidentialité.",
+        "termination": "Nous pouvons suspendre ou résilier votre accès au Service si vous enfreignez les présentes Conditions ou si nous estimons que votre conduite nuit au Service ou à d'autres utilisateurs."
+      },
+      "s8": {
+        "title": "8. Exclusions de garantie",
+        "body": "Le Service est fourni « tel quel » et « selon disponibilité », sans garantie d'aucune sorte, expresse ou implicite. Nous ne garantissons pas que le Service sera ininterrompu, sécurisé ou exempt d'erreurs."
+      },
+      "s9": {
+        "title": "9. Limitation de responsabilité",
+        "body": "Dans la mesure maximale permise par la loi, LIKED et ses exploitants ne pourront être tenus responsables de tout dommage indirect, accessoire, spécial ou consécutif découlant de votre utilisation du Service ou de votre impossibilité à l'utiliser."
+      },
+      "s10": {
+        "title": "10. Modifications des présentes conditions",
+        "body": "Nous pouvons modifier les présentes Conditions de temps à autre. Nous vous informerons des modifications importantes en publiant les Conditions mises à jour sur cette page et en actualisant la date « Dernière mise à jour » ci-dessus. L'utilisation continue du Service après l'entrée en vigueur des modifications vaut acceptation des Conditions révisées."
+      },
+      "s11": {
+        "title": "11. Nous contacter",
+        "contact": "Si vous avez des questions sur les présentes Conditions, veuillez contacter {entity} à <contactEmail>notre équipe</contactEmail>."
+      }
+    }
   }
 }
