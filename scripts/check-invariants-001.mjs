@@ -323,5 +323,30 @@ try {
 } catch { tscOk = false; }
 check("REPO-14 tsc --noEmit clean", tscOk);
 
+// 17. V2-W1B-P0-10 (PLAN-V2-002 §7.3/§7.2): no hex colour literal and no
+// hard-coded user-visible string in the NEW v2 directories. Missing dirs
+// are skipped (they appear in later waves). Hex literals are allowed only
+// in app/v2-tokens.css and lib/theme/* — neither lives inside the scanned
+// dirs, so any match here is a violation.
+const V2_DIRS = [
+  "app/inbox", "app/r", "app/s", "app/settings", "app/delete-account",
+  "components/v2",
+];
+const HEX_RE = /#[0-9A-Fa-f]{3,8}\b/;
+const JSX_TEXT_RE = />\s*[A-Za-z][A-Za-z0-9 ,.'!?:;()&%+-]{2,}\s*</;
+const v2Files = V2_DIRS.flatMap((d) => collect(d));
+const hexHits = [];
+const stringHits = [];
+for (const f of v2Files) {
+  const rel = f.replace(root + "\\", "").replace(root + "/", "");
+  const c = readFileSync(f, "utf8");
+  if (/\.(css|tsx?|jsx?|mjs)$/.test(f) && HEX_RE.test(c)) hexHits.push(rel);
+  if (/\.tsx$/.test(f) && JSX_TEXT_RE.test(c)) stringHits.push(rel);
+}
+check("REPO-17 no hex literals / hard-coded strings in v2 dirs",
+  hexHits.length === 0 && stringHits.length === 0,
+  [...hexHits.map((f) => "hex:" + f), ...stringHits.map((f) => "str:" + f)].join(", ")
+    || `${v2Files.length} v2 files scanned (${V2_DIRS.filter((d) => existsSync(join(root, d))).length} dirs present)`);
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
