@@ -40,6 +40,147 @@
     "you": "You",
     "undo": "Undo"
   },
+  "landing": {
+    "meta": {
+      "title": "LIKED — The recommendation inbox for what to watch",
+      "description": "Send one link. Friends recommend a movie, show or YouTube video in under 30 seconds, no account needed. Everything lands in one inbox, merged and ready to watch."
+    },
+    "skip": "Skip to content",
+    "nav": {
+      "label": "Main",
+      "home": "LIKED home",
+      "login": "Log in",
+      "cta": "Get started"
+    },
+    "switcher": {
+      "button": "Language: {name}",
+      "menu": "Choose language"
+    },
+    "hero": {
+      "eyebrow": "The recommendation inbox",
+      "title": "Stop losing <hl>what your friends tell you to watch.</hl>",
+      "sub": "Send one link. Friends recommend a movie, show or YouTube video in under 30 seconds, no account needed. Everything lands in one inbox, merged and ready to watch.",
+      "cta": "Get started",
+      "micro": "Sign in with Google. Basic profile only.",
+      "secondary": "See how it works",
+      "alt": "Illustration of the LIKED inbox on a phone: a friend rail with unseen counts and three merged recommendation cards, each showing friends' scores and where to watch. All titles and names are fictional."
+    },
+    "how": {
+      "title": "How it works",
+      "s1": {
+        "title": "Share your link",
+        "body": "Paste it in any chat."
+      },
+      "s2": {
+        "title": "Friends pick in seconds",
+        "body": "They search movies, shows and YouTube, tap to add, and can add a score and a note."
+      },
+      "s3": {
+        "title": "Your inbox does the rest",
+        "body": "Duplicates merge into one card. Year, genre, language, rating and where to watch fill in automatically."
+      }
+    },
+    "flow": {
+      "eyebrow": "For your friends",
+      "title": "Faster than typing a text.",
+      "body": "Poster search means no typos. Three taps and it's sent.",
+      "alt": "Illustration of the friend flow on a phone: a search box with poster results, a tray of picks, a 0 to 100 percent score slider reading Great, 80 percent, and a send button. All titles are fictional.",
+      "prompt": "What's the last movie, show or documentary you recommend?",
+      "search": "Search movies, shows, YouTube",
+      "typed": "harbor",
+      "picks": "Your picks",
+      "score": "Score",
+      "great": "Great · 80%",
+      "note": "Why Mira will love it",
+      "send": "Send to Mira (2 titles)"
+    },
+    "bento": {
+      "eyebrow": "For you",
+      "title": "Everything lands in one inbox",
+      "merged": {
+        "title": "One card per title",
+        "body": "Three friends, one card, three scores."
+      },
+      "who": {
+        "title": "Know who said it",
+        "body": "Tap a friend to see only what they sent. Unseen counts show what's new."
+      },
+      "where": {
+        "title": "See where it's available",
+        "body": "In your region, filled in automatically."
+      },
+      "honest": {
+        "title": "Scores that stay honest",
+        "body": "Friends' average and public score, never blended."
+      },
+      "notify": {
+        "title": "One notification per submission",
+        "body": "Each time a friend sends picks, you get one ping."
+      },
+      "alt": {
+        "merged": "Three friends each recommend the same title with scores 90, 80 and 70 percent; they merge into one card.",
+        "who": "A friend rail with unseen count badges; one friend is selected.",
+        "where": "Two fictional streaming service chips next to the label: your region.",
+        "honest": "Two separate rings: friends' average 80 percent and public score 72 percent.",
+        "notify": "One notification: Amara sent you a pick."
+      }
+    },
+    "languages": {
+      "title": "Speaks your language",
+      "body": "Available in four languages, in light and dark.",
+      "light": "Light",
+      "dark": "Dark"
+    },
+    "final": {
+      "title": "Your next watch is one link away.",
+      "cta": "Get started"
+    },
+    "footer": {
+      "nav": "Footer",
+      "privacy": "Privacy",
+      "terms": "Terms"
+    },
+    "demo": {
+      "owner": "Mira",
+      "friends": {
+        "f1": "Amara",
+        "f2": "Kenji",
+        "f3": "Sofía",
+        "f4": "Noor",
+        "f5": "Mateo"
+      },
+      "titles": {
+        "t1": "Harbor of Glass",
+        "t2": "The Quiet Orchard",
+        "t3": "Neon Tidewater",
+        "t4": "Saffron Line"
+      },
+      "platformA": "Streamly",
+      "platformB": "Cinebox",
+      "inbox": "Inbox",
+      "all": "All",
+      "unseen": "unseen",
+      "c1": {
+        "meta": "2021 · Movie",
+        "quote": "Cried twice. Worth it."
+      },
+      "c2": {
+        "meta": "2019 · Documentary",
+        "quote": "Calm, beautiful, and short."
+      },
+      "c3": {
+        "meta": "2023 · Series",
+        "quote": "Watch it with the lights off."
+      },
+      "raters": "{count, plural, one {# friend} other {# friends}}",
+      "friendsLabel": "Friends",
+      "publicLabel": "Public",
+      "region": "Your region",
+      "newPick": "{name} sent you a pick",
+      "pickOne": "Recommended by 3 friends",
+      "you": "You"
+    }
+  },
   "feed": {
     "title": "Home",
     "folders": "Folders",
