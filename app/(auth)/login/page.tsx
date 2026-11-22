@@ -4,8 +4,8 @@ import { useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 
 /**
- * Google-only auth (PRD §41.2). No email/password path — the Google OAuth
- * grant is also the YouTube grant (youtube.readonly + offline refresh).
+ * Google-only auth (PRD §41.2). No email/password path — sign-in requests
+ * only basic OIDC scopes (D25); YouTube access uses /api/youtube/connect.
  */
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
@@ -30,13 +30,6 @@ export default function LoginPage() {
       provider: "google",
       options: {
         redirectTo: callbackUrl,
-        // Unified grant: YouTube readonly + offline refresh requested at
-        // signup/login time (PRD §41.2) so no separate connect step exists.
-        scopes: "https://www.googleapis.com/auth/youtube.readonly",
-        queryParams: {
-          access_type: "offline",
-          prompt: "consent",
-        },
       },
     });
 

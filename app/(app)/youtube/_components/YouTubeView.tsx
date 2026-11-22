@@ -13,7 +13,7 @@ import { toast } from "@/lib/store/toastStore";
 
 /**
  * YouTube (Phase 7): incremental consent (Q13) — the OAuth redirect to
- * /api/youtube/connect (youtube.readonly scope) only happens AFTER the
+ * /api/youtube/connect (read-only YouTube scope) only happens AFTER the
  * user confirms the in-app consent modal; consent is persisted via
  * set_youtube_import_consent. Import pulls liked videos → YouTube folder.
  */

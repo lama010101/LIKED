@@ -100,4 +100,12 @@ test.describe("Authenticated smoke — core flows", () => {
 
     await context.close();
   });
+
+  test("/inbox redirects to /login when unauthenticated (P0-07)", async ({ browser }) => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    await page.goto("/inbox");
+    await expect(page).toHaveURL(/\/login/, { timeout: 15_000 });
+    await context.close();
+  });
 });
