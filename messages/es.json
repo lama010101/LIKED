@@ -307,10 +307,9 @@
       },
       "s6": {
         "title": "6. Conservación de datos",
-        "intro": "Conservamos tu información de cuenta y tu contenido mientras tu cuenta esté activa o tu sesión de invitado siga sin reclamar. En concreto:",
+        "intro": "Conservamos tu información de cuenta y tu contenido mientras tu cuenta esté activa. En concreto:",
         "item1": "El contenido que eliminas se mueve a la papelera y puede restaurarse; puede eliminarse permanentemente después.",
         "item2": "Los registros de autenticación y los registros de seguridad de corta duración se conservan un máximo de 30 días.",
-        "item3": "Los invitados sin actividad durante 18 meses y sin reclamar su cuenta son purgados, incluido su perfil de colaborador y todos los envíos y recomendaciones que hayan enviado.",
         "item4": "Los datos de visualización de YouTube obtenidos a través de la API se actualizan o eliminan en un plazo de 30 días.",
         "item5": "Cuando eliminas tu cuenta, las copias de seguridad solo pueden conservar los datos eliminados hasta que caduquen según los calendarios de conservación de copias de seguridad de nuestros proveedores.",
         "outro": "Puedes solicitar en cualquier momento la eliminación de tu cuenta y los datos asociados — consulta la sección 7."

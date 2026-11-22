@@ -307,10 +307,9 @@
       },
       "s6": {
         "title": "6. Conservation des données",
-        "intro": "Nous conservons vos informations de compte et votre contenu tant que votre compte est actif ou que votre session invité n'est pas revendiquée. Plus précisément :",
+        "intro": "Nous conservons vos informations de compte et votre contenu tant que votre compte est actif. Plus précisément :",
         "item1": "Le contenu que vous supprimez est déplacé vers la corbeille et peut être restauré ; il peut être définitivement supprimé ensuite.",
         "item2": "Les journaux d'authentification et les journaux de sécurité éphémères sont conservés au maximum 30 jours.",
-        "item3": "Les invités sans activité pendant 18 mois et sans revendication de compte sont purgés, y compris leur profil de contributeur et toutes les soumissions et recommandations qu'ils ont envoyées.",
         "item4": "Les données d'affichage YouTube récupérées via l'API sont actualisées ou supprimées dans un délai de 30 jours.",
         "item5": "Lorsque vous supprimez votre compte, les sauvegardes peuvent ne conserver les données supprimées que jusqu'à leur expiration selon les calendriers de conservation des sauvegardes de nos fournisseurs.",
         "outro": "Vous pouvez demander à tout moment la suppression de votre compte et des données associées — voir la section 7."

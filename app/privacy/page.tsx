@@ -171,7 +171,6 @@ export default async function PrivacyPolicyPage() {
             <ul style={{ paddingLeft: 20, display: "flex", flexDirection: "column", gap: 6 }}>
               <li>{t("s6.item1")}</li>
               <li>{t("s6.item2")}</li>
-              <li>{t("s6.item3")}</li>
               <li>{t("s6.item4")}</li>
               <li>{t("s6.item5")}</li>
             </ul>

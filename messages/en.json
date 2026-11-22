@@ -307,10 +307,9 @@
       },
       "s6": {
         "title": "6. Data Retention",
-        "intro": "We retain your account information and content for as long as your account is active or your guest session remains unclaimed. Specifically:",
+        "intro": "We retain your account information and content for as long as your account is active. Specifically:",
         "item1": "Content you delete is moved to trash and can be restored; it may be permanently removed afterwards.",
         "item2": "Authentication logs and short-lived security logs are kept for no more than 30 days.",
-        "item3": "Guests with no activity for 18 months and no account claim are purged, including their contributor profile and all submissions and recommendations they sent.",
         "item4": "YouTube display data fetched through the API is refreshed or deleted within 30 days.",
         "item5": "When you delete your account, backups may retain deleted data only until they expire under our providers' backup retention schedules.",
         "outro": "You may request deletion of your account and associated data at any time — see section 7."
