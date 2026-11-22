@@ -173,7 +173,8 @@ export type UpdateLanguageResult =
   | { ok: true }
   | { ok: false; error: string };
 
-const SUPPORTED_LANGUAGES = ['en', 'fr', 'th'] as const;
+import { LANGUAGE_CODES } from "@/lib/i18n/languages";
+const SUPPORTED_LANGUAGES = LANGUAGE_CODES;
 
 export async function updateLanguage(
   languageCode: string

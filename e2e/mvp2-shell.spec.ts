@@ -53,7 +53,7 @@ test.describe("MVP2 shell — authenticated", () => {
     await expect(page).toHaveURL(/\/me/);
     const select = page.locator("select").first();
     await expect(select).toBeVisible();
-    await expect(select.locator("option")).toHaveText([/en/i, /fr/i, /th/i]);
+    await expect(select.locator("option")).toHaveText([/en/i, /fr/i, /es/i, /th/i]);
     // theme seg buttons (accessible name may include the field label)
     await expect(page.locator(".seg-btn", { hasText: /light/i })).toBeVisible();
     await expect(page.locator(".seg-btn", { hasText: /dark/i })).toBeVisible();

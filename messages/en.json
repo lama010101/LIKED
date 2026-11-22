@@ -246,5 +246,11 @@
     "noFolder": "No folder",
     "tagAll": "✨ Tag my cards ({count} to tag)",
     "tagging": "Tagging…"
+  },
+  "v2": {
+    "language": {
+      "title": "Language and appearance",
+      "hint": "Set from your browser. Titles, genres and descriptions follow this language too."
+    }
   }
 }

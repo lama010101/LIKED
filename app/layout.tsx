@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Fraunces, Caveat } from "next/font/google";
+import { Inter, Fraunces, Caveat, Noto_Sans_Thai } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
 import { cookies } from "next/headers";
@@ -28,6 +28,12 @@ const caveat = Caveat({
   variable: "--font-hand",
   subsets: ["latin"],
   weight: ["500", "700"],
+});
+
+const notoSansThai = Noto_Sans_Thai({
+  variable: "--font-thai",
+  subsets: ["thai", "latin"],
+  weight: ["400", "500", "700"],
 });
 
 export const metadata: Metadata = {
@@ -100,7 +106,7 @@ export default async function RootLayout({
       data-theme={theme}
       data-accent={accent}
       style={accentStyle}
-      className={`${inter.variable} ${fraunces.variable} ${caveat.variable} h-full antialiased`}
+      className={`${inter.variable} ${fraunces.variable} ${caveat.variable} ${notoSansThai.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col" suppressHydrationWarning>

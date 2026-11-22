@@ -348,5 +348,16 @@ check("REPO-17 no hex literals / hard-coded strings in v2 dirs",
   [...hexHits.map((f) => "hex:" + f), ...stringHits.map((f) => "str:" + f)].join(", ")
     || `${v2Files.length} v2 files scanned (${V2_DIRS.filter((d) => existsSync(join(root, d))).length} dirs present)`);
 
+// 19. P0-09 (PLAN-V2-002 §6.3/D17): no IP/geo header read for language —
+// language comes from cookie + Accept-Language only.
+const i18nFiles = [
+  ...collect("i18n"),
+  ...collect("lib/i18n"),
+].filter((f) => /\.(ts|tsx|mjs|js)$/.test(f));
+const ipHits = i18nFiles.filter((f) =>
+  /x-vercel-ip|geolocation|\brequest\.ip\b|\breq\.ip\b|clientIp/i.test(readFileSync(f, "utf8")));
+check("REPO-19 no IP/geo header read in i18n", ipHits.length === 0,
+  ipHits.map((f) => f.replace(root + "\\", "")).join(", ") || `${i18nFiles.length} i18n files scanned`);
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
