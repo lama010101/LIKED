@@ -40,6 +40,147 @@
     "you": "You",
     "undo": "Undo"
   },
+  "landing": {
+    "meta": {
+      "title": "LIKED — La bandeja de recomendaciones",
+      "description": "Envía un enlace. Tus amigos recomiendan una película, serie o vídeo de YouTube en menos de 30 segundos, sin cuenta. Todo llega a una sola bandeja, unificado y listo para ver."
+    },
+    "skip": "Saltar al contenido",
+    "nav": {
+      "label": "Principal",
+      "home": "Inicio de LIKED",
+      "login": "Iniciar sesión",
+      "cta": "Empezar"
+    },
+    "switcher": {
+      "button": "Idioma: {name}",
+      "menu": "Elegir idioma"
+    },
+    "hero": {
+      "eyebrow": "La bandeja de recomendaciones",
+      "title": "Deja de perder <hl>lo que tus amigos te dicen que veas.</hl>",
+      "sub": "Envía un enlace. Tus amigos recomiendan una película, serie o vídeo de YouTube en menos de 30 segundos, sin cuenta. Todo llega a una sola bandeja, unificado y listo para ver.",
+      "cta": "Empezar",
+      "micro": "Inicia sesión con Google. Solo el perfil básico.",
+      "secondary": "Ver cómo funciona",
+      "alt": "Ilustración de la bandeja de LIKED en un móvil: una fila de amigos con contadores de novedades y tres tarjetas de recomendación unificadas, con las puntuaciones de los amigos y dónde verlas. Todos los títulos y nombres son ficticios."
+    },
+    "how": {
+      "title": "Cómo funciona",
+      "s1": {
+        "title": "Comparte tu enlace",
+        "body": "Pégalo en cualquier chat."
+      },
+      "s2": {
+        "title": "Tus amigos eligen en segundos",
+        "body": "Buscan películas, series y YouTube, tocan para añadir, y pueden añadir una puntuación y una nota."
+      },
+      "s3": {
+        "title": "Tu bandeja hace el resto",
+        "body": "Los duplicados se unifican en una tarjeta. Año, género, idioma, valoración y dónde verla se rellenan solos."
+      }
+    },
+    "flow": {
+      "eyebrow": "Para tus amigos",
+      "title": "Más rápido que escribir un mensaje.",
+      "body": "Buscar por póster evita los errores al escribir. Tres toques y está enviado.",
+      "alt": "Ilustración del flujo de un amigo en el móvil: un buscador con pósters, una bandeja de elecciones, un control de puntuación de 0 a 100 % que marca Genial, 80 %, y un botón de enviar. Todos los títulos son ficticios.",
+      "prompt": "¿Cuál es la última película, serie o documental que recomiendas?",
+      "search": "Buscar películas, series, YouTube",
+      "typed": "harbor",
+      "picks": "Tus elecciones",
+      "score": "Puntuación",
+      "great": "Genial · 80 %",
+      "note": "Por qué a Mira le encantará",
+      "send": "Enviar a Mira (2 títulos)"
+    },
+    "bento": {
+      "eyebrow": "Para ti",
+      "title": "Todo llega a una sola bandeja",
+      "merged": {
+        "title": "Una tarjeta por título",
+        "body": "Tres amigos, una tarjeta, tres puntuaciones."
+      },
+      "who": {
+        "title": "Sabe quién lo dijo",
+        "body": "Toca un amigo para ver solo lo que envió. Los contadores muestran las novedades."
+      },
+      "where": {
+        "title": "Mira dónde verlo",
+        "body": "En tu región, rellenado automáticamente."
+      },
+      "honest": {
+        "title": "Puntuaciones honestas",
+        "body": "Media de tus amigos y puntuación pública, nunca mezcladas."
+      },
+      "notify": {
+        "title": "Una notificación por envío",
+        "body": "Cada vez que un amigo envía sus elecciones, recibes un solo aviso."
+      },
+      "alt": {
+        "merged": "Tres amigos recomiendan el mismo título con 90, 80 y 70 %; se unifican en una tarjeta.",
+        "who": "Una fila de amigos con contadores de novedades; un amigo está seleccionado.",
+        "where": "Dos chips de servicios ficticios junto a la etiqueta: tu región.",
+        "honest": "Dos anillos separados: media de amigos 80 % y puntuación pública 72 %.",
+        "notify": "Una notificación: Amara te envió una elección."
+      }
+    },
+    "languages": {
+      "title": "Habla tu idioma",
+      "body": "Disponible en cuatro idiomas, en claro y oscuro.",
+      "light": "Claro",
+      "dark": "Oscuro"
+    },
+    "final": {
+      "title": "Tu próxima película está a un enlace.",
+      "cta": "Empezar"
+    },
+    "footer": {
+      "nav": "Pie de página",
+      "privacy": "Privacidad",
+      "terms": "Términos"
+    },
+    "demo": {
+      "owner": "Mira",
+      "friends": {
+        "f1": "Amara",
+        "f2": "Kenji",
+        "f3": "Sofía",
+        "f4": "Noor",
+        "f5": "Mateo"
+      },
+      "titles": {
+        "t1": "Harbor of Glass",
+        "t2": "The Quiet Orchard",
+        "t3": "Neon Tidewater",
+        "t4": "Saffron Line"
+      },
+      "platformA": "Streamly",
+      "platformB": "Cinebox",
+      "inbox": "Bandeja",
+      "all": "Todos",
+      "unseen": "sin ver",
+      "c1": {
+        "meta": "2021 · Película",
+        "quote": "Lloré dos veces. Merece la pena."
+      },
+      "c2": {
+        "meta": "2019 · Documental",
+        "quote": "Tranquila, preciosa y corta."
+      },
+      "c3": {
+        "meta": "2023 · Serie",
+        "quote": "Velo con las luces apagadas."
+      },
+      "raters": "{count, plural, one {# amigo} other {# amigos}}",
+      "friendsLabel": "Amigos",
+      "publicLabel": "Público",
+      "region": "Tu región",
+      "newPick": "{name} te envió una elección",
+      "pickOne": "Recomendado por 3 amigos",
+      "you": "Tú"
+    }
+  },
   "feed": {
     "title": "Home",
     "folders": "Folders",
