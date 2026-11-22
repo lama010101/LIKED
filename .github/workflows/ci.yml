@@ -27,6 +27,27 @@ jobs:
       - name: Lint
         run: npx eslint .
 
+      - name: Unit tests
+        run: npx vitest run
+
+      # Tier-0 repo check scripts run as soon as the file exists (each is
+      # created by the V2 task that needs it). scripts/check-invariants-001.mjs
+      # is intentionally NOT wired here: it requires DATABASE_URL and runs as a
+      # local/pre-merge gate instead.
+      # GitHub Actions secrets referenced below (names only; set in repo
+      # Settings -> Secrets and variables -> Actions, values never committed):
+      #   TMDB_API_READ_ACCESS_TOKEN — check-languages.mjs TMDB tag probe
+      #     (plan L1; the check SKIPS with a clear message while unset).
+      - name: Language catalog check
+        if: hashFiles('scripts/check-languages.mjs') != ''
+        run: node scripts/check-languages.mjs
+        env:
+          TMDB_API_READ_ACCESS_TOKEN: ${{ secrets.TMDB_API_READ_ACCESS_TOKEN }}
+
+      - name: Theme contrast check
+        if: hashFiles('scripts/check-contrast.mjs') != ''
+        run: node scripts/check-contrast.mjs
+
       - name: Build
         run: npm run build
         env:
