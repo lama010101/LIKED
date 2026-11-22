@@ -7,10 +7,8 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("metaTitle"), description: t("metaDescription") };
 }
 
-// PLACEHOLDER tokens (plan §10 L9): replace before release.
-// LEGAL_ENTITY = developer legal name; CONTACT_EMAIL = published support address.
-const LEGAL_ENTITY = "[LEGAL ENTITY NAME — PLACEHOLDER]";
-const CONTACT_EMAIL = "[SUPPORT EMAIL — PLACEHOLDER]";
+const LEGAL_ENTITY = "Laurent Martenot";
+const CONTACT_EMAIL = "laurent.martenot@gmail.com";
 
 const linkStyle: React.CSSProperties = {
   color: "var(--accent-light)",
