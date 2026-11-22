@@ -511,7 +511,7 @@ GROUP  BY r.item_id;                                       -- 2 friends, same it
 
 ### 2.4 Receipt read (class S)
 
-`guest_get_receipt(p_ask_token text, p_contributor_id uuid) RETURNS TABLE(item_id uuid, kind text, name text, year int, poster_path text, thumb_url text, rating smallint, platform_text text, comment text, updated_at timestamptz)`. Returns **only rows where `contributor_id = p_contributor_id` and `owner_id = ask.owner_id`**. Nothing from other contributors can be selected (that WHERE clause is the only path). Names use the viewer's language with the §6.3 fallback. The same function powers "returning visitor sees what they already sent" (PRD §5 rules).
+`guest_get_receipt(p_ask_token text, p_contributor_id uuid, p_lang text DEFAULT NULL) RETURNS TABLE(item_id uuid, kind text, name text, year int, poster_path text, thumb_url text, rating smallint, platform_text text, comment text, updated_at timestamptz)`. Returns **only rows where `contributor_id = p_contributor_id` and `owner_id = ask.owner_id`**. Nothing from other contributors can be selected (that WHERE clause is the only path). Names use the viewer's language with the §6.3 fallback. The same function powers "returning visitor sees what they already sent" (PRD §5 rules).
 
 ### 2.5 Owner inbox read, rail, mark-seen (class O)
 

@@ -427,11 +427,12 @@ GRANT EXECUTE ON FUNCTION public.submit_recommendations(text, uuid, uuid, jsonb)
 -- owner_id = ask.owner_id — nothing from other contributors or
 -- other owners can be selected. Same ASK_NOT_ACTIVE /
 -- CONTRIBUTOR_INVALID answers as submit (no oracle).
--- NOTE: the specified signature carries no viewer-language
--- parameter; name resolves through the §6.3 fallback chain at
--- the 'en-US' rung (guest TMDB tag is cookie-side, not in DB).
+-- p_lang is the viewer's TMDB tag passed by the server (the
+-- guest tag is cookie-side, not in DB); any value outside the
+-- §6.3 tag set behaves as NULL. Name resolves through the §6.3
+-- fallback chain localized[p_lang] -> 'en-US' -> items.name.
 -- ------------------------------------------------------------
-CREATE FUNCTION public.guest_get_receipt(p_ask_token text, p_contributor_id uuid)
+CREATE FUNCTION public.guest_get_receipt(p_ask_token text, p_contributor_id uuid, p_lang text DEFAULT NULL)
  RETURNS TABLE(item_id uuid, kind text, name text, year integer, poster_path text, thumb_url text, rating smallint, platform_text text, comment text, updated_at timestamptz)
  LANGUAGE plpgsql
  SECURITY DEFINER
@@ -439,6 +440,7 @@ CREATE FUNCTION public.guest_get_receipt(p_ask_token text, p_contributor_id uuid
 AS $function$
 DECLARE
   v_owner_id uuid;
+  v_lang     text;
 BEGIN
   IF auth.role() IS DISTINCT FROM 'service_role' THEN
     RAISE EXCEPTION 'not allowed' USING ERRCODE = '42501';
@@ -452,10 +454,11 @@ BEGIN
   IF NOT EXISTS (SELECT 1 FROM public.contributors c WHERE c.id = p_contributor_id) THEN
     RAISE EXCEPTION 'CONTRIBUTOR_INVALID' USING ERRCODE = 'P0001';
   END IF;
+  v_lang := CASE WHEN p_lang IN ('en-US','fr-FR','es-ES','es-MX','th-TH') THEN p_lang END;
   RETURN QUERY
   SELECT r.item_id,
          i.kind,
-         COALESCE(NULLIF(i.localized->'en-US'->>'name', ''), i.name),
+         COALESCE(NULLIF(i.localized->v_lang->>'name', ''), NULLIF(i.localized->'en-US'->>'name', ''), i.name),
          EXTRACT(YEAR FROM i.release_date)::integer,
          i.poster_path,
          i.thumb_url,
@@ -471,16 +474,17 @@ BEGIN
 END;
 $function$;
 
-REVOKE ALL ON FUNCTION public.guest_get_receipt(text, uuid) FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.guest_get_receipt(text, uuid) TO service_role;
+REVOKE ALL ON FUNCTION public.guest_get_receipt(text, uuid, text) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.guest_get_receipt(text, uuid, text) TO service_role;
 
 -- ------------------------------------------------------------
 -- §2.10 delete_guest_data — guest "Delete my data". One
--- transaction: purge recommendation_received notifications by
--- payload contributor_id, delete youtube_search_budget rows
--- 'c:<id>', delete the contributors row (cascade removes
--- submissions, recommendations, owner_contributor_blocks).
--- Idempotent: second call returns {deleted:false}.
+-- transaction: purge recommendation_received notifications and
+-- email_outbox rows by payload contributor_id, delete
+-- youtube_search_budget rows 'c:<id>', delete the contributors
+-- row (cascade removes submissions, recommendations,
+-- owner_contributor_blocks). Idempotent: second call returns
+-- {deleted:false}.
 -- ------------------------------------------------------------
 CREATE FUNCTION public.delete_guest_data(p_contributor_id uuid)
  RETURNS jsonb
@@ -500,6 +504,9 @@ BEGIN
       AND n.payload->>'contributor_id' = p_contributor_id::text;
     DELETE FROM public.youtube_search_budget b
     WHERE b.scope = 'c:' || p_contributor_id::text;
+    DELETE FROM public.email_outbox
+    WHERE kind = 'recommendation_received'
+      AND payload->>'contributor_id' = p_contributor_id::text;
     DELETE FROM public.contributors c
     WHERE c.id = p_contributor_id;
     v_deleted := true;

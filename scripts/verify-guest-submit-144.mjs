@@ -79,7 +79,7 @@ const FN_ARGS = {
   guest_touch:                    ["SELECT public.guest_touch($1)", [randomUUID()]],
   guest_verify:                   ["SELECT public.guest_verify($1)", [randomUUID()]],
   submit_recommendations:         ["SELECT public.submit_recommendations($1,$2,$3,$4::jsonb)", ["x", randomUUID(), randomUUID(), "[]"]],
-  guest_get_receipt:              ["SELECT * FROM public.guest_get_receipt($1,$2)", ["x", randomUUID()]],
+  guest_get_receipt:              ["SELECT * FROM public.guest_get_receipt($1,$2,$3)", ["x", randomUUID(), "en-US"]],
   delete_guest_data:              ["SELECT public.delete_guest_data($1)", [randomUUID()]],
   upsert_item:                    ["SELECT * FROM public.upsert_item($1,$2,$3,$4::jsonb)", ["tmdb", "movie", "1", "{}"]],
 };
@@ -310,6 +310,31 @@ try {
     check("receipt unknown contributor -> CONTRIBUTOR_INVALID", rBadC.threw && rBadC.code === "P0001" && rBadC.message.includes("CONTRIBUTOR_INVALID"), `${rBadC.code} ${rBadC.message}`);
   }
 
+  // ---------------- (f2) guest_get_receipt viewer language (p_lang) ----------------
+  console.log("\n== (f2) guest_get_receipt p_lang fallback chain ==");
+  {
+    await client.query(
+      `UPDATE public.items SET localized = $2::jsonb WHERE id = $1`,
+      [itemA, JSON.stringify({ "fr-FR": { name: "Harness Film A FR" }, "en-US": { name: "Harness Film A EN" } })]);
+    await client.query(
+      `UPDATE public.items SET localized = $2::jsonb WHERE id = $1`,
+      [itemB, JSON.stringify({ "fr-FR": { name: "" } })]);
+    const namesFor = async (lang) => {
+      const rows = await all(`SELECT item_id, name FROM public.guest_get_receipt($1,$2,$3)`, [tokenA, cOne, lang]);
+      return Object.fromEntries(rows.map((r) => [r.item_id, r.name]));
+    };
+    const fr = await namesFor("fr-FR");
+    check("p_lang fr-FR -> itemA localized fr-FR name", fr[itemA] === "Harness Film A FR", fr[itemA]);
+    check("p_lang fr-FR -> itemB empty fr-FR name skipped -> items.name", fr[itemB] === "Harness Film B", fr[itemB]);
+    const th = await namesFor("th-TH");
+    check("p_lang th-TH (no entry) -> itemA en-US name", th[itemA] === "Harness Film A EN", th[itemA]);
+    check("p_lang th-TH -> itemB no en-US -> items.name", th[itemB] === "Harness Film B", th[itemB]);
+    const xx = await namesFor("xx-XX");
+    const nl = await namesFor(null);
+    check("p_lang xx-XX behaves as NULL -> en-US chain", xx[itemA] === "Harness Film A EN" && xx[itemB] === "Harness Film B", `${xx[itemA]} / ${xx[itemB]}`);
+    check("p_lang NULL -> en-US chain", nl[itemA] === "Harness Film A EN" && nl[itemB] === "Harness Film B", `${nl[itemA]} / ${nl[itemB]}`);
+  }
+
   // ---------------- (g) delete_guest_data ----------------
   console.log("\n== (g) delete_guest_data ==");
   {
@@ -319,6 +344,21 @@ try {
       `INSERT INTO public.youtube_search_budget (day, scope, used)
        VALUES ((now() AT TIME ZONE 'America/Los_Angeles')::date, 'c:'||$1::text, 5),
               ((now() AT TIME ZONE 'America/Los_Angeles')::date, 'global_search', 9)`, [cDelete]);
+    // email_outbox fixtures: the submit above already queued one
+    // pending row for cDelete; add a sent row for cDelete and one
+    // pending row for another contributor (cOne) that must survive.
+    const preMail = await count(
+      `SELECT count(*)::int AS c FROM public.email_outbox
+       WHERE kind='recommendation_received' AND payload->>'contributor_id'=$1`, [cDelete]);
+    await client.query(
+      `INSERT INTO public.email_outbox (owner_id, kind, payload, status)
+       VALUES ($1,'recommendation_received',$2::jsonb,'sent')`,
+      [ownerA, JSON.stringify({ contributor_id: cDelete, contributor_name: "Harness Delete", count: 1, ask_id: askA })]);
+    const otherMailId = (await one(
+      `INSERT INTO public.email_outbox (owner_id, kind, payload, status)
+       VALUES ($1,'recommendation_received',$2::jsonb,'pending') RETURNING id`,
+      [ownerA, JSON.stringify({ contributor_id: cOne, contributor_name: "Harness One", count: 1, ask_id: askA })])).id;
+    check("fixture: pending+sent email_outbox rows for contributor", preMail === 1, `pending=${preMail} (+1 sent inserted)`);
     const d1 = await one(`SELECT public.delete_guest_data($1) AS j`, [cDelete]);
     check("delete_guest_data first call {deleted:true}", d1.j?.deleted === true, JSON.stringify(d1.j));
     const goneC = await count(`SELECT count(*)::int AS c FROM public.contributors WHERE id=$1`, [cDelete]);
@@ -328,6 +368,8 @@ try {
     const goneB = await count(`SELECT count(*)::int AS c FROM public.youtube_search_budget WHERE scope='c:'||$1::text`, [cDelete]);
     const keepB = await count(`SELECT count(*)::int AS c FROM public.youtube_search_budget WHERE scope='global_search'`);
     const keepN = await count(`SELECT count(*)::int AS c FROM public.notifications WHERE payload->>'contributor_id'=$1`, [cOne]);
+    const goneMail = await count(`SELECT count(*)::int AS c FROM public.email_outbox WHERE kind='recommendation_received' AND payload->>'contributor_id'=$1`, [cDelete]);
+    const keepMail = await count(`SELECT count(*)::int AS c FROM public.email_outbox WHERE id=$1`, [otherMailId]);
     check("cascade: contributor gone", goneC === 0, `n=${goneC}`);
     check("cascade: submissions gone", goneS === 0, `n=${goneS}`);
     check("cascade: recommendations gone", goneR === 0, `n=${goneR}`);
@@ -335,6 +377,8 @@ try {
     check("purge: youtube_search_budget c:<id> gone", goneB === 0, `n=${goneB}`);
     check("kept: global_search budget row survives", keepB === 1, `n=${keepB}`);
     check("kept: other contributor's notification survives", keepN === 1, `n=${keepN}`);
+    check("purge: email_outbox recommendation_received rows gone", goneMail === 0, `n=${goneMail}`);
+    check("kept: other contributor's email_outbox row survives", keepMail === 1, `n=${keepMail}`);
     const d2 = await one(`SELECT public.delete_guest_data($1) AS j`, [cDelete]);
     check("delete_guest_data second call {deleted:false}", d2.j?.deleted === false, JSON.stringify(d2.j));
     const d3 = await one(`SELECT public.delete_guest_data($1) AS j`, [randomUUID()]);
@@ -373,15 +417,15 @@ try {
   console.log("\n== (i) ACL: proacl/proconfig/prosecdef + anon/authenticated 42501 ==");
   {
     const meta = await all(
-      `SELECT p.proname, p.prosecdef, p.proconfig, p.proacl::text AS proacl
+      `SELECT p.oid::regprocedure::text AS identity, p.proname, p.prosecdef, p.proconfig, p.proacl::text AS proacl
        FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
-       WHERE n.nspname='public' AND p.proname = ANY($1) ORDER BY p.proname`, [FN_NAMES]);
+       WHERE n.nspname='public' AND p.proname = ANY($1) ORDER BY p.proname, p.oid`, [FN_NAMES]);
     check("all 9 functions exist", meta.length === 9, `found=${meta.length}`);
     for (const m of meta) {
       const sp = (m.proconfig ?? []).some((c) => c.startsWith("search_path=public"));
       const aclOk = m.proacl === "{postgres=X/postgres,service_role=X/postgres}";
-      console.log(`  ${m.proname}: prosecdef=${m.prosecdef} proconfig=${JSON.stringify(m.proconfig)} proacl=${m.proacl}`);
-      check(`${m.proname} secdef+search_path+acl`, m.prosecdef === true && sp && aclOk, `definer=${m.prosecdef} sp=${sp} acl=${m.proacl}`);
+      console.log(`  ${m.identity}: prosecdef=${m.prosecdef} proconfig=${JSON.stringify(m.proconfig)} proacl=${m.proacl}`);
+      check(`${m.identity} secdef+search_path+acl`, m.prosecdef === true && sp && aclOk, `definer=${m.prosecdef} sp=${sp} acl=${m.proacl}`);
     }
     // ACL denial: SET LOCAL ROLE anon / authenticated -> every function 42501
     for (const role of ["anon", "authenticated"]) {
