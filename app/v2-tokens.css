@@ -103,3 +103,54 @@ html[data-theme="light"] [data-ui="v2"] {
     --v2-ring-tmdb: #8E8E93;
   }
 }
+
+/* ── Landing-only tokens (V2-LANDING-001-R2) ─────────────────────────────
+   Fictional poster gradients, avatar fills, phone bezel and shadows used by
+   the marketing page visuals. Additive: nothing above is modified.
+   Dark values live on the base scope; light overrides follow the same
+   three-block pattern as the core tokens (explicit light + system light). */
+[data-ui="v2"] {
+  --v2-lp-poster-1: linear-gradient(155deg, #B45309 0%, #7C2D12 45%, #1E1B4B 100%);
+  --v2-lp-poster-2: linear-gradient(155deg, #0F766E 0%, #134E4A 50%, #0F172A 100%);
+  --v2-lp-poster-3: linear-gradient(155deg, #BE185D 0%, #701A75 55%, #1E1B4B 100%);
+  --v2-lp-poster-4: linear-gradient(155deg, #CA8A04 0%, #78350F 60%, #1C1917 100%);
+  --v2-lp-poster-5: linear-gradient(155deg, #15803D 0%, #14532D 55%, #0F172A 100%);
+  --v2-lp-poster-6: linear-gradient(155deg, #6D28D9 0%, #312E81 55%, #0A0A12 100%);
+  --v2-lp-poster-glyph: rgba(255, 255, 255, 0.55);
+  --v2-lp-av-1: #FF9552;
+  --v2-lp-av-2: #2DD4BF;
+  --v2-lp-av-3: #A78BFA;
+  --v2-lp-av-4: #F472B6;
+  --v2-lp-av-5: #60A5FA;
+  --v2-lp-av-on: #111111;
+  --v2-lp-bezel: #2A2A3A;
+  --v2-lp-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.7), 0 10px 24px -12px rgba(0, 0, 0, 0.6);
+  --v2-lp-glow: color-mix(in srgb, var(--v2-accent) 26%, transparent);
+  --v2-lp-grain: 0.07;
+}
+html[data-theme="light"] [data-ui="v2"] {
+  --v2-lp-av-1: #C2410C;
+  --v2-lp-av-2: #0F766E;
+  --v2-lp-av-3: #6D28D9;
+  --v2-lp-av-4: #BE185D;
+  --v2-lp-av-5: #1D4ED8;
+  --v2-lp-av-on: #FFFFFF;
+  --v2-lp-bezel: #1A1A2E;
+  --v2-lp-shadow: 0 30px 60px -24px rgba(26, 26, 46, 0.35), 0 10px 24px -14px rgba(26, 26, 46, 0.3);
+  --v2-lp-glow: color-mix(in srgb, var(--v2-accent) 20%, transparent);
+  --v2-lp-grain: 0.05;
+}
+@media (prefers-color-scheme: light) {
+  html[data-theme="system"] [data-ui="v2"] {
+    --v2-lp-av-1: #C2410C;
+    --v2-lp-av-2: #0F766E;
+    --v2-lp-av-3: #6D28D9;
+    --v2-lp-av-4: #BE185D;
+    --v2-lp-av-5: #1D4ED8;
+    --v2-lp-av-on: #FFFFFF;
+    --v2-lp-bezel: #1A1A2E;
+    --v2-lp-shadow: 0 30px 60px -24px rgba(26, 26, 46, 0.35), 0 10px 24px -14px rgba(26, 26, 46, 0.3);
+    --v2-lp-glow: color-mix(in srgb, var(--v2-accent) 20%, transparent);
+    --v2-lp-grain: 0.05;
+  }
+}
