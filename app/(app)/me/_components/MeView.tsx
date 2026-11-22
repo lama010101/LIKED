@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import type { SessionUser } from "@/app/lib/actions/session";
 import { updateUsername } from "@/app/lib/actions/profile";
 import { setLocaleAction } from "@/app/lib/actions/mvp2";
-import { setTheme } from "../../_components/ThemeSync";
+import { setTheme, getResolvedTheme } from "../../_components/ThemeSync";
 import { getLayoutPref, setLayoutPref } from "../../_components/prefs";
 import Avatar from "../../_components/Avatar";
 import Crumbs from "../../_components/Crumbs";
@@ -27,7 +27,7 @@ export default function MeView({ user }: { user: SessionUser }) {
     window.addEventListener("liked:prefs", onChange);
     return () => window.removeEventListener("liked:prefs", onChange);
   }, []);
-  const theme = useSyncExternalStore(subscribePrefs, () => (localStorage.getItem("liked.theme") === "dark" ? "dark" : "light"), () => "light");
+  const theme = useSyncExternalStore(subscribePrefs, getResolvedTheme, () => "light");
   const layout = useSyncExternalStore(subscribePrefs, getLayoutPref, () => "friends-left");
 
   const saveName = async () => {

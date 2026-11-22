@@ -2,8 +2,16 @@ import type { Metadata } from "next";
 import { Inter, Fraunces, Caveat } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
+import { cookies } from "next/headers";
 import "./globals.css";
+import "./v2-tokens.css";
 import Toaster from "@/components/ui/Toaster";
+import {
+  ACCENT_PRESET_NAMES,
+  ACCENT_RE,
+  DEFAULT_ACCENT,
+  resolveCustomAccent,
+} from "@/lib/theme/contrast";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -58,15 +66,40 @@ export const metadata: Metadata = {
   },
 };
 
+const THEMES = new Set(["light", "dark", "system"]);
+const THEME_COOKIE = "LIKED_THEME";
+const ACCENT_COOKIE = "LIKED_ACCENT";
+
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   const locale = await getLocale();
+  const store = await cookies();
+  const themeRaw = store.get(THEME_COOKIE)?.value;
+  const theme = themeRaw && THEMES.has(themeRaw) ? themeRaw : "system";
+  const accentRaw = store.get(ACCENT_COOKIE)?.value ?? "";
+  let accent: string = DEFAULT_ACCENT;
+  let accentStyle: React.CSSProperties | undefined;
+  if ((ACCENT_PRESET_NAMES as readonly string[]).includes(accentRaw)) {
+    accent = accentRaw;
+  } else if (ACCENT_RE.test(accentRaw)) {
+    accent = "custom";
+    const r = resolveCustomAccent(accentRaw);
+    accentStyle = {
+      "--v2-accent-lt": r.light.accent,
+      "--v2-on-lt": r.light.onAccent,
+      "--v2-accent-dk": r.dark.accent,
+      "--v2-on-dk": r.dark.onAccent,
+    } as React.CSSProperties;
+  }
   return (
     <html
       lang={locale}
+      data-theme={theme}
+      data-accent={accent}
+      style={accentStyle}
       className={`${inter.variable} ${fraunces.variable} ${caveat.variable} h-full antialiased`}
       suppressHydrationWarning
     >

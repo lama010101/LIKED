@@ -1,0 +1,105 @@
+/* V2 design tokens (PLAN-V2-002 §7.3, PRD §6.8/§8/D13).
+   Scoped under [data-ui="v2"] — set on the wrapper of the new route groups.
+   Legacy pages keep globals.css untouched. data-theme/data-accent live on
+   <html> (server-rendered from LIKED_THEME / LIKED_ACCENT cookies). */
+
+/* ── Accent preset pairs ────────────────────────────────────────────────
+   Each preset defines --v2-accent-lt/--v2-on-lt (light theme) and
+   --v2-accent-dk/--v2-on-dk (dark theme); the theme blocks below resolve
+   them to --v2-accent/--v2-on-accent inside the v2 scope. Custom colours
+   (#RRGGBB) arrive as the same four vars via inline style on <html>. */
+html[data-accent="orange"],
+:root {
+  --v2-accent-lt: #C2410C;
+  --v2-on-lt: #FFFFFF;
+  --v2-accent-dk: #FF9552;
+  --v2-on-dk: #111111;
+}
+html[data-accent="blue"] {
+  --v2-accent-lt: #1D4ED8;
+  --v2-on-lt: #FFFFFF;
+  --v2-accent-dk: #60A5FA;
+  --v2-on-dk: #111111;
+}
+html[data-accent="violet"] {
+  --v2-accent-lt: #6D28D9;
+  --v2-on-lt: #FFFFFF;
+  --v2-accent-dk: #A78BFA;
+  --v2-on-dk: #111111;
+}
+html[data-accent="teal"] {
+  --v2-accent-lt: #0F766E;
+  --v2-on-lt: #FFFFFF;
+  --v2-accent-dk: #2DD4BF;
+  --v2-on-dk: #111111;
+}
+html[data-accent="green"] {
+  --v2-accent-lt: #15803D;
+  --v2-on-lt: #FFFFFF;
+  --v2-accent-dk: #4ADE80;
+  --v2-on-dk: #111111;
+}
+html[data-accent="pink"] {
+  --v2-accent-lt: #BE185D;
+  --v2-on-lt: #FFFFFF;
+  --v2-accent-dk: #F472B6;
+  --v2-on-dk: #111111;
+}
+
+/* ── Base (dark) tokens ──────────────────────────────────────────────── */
+[data-ui="v2"] {
+  --v2-bg: #0A0A12;
+  --v2-surface: #14141E;
+  --v2-surface-raised: #1C1C28;
+  --v2-text: #F0F0F5;
+  --v2-text-muted: #9898B0;
+  --v2-border: rgba(255, 255, 255, 0.10);
+  --v2-accent: var(--v2-accent-dk);
+  --v2-on-accent: var(--v2-on-dk);
+  --v2-ring-friends: var(--v2-accent);
+  --v2-ring-tmdb: #8E8E93;
+  --v2-success: #34C759;
+  --v2-warn: #FF9500;
+  --v2-danger: #FF3B30;
+}
+
+/* ── Light theme ─────────────────────────────────────────────────────── */
+html[data-theme="light"] [data-ui="v2"] {
+  --v2-bg: #F2F2F6;
+  --v2-surface: #FFFFFF;
+  --v2-surface-raised: #F8F8FB;
+  --v2-text: #1A1A2E;
+  --v2-text-muted: #6B6B80;
+  --v2-border: rgba(0, 0, 0, 0.08);
+  --v2-accent: var(--v2-accent-lt);
+  --v2-on-accent: var(--v2-on-lt);
+  --v2-ring-tmdb: #6B6B80;
+}
+
+/* ── System theme (resolved in pure CSS, no flash) ───────────────────── */
+@media (prefers-color-scheme: light) {
+  html[data-theme="system"] [data-ui="v2"] {
+    --v2-bg: #F2F2F6;
+    --v2-surface: #FFFFFF;
+    --v2-surface-raised: #F8F8FB;
+    --v2-text: #1A1A2E;
+    --v2-text-muted: #6B6B80;
+    --v2-border: rgba(0, 0, 0, 0.08);
+    --v2-accent: var(--v2-accent-lt);
+    --v2-on-accent: var(--v2-on-lt);
+    --v2-ring-tmdb: #6B6B80;
+  }
+}
+@media (prefers-color-scheme: dark) {
+  html[data-theme="system"] [data-ui="v2"] {
+    --v2-bg: #0A0A12;
+    --v2-surface: #14141E;
+    --v2-surface-raised: #1C1C28;
+    --v2-text: #F0F0F5;
+    --v2-text-muted: #9898B0;
+    --v2-border: rgba(255, 255, 255, 0.10);
+    --v2-accent: var(--v2-accent-dk);
+    --v2-on-accent: var(--v2-on-dk);
+    --v2-ring-tmdb: #8E8E93;
+  }
+}
