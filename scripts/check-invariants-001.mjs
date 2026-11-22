@@ -359,5 +359,23 @@ const ipHits = i18nFiles.filter((f) =>
 check("REPO-19 no IP/geo header read in i18n", ipHits.length === 0,
   ipHits.map((f) => f.replace(root + "\\", "")).join(", ") || `${i18nFiles.length} i18n files scanned`);
 
+// 18. P0-07 (PLAN-V2-002 §5.2 / REPO-18): youtube.readonly may appear only in
+// lib/youtube/* and app/api/youtube/connect/route.ts; the unified-grant
+// persist helper must have zero importers.
+const relOf = (f) =>
+  f.replace(root + "\\", "").replace(root + "/", "").replace(/\\/g, "/");
+const ytScopeHits = srcFiles.filter((f) => {
+  const rel = relOf(f);
+  return /youtube\.readonly/.test(readFileSync(f, "utf8"))
+    && !rel.startsWith("lib/youtube/")
+    && rel !== "app/api/youtube/connect/route.ts";
+});
+const persistHits = srcFiles.filter((f) =>
+  /persistYouTubeConnectionFromSession/.test(readFileSync(f, "utf8"))
+  && !relOf(f).startsWith("lib/youtube/persist-connection"));
+check("REPO-18 youtube.readonly scope + persist helper guard",
+  ytScopeHits.length === 0 && persistHits.length === 0,
+  [...ytScopeHits, ...persistHits].map((f) => f.replace(root + "\\", "")).join(", ") || "clean");
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

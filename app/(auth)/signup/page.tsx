@@ -5,8 +5,8 @@ import { supabaseBrowser } from "@/lib/supabase/client";
 
 /**
  * Google-only signup (PRD §41.2). Account creation happens inside the
- * Google OAuth grant (profile upserted in /callback); the same grant
- * carries YouTube readonly + offline refresh scopes.
+ * Google OAuth grant (profile upserted in /callback); sign-in requests
+ * only basic OIDC scopes (D25) — YouTube access uses /api/youtube/connect.
  */
 export default function SignupPage() {
   const [error, setError] = useState<string | null>(null);
@@ -20,11 +20,6 @@ export default function SignupPage() {
       provider: "google",
       options: {
         redirectTo: `${window.location.origin}/callback`,
-        scopes: "https://www.googleapis.com/auth/youtube.readonly",
-        queryParams: {
-          access_type: "offline",
-          prompt: "consent",
-        },
       },
     });
 

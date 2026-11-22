@@ -1,15 +1,17 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
-import { persistYouTubeConnectionFromSession } from "@/lib/youtube/persist-connection";
+import { safeNext } from "@/lib/auth/safeNext";
 
 // Profile creation and pending friend-invite backfill are owned by the
 // ensure_user_profile trigger on auth.users (migration 112) — this route only
-// exchanges the OAuth code for a session.
+// exchanges the OAuth code for a session. Sign-in requests basic OIDC scopes
+// only (D25); YouTube access goes through /api/youtube/connect, so a login
+// never writes youtube_connections.
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/feed";
+  const next = safeNext(searchParams.get("next"));
 
   if (code) {
     const cookieStore = await cookies();
@@ -30,27 +32,9 @@ export async function GET(request: Request) {
       }
     );
 
-    const { data: sessionData, error } = await supabase.auth.exchangeCodeForSession(code);
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (user) {
-        // Unified grant (PRD §41.2): the Google OAuth session carries
-        // provider_token/provider_refresh_token for YouTube — persist them
-        // so the YouTube connection exists from first login.
-        const providerToken = sessionData?.session?.provider_token;
-        if (providerToken) {
-          await persistYouTubeConnectionFromSession({
-            userId: user.id,
-            email: user.email ?? null,
-            providerToken,
-            providerRefreshToken: sessionData?.session?.provider_refresh_token ?? null,
-            scope: null,
-          });
-        }
-      }
-
       return NextResponse.redirect(`${origin}${next}`);
     }
   }

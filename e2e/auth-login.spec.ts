@@ -34,4 +34,15 @@ test.describe("Auth — Login flow", () => {
     await page.goto("/feed");
     await expect(page).toHaveURL(/\/login/, { timeout: 15_000 });
   });
+
+  test("authorize URL requests only basic scopes — no youtube (P0-07/D25)", async ({ page }) => {
+    await page.goto("/login");
+    const reached = page
+      .waitForURL(/accounts\.google\.com|\/auth\/v1\/authorize/, { timeout: 20_000 })
+      .then(() => true)
+      .catch(() => false);
+    await page.getByRole("button", { name: /continue with google/i }).click();
+    expect(await reached).toBe(true);
+    expect(page.url()).not.toMatch(/youtube/i);
+  });
 });
