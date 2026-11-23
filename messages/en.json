@@ -179,6 +179,183 @@
       "newPick": "{name} sent you a pick",
       "pickOne": "Recommended by 3 friends",
       "you": "You"
+    },
+    "v2b": {
+      "meta": {
+        "title": "LIKED — Get recommendations from people you trust",
+        "description": "One link, one tidy inbox. Friends recommend movies, shows and videos in seconds, no account needed. Join the waiting list for the private beta.",
+        "ogAlt": "LIKED"
+      },
+      "skip": "Skip to content",
+      "header": {
+        "nav": "Main",
+        "home": "LIKED home",
+        "signIn": "Sign in",
+        "openApp": "Open app"
+      },
+      "badge": "Private beta coming soon",
+      "example": "Example",
+      "hero": {
+        "eyebrow": "A recommendation inbox for movies, shows and videos",
+        "title": "Get recommendations from people you trust",
+        "sub": "Share one link. Friends recommend movies, shows and videos in seconds, no account needed. You get one tidy list, with where to watch.",
+        "previewAlt": "Example of the LIKED inbox with three recommended titles"
+      },
+      "form": {
+        "label": "Your email",
+        "placeholder": "you@example.com",
+        "submit": "Notify me",
+        "submitting": "Sending…",
+        "notice": "We'll use your email only to tell you when LIKED opens to beta testers. We keep it until you ask us to remove it: write to <mail>{email}</mail>.",
+        "privacy": "Privacy policy",
+        "success": "You're on the list. We'll email you when beta testers are welcomed.",
+        "invalid": "Please enter a valid email address.",
+        "error": "Something went wrong, please try again in a moment.",
+        "closed": "The waiting list opens soon."
+      },
+      "why": {
+        "title": "Great tips are everywhere. They're just never in the same place.",
+        "examples": "Examples",
+        "m1": "You HAVE to watch this",
+        "m2": "saved a reel somewhere...",
+        "m3": "what was that show Maya mentioned?",
+        "line": "One inbox. Every recommendation."
+      },
+      "how": {
+        "title": "How it will work",
+        "s1": {
+          "title": "Share your link.",
+          "body": "One link for all your friends. Send it by message, story or in person."
+        },
+        "s2": {
+          "title": "Friends pick, in seconds.",
+          "body": "They search movies, shows or YouTube videos, tap to add, optionally give a score and say why you'll love it. No account, no install."
+        },
+        "s3": {
+          "title": "You get one list.",
+          "body": "Duplicates merge into one card. You see who recommended it, their scores, and where to watch in your region."
+        }
+      },
+      "friends": {
+        "eyebrow": "For your friends: 30 seconds, no account",
+        "title": "Easier than texting a title.",
+        "b1": "No sign-in, only a first name.",
+        "b2": "Search by poster, no typos.",
+        "b3": "Add a score and a reason if you feel like it.",
+        "reassure": "Friends never see each other's picks.",
+        "alt": "Example of the friend screen: search results with posters, a tray of three picks and a send button.",
+        "nameLabel": "Your first name",
+        "search": "Search movies, shows or videos",
+        "picks": "Your picks",
+        "send": "Send to {owner} ({count, plural, one {# title} other {# titles}})"
+      },
+      "merge": {
+        "title": "Three friends. One card.",
+        "caption": "We keep who said what, and never blend friends' scores with the public score.",
+        "alt": "Example: three friends, Alex, Maya and Jules, recommend The Grand Budapest Hotel and it becomes one card. The friends score is 87% from 3 friends. The TMDB score, 81%, is shown separately.",
+        "quote": "The humor and visual style are exactly your thing.",
+        "stream": "Stream",
+        "rent": "Rent",
+        "buy": "Buy",
+        "via": "via JustWatch",
+        "chip": "{name} {pct}%",
+        "friendsScore": "Friends {pct}% ({count})",
+        "tmdbScore": "TMDB {pct}%"
+      },
+      "type": {
+        "movie": "Movie",
+        "series": "Series",
+        "video": "Video"
+      },
+      "coming": {
+        "title": "What's coming",
+        "tag": "Coming soon",
+        "rail": {
+          "title": "Friend rail",
+          "body": "See who recommended what, and what's new."
+        },
+        "where": {
+          "title": "Where to watch",
+          "body": "Based on your region."
+        },
+        "filters": {
+          "title": "Smart filters",
+          "body": "By genre, year, language and platform."
+        },
+        "tidy": {
+          "title": "Watched or not interested",
+          "body": "Keep your list tidy."
+        }
+      },
+      "faq": {
+        "title": "Questions",
+        "q1": {
+          "q": "Do my friends need an account?",
+          "a": "No. They enter a first name and add titles."
+        },
+        "q2": {
+          "q": "Does it cost anything?",
+          "a": "LIKED has no paid plan today."
+        },
+        "q3": {
+          "q": "Where does the movie data come from?",
+          "a": "TMDB, with streaming availability from JustWatch, plus YouTube for videos."
+        },
+        "q4": {
+          "q": "Why Google sign-in?",
+          "a": "When the beta opens, you'll sign in with Google. LIKED asks only for your basic profile (name, email, photo)."
+        },
+        "q5": {
+          "q": "How do I remove my email from the waiting list?",
+          "a": "Write to <mail>{email}</mail> and we'll delete it."
+        }
+      },
+      "final": {
+        "title": "Your next favorite thing is already on someone's mind.",
+        "sub": "Give your friends a place to recommend it. Leave your email and we'll tell you when the beta opens."
+      },
+      "footer": {
+        "nav": "Footer",
+        "privacy": "Privacy policy",
+        "terms": "Terms",
+        "credits": "Credits",
+        "help": "Help and contact",
+        "tmdb": "This product uses the TMDB API but is not endorsed or certified by TMDB.",
+        "justwatch": "Streaming availability data is provided by JustWatch.",
+        "copyright": "© LIKED"
+      },
+      "demo": {
+        "owner": "Sam",
+        "friends": {
+          "alex": "Alex",
+          "maya": "Maya",
+          "jules": "Jules"
+        },
+        "titles": {
+          "grand": "The Grand Budapest Hotel",
+          "severance": "Severance",
+          "pastLives": "Past Lives",
+          "pasta": "Pasta in ten minutes"
+        },
+        "inbox": "Inbox",
+        "rail": "{first}, {second} and 1 more have something for you",
+        "unseen": "{count} new",
+        "link": "Your link",
+        "copy": "Copy",
+        "message": "Message",
+        "story": "Story",
+        "person": "In person",
+        "score": "Your score",
+        "reason": "Why you'll love it",
+        "reasonText": "Great humor, you'll love it.",
+        "recommendedBy": "Recommended by {count, plural, one {# friend} other {# friends}}",
+        "added": "Added"
+      },
+      "pill": {
+        "label": "Landing",
+        "menu": "Landing variant",
+        "default": "Default"
+      }
     }
   },
   "feed": {

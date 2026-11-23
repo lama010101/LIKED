@@ -1,0 +1,22 @@
+/* Floating landing-switch pill (V2-LANDING-002-A). Only in the DOM while an
+   override is active. Tokens only; carries its own data-ui="v2" scope so it
+   also works on top of the legacy landing. */
+.lsw { position: fixed; z-index: 80; inset-inline-end: 12px; bottom: max(12px, env(safe-area-inset-bottom)); font: 600 0.8125rem/1.2 var(--font-sans), system-ui, sans-serif; color: var(--v2-text); }
+.lsw *, .lsw *::before, .lsw *::after { box-sizing: border-box; }
+.lsw-box { position: relative; }
+.lsw-sum {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; border-radius: 999px;
+  background: var(--v2-surface); color: var(--v2-text); border: 1px solid var(--v2-lb-field-border, var(--v2-border));
+  box-shadow: var(--v2-lp-shadow); cursor: pointer; list-style: none; opacity: 0.92;
+}
+.lsw-sum::-webkit-details-marker { display: none; }
+.lsw-sum:focus-visible, .lsw-list a:focus-visible { outline: 3px solid var(--v2-accent); outline-offset: 2px; }
+.lsw-box[open] .lsw-sum { opacity: 1; }
+.lsw-list {
+  position: absolute; inset-inline-end: 0; bottom: calc(100% + 6px); list-style: none; margin: 0; padding: 6px; min-width: 150px;
+  background: var(--v2-surface); border: 1px solid var(--v2-border); border-radius: 16px; box-shadow: var(--v2-lp-shadow);
+}
+.lsw-list a { display: flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 10px; color: var(--v2-text); text-decoration: none; }
+.lsw-list a[aria-current] { color: var(--v2-accent); }
+.lsw-list a[aria-current]::after { content: "\2713"; margin-inline-start: auto; padding-inline-start: 12px; }
+@media (hover: hover) { .lsw-list a:hover { background: var(--v2-surface-raised); } }

@@ -121,5 +121,91 @@ for (const [theme, v] of Object.entries(themes)) {
   }
 }
 
+// ── Landing v2b pairs (V2-LANDING-002-A): warm tokens from app/v2-tokens.css ──
+// Same rules: text >= 4.5:1, UI >= 3:1, both themes, default (Orange) accent.
+// The page extends this script (no fork). System-theme blocks must equal the
+// explicit light/dark blocks so "System" can never drift from them.
+{
+  const esc = (x) => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const bodies = (sel) => {
+    const re = new RegExp("(?:^|\\n)[ \\t]*" + esc(sel) + " \\{([^}]*)\\}", "g");
+    return [...css.matchAll(re)].map((m) => {
+      const o = {};
+      for (const d of m[1].matchAll(/(--[\w-]+):\s*([^;]+);/g)) o[d[1]] = d[2].trim();
+      return o;
+    });
+  };
+  const B = '[data-ui="v2"][data-landing="v2b"]';
+  const [baseDark] = bodies(B);
+  const [explicitDark] = bodies('html[data-theme="dark"] ' + B);
+  const [explicitLight] = bodies('html[data-theme="light"] ' + B);
+  const [sysLight, sysDark] = bodies('html[data-theme="system"] ' + B);
+  check("v2b token blocks present", !!(baseDark && explicitDark && explicitLight && sysLight && sysDark));
+  const KEYS = ["--v2-bg", "--v2-surface", "--v2-surface-raised", "--v2-text", "--v2-text-muted", "--v2-border",
+    "--v2-ring-tmdb", "--v2-lb-field-border", "--v2-lb-danger", "--v2-lb-success"];
+  const same = (a, b) => KEYS.every((k) => a[k] === b[k]);
+  check("v2b system-light == explicit light", same(sysLight, explicitLight));
+  check("v2b system-dark == explicit dark == base", same(sysDark, explicitDark) && same(baseDark, explicitDark));
+
+  const hexRe = /#[0-9A-Fa-f]{6}/g;
+  const toRgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+  const toHex = (rgb) => "#" + rgb.map((n) => Math.round(n).toString(16).padStart(2, "0")).join("").toUpperCase();
+  const blend = (fg, a, bg) => toHex(toRgb(bg).map((c, i) => c * (1 - a) + fg[i] * a));
+  const rgba = (v) => { const m = v.match(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)/); return m ? { rgb: [+m[1], +m[2], +m[3]], a: +m[4] } : null; };
+  const scrim = rgba(baseDark["--v2-lb-scrim"]);
+  const onPoster = baseDark["--v2-lb-on-poster"];
+  check("v2b scrim + on-poster tokens parse", !!scrim && /^#[0-9A-Fa-f]{6}$/.test(onPoster));
+
+  for (const [theme, own, accentKeys] of [
+    ["dark", { ...dark, ...baseDark }, ["--v2-accent-dk", "--v2-on-dk"]],
+    ["light", { ...light, ...baseDark, ...explicitLight }, ["--v2-accent-lt", "--v2-on-lt"]],
+  ]) {
+    const v = { ...own, "--v2-accent": rootVars[accentKeys[0]], "--v2-on-accent": rootVars[accentKeys[1]] };
+    const g = (k) => v[k];
+    // Accent TEXT is only used on bg/surface (never on surface-raised): see v2b.css
+    const text = [
+      ["text on bg", "--v2-text", "--v2-bg"],
+      ["text on surface", "--v2-text", "--v2-surface"],
+      ["text on surface-raised", "--v2-text", "--v2-surface-raised"],
+      ["muted on bg", "--v2-text-muted", "--v2-bg"],
+      ["muted on surface", "--v2-text-muted", "--v2-surface"],
+      ["muted on surface-raised", "--v2-text-muted", "--v2-surface-raised"],
+      ["accent text on bg (eyebrow, one-liner)", "--v2-accent", "--v2-bg"],
+      ["accent text on surface", "--v2-accent", "--v2-surface"],
+      ["on-accent on accent (buttons, step number, unseen badge)", "--v2-on-accent", "--v2-accent"],
+      ["placeholder (muted) on surface (input)", "--v2-text-muted", "--v2-surface"],
+      ["error text on bg", "--v2-lb-danger", "--v2-bg"],
+      ["error text on surface", "--v2-lb-danger", "--v2-surface"],
+      ["success text on surface", "--v2-lb-success", "--v2-surface"],
+      ["avatar initial on avatar 1", "--v2-lp-av-on", "--v2-lp-av-1"],
+      ["avatar initial on avatar 2", "--v2-lp-av-on", "--v2-lp-av-2"],
+      ["avatar initial on avatar 3", "--v2-lp-av-on", "--v2-lp-av-3"],
+    ];
+    for (const [name, fg, bg] of text) {
+      const r = contrastRatio(g(fg), g(bg));
+      check(`v2b ${theme} text: ${name}`, r >= MIN_TEXT_RATIO, `${g(fg)} on ${g(bg)} = ${r.toFixed(2)}`);
+    }
+    const ui = [
+      ["email field border vs bg", "--v2-lb-field-border", "--v2-bg"],
+      ["email field border vs surface", "--v2-lb-field-border", "--v2-surface"],
+      ["accent vs bg (focus ring, icons)", "--v2-accent", "--v2-bg"],
+      ["accent vs surface-raised (badge dot, chevron)", "--v2-accent", "--v2-surface-raised"],
+      ["neutral TMDB ring vs surface", "--v2-ring-tmdb", "--v2-surface"],
+      ["neutral TMDB ring vs surface-raised", "--v2-ring-tmdb", "--v2-surface-raised"],
+    ];
+    for (const [name, a, b] of ui) {
+      const r = contrastRatio(g(a), g(b));
+      check(`v2b ${theme} UI: ${name}`, r >= MIN_UI_RATIO, `${g(a)} vs ${g(b)} = ${r.toFixed(2)}`);
+    }
+    // Text over images: poster placeholder gradients under the scrim (worst stop).
+    for (let n = 1; n <= 6; n++) {
+      const stops = (own[`--v2-lp-poster-${n}`] ?? baseDark[`--v2-lp-poster-${n}`] ?? dark[`--v2-lp-poster-${n}`] ?? "").match(hexRe) ?? [];
+      let worst = Infinity;
+      for (const s of stops) worst = Math.min(worst, contrastRatio(onPoster, blend(scrim.rgb, scrim.a, s)));
+      check(`v2b ${theme} text over poster ${n} (scrim)`, stops.length >= 2 && worst >= MIN_TEXT_RATIO, `worst stop = ${worst.toFixed(2)}`);
+    }
+  }
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

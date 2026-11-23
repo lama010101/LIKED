@@ -179,6 +179,183 @@
       "newPick": "{name} vous a envoyé un choix",
       "pickOne": "Recommandé par 3 amis",
       "you": "Vous"
+    },
+    "v2b": {
+      "meta": {
+        "title": "LIKED — Recevez des recommandations de personnes en qui vous avez confiance",
+        "description": "Un lien, une boîte bien rangée. Vos amis recommandent films, séries et vidéos en quelques secondes, sans compte. Rejoignez la liste d'attente de la bêta privée.",
+        "ogAlt": "LIKED"
+      },
+      "skip": "Aller au contenu",
+      "header": {
+        "nav": "Principal",
+        "home": "Accueil LIKED",
+        "signIn": "Se connecter",
+        "openApp": "Ouvrir l'app"
+      },
+      "badge": "Bêta privée bientôt disponible",
+      "example": "Exemple",
+      "hero": {
+        "eyebrow": "Une boîte de recommandations pour films, séries et vidéos",
+        "title": "Recevez des recommandations de personnes en qui vous avez confiance",
+        "sub": "Partagez un lien. Vos amis recommandent films, séries et vidéos en quelques secondes, sans compte. Vous obtenez une liste claire, avec où regarder.",
+        "previewAlt": "Exemple de la boîte LIKED avec trois titres recommandés"
+      },
+      "form": {
+        "label": "Votre e-mail",
+        "placeholder": "vous@exemple.com",
+        "submit": "Me prévenir",
+        "submitting": "Envoi…",
+        "notice": "Nous utiliserons votre e-mail uniquement pour vous prévenir quand LIKED ouvrira aux bêta-testeurs. Nous le conservons jusqu'à ce que vous demandiez sa suppression : écrivez à <mail>{email}</mail>.",
+        "privacy": "Politique de confidentialité",
+        "success": "C'est noté, vous êtes sur la liste. Nous vous écrirons quand les bêta-testeurs seront accueillis.",
+        "invalid": "Saisissez une adresse e-mail valide.",
+        "error": "Un problème est survenu, réessayez dans un instant.",
+        "closed": "La liste d'attente ouvre bientôt."
+      },
+      "why": {
+        "title": "Les bons conseils sont partout. Mais jamais au même endroit.",
+        "examples": "Exemples",
+        "m1": "Tu DOIS regarder ça",
+        "m2": "j'ai sauvegardé un reel quelque part...",
+        "m3": "c'était quoi déjà, la série dont parlait Maya ?",
+        "line": "Une seule boîte. Toutes les recommandations."
+      },
+      "how": {
+        "title": "Comment ça va marcher",
+        "s1": {
+          "title": "Partagez votre lien.",
+          "body": "Un seul lien pour tous vos amis. Envoyez-le par message, en story ou en personne."
+        },
+        "s2": {
+          "title": "Vos amis choisissent, en quelques secondes.",
+          "body": "Ils cherchent des films, des séries ou des vidéos YouTube, touchent pour ajouter, donnent une note s'ils le souhaitent et expliquent pourquoi vous allez adorer. Sans compte, sans installation."
+        },
+        "s3": {
+          "title": "Vous recevez une seule liste.",
+          "body": "Les doublons fusionnent en une seule carte. Vous voyez qui l'a recommandé, leurs notes et où regarder dans votre région."
+        }
+      },
+      "friends": {
+        "eyebrow": "Pour vos amis : 30 secondes, sans compte",
+        "title": "Plus simple que d'envoyer un titre par message.",
+        "b1": "Pas de connexion, juste un prénom.",
+        "b2": "Cherchez par affiche, sans faute de frappe.",
+        "b3": "Ajoutez une note et une raison si vous en avez envie.",
+        "reassure": "Vos amis ne voient jamais les choix des autres.",
+        "alt": "Exemple de l'écran des amis : résultats de recherche avec affiches, un panier de trois choix et un bouton d'envoi.",
+        "nameLabel": "Votre prénom",
+        "search": "Rechercher films, séries ou vidéos",
+        "picks": "Vos choix",
+        "send": "Envoyer à {owner} ({count, plural, one {# titre} other {# titres}})"
+      },
+      "merge": {
+        "title": "Trois amis. Une seule carte.",
+        "caption": "Nous gardons qui a dit quoi, et ne mélangeons jamais les notes de vos amis avec la note du public.",
+        "alt": "Exemple : trois amis, Alex, Maya et Jules, recommandent The Grand Budapest Hotel et cela devient une seule carte. La note des amis est de 87 % pour 3 amis. La note TMDB, 81 %, est affichée séparément.",
+        "quote": "L'humour et le style visuel, c'est exactement votre truc.",
+        "stream": "Streaming",
+        "rent": "Location",
+        "buy": "Achat",
+        "via": "via JustWatch",
+        "chip": "{name} {pct} %",
+        "friendsScore": "Amis {pct} % ({count})",
+        "tmdbScore": "TMDB {pct} %"
+      },
+      "type": {
+        "movie": "Film",
+        "series": "Série",
+        "video": "Vidéo"
+      },
+      "coming": {
+        "title": "Ce qui arrive",
+        "tag": "Bientôt",
+        "rail": {
+          "title": "Rail d'amis",
+          "body": "Voyez qui a recommandé quoi, et ce qui est nouveau."
+        },
+        "where": {
+          "title": "Où regarder",
+          "body": "Selon votre région."
+        },
+        "filters": {
+          "title": "Filtres intelligents",
+          "body": "Par genre, année, langue et plateforme."
+        },
+        "tidy": {
+          "title": "Vu ou pas intéressé",
+          "body": "Gardez votre liste bien rangée."
+        }
+      },
+      "faq": {
+        "title": "Questions",
+        "q1": {
+          "q": "Mes amis ont-ils besoin d'un compte ?",
+          "a": "Non. Ils saisissent un prénom et ajoutent des titres."
+        },
+        "q2": {
+          "q": "Est-ce payant ?",
+          "a": "LIKED n'a aucune offre payante aujourd'hui."
+        },
+        "q3": {
+          "q": "D'où viennent les données sur les films ?",
+          "a": "De TMDB, avec la disponibilité en streaming fournie par JustWatch, et YouTube pour les vidéos."
+        },
+        "q4": {
+          "q": "Pourquoi la connexion avec Google ?",
+          "a": "À l'ouverture de la bêta, vous vous connecterez avec Google. LIKED demande uniquement votre profil de base (nom, e-mail, photo)."
+        },
+        "q5": {
+          "q": "Comment retirer mon e-mail de la liste d'attente ?",
+          "a": "Écrivez à <mail>{email}</mail> et nous le supprimerons."
+        }
+      },
+      "final": {
+        "title": "Votre prochaine découverte préférée est déjà dans la tête de quelqu'un.",
+        "sub": "Offrez à vos amis un endroit où vous la recommander. Laissez votre e-mail et nous vous préviendrons à l'ouverture de la bêta."
+      },
+      "footer": {
+        "nav": "Pied de page",
+        "privacy": "Politique de confidentialité",
+        "terms": "Conditions",
+        "credits": "Crédits",
+        "help": "Aide et contact",
+        "tmdb": "This product uses the TMDB API but is not endorsed or certified by TMDB.",
+        "justwatch": "Streaming availability data is provided by JustWatch.",
+        "copyright": "© LIKED"
+      },
+      "demo": {
+        "owner": "Sam",
+        "friends": {
+          "alex": "Alex",
+          "maya": "Maya",
+          "jules": "Jules"
+        },
+        "titles": {
+          "grand": "The Grand Budapest Hotel",
+          "severance": "Severance",
+          "pastLives": "Past Lives",
+          "pasta": "Des pâtes en dix minutes"
+        },
+        "inbox": "Boîte",
+        "rail": "{first}, {second} et 1 autre ont quelque chose pour vous",
+        "unseen": "{count} nouveau",
+        "link": "Votre lien",
+        "copy": "Copier",
+        "message": "Message",
+        "story": "Story",
+        "person": "En personne",
+        "score": "Votre note",
+        "reason": "Pourquoi vous allez adorer",
+        "reasonText": "Un humour génial, vous allez adorer.",
+        "recommendedBy": "Recommandé par {count, plural, one {# ami} other {# amis}}",
+        "added": "Ajouté"
+      },
+      "pill": {
+        "label": "Landing",
+        "menu": "Variante de landing",
+        "default": "Par défaut"
+      }
     }
   },
   "feed": {
