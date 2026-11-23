@@ -69,6 +69,7 @@ export default defineConfig({
         /youtube-intelligent-import\.spec\.ts/,
         /youtube-search\.spec\.ts/,
         /navigation-unauth\.spec\.ts/,
+        /landing-v2b\.spec\.ts/,
       ],
       use: { ...devices["Desktop Chrome"] },
     },

@@ -10,7 +10,26 @@ const nextConfig: NextConfig = {
     "/proto/[name]": ["./workspace/**/*"],
   },
   async headers() {
+    // Landing switch (V2-LANDING-002-A): any response served through an
+    // override (?landing=<variant> or the "liked.landing" cookie) is noindex
+    // and private. `has` only matches valid variant values; ?landing=default
+    // (which clears the cookie) is excluded from the cookie rule.
+    const overrideHeaders = [
+      { key: "Cache-Control", value: "private, no-store" },
+      { key: "X-Robots-Tag", value: "noindex, nofollow" },
+    ];
     return [
+      {
+        source: "/",
+        has: [{ type: "query" as const, key: "landing", value: "legacy|v2a|v2b" }],
+        headers: overrideHeaders,
+      },
+      {
+        source: "/",
+        has: [{ type: "cookie" as const, key: "liked.landing", value: "legacy|v2a|v2b" }],
+        missing: [{ type: "query" as const, key: "landing", value: "default" }],
+        headers: overrideHeaders,
+      },
       {
         source: "/(.*)",
         headers: [

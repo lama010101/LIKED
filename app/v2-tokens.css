@@ -154,3 +154,87 @@ html[data-theme="light"] [data-ui="v2"] {
     --v2-lp-grain: 0.05;
   }
 }
+
+/* ── Landing v2b tokens (V2-LANDING-002-A) ───────────────────────────────
+   Warm editorial neutrals for the pre-launch page. Scope = the wrapper that
+   carries BOTH data-ui="v2" and data-landing="v2b", so no other page changes.
+   Accent stays the existing Orange preset (--v2-accent from above). Same
+   four-block pattern as the core tokens (dark base, explicit light, system
+   light, system dark) so the theme resolves in pure CSS with no flash.
+   scripts/check-contrast.mjs reads these blocks and asserts the ratios. */
+[data-ui="v2"][data-landing="v2b"] {
+  --v2-bg: #15110E;
+  --v2-surface: #1F1A16;
+  --v2-surface-raised: #2A231D;
+  --v2-text: #F6EFE5;
+  --v2-text-muted: #B8AA9A;
+  --v2-border: rgba(255, 238, 214, 0.14);
+  --v2-ring-tmdb: #A39482;
+  --v2-lb-field-border: #8F8071;
+  --v2-lb-danger: #FF8A80;
+  --v2-lb-success: #6EE7A0;
+  --v2-lb-scrim: rgba(12, 8, 5, 0.74);
+  --v2-lb-on-poster: #FFFFFF;
+  --v2-lb-glow: color-mix(in srgb, var(--v2-accent) 16%, transparent);
+  --v2-lb-shadow: 0 24px 48px -24px rgba(0, 0, 0, 0.7);
+}
+html[data-theme="dark"] [data-ui="v2"][data-landing="v2b"] {
+  --v2-bg: #15110E;
+  --v2-surface: #1F1A16;
+  --v2-surface-raised: #2A231D;
+  --v2-text: #F6EFE5;
+  --v2-text-muted: #B8AA9A;
+  --v2-border: rgba(255, 238, 214, 0.14);
+  --v2-ring-tmdb: #A39482;
+  --v2-lb-field-border: #8F8071;
+  --v2-lb-danger: #FF8A80;
+  --v2-lb-success: #6EE7A0;
+  --v2-lb-glow: color-mix(in srgb, var(--v2-accent) 16%, transparent);
+  --v2-lb-shadow: 0 24px 48px -24px rgba(0, 0, 0, 0.7);
+}
+html[data-theme="light"] [data-ui="v2"][data-landing="v2b"] {
+  --v2-bg: #FAF6EF;
+  --v2-surface: #FFFDF9;
+  --v2-surface-raised: #F3ECE0;
+  --v2-text: #2A211A;
+  --v2-text-muted: #675A4D;
+  --v2-border: rgba(42, 33, 26, 0.12);
+  --v2-ring-tmdb: #7D6F60;
+  --v2-lb-field-border: #8A7B6B;
+  --v2-lb-danger: #B42318;
+  --v2-lb-success: #166534;
+  --v2-lb-glow: color-mix(in srgb, var(--v2-accent) 12%, transparent);
+  --v2-lb-shadow: 0 24px 48px -28px rgba(42, 33, 26, 0.35);
+}
+@media (prefers-color-scheme: light) {
+  html[data-theme="system"] [data-ui="v2"][data-landing="v2b"] {
+    --v2-bg: #FAF6EF;
+    --v2-surface: #FFFDF9;
+    --v2-surface-raised: #F3ECE0;
+    --v2-text: #2A211A;
+    --v2-text-muted: #675A4D;
+    --v2-border: rgba(42, 33, 26, 0.12);
+    --v2-ring-tmdb: #7D6F60;
+    --v2-lb-field-border: #8A7B6B;
+    --v2-lb-danger: #B42318;
+    --v2-lb-success: #166534;
+    --v2-lb-glow: color-mix(in srgb, var(--v2-accent) 12%, transparent);
+    --v2-lb-shadow: 0 24px 48px -28px rgba(42, 33, 26, 0.35);
+  }
+}
+@media (prefers-color-scheme: dark) {
+  html[data-theme="system"] [data-ui="v2"][data-landing="v2b"] {
+    --v2-bg: #15110E;
+    --v2-surface: #1F1A16;
+    --v2-surface-raised: #2A231D;
+    --v2-text: #F6EFE5;
+    --v2-text-muted: #B8AA9A;
+    --v2-border: rgba(255, 238, 214, 0.14);
+    --v2-ring-tmdb: #A39482;
+    --v2-lb-field-border: #8F8071;
+    --v2-lb-danger: #FF8A80;
+    --v2-lb-success: #6EE7A0;
+    --v2-lb-glow: color-mix(in srgb, var(--v2-accent) 16%, transparent);
+    --v2-lb-shadow: 0 24px 48px -24px rgba(0, 0, 0, 0.7);
+  }
+}
