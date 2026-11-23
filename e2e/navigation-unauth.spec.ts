@@ -11,10 +11,10 @@ test.describe("Navigation — unauthenticated redirects", () => {
 
   test("/ shows the public landing page", async ({ page }) => {
     await page.goto("/");
-    // `/` is now a public landing page (uncommitted landing-page work):
-    // unauth users stay on `/` and see Sign in / Get started links.
+    // v2 landing (Recommendation Inbox): one h1, Log in + Get started links.
     await expect(page).toHaveURL(/\/$/);
-    await expect(page.getByRole("link", { name: /sign in/i }).first()).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1 })).toContainText(/stop losing/i);
+    await expect(page.getByRole("link", { name: /log in/i }).first()).toBeVisible();
     await expect(page.getByRole("link", { name: /get started/i }).first()).toBeVisible();
   });
 

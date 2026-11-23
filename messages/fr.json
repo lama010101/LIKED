@@ -40,6 +40,147 @@
     "you": "Vous",
     "undo": "Annuler"
   },
+  "landing": {
+    "meta": {
+      "title": "LIKED — La boîte de réception des recommandations",
+      "description": "Envoyez un lien. Vos amis recommandent un film, une série ou une vidéo YouTube en moins de 30 secondes, sans compte. Tout arrive dans une seule boîte, fusionné et prêt à regarder."
+    },
+    "skip": "Aller au contenu",
+    "nav": {
+      "label": "Principal",
+      "home": "Accueil LIKED",
+      "login": "Se connecter",
+      "cta": "Commencer"
+    },
+    "switcher": {
+      "button": "Langue : {name}",
+      "menu": "Choisir la langue"
+    },
+    "hero": {
+      "eyebrow": "La boîte de réception des recommandations",
+      "title": "Arrêtez de perdre <hl>ce que vos amis vous conseillent de regarder.</hl>",
+      "sub": "Envoyez un lien. Vos amis recommandent un film, une série ou une vidéo YouTube en moins de 30 secondes, sans compte. Tout arrive dans une seule boîte, fusionné et prêt à regarder.",
+      "cta": "Commencer",
+      "micro": "Connexion avec Google. Profil de base uniquement.",
+      "secondary": "Voir comment ça marche",
+      "alt": "Illustration de la boîte LIKED sur un téléphone : une rangée d'amis avec compteurs de nouveautés et trois cartes de recommandation fusionnées, avec les notes des amis et où regarder. Tous les titres et noms sont fictifs."
+    },
+    "how": {
+      "title": "Comment ça marche",
+      "s1": {
+        "title": "Partagez votre lien",
+        "body": "Collez-le dans n'importe quelle discussion."
+      },
+      "s2": {
+        "title": "Vos amis choisissent en quelques secondes",
+        "body": "Ils cherchent des films, des séries et des vidéos YouTube, touchent pour ajouter, et peuvent ajouter une note et un commentaire."
+      },
+      "s3": {
+        "title": "Votre boîte fait le reste",
+        "body": "Les doublons fusionnent en une seule carte. Année, genre, langue, note et où regarder se remplissent automatiquement."
+      }
+    },
+    "flow": {
+      "eyebrow": "Pour vos amis",
+      "title": "Plus rapide qu'un SMS.",
+      "body": "La recherche par affiche évite les fautes de frappe. Trois touches et c'est envoyé.",
+      "alt": "Illustration du parcours d'un ami sur téléphone : champ de recherche avec affiches, plateau de choix, curseur de note de 0 à 100 % indiquant Super, 80 %, et bouton d'envoi. Tous les titres sont fictifs.",
+      "prompt": "Quel est le dernier film, série ou documentaire que vous recommandez ?",
+      "search": "Chercher films, séries, YouTube",
+      "typed": "harbor",
+      "picks": "Vos choix",
+      "score": "Note",
+      "great": "Super · 80 %",
+      "note": "Pourquoi Mira va l'adorer",
+      "send": "Envoyer à Mira (2 titres)"
+    },
+    "bento": {
+      "eyebrow": "Pour vous",
+      "title": "Tout arrive dans une seule boîte",
+      "merged": {
+        "title": "Une carte par titre",
+        "body": "Trois amis, une carte, trois notes."
+      },
+      "who": {
+        "title": "Sachez qui l'a dit",
+        "body": "Touchez un ami pour ne voir que ses envois. Les compteurs montrent les nouveautés."
+      },
+      "where": {
+        "title": "Voyez où regarder",
+        "body": "Dans votre région, rempli automatiquement."
+      },
+      "honest": {
+        "title": "Des notes honnêtes",
+        "body": "Moyenne des amis et note publique, jamais mélangées."
+      },
+      "notify": {
+        "title": "Une notification par envoi",
+        "body": "Chaque fois qu'un ami envoie ses choix, vous recevez une seule alerte."
+      },
+      "alt": {
+        "merged": "Trois amis recommandent le même titre avec 90, 80 et 70 % ; ils fusionnent en une seule carte.",
+        "who": "Une rangée d'amis avec compteurs de nouveautés ; un ami est sélectionné.",
+        "where": "Deux pastilles de services fictifs à côté de : votre région.",
+        "honest": "Deux anneaux séparés : moyenne des amis 80 % et note publique 72 %.",
+        "notify": "Une notification : Amara vous a envoyé un choix."
+      }
+    },
+    "languages": {
+      "title": "Parle votre langue",
+      "body": "Disponible en quatre langues, en clair et en sombre.",
+      "light": "Clair",
+      "dark": "Sombre"
+    },
+    "final": {
+      "title": "Votre prochain film est à un lien d'ici.",
+      "cta": "Commencer"
+    },
+    "footer": {
+      "nav": "Pied de page",
+      "privacy": "Confidentialité",
+      "terms": "Conditions"
+    },
+    "demo": {
+      "owner": "Mira",
+      "friends": {
+        "f1": "Amara",
+        "f2": "Kenji",
+        "f3": "Sofía",
+        "f4": "Noor",
+        "f5": "Mateo"
+      },
+      "titles": {
+        "t1": "Harbor of Glass",
+        "t2": "The Quiet Orchard",
+        "t3": "Neon Tidewater",
+        "t4": "Saffron Line"
+      },
+      "platformA": "Streamly",
+      "platformB": "Cinebox",
+      "inbox": "Boîte",
+      "all": "Tous",
+      "unseen": "non vus",
+      "c1": {
+        "meta": "2021 · Film",
+        "quote": "J'ai pleuré deux fois. Ça vaut le coup."
+      },
+      "c2": {
+        "meta": "2019 · Documentaire",
+        "quote": "Calme, beau et court."
+      },
+      "c3": {
+        "meta": "2023 · Série",
+        "quote": "À regarder lumières éteintes."
+      },
+      "raters": "{count, plural, one {# ami} other {# amis}}",
+      "friendsLabel": "Amis",
+      "publicLabel": "Public",
+      "region": "Votre région",
+      "newPick": "{name} vous a envoyé un choix",
+      "pickOne": "Recommandé par 3 amis",
+      "you": "Vous"
+    }
+  },
   "feed": {
     "title": "Accueil",
     "folders": "Dossiers",
