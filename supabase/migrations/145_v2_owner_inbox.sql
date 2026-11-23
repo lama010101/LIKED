@@ -701,8 +701,13 @@ GRANT EXECUTE ON FUNCTION public.set_my_prefs(text, boolean, text, text) TO auth
 --     processing rows are left untouched, missing rows are
 --     inserted, 'done' rows are reset to pending, and 'failed'
 --     rows are reset only when run_after < now() - 1 day (no
---     hot loop). Reset = status 'pending', attempts 0,
---     run_after now(), last_error NULL, locked_at NULL.
+--     hot loop). The stale NOT EXISTS therefore excludes
+--     pending/processing rows AND 'failed' rows with
+--     run_after >= now() - 1 day — i.e. candidates = exactly
+--     the rows the DO UPDATE will insert or reset, so rows it
+--     would refuse never consume the 50-row cap. Reset =
+--     status 'pending', attempts 0, run_after now(),
+--     last_error NULL, locked_at NULL.
 --   * 'pending'/'partial' items that are NOT window_stale ->
 --     missing jobs only: an existing row of any status
 --     excludes the candidate.
@@ -711,11 +716,13 @@ GRANT EXECUTE ON FUNCTION public.set_my_prefs(text, boolean, text, text) TO auth
 -- (default 'en-US'), 'availability' with the owner's region
 -- (default 'US'). items.enrichment_status is NOT touched —
 -- the worker owns it (enrichment_finish, migration 143).
--- Idempotent: pending/processing rows are pre-filtered so
--- the 50-row cap is never wasted on in-flight work; at most
--- 50 jobs are inserted-or-reset per call, in deterministic
--- (item_id, details-first) order; returns the number of rows
--- inserted or reset (GET DIAGNOSTICS ROW_COUNT).
+-- Idempotent: every row the DO UPDATE WHERE would refuse
+-- (pending/processing, or 'failed' with run_after >= now() -
+-- 1 day) is pre-filtered, so candidates = exactly the rows
+-- that will be inserted or reset and the 50-row cap is never
+-- wasted; at most 50 jobs are inserted-or-reset per call, in
+-- deterministic (item_id, details-first) order; returns the
+-- number of rows inserted or reset (GET DIAGNOSTICS ROW_COUNT).
 -- ------------------------------------------------------------
 CREATE FUNCTION public.enqueue_stale_enrichment()
  RETURNS integer
@@ -754,14 +761,16 @@ BEGIN
     WHERE si.stale
       AND NOT EXISTS (SELECT 1 FROM public.enrichment_jobs j
                        WHERE j.item_id = si.id AND j.job_kind = 'details' AND j.param = v_tag
-                         AND j.status IN ('pending', 'processing'))
+                         AND (j.status IN ('pending', 'processing')
+                              OR (j.status = 'failed' AND j.run_after >= now() - interval '1 day')))
     UNION ALL
     SELECT si.id, 'availability', v_region
     FROM item_scope si
     WHERE si.stale
       AND NOT EXISTS (SELECT 1 FROM public.enrichment_jobs j
                        WHERE j.item_id = si.id AND j.job_kind = 'availability' AND j.param = v_region
-                         AND j.status IN ('pending', 'processing'))
+                         AND (j.status IN ('pending', 'processing')
+                              OR (j.status = 'failed' AND j.run_after >= now() - interval '1 day')))
     UNION ALL
     SELECT si.id, 'details', v_tag
     FROM item_scope si

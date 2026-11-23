@@ -839,6 +839,93 @@ try {
     check("cap: drained -> 0", cb3 === 0, `n=${cb3}`);
   }
 
+  // ---------------- (12c) enqueue_stale_enrichment: failed-recent cap starvation ----------------
+  console.log("\n== (12c) enqueue_stale_enrichment: failed-recent jobs excluded from candidates (cap starvation fix) ==");
+  {
+    // A's effective params here: details 'es-ES', availability 'US' (see 12b).
+    const A_TAG = "es-ES", A_REG = "US";
+    const sixAgo = "2026-05-20T00:00:00Z";                    // tmdb >5 months stale (~6 months ago)
+    // 55 stale items whose jobs are all failed-recent, explicit ids sorting BEFORE the 5 no-job items
+    const starveIds = [];
+    for (let i = 1; i <= 55; i++) {
+      starveIds.push("00000000-0000-4000-8000-0000000000" + String(i).padStart(2, "0"));
+    }
+    const noJobIds = [];
+    for (let i = 1; i <= 5; i++) {
+      noJobIds.push("ffffffff-ffff-4fff-8fff-fffffffffff" + i);
+    }
+    check("fixture: every starvation id sorts before every no-job id",
+      starveIds.every((id) => id < noJobIds[0]), `max=${starveIds[54]} min=${noJobIds[0]}`);
+
+    const mkStarveItem = (id, external_id, name) => client.query(
+      `INSERT INTO public.items (id, source, kind, external_id, name, release_date, original_language, genres,
+                                 is_documentary, poster_path, enrichment_status, fetched_at, tmdb_rating, overview, localized)
+       VALUES ($1,'tmdb','movie',$2,$3,'2020-01-01','en','{}',false,NULL,'complete',$4,NULL,NULL,'{}')`,
+      [id, external_id, name, sixAgo]);
+    for (let i = 0; i < 55; i++) await mkStarveItem(starveIds[i], "940" + String(i + 1).padStart(3, "0"), "Starve " + (i + 1));
+    for (let i = 0; i < 5; i++)  await mkStarveItem(noJobIds[i],  "941" + String(i + 1).padStart(3, "0"), "NoJob " + (i + 1));
+
+    // 110 failed-recent job rows: details (es-ES) + availability (US) per starved item
+    for (const id of starveIds) {
+      await client.query(
+        `INSERT INTO public.enrichment_jobs (item_id, job_kind, param, status, attempts, run_after, last_error)
+         VALUES ($1,'details',$2,'failed',4,now(),'starve-details'),
+                ($1,'availability',$3,'failed',4,now(),'starve-availability')`,
+        [id, A_TAG, A_REG]);
+    }
+
+    // recommendations to owner A (one submission, cEnrich)
+    const sStarve = (await one(
+      `INSERT INTO public.submissions (ask_id, contributor_id, client_batch_id, title_count, created_at)
+       VALUES ($1,$2,NULL,20,'2026-01-05T02:00:00Z') RETURNING id`, [askA.id, cEnrich])).id;
+    for (const id of [...starveIds, ...noJobIds]) {
+      await client.query(
+        `INSERT INTO public.recommendations (owner_id,item_id,contributor_id,submission_id,rating,created_at,updated_at)
+         VALUES ($1,$2,$3,$4,NULL,'2026-01-05T12:00:00Z','2026-01-05T12:00:00Z')`,
+        [ownerA, id, cEnrich, sStarve]);
+    }
+
+    // (1) STARVATION: the 110 failed-recent rows sort first and would eat all 50 cap slots
+    // if they stayed candidates; they must be excluded -> only the 10 missing-job rows enqueue.
+    const st1 = (await callAs(ownerA, `SELECT public.enqueue_stale_enrichment() AS n`)).rows[0]?.n;
+    check("starvation call -> 10 (5 no-job items x 2 kinds)", st1 === 10, `n=${st1}`);
+    const newJobs = await all(
+      `SELECT item_id, job_kind, param, status FROM public.enrichment_jobs
+        WHERE item_id = ANY($1::uuid[]) ORDER BY item_id, job_kind`, [noJobIds]);
+    check("5 no-job items now have BOTH jobs pending (details es-ES / availability US)",
+      newJobs.length === 10 && newJobs.every((j) => j.status === "pending" &&
+        (j.job_kind === "details" ? j.param === A_TAG : j.param === A_REG)),
+      `rows=${newJobs.length} sample=${JSON.stringify(newJobs.slice(0, 2))}`);
+    const failRows = await all(
+      `SELECT status, attempts, last_error FROM public.enrichment_jobs
+        WHERE item_id = ANY($1::uuid[])`, [starveIds]);
+    check("all 110 failed-recent rows unchanged (failed, attempts=4, last_error kept)",
+      failRows.length === 110 && failRows.every((j) => j.status === "failed" && j.attempts === 4 &&
+        (j.last_error === "starve-details" || j.last_error === "starve-availability")),
+      `rows=${failRows.length}`);
+    const st2 = (await callAs(ownerA, `SELECT public.enqueue_stale_enrichment() AS n`)).rows[0]?.n;
+    check("starvation second call -> 0", st2 === 0, `n=${st2}`);
+
+    // (2) age the 110 failed rows past the 1-day window -> resettable again; cap drains 50/50/10/0
+    await client.query(
+      `UPDATE public.enrichment_jobs SET run_after = now() - interval '2 days'
+        WHERE item_id = ANY($1::uuid[]) AND status = 'failed'`, [starveIds]);
+    const aged = await count(
+      `SELECT count(*)::int AS c FROM public.enrichment_jobs
+        WHERE item_id = ANY($1::uuid[]) AND status = 'failed'
+          AND run_after < now() - interval '1 day'`, [starveIds]);
+    check("aged: all 110 failed rows now run_after < now()-1d", aged === 110, `n=${aged}`);
+    const capSeq = [];
+    for (let k = 0; k < 4; k++) {
+      capSeq.push((await callAs(ownerA, `SELECT public.enqueue_stale_enrichment() AS n`)).rows[0]?.n);
+    }
+    check("aged cap: calls return exactly 50, 50, 10, 0", JSON.stringify(capSeq) === "[50,50,10,0]", `seq=${JSON.stringify(capSeq)}`);
+    const resetRows = await count(
+      `SELECT count(*)::int AS c FROM public.enrichment_jobs
+        WHERE item_id = ANY($1::uuid[]) AND status = 'pending' AND attempts = 0`, [starveIds]);
+    check("aged: all 110 rows reset to pending attempts=0", resetRows === 110, `n=${resetRows}`);
+  }
+
   // ---------------- (13) ACL dump ----------------
   console.log("\n== (13) ACL: proacl/proconfig/prosecdef for all 12 ==");
   {
