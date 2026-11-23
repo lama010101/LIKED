@@ -706,6 +706,139 @@ try {
     void n0;
   }
 
+  // ---------------- (12b) enqueue_stale_enrichment: re-enqueue/reset ----------------
+  console.log("\n== (12b) enqueue_stale_enrichment: done/failed reset + stale windows ==");
+  {
+    const jobOf = (item, kind, param) => one(
+      `SELECT status, attempts, run_after, last_error, locked_at FROM public.enrichment_jobs
+        WHERE item_id=$1 AND job_kind=$2 AND param=$3`, [item, kind, param]);
+    const mkJob = (item, kind, param, status, o = {}) => client.query(
+      `INSERT INTO public.enrichment_jobs (item_id, job_kind, param, status, attempts, run_after, locked_at, last_error)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
+      [item, kind, param, status, o.attempts ?? 0, o.run_after ?? "2026-01-01T00:00:00Z",
+       o.locked_at ?? null, o.last_error ?? null]);
+
+    // A's effective params here: details 'es-ES' (set_language('es') in case 10),
+    // availability 'US' (region cleared to NULL in case 9 -> COALESCE 'US').
+    // B's: details 'fr-FR' (set_language('fr') in case 10), availability 'US'.
+    const A_TAG = "es-ES", A_REG = "US", B_TAG = "fr-FR";
+    const d6m     = "2026-05-20T00:00:00Z";                        // tmdb >5 months stale
+    const tmFresh = "2026-10-20T00:00:00Z";                        // tmdb <5 months fresh
+    const yt21    = new Date(Date.now() - 21 * 864e5).toISOString(); // youtube >20d stale
+    const yt19    = new Date(Date.now() - 19 * 864e5).toISOString(); // youtube <20d fresh
+    const doneJob = { attempts: 3, run_after: "2026-01-01T00:00:00Z", locked_at: "2026-01-02T00:00:00Z", last_error: "old err" };
+
+    const itDone6m = await mkItem("930001", "movie", { name: "R Done6m",  enrichment_status: "complete", fetched_at: d6m });
+    const itFail   = await mkItem("930002", "movie", { name: "R Fail",    enrichment_status: "complete", fetched_at: d6m });
+    const itFresh  = await mkItem("930003", "movie", { name: "R Fresh",   enrichment_status: "pending",  fetched_at: tmFresh });
+    const itYt21   = await mkItem("aqw2FsBcDeF", "video", { source: "youtube", name: "R YT21", enrichment_status: "complete", fetched_at: yt21 });
+    const itYt19   = await mkItem("zxcvBnMqWeT", "video", { source: "youtube", name: "R YT19", enrichment_status: "complete", fetched_at: yt19 });
+    const itProc   = await mkItem("930006", "movie", { name: "R Proc",    enrichment_status: "complete", fetched_at: d6m });
+    const itBOwn   = await mkItem("930007", "movie", { name: "R BStale",  enrichment_status: "complete", fetched_at: d6m });
+
+    await mkJob(itDone6m, "details",      A_TAG, "done", doneJob);
+    await mkJob(itDone6m, "availability", A_REG, "done", doneJob);
+    await mkJob(itFail,   "details",      A_TAG, "failed", { attempts: 5, run_after: new Date(),           last_error: "recent boom" });
+    await mkJob(itFail,   "availability", A_REG, "failed", { attempts: 5, run_after: new Date(Date.now() - 2 * 864e5), last_error: "old boom" });
+    await mkJob(itFresh,  "details",      A_TAG, "done", doneJob);
+    await mkJob(itFresh,  "availability", A_REG, "done", doneJob);
+    await mkJob(itYt21,   "details",      A_TAG, "done", doneJob);
+    await mkJob(itYt21,   "availability", A_REG, "done", doneJob);
+    await mkJob(itYt19,   "details",      A_TAG, "done", doneJob);
+    await mkJob(itYt19,   "availability", A_REG, "done", doneJob);
+    await mkJob(itProc,   "details",      A_TAG, "processing", { attempts: 1, run_after: "2026-01-01T00:00:00Z", locked_at: new Date() });
+    await mkJob(itProc,   "availability", A_REG, "done", doneJob);
+    await mkJob(itBOwn,   "details",      B_TAG, "done", doneJob);
+    await mkJob(itBOwn,   "availability", A_REG, "done", doneJob);
+
+    // recommendations: all but itBOwn -> owner A (fresh submission by cEnrich);
+    // itBOwn -> owner B only (cCarol via sB1)
+    const sR = (await one(
+      `INSERT INTO public.submissions (ask_id, contributor_id, client_batch_id, title_count, created_at)
+       VALUES ($1,$2,NULL,6,'2026-01-05T01:00:00Z') RETURNING id`, [askA.id, cEnrich])).id;
+    for (const it of [itDone6m, itFail, itFresh, itYt21, itYt19, itProc]) {
+      await client.query(
+        `INSERT INTO public.recommendations (owner_id,item_id,contributor_id,submission_id,rating,created_at,updated_at)
+         VALUES ($1,$2,$3,$4,NULL,'2026-01-05T11:00:00Z','2026-01-05T11:00:00Z')`, [ownerA, it, cEnrich, sR]);
+    }
+    await client.query(
+      `INSERT INTO public.recommendations (owner_id,item_id,contributor_id,submission_id,rating,created_at,updated_at)
+       VALUES ($1,$2,$3,$4,NULL,'2026-01-08T12:30:00Z','2026-01-08T12:30:00Z')`, [ownerB, itBOwn, cCarol, sB1]);
+
+    // call 1 as A: itDone6m 2 resets + itFail availability 1 + itYt21 2 + itProc availability 1 = 6
+    // (itFail details failed-recent is a candidate but fails the DO UPDATE WHERE -> not counted)
+    const k1 = (await callAs(ownerA, `SELECT public.enqueue_stale_enrichment() AS n`)).rows[0]?.n;
+    check("re-enqueue call -> 6 (done resets + old-failed reset + yt21 + avail reset)", k1 === 6, `n=${k1}`);
+
+    const jDD = await jobOf(itDone6m, "details", A_TAG);
+    const jDA = await jobOf(itDone6m, "availability", A_REG);
+    check("6m-stale done jobs -> pending, attempts 0, last_error/locked_at NULL, run_after ~now",
+      jDD?.status === "pending" && jDD?.attempts === 0 && jDD?.last_error === null && jDD?.locked_at === null &&
+      jDA?.status === "pending" && jDA?.attempts === 0 && jDA?.last_error === null && jDA?.locked_at === null,
+      JSON.stringify({ d: jDD, a: jDA }));
+    const jFD = await jobOf(itFail, "details", A_TAG);
+    const jFA = await jobOf(itFail, "availability", A_REG);
+    check("failed run_after=now() NOT reset (still failed, attempts/error kept)",
+      jFD?.status === "failed" && jFD?.attempts === 5 && jFD?.last_error === "recent boom", JSON.stringify(jFD));
+    check("failed run_after=2d ago IS reset -> pending attempts 0",
+      jFA?.status === "pending" && jFA?.attempts === 0 && jFA?.last_error === null && jFA?.locked_at === null, JSON.stringify(jFA));
+    const jFrD = await jobOf(itFresh, "details", A_TAG);
+    const jFrA = await jobOf(itFresh, "availability", A_REG);
+    check("fresh pending item with done jobs untouched (non-stale -> missing-only)",
+      jFrD?.status === "done" && jFrA?.status === "done", `d=${jFrD?.status} a=${jFrA?.status}`);
+    const jY21 = await jobOf(itYt21, "details", A_TAG);
+    const jY21A = await jobOf(itYt21, "availability", A_REG);
+    const jY19 = await jobOf(itYt19, "details", A_TAG);
+    const jY19A = await jobOf(itYt19, "availability", A_REG);
+    check("youtube fetched 21d ago -> done jobs reset to pending",
+      jY21?.status === "pending" && jY21A?.status === "pending", `d=${jY21?.status} a=${jY21A?.status}`);
+    check("youtube fetched 19d ago -> done jobs untouched",
+      jY19?.status === "done" && jY19A?.status === "done", `d=${jY19?.status} a=${jY19A?.status}`);
+    const jPD = await jobOf(itProc, "details", A_TAG);
+    const jPA = await jobOf(itProc, "availability", A_REG);
+    check("processing job untouched (still processing, locked_at kept); sibling done reset",
+      jPD?.status === "processing" && jPD?.locked_at !== null && jPA?.status === "pending", JSON.stringify({ d: jPD?.status, a: jPA?.status }));
+    const jBD = await jobOf(itBOwn, "details", B_TAG);
+    const jBA = await jobOf(itBOwn, "availability", A_REG);
+    check("another owner's stale item untouched by A's call",
+      jBD?.status === "done" && jBA?.status === "done", `d=${jBD?.status} a=${jBA?.status}`);
+
+    // call 2 as A -> 0: everything actionable is now pending; failed-recent still fails WHERE
+    const k2 = (await callAs(ownerA, `SELECT public.enqueue_stale_enrichment() AS n`)).rows[0]?.n;
+    check("second call -> 0", k2 === 0, `n=${k2}`);
+    const jFD2 = await jobOf(itFail, "details", A_TAG);
+    check("failed-recent still failed after second call", jFD2?.status === "failed", jFD2?.status);
+
+    // B's own call resets B's stale item (proves per-owner scoping both ways)
+    const kb = (await callAs(ownerB, `SELECT public.enqueue_stale_enrichment() AS n`)).rows[0]?.n;
+    check("B's call -> 2 (own stale done jobs reset; B's pending jobs excluded)", kb === 2, `n=${kb}`);
+    const jBD2 = await jobOf(itBOwn, "details", B_TAG);
+    const jBA2 = await jobOf(itBOwn, "availability", A_REG);
+    check("itBOwn jobs now pending attempts 0 after B's call",
+      jBD2?.status === "pending" && jBD2?.attempts === 0 && jBA2?.status === "pending", JSON.stringify({ d: jBD2?.status, a: jBA2?.status }));
+
+    // ---- cap test on B: 30 stale items x 2 missing jobs = 60 candidates ----
+    const capB = [];
+    for (let g = 1; g <= 30; g++) {
+      capB.push(await mkItem("932" + String(g).padStart(3, "0"), "movie",
+        { name: "CapB " + g, enrichment_status: "complete", fetched_at: d6m }));
+    }
+    for (const it of capB) {
+      await client.query(
+        `INSERT INTO public.recommendations (owner_id,item_id,contributor_id,submission_id,rating,created_at,updated_at)
+         VALUES ($1,$2,$3,$4,NULL,'2026-01-08T13:00:00Z','2026-01-08T13:00:00Z')`, [ownerB, it, cCarol, sB1]);
+    }
+    const cb0 = await count(`SELECT count(*)::int AS c FROM public.enrichment_jobs`);
+    const cb1 = (await callAs(ownerB, `SELECT public.enqueue_stale_enrichment() AS n`)).rows[0]?.n;
+    const cb1n = await count(`SELECT count(*)::int AS c FROM public.enrichment_jobs`);
+    check("cap: first call -> exactly 50", cb1 === 50 && cb1n - cb0 === 50, `n=${cb1} delta=${cb1n - cb0}`);
+    const cb2 = (await callAs(ownerB, `SELECT public.enqueue_stale_enrichment() AS n`)).rows[0]?.n;
+    const cb2n = await count(`SELECT count(*)::int AS c FROM public.enrichment_jobs`);
+    check("cap: second call -> remaining 10", cb2 === 10 && cb2n - cb0 === 60, `n=${cb2} delta=${cb2n - cb0}`);
+    const cb3 = (await callAs(ownerB, `SELECT public.enqueue_stale_enrichment() AS n`)).rows[0]?.n;
+    check("cap: drained -> 0", cb3 === 0, `n=${cb3}`);
+  }
+
   // ---------------- (13) ACL dump ----------------
   console.log("\n== (13) ACL: proacl/proconfig/prosecdef for all 12 ==");
   {

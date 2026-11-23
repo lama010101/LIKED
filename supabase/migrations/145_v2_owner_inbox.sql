@@ -692,19 +692,30 @@ GRANT EXECUTE ON FUNCTION public.set_my_prefs(text, boolean, text, text) TO auth
 
 -- ------------------------------------------------------------
 -- enqueue_stale_enrichment — opportunistic kick (PLAN §6.6):
--- when the owner opens the inbox, items in the CALLER'S OWN
--- recommendations whose enrichment is 'pending'/'partial', or
--- whose fetched_at is stale per the §6.5 windows (YouTube
--- 20 days, TMDB 5 months; NULL fetched_at counts as stale),
--- get their missing enrichment_jobs rows. Job params mirror
--- submit_recommendations step 11 (migration 144): 'details'
--- with the owner's tmdb_lang (default 'en-US'), 'availability'
--- with the owner's region (default 'US').
--- Idempotent: existing (item_id, job_kind, param) rows are
--- skipped via ON CONFLICT DO NOTHING (and pre-filtered by
--- NOT EXISTS so the 50-row cap is never wasted on conflicts).
--- At most 50 jobs are enqueued per call, in deterministic
--- (item_id, details-first) order; returns rows inserted.
+-- when the owner opens the inbox, the CALLER'S OWN
+-- recommendations' enrichment_jobs are topped up. Two item
+-- classes (§6.5 windows: YouTube 20 days, TMDB 5 months;
+-- NULL fetched_at counts as stale):
+--   * window_stale items -> for each (details, caller
+--     tmdb_lang) and (availability, caller region): pending/
+--     processing rows are left untouched, missing rows are
+--     inserted, 'done' rows are reset to pending, and 'failed'
+--     rows are reset only when run_after < now() - 1 day (no
+--     hot loop). Reset = status 'pending', attempts 0,
+--     run_after now(), last_error NULL, locked_at NULL.
+--   * 'pending'/'partial' items that are NOT window_stale ->
+--     missing jobs only: an existing row of any status
+--     excludes the candidate.
+-- Job params mirror submit_recommendations step 11
+-- (migration 144): 'details' with the owner's tmdb_lang
+-- (default 'en-US'), 'availability' with the owner's region
+-- (default 'US'). items.enrichment_status is NOT touched —
+-- the worker owns it (enrichment_finish, migration 143).
+-- Idempotent: pending/processing rows are pre-filtered so
+-- the 50-row cap is never wasted on in-flight work; at most
+-- 50 jobs are inserted-or-reset per call, in deterministic
+-- (item_id, details-first) order; returns the number of rows
+-- inserted or reset (GET DIAGNOSTICS ROW_COUNT).
 -- ------------------------------------------------------------
 CREATE FUNCTION public.enqueue_stale_enrichment()
  RETURNS integer
@@ -724,8 +735,11 @@ BEGIN
   SELECT COALESCE((SELECT up.tmdb_lang FROM public.user_prefs up WHERE up.user_id = v_uid), 'en-US'),
          COALESCE((SELECT up.region_code FROM public.user_prefs up WHERE up.user_id = v_uid), 'US')
     INTO v_tag, v_region;
-  WITH stale_items AS (
-    SELECT DISTINCT i.id
+  WITH item_scope AS (
+    SELECT DISTINCT i.id,
+           (i.fetched_at IS NULL
+            OR (i.source = 'youtube' AND i.fetched_at < now() - interval '20 days')
+            OR (i.source = 'tmdb'    AND i.fetched_at < now() - interval '5 months')) AS stale
     FROM public.items i
     WHERE EXISTS (SELECT 1 FROM public.recommendations r
                    WHERE r.owner_id = v_uid AND r.item_id = i.id)
@@ -736,13 +750,29 @@ BEGIN
   ),
   candidates AS (
     SELECT si.id AS item_id, 'details' AS job_kind, v_tag AS param
-    FROM stale_items si
-    WHERE NOT EXISTS (SELECT 1 FROM public.enrichment_jobs j
+    FROM item_scope si
+    WHERE si.stale
+      AND NOT EXISTS (SELECT 1 FROM public.enrichment_jobs j
+                       WHERE j.item_id = si.id AND j.job_kind = 'details' AND j.param = v_tag
+                         AND j.status IN ('pending', 'processing'))
+    UNION ALL
+    SELECT si.id, 'availability', v_region
+    FROM item_scope si
+    WHERE si.stale
+      AND NOT EXISTS (SELECT 1 FROM public.enrichment_jobs j
+                       WHERE j.item_id = si.id AND j.job_kind = 'availability' AND j.param = v_region
+                         AND j.status IN ('pending', 'processing'))
+    UNION ALL
+    SELECT si.id, 'details', v_tag
+    FROM item_scope si
+    WHERE NOT si.stale
+      AND NOT EXISTS (SELECT 1 FROM public.enrichment_jobs j
                        WHERE j.item_id = si.id AND j.job_kind = 'details' AND j.param = v_tag)
     UNION ALL
     SELECT si.id, 'availability', v_region
-    FROM stale_items si
-    WHERE NOT EXISTS (SELECT 1 FROM public.enrichment_jobs j
+    FROM item_scope si
+    WHERE NOT si.stale
+      AND NOT EXISTS (SELECT 1 FROM public.enrichment_jobs j
                        WHERE j.item_id = si.id AND j.job_kind = 'availability' AND j.param = v_region)
   ),
   picked AS (
@@ -753,7 +783,15 @@ BEGIN
   )
   INSERT INTO public.enrichment_jobs (item_id, job_kind, param)
   SELECT p.item_id, p.job_kind, p.param FROM picked p
-  ON CONFLICT (item_id, job_kind, param) DO NOTHING;
+  ON CONFLICT (item_id, job_kind, param) DO UPDATE SET
+    status     = 'pending',
+    attempts   = 0,
+    run_after  = now(),
+    last_error = NULL,
+    locked_at  = NULL
+  WHERE enrichment_jobs.status = 'done'
+     OR (enrichment_jobs.status = 'failed'
+         AND enrichment_jobs.run_after < now() - interval '1 day');
   GET DIAGNOSTICS v_enqueued = ROW_COUNT;
   RETURN v_enqueued;
 END;
