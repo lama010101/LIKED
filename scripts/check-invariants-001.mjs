@@ -30,6 +30,20 @@ import { fileURLToPath } from "url";
 import { readFileSync, readdirSync, existsSync } from "fs";
 import { execSync, execFileSync } from "child_process";
 import { deriveV2Tables, probeV2TableSecurity } from "./check-invariants-001.db20.mjs";
+import { findCoverageGaps } from "./lib/delete-account-coverage.mjs";
+import {
+  deriveV2Functions,
+  loadV2FunctionCatalog,
+  loadFunctionExecGrants,
+  loadCoverageLiveFks,
+  loadCoverageLiveColumns,
+  loadCoverageLivePayloadKeys,
+  evaluateV2FunctionSecurity,
+  findV2DdlViolations,
+  planV2RoleProbe,
+  buildProbeCall,
+  probeSql,
+} from "./lib/v2-catalog-probes.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
@@ -254,6 +268,135 @@ try {
   }
 }
 
+// DB-21/22/23 — V2-W2-P0-06B (PLAN-V2-002 §8): v2 function catalog
+// security, delete_account FK-coverage guard, and v2-function DDL
+// safety. Catalog reads are read-only; the denied-call probes run
+// inside BEGIN…ROLLBACK with the harness safety pattern copied from
+// verify-delete-account.mjs (session guardrails, signal handlers,
+// idle-in-transaction pre-flight). PROBE RULE: a function is only
+// called when has_function_privilege says EXECUTE is absent (expected
+// SQLSTATE 42501), one SAVEPOINT per call.
+{
+  const { default: pg3 } = await import("pg");
+  let c3 = process.env.DATABASE_URL;
+  const pw3 = c3.match(/:([^:@]+)@/)?.[1];
+  if (c3.includes(`db.${LIKED_REF}.supabase.co`)) {
+    c3 = `postgresql://postgres.${LIKED_REF}:${pw3}@aws-1-us-west-2.pooler.supabase.com:5432/postgres`;
+  }
+  const pool3 = new pg3.Pool({ connectionString: c3, connectionTimeoutMillis: 15000, ssl: { rejectUnauthorized: false } });
+  const client3 = await pool3.connect();
+  const shutdown3 = (why) => {
+    console.log(`\n${why} — issuing ROLLBACK and closing connection`);
+    setTimeout(() => process.exit(130), 8000).unref();
+    (async () => {
+      try { await client3.query("ROLLBACK"); } catch { /* connection may be dead */ }
+      try { client3.release(); } catch { /* already released */ }
+      try { await pool3.end(); } catch { /* ignore */ }
+      process.exit(130);
+    })();
+  };
+  const onSigint3 = () => shutdown3("SIGINT received");
+  const onSigterm3 = () => shutdown3("SIGTERM received");
+  const onUncaught3 = (e) => shutdown3(`UNCAUGHT EXCEPTION: ${e.message}`);
+  const onUnhandled3 = (e) => shutdown3(`UNHANDLED REJECTION: ${e?.message ?? e}`);
+  process.on("SIGINT", onSigint3);
+  process.on("SIGTERM", onSigterm3);
+  process.on("uncaughtException", onUncaught3);
+  process.on("unhandledRejection", onUnhandled3);
+  const unhook3 = () => {
+    process.off("SIGINT", onSigint3);
+    process.off("SIGTERM", onSigterm3);
+    process.off("uncaughtException", onUncaught3);
+    process.off("unhandledRejection", onUnhandled3);
+  };
+  try {
+    // Session guardrails + pre-flight, same as verify-delete-account.mjs.
+    await client3.query(
+      "SET idle_in_transaction_session_timeout = '60s'; " +
+      "SET lock_timeout = '10s'; " +
+      "SET statement_timeout = '120s'; " +
+      "SET application_name = 'liked-harness-check-invariants-v2';"
+    );
+    const { rows: zombies } = await client3.query(
+      `SELECT pid, application_name, state, now() - xact_start AS xact_age
+         FROM pg_stat_activity
+        WHERE pid <> pg_backend_pid()
+          AND application_name LIKE 'liked-harness-%'
+          AND state = 'idle in transaction'`
+    );
+    if (zombies.length > 0) {
+      console.error(`ABORT: ${zombies.length} other 'liked-harness-*' session(s) idle in transaction — DB-21/22/23 not run:`);
+      for (const z of zombies) {
+        console.error(`  pid=${z.pid} application_name=${z.application_name} state=${z.state} xact_age=${z.xact_age}`);
+      }
+      client3.release();
+      await pool3.end();
+      unhook3();
+      process.exit(2);
+    }
+    await client3.query("BEGIN");
+    try {
+      // ---- DB-21: v2 function catalog security + anon probe ----
+      const derived = deriveV2Functions(root);
+      const clsOf = new Map(derived.map((f) => [f.name, f.cls]));
+      const sNames = derived.filter((f) => f.cls === "S").map((f) => f.name);
+      const oNames = derived.filter((f) => f.cls === "O").map((f) => f.name);
+      console.log(`DB-21 v2 functions derived from migrations 142-146 (${derived.length}): S(${sNames.length})=[${sNames.join(", ")}] O(${oNames.length})=[${oNames.join(", ")}]`);
+      const cat = await loadV2FunctionCatalog(client3, derived.map((f) => f.name));
+      const rows = cat.map((r) => ({ ...r, cls: clsOf.get(r.name) ?? "S" }));
+      const ev = evaluateV2FunctionSecurity(derived, rows);
+      const execAnon = await loadFunctionExecGrants(client3, cat.map((r) => r.oid), ["anon"]);
+      const probeBad = [];
+      let probeCalls = 0;
+      for (const r of rows) {
+        const plan = planV2RoleProbe(r.cls, "anon", execAnon.get(`anon|${r.oid}`) === true);
+        if (plan.action === "call-deny") {
+          probeCalls++;
+          const res = await probeSql(client3, buildProbeCall(r.name, r.argtypes));
+          if (!(res.threw && res.code === "42501")) {
+            probeBad.push(`${r.name}: expected 42501, got ${res.threw ? res.code : "success"} ${res.message}`.trim());
+          }
+        } else if (plan.action === "fail-privilege") {
+          probeBad.push(`${r.name}: ${plan.reason}`);
+        }
+      }
+      check("DB-21 v2 functions: DEFINER+search_path, no PUBLIC/anon EXECUTE, S no authenticated, O has authenticated, single overload, anon->42501",
+        ev.ok && probeBad.length === 0,
+        [...ev.violations, ...probeBad].join("; ")
+          || `${derived.length} functions clean (${probeCalls} anon call probes -> 42501)`);
+
+      // ---- DB-22: delete_account FK/payload coverage guard ----
+      const liveFks = await loadCoverageLiveFks(client3);
+      const liveColumns = await loadCoverageLiveColumns(client3);
+      const livePayloadKeys = await loadCoverageLivePayloadKeys(client3);
+      const gaps = findCoverageGaps({ liveFks, liveColumns, livePayloadKeys });
+      check("DB-22 delete_account coverage guard (FKs + unreferenced cols + payload keys)",
+        gaps.length === 0,
+        gaps.length ? gaps.join("; ")
+          : `live: ${liveFks.length} FKs, ${liveColumns.length} unreferenced cols, ${livePayloadKeys.length} payload keys — no gaps`);
+
+      // ---- DB-23: no protected-table DML inside v2 functions ----
+      const defs = [];
+      for (const r of cat) {
+        const { rows: d } = await client3.query(`SELECT pg_get_functiondef($1::oid) AS d`, [r.oid]);
+        defs.push({ name: r.name, def: d[0]?.d ?? "" });
+      }
+      const ddl = findV2DdlViolations(defs);
+      check("DB-23 no edges/folder_edges DML in v2 fns; causes DML only as delete_account DELETE",
+        ddl.ok,
+        ddl.ok
+          ? `${defs.length} functiondefs clean${ddl.allowedCalls.length ? `; allowed calls: ${ddl.allowedCalls.join("; ")}` : ""}`
+          : ddl.violations.join("; "));
+    } finally {
+      try { await client3.query("ROLLBACK"); } catch { /* already rolled back */ }
+    }
+  } finally {
+    unhook3();
+    client3.release();
+    await pool3.end();
+  }
+}
+
 // ---------- Repo checks ----------
 const SRC_DIRS = ["app", "lib", "components"];
 import { isAbsolute } from "path";
@@ -357,16 +500,18 @@ for (const f of v2Files) {
 check("REPO-17 no hex literals / hard-coded strings in v2 dirs",
   hexHits.length === 0 && stringHits.length === 0,
   [...hexHits.map((f) => "hex:" + f), ...stringHits.map((f) => "str:" + f)].join(", ")
-    || `${v2Files.length} v2 files scanned (${V2_DIRS.filter((d) => existsSync(join(root, d))).length} dirs present)`);
+    || `${v2Files.length} v2 files scanned; dirs=[${V2_DIRS.join(", ")}] (${V2_DIRS.filter((d) => existsSync(join(root, d))).length} present)`);
 
 // 19. P0-09 (PLAN-V2-002 §6.3/D17): no IP/geo header read for language —
-// language comes from cookie + Accept-Language only.
+// language comes from cookie + Accept-Language only. Header names per
+// the task spec: x-forwarded-for, x-real-ip, x-vercel-ip-*, cf-ipcountry,
+// geolocation and similar client-IP/geo signals.
 const i18nFiles = [
   ...collect("i18n"),
   ...collect("lib/i18n"),
 ].filter((f) => /\.(ts|tsx|mjs|js)$/.test(f));
 const ipHits = i18nFiles.filter((f) =>
-  /x-vercel-ip|geolocation|\brequest\.ip\b|\breq\.ip\b|clientIp/i.test(readFileSync(f, "utf8")));
+  /x-forwarded-for|x-real-ip|x-vercel-ip|cf-ipcountry|cf-connecting-ip|x-client-ip|true-client-ip|geolocation|\brequest\.ip\b|\breq\.ip\b|clientIp/i.test(readFileSync(f, "utf8")));
 check("REPO-19 no IP/geo header read in i18n", ipHits.length === 0,
   ipHits.map((f) => f.replace(root + "\\", "")).join(", ") || `${i18nFiles.length} i18n files scanned`);
 
