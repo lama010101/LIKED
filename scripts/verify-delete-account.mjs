@@ -55,6 +55,54 @@ if (connStr.includes(`db.${LIKED_REF}.supabase.co`)) {
 }
 const pool = new pg.Pool({ connectionString: connStr, connectionTimeoutMillis: 15000, ssl: { rejectUnauthorized: false } });
 const client = await pool.connect();
+
+// Harness safety (V2-W2-P0-05-FIX01): on SIGINT/SIGTERM/uncaught error,
+// issue ROLLBACK and close — a killed run must never leave an
+// idle-in-transaction session or locks behind on the live DB.
+const shutdown = (why) => {
+  console.log(`\n${why} — issuing ROLLBACK and closing connection`);
+  setTimeout(() => process.exit(130), 8000).unref();
+  (async () => {
+    try { await client.query("ROLLBACK"); } catch { /* connection may be dead */ }
+    try { client.release(); } catch { /* already released */ }
+    try { await pool.end(); } catch { /* ignore */ }
+    process.exit(130);
+  })();
+};
+process.on("SIGINT", () => shutdown("SIGINT received"));
+process.on("SIGTERM", () => shutdown("SIGTERM received"));
+process.on("uncaughtException", (e) => shutdown(`UNCAUGHT EXCEPTION: ${e.message}`));
+process.on("unhandledRejection", (e) => shutdown(`UNHANDLED REJECTION: ${e?.message ?? e}`));
+
+// Session guardrails, set right after connect and before BEGIN.
+await client.query(
+  "SET idle_in_transaction_session_timeout = '60s'; " +
+  "SET lock_timeout = '10s'; " +
+  "SET statement_timeout = '120s'; " +
+  "SET application_name = 'liked-harness-delete-account';"
+);
+
+// Pre-flight: refuse to run while ANOTHER 'liked-harness-*' session is
+// parked idle-in-transaction (zombie from a previously killed run).
+{
+  const { rows: zombies } = await client.query(
+    `SELECT pid, application_name, state, now() - xact_start AS xact_age
+       FROM pg_stat_activity
+      WHERE pid <> pg_backend_pid()
+        AND application_name LIKE 'liked-harness-%'
+        AND state = 'idle in transaction'`
+  );
+  if (zombies.length > 0) {
+    console.error(`ABORT: ${zombies.length} other 'liked-harness-*' session(s) idle in transaction — not running:`);
+    for (const z of zombies) {
+      console.error(`  pid=${z.pid} application_name=${z.application_name} state=${z.state} xact_age=${z.xact_age}`);
+    }
+    client.release();
+    await pool.end();
+    process.exit(2);
+  }
+}
+
 const RUNTS = Date.now();
 const RUN = RUNTS.toString(36);
 const RUNID = String(RUNTS).slice(-6);
