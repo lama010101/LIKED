@@ -29,7 +29,7 @@ const KEY_PREV = "test-cookie-secret-PREV-PREV-PREV-PREV-PREV";
 const secrets = (prev: string | null = null): AskSecrets => ({
   cookieSecret: KEY,
   cookieSecretPrev: prev,
-  rateLimitPepper: "test-pepper",
+  rateLimitPepper: "test-pepper-0123456789abcdef01234567",
 });
 
 function reqWithCookie(value: string): Request {

@@ -4,7 +4,7 @@ import { askErrorResponse, mapAskRpcError, ASK_ERROR_STATUS } from "./errors";
 import { hashRlKey } from "./clientIp";
 
 const SECRET = "test-cookie-secret-AAAAAAAAAAAAAAAAAAAAAAAA";
-const PEPPER = "test-pepper";
+const PEPPER = "test-pepper-0123456789abcdef01234567";
 
 function setEnv() {
   vi.stubEnv("GUEST_COOKIE_SECRET", SECRET);

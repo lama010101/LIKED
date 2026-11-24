@@ -9,7 +9,7 @@ import {
 } from "./humanCheck";
 
 const SECRET = "test-cookie-secret-AAAAAAAAAAAAAAAAAAAAAAAA";
-const PEPPER = "test-pepper";
+const PEPPER = "test-pepper-0123456789abcdef01234567";
 
 // Stateful fake of rl_hit for the replay bucket: first call for a key
 // returns true (hits=1 <= limit=1), every later call false.

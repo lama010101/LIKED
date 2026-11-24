@@ -22,6 +22,7 @@
 import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { rlHit } from "./rateLimit";
 import { hashRlKey } from "./clientIp";
+import { getAskCookieSecret } from "./env";
 
 export interface HumanCheckContext {
   /** Injectable for tests; defaults to the real rlHit (service client). */
@@ -77,7 +78,7 @@ function leadingZeroBits(digest: Buffer): number {
 
 export const powHumanCheck: HumanCheck = {
   issue(ctx?: HumanCheckIssueContext): string {
-    const secret = ctx?.secret ?? process.env.GUEST_COOKIE_SECRET;
+    const secret = ctx?.secret ?? getAskCookieSecret();
     if (!secret) throw new Error("GUEST_COOKIE_SECRET is not set");
     const nowSec = Math.floor((ctx?.now?.() ?? Date.now()) / 1000);
     const exp = nowSec + (ctx?.ttlSeconds ?? POW_CHALLENGE_TTL_SECONDS);
@@ -111,7 +112,7 @@ export const powHumanCheck: HumanCheck = {
     if (sig.length !== 16) return false;
 
     // HMAC check first: forged challenges die here, before any work.
-    const secret = process.env.GUEST_COOKIE_SECRET;
+    const secret = getAskCookieSecret();
     if (!secret) return false;
     const payload = `p1.${id}.${exp}.${diff}`;
     const expected = powSig(payload, secret);

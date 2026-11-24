@@ -14,14 +14,28 @@ export interface AskSecrets {
   rateLimitPepper: string;
 }
 
+/** Minimum length for every ask-route secret (§4.1/§10 L5). Shorter
+ *  values are treated as NOT SET — a weak key is worse than no key. */
+const ASK_SECRET_MIN_LENGTH = 32;
+
+function askEnvSecret(name: string): string | null {
+  const v = process.env[name];
+  return v && v.length >= ASK_SECRET_MIN_LENGTH ? v : null;
+}
+
 export function getAskSecrets(): AskSecrets | null {
-  const cookieSecret = process.env.GUEST_COOKIE_SECRET;
-  const rateLimitPepper = process.env.RATE_LIMIT_PEPPER;
+  const cookieSecret = askEnvSecret("GUEST_COOKIE_SECRET");
+  const rateLimitPepper = askEnvSecret("RATE_LIMIT_PEPPER");
   if (!cookieSecret || !rateLimitPepper) return null;
-  const prev = process.env.GUEST_COOKIE_SECRET_PREV;
   return {
     cookieSecret,
-    cookieSecretPrev: prev ? prev : null,
+    cookieSecretPrev: askEnvSecret("GUEST_COOKIE_SECRET_PREV"),
     rateLimitPepper,
   };
+}
+
+/** GUEST_COOKIE_SECRET under the same length rule — the single owner of
+ *  the secret policy for PoW challenge signing (lib/ask/humanCheck.ts). */
+export function getAskCookieSecret(): string | null {
+  return askEnvSecret("GUEST_COOKIE_SECRET");
 }
