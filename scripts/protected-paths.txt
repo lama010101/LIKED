@@ -1,0 +1,25 @@
+# Protected paths — CTO merge-class list.
+# SEC-FIX-ASKGUARD-1124-001 / PR #59 (V2-W3-P0-08).
+# One glob per line; '#' starts a comment. Matched against
+# `git diff --name-only <base>...HEAD` by scripts/check-protected-paths.mjs
+# (informational — the merge class is decided by the CTO, not this file).
+supabase/migrations/**
+proxy.ts
+lib/ask/**
+scripts/protected-paths.txt
+scripts/check-protected-paths.mjs
+scripts/check-invariants-001.mjs
+scripts/check-invariants-001.db20.mjs
+scripts/lib/v2-catalog-probes.mjs
+scripts/lib/delete-account-coverage.mjs
+scripts/verify-v2-security.mjs
+app/auth/**
+app/(auth)/**
+app/api/auth/**
+app/api/youtube/connect/**
+app/api/youtube/callback/**
+app/api/youtube/disconnect/**
+lib/youtube/token-crypto.ts
+lib/youtube/token-crypto.test.ts
+lib/db/feed.ts
+app/lib/actions/feed.ts

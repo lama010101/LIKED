@@ -23,6 +23,8 @@
 //     12. atomic writes: dnd.ts uses move_node_to_folder + create_folder_with_nodes
 //     13. no committed secrets in tracked files
 //     14. tsc --noEmit clean
+//     20. /api/ask/* bodies only via readAskJsonBody — no request.json()/
+//         req.json()/.formData()/.text() under app/api/ask/** (V2-W3-P0-08)
 // Usage: node scripts/check-invariants-001.mjs
 import { config } from "dotenv";
 import { join, dirname } from "path";
@@ -571,6 +573,21 @@ check("REPO-16 guest/class-S RPCs via service client only; none in client compon
     ? `dirs absent (${ASK_DIRS.join(", ")}) — vacuous pass`
     : [...askSvcHits.map((f) => "svc:" + f), ...askClientHits.map((f) => "client:" + f)].join(", ")
       || `${askFiles.length} ask files scanned (${askDirsPresent} dirs present)`);
+
+// 20. V2-W3-P0-08 SEC-FIX (PLAN-V2-002 §4.2/T4): every /api/ask/* handler
+// must read bodies through readAskJsonBody (lib/ask/guard.ts) so the 64 KB
+// stream cap applies — request.json()/req.json()/.formData()/.text()
+// bypass it. Vacuous PASS while app/api/ask is absent (same as REPO-16/17).
+const ASK_API_BODY_RE = /\b(?:request|req)\s*\.\s*json\s*\(|\.\s*formData\s*\(|\.\s*text\s*\(/;
+const askApiFiles = existsSync(join(root, "app", "api", "ask"))
+  ? collect("app/api/ask")
+  : [];
+const askBodyHits = askApiFiles.filter((f) => ASK_API_BODY_RE.test(readFileSync(f, "utf8")));
+check("REPO-20 /api/ask handlers: no direct request.json()/req.json()/.formData()/.text()",
+  askBodyHits.length === 0,
+  askApiFiles.length === 0
+    ? "app/api/ask absent — vacuous pass"
+    : askBodyHits.map((f) => relOf(f)).join(", ") || `${askApiFiles.length} ask api files scanned`);
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
