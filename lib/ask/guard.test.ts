@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { guardAskRequest, ASK_MAX_BODY_BYTES } from "./guard";
+import { guardAskRequest, ASK_MAX_BODY_BYTES, readAskJsonBody } from "./guard";
 import { askErrorResponse, mapAskRpcError, ASK_ERROR_STATUS } from "./errors";
 import { hashRlKey } from "./clientIp";
 
@@ -109,6 +109,77 @@ describe("guardAskRequest — transport rules (§4.2/T10)", () => {
     const r = guardAskRequest(postReq({ "content-length": String(ASK_MAX_BODY_BYTES + 1) }));
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.response.status).toBe(413);
+  });
+});
+
+describe("readAskJsonBody — 64KB stream cap, Content-Length never trusted", () => {
+  const streamOf = (text: string): ReadableStream<Uint8Array> => {
+    const bytes = new TextEncoder().encode(text);
+    let offset = 0;
+    return new ReadableStream<Uint8Array>({
+      pull(controller) {
+        if (offset >= bytes.length) {
+          controller.close();
+          return;
+        }
+        const end = Math.min(offset + 8192, bytes.length);
+        controller.enqueue(bytes.slice(offset, end));
+        offset = end;
+      },
+    });
+  };
+  const reqWithBody = (
+    body: string | ReadableStream<Uint8Array> | null,
+    headers: Record<string, string> = {}
+  ) =>
+    ({
+      body: body === null ? null : typeof body === "string" ? streamOf(body) : body,
+      headers: new Headers(headers),
+    }) as unknown as Request;
+
+  it("(a) stream >64KB with no content-length -> 413", async () => {
+    const res = await readAskJsonBody(reqWithBody("x".repeat(ASK_MAX_BODY_BYTES + 1)));
+    expect(res.ok).toBe(false);
+    if (!res.ok) {
+      expect(res.response.status).toBe(413);
+      expect(await res.response.json()).toEqual({ error: "PAYLOAD_TOO_LARGE" });
+    }
+  });
+
+  it("(b) lying content-length (10) but >64KB stream -> 413", async () => {
+    const res = await readAskJsonBody(
+      reqWithBody("x".repeat(ASK_MAX_BODY_BYTES + 1), { "content-length": "10" })
+    );
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.response.status).toBe(413);
+  });
+
+  it("(c) exactly 64KB valid JSON -> ok", async () => {
+    const pad = ASK_MAX_BODY_BYTES - '{"d":"'.length - '"}'.length;
+    const text = `{"d":"${"x".repeat(pad)}"}`;
+    expect(new TextEncoder().encode(text).byteLength).toBe(ASK_MAX_BODY_BYTES);
+    const res = await readAskJsonBody(reqWithBody(text));
+    expect(res.ok).toBe(true);
+    if (res.ok) expect(res.body).toEqual({ d: "x".repeat(pad) });
+  });
+
+  it("(d) invalid JSON -> 400", async () => {
+    const res = await readAskJsonBody(reqWithBody("{not json"));
+    expect(res.ok).toBe(false);
+    if (!res.ok) {
+      expect(res.response.status).toBe(400);
+      expect(await res.response.json()).toEqual({ error: "BAD_REQUEST" });
+    }
+  });
+
+  it("(e) empty body -> 400", async () => {
+    for (const res of [
+      await readAskJsonBody(reqWithBody("")),
+      await readAskJsonBody(reqWithBody(null)),
+    ]) {
+      expect(res.ok).toBe(false);
+      if (!res.ok) expect(res.response.status).toBe(400);
+    }
   });
 });
 
