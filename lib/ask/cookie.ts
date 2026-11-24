@@ -83,6 +83,7 @@ export function parseGuestCookieValue(
   if (!UUID_RE.test(contributorId)) return null;
   const sig = Buffer.from(sigB64, "base64url");
   if (sig.length !== 16) return null;
+  if (sig.toString("base64url") !== sigB64) return null;
   return { contributorId, secret, sig };
 }
 

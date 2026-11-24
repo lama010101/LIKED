@@ -66,16 +66,50 @@ describe("guest cookie sign/verify (§4.1)", () => {
     const value = signGuestCookieValue(ID, secret, KEY);
     const parts = value.split(".");
     const otherId = "223e4567-e89b-42d3-a456-426614174000";
-    for (const bad of [
-      `v1.${otherId}.${parts[2]}.${parts[3]}`,
-      `v1.${ID}.${parts[2].slice(0, -1)}A.${parts[3]}`,
-      `v1.${ID}.${parts[2]}.${parts[3].slice(0, -1)}B`,
-      `v1.${ID}.${parts[2]}.AAAA`,
-    ]) {
+    const swapChar = (s: string, i: number) =>
+      s.slice(0, i) + (s[i] === "A" ? "Q" : "A") + s.slice(i + 1);
+    // Canonical base64url of 16 bytes ends in A/Q/g/w; picking a different
+    // one keeps the encoding canonical but changes the decoded sig bytes.
+    const sigLastAlt = ["Q", "g", "w", "A"].find((c) => c !== parts[3][21])!;
+    const vectors: { bad: string; parses: boolean }[] = [
+      { bad: `v1.${otherId}.${parts[2]}.${parts[3]}`, parses: true },
+      { bad: `v1.${ID}.${swapChar(parts[2], 42)}.${parts[3]}`, parses: true },
+      { bad: `v1.${ID}.${swapChar(parts[2], 21)}.${parts[3]}`, parses: true },
+      { bad: `v1.${ID}.${parts[2]}.${parts[3].slice(0, -1)}${sigLastAlt}`, parses: true },
+      { bad: `v1.${ID}.${parts[2]}.${swapChar(parts[3], 10)}`, parses: true },
+      { bad: `v1.${ID}.${parts[2]}.AAAA`, parses: false },
+    ];
+    for (const { bad, parses } of vectors) {
+      expect(bad).not.toBe(value);
       const p = parseGuestCookieValue(bad);
-      if (p) expect(verifyGuestCookieSignature(p, [KEY])).toBe(false);
-      else expect(bad).not.toBe(value); // unparseable also rejected
+      if (parses) {
+        expect(p).not.toBeNull();
+        expect(verifyGuestCookieSignature(p!, [KEY])).toBe(false);
+      } else {
+        expect(p).toBeNull();
+      }
     }
+  });
+
+  it("rejects non-canonical base64url sig (same bytes, different last char)", () => {
+    const { secret } = newGuestSecret();
+    const value = signGuestCookieValue(ID, secret, KEY);
+    const parts = value.split(".");
+    const sigBytes = Buffer.from(parts[3], "base64url");
+    expect(sigBytes).toHaveLength(16);
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+    const alt = alphabet
+      .split("")
+      .find(
+        (c) =>
+          c !== parts[3][21] &&
+          Buffer.from(parts[3].slice(0, -1) + c, "base64url").equals(sigBytes)
+      );
+    expect(alt).toBeDefined();
+    const badSig = parts[3].slice(0, -1) + alt!;
+    // Same decoded bytes, but not the canonical re-encoding.
+    expect(Buffer.from(badSig, "base64url").toString("base64url")).not.toBe(badSig);
+    expect(parseGuestCookieValue(`v1.${ID}.${parts[2]}.${badSig}`)).toBeNull();
   });
 
   it("rejects wrong key and accepts PREV key (rotation)", () => {
