@@ -12,7 +12,7 @@
 // stream cap (enforced repo-wide by REPO-20).
 import { NextResponse } from "next/server";
 import { getAskSecrets, type AskSecrets } from "./env";
-import { clientIpFromHeaders, hashRlKey } from "./clientIp";
+import { clientIpFromHeaders, hashRlKey, rateLimitIpKey } from "./clientIp";
 import { askErrorResponse } from "./errors";
 
 export const ASK_MAX_BODY_BYTES = 64 * 1024;
@@ -21,7 +21,7 @@ export interface AskGuardContext {
   secrets: AskSecrets;
   /** Raw client IP — in-memory only, never stored (§4.3/T17). */
   clientIp: string | null;
-  /** sha256(pepper|ip|<ip|"unknown">) — safe to pass to rl_hit. */
+  /** sha256(pepper|ip|rateLimitIpKey(clientIp)) — safe to pass to rl_hit. */
   ipKeyHash: string;
 }
 
@@ -82,7 +82,7 @@ export function guardAskRequest(request: Request): AskGuardResult {
   }
 
   const clientIp = clientIpFromHeaders(request.headers);
-  const ipKeyHash = hashRlKey("ip", clientIp ?? "unknown", secrets.rateLimitPepper);
+  const ipKeyHash = hashRlKey("ip", rateLimitIpKey(clientIp), secrets.rateLimitPepper);
   return { ok: true, ctx: { secrets, clientIp, ipKeyHash } };
 }
 
