@@ -20,6 +20,10 @@ export async function GET(
   _req: Request,
   { params }: { params: Promise<{ name: string }> },
 ) {
+  // UI mockups are dev-only — off unless explicitly enabled (same gate as /flow).
+  if (process.env.NEXT_PUBLIC_SHOW_PROTO !== "1") {
+    return new Response("Not found", { status: 404 });
+  }
   const { name } = await params;
   const proto = PROTOTYPES[name as keyof typeof PROTOTYPES];
   if (!proto) {

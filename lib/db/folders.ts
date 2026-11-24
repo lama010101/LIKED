@@ -14,7 +14,8 @@ import { rpc } from "@/lib/db/rpc";
 import { Folder } from "@/lib/types/app";
 import {
   hasFolderPermission,
-  assertFolderPermission,
+  assertFolderPermission,
+
 } from "./permissions";
 
 /**
@@ -226,6 +227,13 @@ export async function getFoldersForNodes(nodeIds: string[]): Promise<Record<stri
   if (error) throw new Error(`Failed to fetch node folders: ${error.message}`);
   for (const row of data ?? []) {
     if (!map[row.node_id]) map[row.node_id] = row.folder_id;
+  }
+  // Every requested id must appear in the result: nodes without a visible
+  // folder_edges row (received cards, RLS-hidden folders) get "" so callers
+  // can distinguish "resolved, no folder" from "not fetched yet" — a sparse
+  // map made FeedHome refetch the same ids forever (BUG-CARDCLICK-002).
+  for (const id of nodeIds) {
+    if (!(id in map)) map[id] = "";
   }
   return map;
 }

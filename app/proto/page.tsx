@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import "@/flow/flow.css";
 import { PROTOTYPES } from "@/flow/lib/prototypes";
 
@@ -8,6 +9,8 @@ export const metadata: Metadata = {
 };
 
 export default function ProtoIndex() {
+  // UI mockups are dev-only — off unless explicitly enabled (same gate as /flow).
+  if (process.env.NEXT_PUBLIC_SHOW_PROTO !== "1") notFound();
   return (
     <div className="flow-scope bg-ink">
       <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col gap-6 p-8">
