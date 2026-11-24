@@ -47,11 +47,16 @@ export function askErrorResponse(
   opts?: { retryAfterSeconds?: number }
 ): NextResponse {
   const c = typeof code === "string" ? code : code.code;
+  // Own-property guard: an unknown code can never reach NextResponse.json
+  // with an undefined status — fall back to ASK_UNAVAILABLE / 503.
+  const safe = (
+    Object.hasOwn(ASK_ERROR_STATUS, c) ? c : "ASK_UNAVAILABLE"
+  ) as AskErrorCode;
   const headers: Record<string, string> = {};
   if (opts?.retryAfterSeconds != null) {
     headers["Retry-After"] = String(Math.max(0, Math.ceil(opts.retryAfterSeconds)));
   }
-  return NextResponse.json({ error: c }, { status: ASK_ERROR_STATUS[c], headers });
+  return NextResponse.json({ error: safe }, { status: ASK_ERROR_STATUS[safe], headers });
 }
 
 /** Map a PostgREST/Supabase RPC error to the identical-body response.
@@ -63,7 +68,7 @@ export function mapAskRpcError(
   error: { message?: string; code?: string } | null | undefined
 ): NextResponse {
   const message = error?.message ?? "";
-  if (message && message in ASK_ERROR_STATUS) {
+  if (message && Object.hasOwn(ASK_ERROR_STATUS, message)) {
     return askErrorResponse(message as AskErrorCode);
   }
   if (error?.code === "42501") return askErrorResponse("FORBIDDEN");
