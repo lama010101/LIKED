@@ -570,5 +570,165 @@
       "title": "Language and appearance",
       "hint": "Set from your browser. Titles, genres and descriptions follow this language too."
     }
+  },
+  "legal": {
+    "links": {
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service"
+    },
+    "privacy": {
+      "metaTitle": "Privacy Policy",
+      "metaDescription": "How LIKED collects, uses, shares, and protects your information.",
+      "title": "Privacy Policy",
+      "lastUpdated": "Last updated: November 22, 2026",
+      "back": "← Back to LIKED",
+      "intro": "LIKED is a content-sharing web application operated by {entity} (\"we\", \"us\", or \"the app\"). LIKED lets you save links and notes as cards, organize them with folders and tags, share them with people you connect with, and receive recommendations from friends through personal Ask links — the friend does not need an account. This Privacy Policy explains what information we collect, how we use it, who we share it with, and the choices you have.",
+      "s1": {
+        "title": "1. Information We Collect",
+        "account": "<strong>Account information:</strong> When you create an account, we collect your email address, display name, and profile avatar. If you sign up or sign in with Google, we receive the name, email address, and profile picture associated with your Google account, as well as a Google-assigned authentication identifier. We do not request and do not receive your Google password.",
+        "guest": "<strong>Guest and contributor information:</strong> A friend can send you recommendations through your personal Ask link without creating an account. In that case we store the display name they choose to give — self-declared and unverified — the recommendations they submit, and a random session cookie on their device that links their submissions together. Guest sessions are not associated with an email address or Google account unless the guest later signs in and claims the session.",
+        "content": "<strong>Content you create:</strong> We store the cards, folders, tags, text notes, Ask links, recommendations, and the connections you create between your content and other users. Cards may include URLs, titles, descriptions, images, and metadata about the pages you save. For YouTube links, we may retrieve and store the video title, thumbnail, and duration so the card can display a preview and inline playback.",
+        "youtube": "<strong>YouTube data:</strong> If you connect YouTube, we store the OAuth tokens needed to read your YouTube activity on your behalf and to import the videos you choose. Titles, descriptions, and thumbnails fetched through the YouTube API are treated as display data: we refresh or delete them within 30 days, as required by the YouTube API Services terms.",
+        "usage": "<strong>Usage data:</strong> We automatically collect information about how you interact with LIKED, including the pages you view, the actions you take, your approximate device type, browser type and version, and the dates and times of your visits.",
+        "technical": "<strong>Technical and authentication data:</strong> To keep you signed in and secure your account, we store authentication tokens and session identifiers in your browser's cookies and local storage. We also process IP addresses, request timestamps, and error logs for security, abuse prevention, and troubleshooting; these short-lived security logs are kept for no more than 30 days.",
+        "notCollected": "<strong>Information we do not collect:</strong> We do not collect precise geolocation data, financial information, government identifiers, or the contents of your communications on other platforms. We do not request access to your contacts, camera, microphone, or files on your device."
+      },
+      "s2": {
+        "title": "2. How We Use Your Information",
+        "intro": "We use the information we collect to:",
+        "item1": "Create, maintain, and authenticate your account and profile.",
+        "item2": "Store, display, and share the content you create according to the visibility you choose — for example, recommendations sent through your Ask link are visible only to you, and items in a folder shared with other people are visible to that folder's members.",
+        "item3": "Generate previews and metadata for the links you save — for example, fetching a YouTube video's title and thumbnail, or movie and series details such as titles, overviews, and availability from TMDB and JustWatch.",
+        "item4": "Send notifications about activity relevant to you, such as recommendations friends send you or content shared with you by other users.",
+        "item5": "Operate, monitor, secure, and improve the service, including debugging and preventing fraud or abuse.",
+        "item6": "Comply with our legal obligations and enforce our Terms of Service.",
+        "outro": "We do not use your information to train automated models, and we do not sell your personal information to third parties."
+      },
+      "s3": {
+        "title": "3. Cookies and Local Storage",
+        "body": "LIKED uses cookies and browser local storage to keep you signed in, remember your session, remember your preferences (such as language, theme, and primary color), and — for guests — hold the random Ask-link session described above. Authentication tokens stored in your browser are used solely to verify your identity with our backend and are removed when you sign out. We do not use cookies for cross-site advertising or third-party tracking. You can clear cookies and local storage at any time through your browser settings, which will sign you out of LIKED and end any guest session."
+      },
+      "s4": {
+        "title": "4. Third-Party Services",
+        "intro": "We rely on the following third-party providers to operate LIKED. Each provider processes information only as needed to deliver the service described, and is governed by its own privacy policy:",
+        "google": "<strong>Google</strong> — used for \"Sign in with Google\" authentication and, if you connect it, for YouTube features. When you use Google sign-in, Google shares your name, email address, and profile picture with LIKED. Google also sets its own cookies as part of the sign-in flow. See <googlePrivacyLink>Google's Privacy Policy</googlePrivacyLink>.",
+        "youtube": "<strong>YouTube API Services</strong> — when you connect YouTube, LIKED accesses the YouTube Data API on your behalf to read your likes and subscriptions and import the videos you choose. YouTube display data (titles, descriptions, thumbnails) is refreshed or deleted within 30 days. You can revoke LIKED's access at any time from your <googlePermissionsLink>Google Account permissions</googlePermissionsLink> page or with the Disconnect option in LIKED's YouTube settings. See the <youtubeTermsLink>YouTube API Services Terms</youtubeTermsLink> and <googlePrivacyLink>Google's Privacy Policy</googlePrivacyLink>.",
+        "supabase": "<strong>Supabase</strong> — our database and authentication provider. Supabase stores your account data, content, and session information on our behalf in the region where our project is hosted. See <supabasePrivacyLink>Supabase's Privacy Policy</supabasePrivacyLink>.",
+        "vercel": "<strong>Vercel</strong> — our hosting provider. Vercel serves the LIKED website and may log request metadata (such as IP address and request time) for delivery, security, and performance. See <vercelPrivacyLink>Vercel's Privacy Policy</vercelPrivacyLink>.",
+        "tmdb": "<strong>TMDB</strong> — we fetch movie and series metadata (titles, overviews, genres, availability) from The Movie Database to enrich the cards you save. See <tmdbLink>The Movie Database</tmdbLink>.",
+        "justwatch": "<strong>JustWatch</strong> — streaming availability data shown on cards is provided by JustWatch. See <justwatchLink>JustWatch</justwatchLink>.",
+        "outro": "When you save a link, we may fetch publicly available metadata (such as a page title or image) from the linked website. That website may independently log the request. We do not share your account information with those websites."
+      },
+      "s5": {
+        "title": "5. Sharing and Visibility",
+        "body": "LIKED is built around connections you create explicitly: the content you share is visible only to the users you have connected to, according to the connections you create. We do not make your content public unless you choose to. Recommendations sent through an Ask link are visible only to the Ask-link owner. If you add an item to a folder shared with other people, every member of that folder can see it — shared folders are collaborative by design. We share information with our service providers (listed above) only as necessary to operate LIKED, and we may disclose information when required by law or to protect our rights, users, or the service."
+      },
+      "s6": {
+        "title": "6. Data Retention",
+        "intro": "We retain your account information and content for as long as your account is active. Specifically:",
+        "item1": "Content you delete is moved to trash and can be restored; it may be permanently removed afterwards.",
+        "item2": "Authentication logs and short-lived security logs are kept for no more than 30 days.",
+        "item4": "YouTube display data fetched through the API is refreshed or deleted within 30 days.",
+        "item5": "When you delete your account, backups may retain deleted data only until they expire under our providers' backup retention schedules.",
+        "outro": "You may request deletion of your account and associated data at any time — see section 7."
+      },
+      "s7": {
+        "title": "7. Account and Data Deletion",
+        "intro": "You can delete your data in three ways:",
+        "path1": "Signed-in users: Settings → Delete account asks you to re-confirm with Google, then deletes your account immediately — there is no grace period.",
+        "path2": "Anyone can use the public /delete-account page on the web: sign in with Google to delete directly, or submit an email deletion request that we process within 30 days.",
+        "path3": "Guests: the friend sheet has \"Delete my data\", which removes the contributor profile and all submissions and recommendations they sent, immediately.",
+        "ownTitle": "Deleting your account removes:",
+        "own1": "your Library — cards, folders, tags, and everything friends recommended to you — plus your picks, Ask link, notifications, settings, stored avatar and thumbnails, and your sign-in account itself;",
+        "othersTitle": "It also changes what other people see:",
+        "other1": "groups you own are deleted, so their other members lose them;",
+        "other2": "chat messages you sent are deleted, and direct chats you are in are deleted — the other person loses that conversation;",
+        "other3": "items you added to folders shared with other people are removed from those folders;",
+        "other4": "recommendations you sent are removed from every inbox, and the affected friend counts and score averages are updated.",
+        "kept": "We retain only the shared catalog of titles and their availability records, which are not linked to you and may be shown on other users' cards.",
+        "outro": "Deletion is permanent and immediate. If you only want to sign out, use Sign out: it ends the session on this device only and deletes nothing."
+      },
+      "s8": {
+        "title": "8. Security",
+        "body": "We take reasonable measures to protect your information, including encrypted authentication, access controls, and row-level database security policies that restrict data access to authorized users. However, no method of transmission or storage is completely secure, and we cannot guarantee absolute security. We will notify affected users of any material data breach in accordance with applicable law."
+      },
+      "s9": {
+        "title": "9. Your Rights and Choices",
+        "body": "Depending on your jurisdiction, you may have the right to access, correct, export, or delete your personal information, and to object to or restrict certain processing. You can update your profile information within the app, delete content directly from your library, choose your language, theme, and primary color, and sign out at any time — sign-out ends the session on this device only. To exercise other rights, including full account deletion, use the deletion options in section 7 or contact us using the details below."
+      },
+      "s10": {
+        "title": "10. International Data Transfers",
+        "body": "LIKED and its service providers process and store data in regions that may differ from your country of residence. By using LIKED, you acknowledge that your information may be transferred to and processed in such regions, subject to applicable data protection laws."
+      },
+      "s11": {
+        "title": "11. Children's Privacy",
+        "body": "LIKED is not directed to children under 13 (or the minimum age required in your jurisdiction). We do not knowingly collect personal information from children. If you believe we have collected information from a child, please contact us and we will delete it."
+      },
+      "s12": {
+        "title": "12. Changes to This Policy",
+        "body": "We may update this Privacy Policy from time to time. We will notify you of material changes by posting the updated policy on this page and updating the \"Last updated\" date above. Continued use of LIKED after a change constitutes acceptance of the updated policy."
+      },
+      "s13": {
+        "title": "13. Contact Us",
+        "contact": "If you have questions about this Privacy Policy or wish to exercise your data rights, please contact {entity} at <contactEmail>our privacy team</contactEmail>."
+      }
+    },
+    "terms": {
+      "metaTitle": "Terms of Service",
+      "metaDescription": "The terms and conditions for using LIKED.",
+      "title": "Terms of Service",
+      "lastUpdated": "Last updated: November 22, 2026",
+      "back": "← Back to LIKED",
+      "s1": {
+        "title": "1. Acceptance of Terms",
+        "body": "By creating an account or otherwise accessing or using LIKED (the \"Service\"), you agree to be bound by these Terms of Service and our Privacy Policy. If you do not agree, you may not access or use the Service. Some features — such as sending recommendations to a friend through their Ask link — can be used without an account; those uses are also governed by these Terms."
+      },
+      "s2": {
+        "title": "2. Your Account",
+        "body": "You are responsible for maintaining the security of your account and for all activity that occurs under your account. You must provide accurate information when registering and keep it up to date. You must be at least 13 years old (or the minimum age required in your jurisdiction) to use the Service. Sign-in is provided by Google; we receive only your basic profile information (name, email address, and profile picture)."
+      },
+      "s3": {
+        "title": "3. Your Content",
+        "body": "You retain ownership of the content you submit to LIKED — including cards, notes, folders, tags, and the recommendations you send through Ask links. You are solely responsible for your content and for ensuring you have the rights to share it. Contributor display names are self-declared and unverified. By submitting content, you grant LIKED a worldwide, non-exclusive, royalty-free license to host, store, display, and transmit that content as necessary to operate the Service."
+      },
+      "s4": {
+        "title": "4. Acceptable Use",
+        "intro": "You agree not to:",
+        "item1": "Use the Service for any unlawful purpose or in violation of these Terms.",
+        "item2": "Submit content that infringes the rights of others, including intellectual property or privacy rights.",
+        "item3": "Harass, abuse, or harm other users, or submit recommendations or names intended to deceive or impersonate.",
+        "item4": "Attempt to access accounts, data, or systems you are not authorized to access.",
+        "item5": "Interfere with or disrupt the Service or its servers, including by overloading Ask links or recommendation endpoints."
+      },
+      "s5": {
+        "title": "5. Visibility and Sharing",
+        "body": "LIKED uses connections you create explicitly to control visibility: content you share is visible only to the users you have connected to. Recommendations sent through an Ask link are visible only to that link's owner. Items added to a folder shared with other people are visible to every member of that folder — shared folders are collaborative. We cannot guarantee that content shared with another user will not be further shared by that user."
+      },
+      "s6": {
+        "title": "6. Third-Party Services",
+        "body": "LIKED relies on third-party services — including Google (sign-in and YouTube), The Movie Database (TMDB), and JustWatch — each governed by its own terms and privacy policies. Your use of YouTube features is also subject to the YouTube Terms of Service and the YouTube API Services terms. We are not responsible for third-party services or content."
+      },
+      "s7": {
+        "title": "7. Termination and Account Deletion",
+        "deletion": "You may delete your account at any time — in the app via Settings → Delete account, on the public /delete-account page, or by email request — and guest data can be deleted from the friend sheet. Deletion is immediate and permanent; what is deleted, and what changes for other people (such as groups you own, chat messages you sent, and direct chats you are in), is described in our Privacy Policy.",
+        "termination": "We may suspend or terminate your access to the Service if you violate these Terms or if we believe your conduct harms the Service or other users."
+      },
+      "s8": {
+        "title": "8. Disclaimers",
+        "body": "The Service is provided \"as is\" and \"as available\" without warranties of any kind, whether express or implied. We do not guarantee that the Service will be uninterrupted, secure, or error-free."
+      },
+      "s9": {
+        "title": "9. Limitation of Liability",
+        "body": "To the maximum extent permitted by law, LIKED and its operators shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of, or inability to use, the Service."
+      },
+      "s10": {
+        "title": "10. Changes to These Terms",
+        "body": "We may modify these Terms from time to time. We will notify you of material changes by posting the updated Terms on this page and updating the \"Last updated\" date above. Continued use of the Service after changes take effect constitutes acceptance of the revised Terms."
+      },
+      "s11": {
+        "title": "11. Contact Us",
+        "contact": "If you have questions about these Terms, please contact {entity} at <contactEmail>our team</contactEmail>."
+      }
+    }
   }
 }

@@ -106,6 +106,8 @@ export default function MeView({ user }: { user: SessionUser }) {
         <a className="btn" href="/youtube">{t("nav.youtube")}</a>
         <a className="btn" href="/extension/install">{t("nav.extension")}</a>
         <a className="btn" href="/trash">{t("nav.trash")}</a>
+        <a className="btn" href="/privacy">{t("legal.links.privacy")}</a>
+        <a className="btn" href="/terms">{t("legal.links.terms")}</a>
         <button className="btn btn-danger" onClick={signOut}>{t("nav.signOut")}</button>
       </section>
     </div>

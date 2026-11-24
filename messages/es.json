@@ -570,5 +570,165 @@
       "title": "Idioma y apariencia",
       "hint": "Se define desde tu navegador. Los títulos, géneros y descripciones también siguen este idioma."
     }
+  },
+  "legal": {
+    "links": {
+      "privacy": "Política de privacidad",
+      "terms": "Términos de servicio"
+    },
+    "privacy": {
+      "metaTitle": "Política de privacidad",
+      "metaDescription": "Cómo LIKED recopila, usa, comparte y protege tu información.",
+      "title": "Política de privacidad",
+      "lastUpdated": "Última actualización: 22 de noviembre de 2026",
+      "back": "← Volver a LIKED",
+      "intro": "LIKED es una aplicación web para compartir contenido operada por {entity} («nosotros»). LIKED te permite guardar enlaces y notas como tarjetas, organizarlas con carpetas y etiquetas, compartirlas con las personas con las que te conectas y recibir recomendaciones de amigos a través de enlaces Ask personales — el amigo no necesita una cuenta. Esta Política de privacidad explica qué información recopilamos, cómo la usamos, con quién la compartimos y qué opciones tienes.",
+      "s1": {
+        "title": "1. Información que recopilamos",
+        "account": "<strong>Información de la cuenta:</strong> Cuando creas una cuenta, recopilamos tu dirección de correo electrónico, nombre visible y avatar de perfil. Si te registras o inicias sesión con Google, recibimos el nombre, la dirección de correo electrónico y la foto de perfil asociados a tu cuenta de Google, así como un identificador de autenticación asignado por Google. No solicitamos ni recibimos tu contraseña de Google.",
+        "guest": "<strong>Información de invitados y colaboradores:</strong> Un amigo puede enviarte recomendaciones a través de tu enlace Ask personal sin crear una cuenta. En ese caso almacenamos el nombre visible que elija dar —autodeclarado y no verificado—, las recomendaciones que envíe y una cookie de sesión aleatoria en su dispositivo que vincula sus envíos entre sí. Las sesiones de invitado no están asociadas a ninguna dirección de correo electrónico ni cuenta de Google, a menos que el invitado inicie sesión más tarde y reclame la sesión.",
+        "content": "<strong>Contenido que creas:</strong> Almacenamos las tarjetas, carpetas, etiquetas, notas de texto, enlaces Ask, recomendaciones y las conexiones que creas entre tu contenido y otros usuarios. Las tarjetas pueden incluir URL, títulos, descripciones, imágenes y metadatos sobre las páginas que guardas. Para enlaces de YouTube, podemos recuperar y almacenar el título, la miniatura y la duración del video para que la tarjeta muestre una vista previa y reproducción integrada.",
+        "youtube": "<strong>Datos de YouTube:</strong> Si conectas YouTube, almacenamos los tokens OAuth necesarios para leer tu actividad de YouTube en tu nombre e importar los videos que elijas. Los títulos, descripciones y miniaturas obtenidos a través de la API de YouTube se tratan como datos de visualización: los actualizamos o eliminamos en un plazo de 30 días, según lo exigen los términos de los servicios API de YouTube.",
+        "usage": "<strong>Datos de uso:</strong> Recopilamos automáticamente información sobre cómo interactúas con LIKED, incluidas las páginas que visitas, las acciones que realizas, el tipo aproximado de tu dispositivo, el tipo y la versión de tu navegador, y las fechas y horas de tus visitas.",
+        "technical": "<strong>Datos técnicos y de autenticación:</strong> Para mantener tu sesión iniciada y proteger tu cuenta, almacenamos tokens de autenticación e identificadores de sesión en las cookies y el almacenamiento local de tu navegador. También procesamos direcciones IP, marcas de tiempo de las solicitudes y registros de errores con fines de seguridad, prevención de abusos y solución de problemas; estos registros de seguridad de corta duración se conservan un máximo de 30 días.",
+        "notCollected": "<strong>Información que no recopilamos:</strong> No recopilamos datos de geolocalización precisa, información financiera, identificadores gubernamentales ni el contenido de tus comunicaciones en otras plataformas. No solicitamos acceso a tus contactos, cámara, micrófono ni archivos de tu dispositivo."
+      },
+      "s2": {
+        "title": "2. Cómo usamos tu información",
+        "intro": "Usamos la información que recopilamos para:",
+        "item1": "Crear, mantener y autenticar tu cuenta y perfil.",
+        "item2": "Almacenar, mostrar y compartir el contenido que creas según la visibilidad que elijas — por ejemplo, las recomendaciones enviadas a través de tu enlace Ask solo las ves tú, y los elementos de una carpeta compartida con otras personas son visibles para los miembros de esa carpeta.",
+        "item3": "Generar vistas previas y metadatos para los enlaces que guardas — por ejemplo, obtener el título y la miniatura de un video de YouTube, o detalles de películas y series como títulos, sinopsis y disponibilidad de TMDB y JustWatch.",
+        "item4": "Enviar notificaciones sobre actividades relevantes para ti, como las recomendaciones que te envían amigos o contenido compartido contigo por otros usuarios.",
+        "item5": "Operar, monitorear, proteger y mejorar el servicio, incluida la depuración y la prevención de fraudes o abusos.",
+        "item6": "Cumplir nuestras obligaciones legales y hacer cumplir nuestros Términos de servicio.",
+        "outro": "No usamos tu información para entrenar modelos automatizados ni vendemos tu información personal a terceros."
+      },
+      "s3": {
+        "title": "3. Cookies y almacenamiento local",
+        "body": "LIKED usa cookies y el almacenamiento local del navegador para mantener tu sesión iniciada, recordar tu sesión, recordar tus preferencias (como el idioma, el tema y el color principal) y —para los invitados— conservar la sesión de enlace Ask aleatoria descrita anteriormente. Los tokens de autenticación almacenados en tu navegador se usan únicamente para verificar tu identidad con nuestro servidor y se eliminan cuando cierras sesión. No usamos cookies para publicidad entre sitios ni seguimiento por terceros. Puedes borrar las cookies y el almacenamiento local en cualquier momento desde la configuración de tu navegador, lo que cerrará tu sesión en LIKED y finalizará cualquier sesión de invitado."
+      },
+      "s4": {
+        "title": "4. Servicios de terceros",
+        "intro": "Contamos con los siguientes proveedores externos para operar LIKED. Cada proveedor procesa la información solo en la medida necesaria para prestar el servicio descrito, y se rige por su propia política de privacidad:",
+        "google": "<strong>Google</strong> — se usa para la autenticación «Iniciar sesión con Google» y, si lo conectas, para las funciones de YouTube. Cuando usas el inicio de sesión de Google, Google comparte con LIKED tu nombre, dirección de correo electrónico y foto de perfil. Google también establece sus propias cookies durante el proceso de inicio de sesión. Consulta la <googlePrivacyLink>Política de privacidad de Google</googlePrivacyLink>.",
+        "youtube": "<strong>Servicios API de YouTube</strong> — cuando conectas YouTube, LIKED accede a la API de YouTube Data en tu nombre para leer tus Me gusta y tus suscripciones e importar los videos que elijas. Los datos de visualización de YouTube (títulos, descripciones, miniaturas) se actualizan o eliminan en un plazo de 30 días. Puedes revocar el acceso de LIKED en cualquier momento desde la página de <googlePermissionsLink>permisos de tu cuenta de Google</googlePermissionsLink> o con la opción Desconectar en la configuración de YouTube de LIKED. Consulta los <youtubeTermsLink>Términos de los servicios API de YouTube</youtubeTermsLink> y la <googlePrivacyLink>Política de privacidad de Google</googlePrivacyLink>.",
+        "supabase": "<strong>Supabase</strong> — nuestro proveedor de base de datos y autenticación. Supabase almacena tus datos de cuenta, contenido e información de sesión en nuestro nombre en la región donde está alojado nuestro proyecto. Consulta la <supabasePrivacyLink>Política de privacidad de Supabase</supabasePrivacyLink>.",
+        "vercel": "<strong>Vercel</strong> — nuestro proveedor de alojamiento. Vercel sirve el sitio web de LIKED y puede registrar metadatos de las solicitudes (como la dirección IP y la hora de la solicitud) para la entrega, la seguridad y el rendimiento. Consulta la <vercelPrivacyLink>Política de privacidad de Vercel</vercelPrivacyLink>.",
+        "tmdb": "<strong>TMDB</strong> — obtenemos metadatos de películas y series (títulos, sinopsis, géneros, disponibilidad) de The Movie Database para enriquecer las tarjetas que guardas. Consulta <tmdbLink>The Movie Database</tmdbLink>.",
+        "justwatch": "<strong>JustWatch</strong> — los datos de disponibilidad de streaming que se muestran en las tarjetas son proporcionados por JustWatch. Consulta <justwatchLink>JustWatch</justwatchLink>.",
+        "outro": "Cuando guardas un enlace, podemos obtener metadatos públicos (como el título o la imagen de una página) del sitio web enlazado. Ese sitio puede registrar la solicitud de forma independiente. No compartimos la información de tu cuenta con esos sitios."
+      },
+      "s5": {
+        "title": "5. Uso compartido y visibilidad",
+        "body": "LIKED se basa en conexiones que tú creas explícitamente: el contenido que compartes solo es visible para los usuarios con los que te has conectado, según las conexiones que creas. No hacemos público tu contenido a menos que tú lo elijas. Las recomendaciones enviadas a través de un enlace Ask solo las ve el propietario del enlace Ask. Si agregas un elemento a una carpeta compartida con otras personas, todos los miembros de esa carpeta pueden verlo — las carpetas compartidas son colaborativas por diseño. Compartimos información con nuestros proveedores de servicios (enumerados anteriormente) solo en la medida necesaria para operar LIKED, y podemos divulgar información cuando lo exija la ley o para proteger nuestros derechos, usuarios o el servicio."
+      },
+      "s6": {
+        "title": "6. Conservación de datos",
+        "intro": "Conservamos tu información de cuenta y tu contenido mientras tu cuenta esté activa. En concreto:",
+        "item1": "El contenido que eliminas se mueve a la papelera y puede restaurarse; puede eliminarse permanentemente después.",
+        "item2": "Los registros de autenticación y los registros de seguridad de corta duración se conservan un máximo de 30 días.",
+        "item4": "Los datos de visualización de YouTube obtenidos a través de la API se actualizan o eliminan en un plazo de 30 días.",
+        "item5": "Cuando eliminas tu cuenta, las copias de seguridad solo pueden conservar los datos eliminados hasta que caduquen según los calendarios de conservación de copias de seguridad de nuestros proveedores.",
+        "outro": "Puedes solicitar en cualquier momento la eliminación de tu cuenta y los datos asociados — consulta la sección 7."
+      },
+      "s7": {
+        "title": "7. Eliminación de la cuenta y los datos",
+        "intro": "Puedes eliminar tus datos de tres maneras:",
+        "path1": "Usuarios con sesión iniciada: Ajustes → Eliminar cuenta te pide volver a confirmar con Google y luego elimina tu cuenta de inmediato — no hay período de gracia.",
+        "path2": "Cualquier persona puede usar la página pública /delete-account en la web: inicia sesión con Google para eliminar directamente, o envía una solicitud de eliminación por correo electrónico que procesamos en un plazo de 30 días.",
+        "path3": "Invitados: la ficha de amigo tiene «Eliminar mis datos», que elimina de inmediato el perfil de colaborador y todos los envíos y recomendaciones enviados.",
+        "ownTitle": "Eliminar tu cuenta borra:",
+        "own1": "tu Biblioteca — tarjetas, carpetas, etiquetas y todo lo que los amigos te recomendaron — además de tus selecciones, tu enlace Ask, notificaciones, ajustes, avatar y miniaturas almacenados, y tu propia cuenta de inicio de sesión;",
+        "othersTitle": "También cambia lo que ven otras personas:",
+        "other1": "los grupos que posees se eliminan, por lo que sus otros miembros los pierden;",
+        "other2": "los mensajes de chat que enviaste se eliminan, y los chats directos en los que participas se eliminan — la otra persona pierde esa conversación;",
+        "other3": "los elementos que agregaste a carpetas compartidas con otras personas se quitan de esas carpetas;",
+        "other4": "las recomendaciones que enviaste se quitan de cada bandeja de entrada, y se actualizan los contadores de amigos y los promedios de puntuación afectados.",
+        "kept": "Solo conservamos el catálogo compartido de títulos y sus registros de disponibilidad, que no están vinculados a ti y pueden mostrarse en las tarjetas de otros usuarios.",
+        "outro": "La eliminación es permanente e inmediata. Si solo quieres cerrar sesión, usa Cerrar sesión: finaliza la sesión solo en este dispositivo y no elimina nada."
+      },
+      "s8": {
+        "title": "8. Seguridad",
+        "body": "Tomamos medidas razonables para proteger tu información, incluida la autenticación cifrada, los controles de acceso y las políticas de seguridad de base de datos a nivel de fila que restringen el acceso a los datos a los usuarios autorizados. Sin embargo, ningún método de transmisión o almacenamiento es completamente seguro y no podemos garantizar una seguridad absoluta. Notificaremos a los usuarios afectados de cualquier violación de datos importante de conformidad con la ley aplicable."
+      },
+      "s9": {
+        "title": "9. Tus derechos y opciones",
+        "body": "Según tu jurisdicción, puedes tener derecho a acceder, rectificar, exportar o eliminar tu información personal, y a oponerte a determinados tratamientos o restringirlos. Puedes actualizar la información de tu perfil dentro de la aplicación, eliminar contenido directamente desde tu biblioteca, elegir tu idioma, tema y color principal, y cerrar sesión en cualquier momento — cerrar sesión finaliza la sesión solo en este dispositivo. Para ejercer otros derechos, incluida la eliminación completa de la cuenta, usa las opciones de eliminación de la sección 7 o contáctanos con los datos a continuación."
+      },
+      "s10": {
+        "title": "10. Transferencias internacionales de datos",
+        "body": "LIKED y sus proveedores de servicios procesan y almacenan datos en regiones que pueden diferir de tu país de residencia. Al usar LIKED, reconoces que tu información puede transferirse a esas regiones y procesarse allí, sujeto a las leyes de protección de datos aplicables."
+      },
+      "s11": {
+        "title": "11. Privacidad de los menores",
+        "body": "LIKED no está dirigido a menores de 13 años (o a la edad mínima requerida en tu jurisdicción). No recopilamos intencionadamente información personal de menores. Si crees que hemos recopilado información de un menor, contáctanos y la eliminaremos."
+      },
+      "s12": {
+        "title": "12. Cambios en esta política",
+        "body": "Podemos actualizar esta Política de privacidad de vez en cuando. Te notificaremos los cambios importantes publicando la política actualizada en esta página y actualizando la fecha de «Última actualización» anterior. El uso continuado de LIKED después de un cambio constituye la aceptación de la política actualizada."
+      },
+      "s13": {
+        "title": "13. Contáctanos",
+        "contact": "Si tienes preguntas sobre esta Política de privacidad o deseas ejercer tus derechos sobre los datos, contacta a {entity} en <contactEmail>nuestro equipo de privacidad</contactEmail>."
+      }
+    },
+    "terms": {
+      "metaTitle": "Términos de servicio",
+      "metaDescription": "Los términos y condiciones para usar LIKED.",
+      "title": "Términos de servicio",
+      "lastUpdated": "Última actualización: 22 de noviembre de 2026",
+      "back": "← Volver a LIKED",
+      "s1": {
+        "title": "1. Aceptación de los términos",
+        "body": "Al crear una cuenta o acceder o usar LIKED (el «Servicio»), aceptas quedar vinculado por estos Términos de servicio y nuestra Política de privacidad. Si no estás de acuerdo, no puedes acceder ni usar el Servicio. Algunas funciones — como enviar recomendaciones a un amigo a través de su enlace Ask — se pueden usar sin cuenta; esos usos también se rigen por estos Términos."
+      },
+      "s2": {
+        "title": "2. Tu cuenta",
+        "body": "Eres responsable de mantener la seguridad de tu cuenta y de toda la actividad que ocurra en ella. Debes proporcionar información precisa al registrarte y mantenerla actualizada. Debes tener al menos 13 años (o la edad mínima requerida en tu jurisdicción) para usar el Servicio. El inicio de sesión lo proporciona Google; solo recibimos tu información de perfil básica (nombre, dirección de correo electrónico y foto de perfil)."
+      },
+      "s3": {
+        "title": "3. Tu contenido",
+        "body": "Conservas la propiedad del contenido que envías a LIKED — incluidas tarjetas, notas, carpetas, etiquetas y las recomendaciones que envías a través de enlaces Ask. Eres el único responsable de tu contenido y de asegurarte de que tienes los derechos para compartirlo. Los nombres visibles de los colaboradores son autodeclarados y no verificados. Al enviar contenido, otorgas a LIKED una licencia mundial, no exclusiva y libre de regalías para alojar, almacenar, mostrar y transmitir ese contenido según sea necesario para operar el Servicio."
+      },
+      "s4": {
+        "title": "4. Uso aceptable",
+        "intro": "Aceptas no:",
+        "item1": "Usar el Servicio con fines ilegales o en violación de estos Términos.",
+        "item2": "Enviar contenido que infrinja los derechos de otros, incluidos los derechos de propiedad intelectual o de privacidad.",
+        "item3": "Acosar, abusar o dañar a otros usuarios, ni enviar recomendaciones o nombres destinados a engañar o suplantar.",
+        "item4": "Intentar acceder a cuentas, datos o sistemas a los que no estás autorizado.",
+        "item5": "Interferir con el Servicio o sus servidores, ni interrumpirlos, incluido sobrecargar enlaces Ask o puntos de entrada de recomendaciones."
+      },
+      "s5": {
+        "title": "5. Visibilidad y uso compartido",
+        "body": "LIKED usa conexiones que tú creas explícitamente para controlar la visibilidad: el contenido que compartes solo es visible para los usuarios con los que te has conectado. Las recomendaciones enviadas a través de un enlace Ask solo las ve el propietario de ese enlace. Los elementos agregados a una carpeta compartida con otras personas son visibles para todos los miembros de esa carpeta — las carpetas compartidas son colaborativas. No podemos garantizar que el contenido compartido con otro usuario no sea compartido nuevamente por ese usuario."
+      },
+      "s6": {
+        "title": "6. Servicios de terceros",
+        "body": "LIKED depende de servicios de terceros — incluidos Google (inicio de sesión y YouTube), The Movie Database (TMDB) y JustWatch — cada uno regido por sus propios términos y políticas de privacidad. Tu uso de las funciones de YouTube también está sujeto a los Términos de servicio de YouTube y a los términos de los servicios API de YouTube. No somos responsables de los servicios ni del contenido de terceros."
+      },
+      "s7": {
+        "title": "7. Terminación y eliminación de la cuenta",
+        "deletion": "Puedes eliminar tu cuenta en cualquier momento — en la aplicación a través de Ajustes → Eliminar cuenta, en la página pública /delete-account, o mediante solicitud por correo electrónico — y los datos de invitado se pueden eliminar desde la ficha de amigo. La eliminación es inmediata y permanente; lo que se elimina y lo que cambia para otras personas (como los grupos que posees, los mensajes de chat que enviaste y los chats directos en los que participas) se describe en nuestra Política de privacidad.",
+        "termination": "Podemos suspender o terminar tu acceso al Servicio si infringe estos Términos o si consideramos que tu conducta daña el Servicio o a otros usuarios."
+      },
+      "s8": {
+        "title": "8. Descargos de responsabilidad",
+        "body": "El Servicio se proporciona «tal cual» y «según disponibilidad», sin garantías de ningún tipo, expresas o implícitas. No garantizamos que el Servicio sea ininterrumpido, seguro o libre de errores."
+      },
+      "s9": {
+        "title": "9. Limitación de responsabilidad",
+        "body": "En la máxima medida permitida por la ley, LIKED y sus operadores no serán responsables de ningún daño indirecto, incidental, especial o consecuente derivado del uso del Servicio o de la imposibilidad de usarlo."
+      },
+      "s10": {
+        "title": "10. Cambios en estos términos",
+        "body": "Podemos modificar estos Términos de vez en cuando. Te notificaremos los cambios importantes publicando los Términos actualizados en esta página y actualizando la fecha de «Última actualización» anterior. El uso continuado del Servicio después de que los cambios entren en vigor constituye la aceptación de los Términos revisados."
+      },
+      "s11": {
+        "title": "11. Contáctanos",
+        "contact": "Si tienes preguntas sobre estos Términos, contacta a {entity} en <contactEmail>nuestro equipo</contactEmail>."
+      }
+    }
   }
 }

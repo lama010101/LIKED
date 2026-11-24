@@ -18,4 +18,18 @@ test.describe("Navigation — authenticated access", () => {
     await page.goto("/feed");
     await expect(page).toHaveURL(/\/feed/);
   });
+
+  test("legal pages reachable from Settings (/me) (P0-21)", async ({ page }) => {
+    await page.goto("/me");
+    await expect(page).toHaveURL(/\/me/);
+
+    await page.locator('a[href="/privacy"]').click();
+    await expect(page).toHaveURL(/\/privacy/);
+    await expect(page.getByRole("heading", { name: /privacy/i }).first()).toBeVisible();
+
+    await page.goto("/me");
+    await page.locator('a[href="/terms"]').click();
+    await expect(page).toHaveURL(/\/terms/);
+    await expect(page.getByRole("heading", { name: /terms/i }).first()).toBeVisible();
+  });
 });

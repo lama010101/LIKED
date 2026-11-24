@@ -38,4 +38,21 @@ test.describe("Navigation — unauthenticated redirects", () => {
     await page.goto("/social");
     await expect(page).toHaveURL(/\/login/);
   });
+
+  test("legal pages reachable from landing footer (P0-21)", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("link", { name: /privacy policy/i }).click();
+    await expect(page).toHaveURL(/\/privacy/);
+    await expect(page.getByRole("heading", { name: /privacy/i }).first()).toBeVisible();
+    // Third-party coverage required by plan §8.1 P0-21 (brand names are
+    // identical in all four catalogs).
+    for (const brand of ["Google", "YouTube", "TMDB", "JustWatch", "delete-account"]) {
+      await expect(page.getByText(brand).first()).toBeVisible();
+    }
+
+    await page.goto("/");
+    await page.getByRole("link", { name: /^terms$/i }).click();
+    await expect(page).toHaveURL(/\/terms/);
+    await expect(page.getByRole("heading", { name: /terms/i }).first()).toBeVisible();
+  });
 });
