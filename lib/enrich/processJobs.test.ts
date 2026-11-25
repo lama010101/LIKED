@@ -199,6 +199,23 @@ describe("processJobs — details", () => {
     expect(summary).toMatchObject({ done: 1 });
   });
 
+  it("YouTube stale re-enqueue: an existing localized tag uses item_refresh_apply", async () => {
+    const { client, calls } = makeClient({
+      jobs: [job({ param: "en-US" })],
+      items: [item({ source: "youtube", kind: "video", external_id: "dQw4w9WgXcQ", localized: { "en-US": { name: "Old video" } } })],
+    });
+    const fetchImpl = (async () => jsonResponse({
+      items: [{ id: "dQw4w9WgXcQ", snippet: { title: "Fresh video", channelId: "UCx", channelTitle: "Channel" } }],
+    })) as typeof fetch;
+    const summary = await processJobs({ client, fetchImpl, env: ENV });
+
+    const payload = calls.find((c) => c.fn === "item_refresh_apply")?.params.p_payload as Record<string, unknown>;
+    expect(payload.name).toBe("Fresh video");
+    expect((payload.localized as Record<string, { name?: string }>)["en-US"].name).toBe("Fresh video");
+    expect(calls.some((c) => c.fn === "item_apply_details")).toBe(false);
+    expect(summary).toMatchObject({ done: 1, errored: 0 });
+  });
+
   it("YouTube empty result: unavailable path", async () => {
     const { client, calls } = makeClient({
       jobs: [job()],

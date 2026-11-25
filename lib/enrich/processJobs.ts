@@ -238,13 +238,21 @@ export async function processJobs(
       await markUnavailable(item, job);
       return;
     }
-    const apply = await client.rpc("item_apply_details", {
-      p_item_id: item.id,
-      p_tag: job.param,
-      p_payload: res.value,
-    });
+    const firstFill = !hasLocalizedTag(item, job.param);
+    const apply = firstFill
+      ? await client.rpc("item_apply_details", {
+          p_item_id: item.id,
+          p_tag: job.param,
+          p_payload: res.value,
+        })
+      : await client.rpc("item_refresh_apply", {
+          p_item_id: item.id,
+          p_payload: refreshPayload(res.value, job.param),
+          p_unavailable: false,
+        });
     if (apply.error) {
-      await finish(job, false, `item_apply_details: ${apply.error.message ?? "rpc failed"}`);
+      const fn = firstFill ? "item_apply_details" : "item_refresh_apply";
+      await finish(job, false, `${fn}: ${apply.error.message ?? "rpc failed"}`);
       return;
     }
     await finish(job, true);
