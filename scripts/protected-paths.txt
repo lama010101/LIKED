@@ -23,3 +23,10 @@ lib/youtube/token-crypto.ts
 lib/youtube/token-crypto.test.ts
 lib/db/feed.ts
 app/lib/actions/feed.ts
+app/api/ask/**
+app/api/account/**
+app/api/cron/**
+app/api/delete-requests/**
+lib/enrich/**
+lib/email/**
+vercel.json
