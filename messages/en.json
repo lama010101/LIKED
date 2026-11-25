@@ -459,7 +459,8 @@
     "shareReceived": "{name} shared a card with you",
     "folderShared": "{name} shared the folder \"{folder}\" with you",
     "permissionChanged": "Your permission on \"{item}\" changed to {permission}",
-    "itemAdded": "{name} added \"{item}\" to \"{folder}\""
+    "itemAdded": "{name} added \"{item}\" to \"{folder}\"",
+    "recommendationReceived": "{name} recommended {count, plural, one {# title} other {# titles}}."
   },
   "trash": {
     "title": "Trash",
