@@ -83,3 +83,15 @@ Warnings do not fail the requirement of zero errors: TanStack virtual warning in
   - targeted vitest for processJobs + cron enrich/email/housekeeping: 4 files, 30 tests passed
   - reauth route test file: 9 tests passed
 - Still pending: delete-requests route status tests; full post-change validation; rollback-only housekeeping SQL proof/counts; end-to-end deletion fixture proof; draft PR creation/CI polling; final evidence report.
+
+## Final update — 2025-11-25
+- Draft PR #74 created: `https://github.com/lama010101/LIKED/pull/74`, base `devin/V2-W5-DELETE-1125-001`, head `devin/V2-W5-PIPELINE-1125-002`, draft/open. `GITHUB_CI_TOKEN` was absent; the credential-manager GitHub credential was used through REST without printing it.
+- Branch head before this docs-only final update: `f542ef1f157c6a8c582121ad59a1b44ce0da51ae`.
+- Final full validation on that head: `tsc=0`, `eslint=0`, `vitest=0`, `check_invariants=1`, `verify_v2_security=0`, `verify_delete_account=1`, `check_languages=127`, `build=0`, `protected_paths=0`.
+- The invariant failure is exactly DB-7 because draft migration `149` exists in the branch but is intentionally unrecorded/unapplied in production. This is expected for the held migration draft and must not be “fixed” by applying it.
+- `verify-delete-account` remains a rollback-harness/live-schema mismatch: migration 146 cannot be reapplied because live production already has `delete_account`; rollback issued with zero residue.
+- `check-languages` prints all passes under the secret-bearing validation environment but Node exits 127 after a Windows libuv assertion. Direct run without `TMDB_API_READ_ACCESS_TOKEN` exits 0 with the TMDB probe skipped. Treat as environment/toolchain failure, not as a missing-key failure.
+- PR stack validation summaries captured in `.tmp-mig147/validation-logs/` before cleanup: #62 and #71 pass code validation except the same check-languages environment exit; #73 fails eslint on deletion UI literals/Next `<a>` usage (fixed only on the PR #74 branch) and fails the migration-146 rollback harness mismatch.
+- Housekeeping rollback proof passed: enqueued 4, `processJobs` claimed/completed 4, stale YouTube 1→0, stale TMDB 1→0, no stuck deletion jobs, rollback issued.
+- End-to-end deletion proof passed twice with `{ok:true,stage:"done"}` and zero fixture residue; however ledger completion/email-null remains `UNPROVEN-WAITING-ON-147` because `deletion_job_advance` is absent live and ledger advancement is best effort.
+- Manual verification remains required for Vercel cron-plan support/activation.
