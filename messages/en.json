@@ -615,7 +615,11 @@
     "availabilityPending": "Availability is being checked.",
     "recommendingFriends": "Friends who recommended it",
     "languageLine": "Original language: {value}",
-    "genresLine": "Genres: {value}"
+    "genresLine": "Genres: {value}",
+    "railAll": "All",
+    "railAllLabel": "All, {count} unseen",
+    "railFriendLabel": "{name}, {count} unseen",
+    "emptyFriend": "Nothing from {name} yet."
   },
   "v2": {
     "language": {

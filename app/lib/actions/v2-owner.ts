@@ -8,7 +8,9 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import type {
   AskRow,
+  FriendRail,
   InboxPayload,
+  MarkSeenResult,
   UserPrefs,
 } from "@/components/v2/inbox/inbox-utils";
 
@@ -70,4 +72,15 @@ export async function setAskActiveAction(active: boolean): Promise<void> {
 /** Defaults are returned when the owner has no user_prefs row (no write). */
 export async function getMyPrefsAction(): Promise<UserPrefs> {
   return ownerRpc<UserPrefs>("get_my_prefs");
+}
+
+/** Friend rail (PRD §6.3): All = SUM of the per-friend unseen counts. */
+export async function getFriendRailAction(): Promise<FriendRail> {
+  return ownerRpc<FriendRail>("get_friend_rail");
+}
+
+/** Stamps that contributor's unseen submissions as seen for the caller's ask;
+ *  all_unseen drops by exactly cleared_recommendations (PRD §13 item 8). */
+export async function markFriendSeenAction(contributorId: string): Promise<MarkSeenResult> {
+  return ownerRpc<MarkSeenResult>("mark_friend_seen", { p_contributor_id: contributorId });
 }
