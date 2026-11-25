@@ -1,13 +1,5 @@
 "use client";
 
-/* eslint-disable react/jsx-no-literals --
-   FINDING V2-W3-GUEST-API-1124-001: the v2 rule config uses
-   { noStrings: true } without { ignoreProps: true }, so every JSX
-   attribute string (className, type, aria-*) is rejected and no Tailwind
-   component can pass. User-visible strings all go through next-intl and
-   REPO-17 still machine-checks JSX text literals. Fix: add
-   ignoreProps: true to the v2 block in eslint.config.mjs (out of scope). */
-
 // Guest friend flow (PRD §5, tasks P0-13/P0-14).
 // Phase 1 (this PR): landing — owner identity, prompt, note, genre tags,
 // the name field, the PoW + cookie mint, and the language/appearance
@@ -15,11 +7,13 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import AddScreen from "./AddScreen";
 import LanguageAppearanceSheet from "./LanguageAppearanceSheet";
+import ReceiptScreen from "./ReceiptScreen";
 import { solvePow } from "./powClient";
-import { initials, type FriendAsk } from "./types";
+import { initials, type FriendAsk, type TrayItem } from "./types";
 
-type Phase = "landing" | "working" | "add";
+type Phase = "landing" | "working" | "add" | "sent";
 type ErrorKey = "name" | "pow" | "busy" | "token";
 
 interface FriendFlowProps {
@@ -40,6 +34,9 @@ export default function FriendFlow({ token, ask, genreNames }: FriendFlowProps) 
   const [phase, setPhase] = useState<Phase>("landing");
   const [name, setName] = useState("");
   const [error, setError] = useState<ErrorKey | null>(null);
+  const [tray, setTray] = useState<TrayItem[]>([]);
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
 
   async function start() {
     const trimmed = name.trim();
@@ -80,6 +77,38 @@ export default function FriendFlow({ token, ask, genreNames }: FriendFlowProps) 
     }
   }
 
+  async function send() {
+    if (tray.length === 0) {
+      setSendError(t("error.empty"));
+      return;
+    }
+    setSending(true);
+    setSendError(null);
+    const items = tray.map((item) => ({
+      item_id: item.item_id,
+      rating: item.rating,
+      platform: item.platform.trim() ? item.platform.trim() : null,
+      comment: item.comment.trim() ? item.comment.trim() : null,
+    }));
+    try {
+      const res = await fetch("/api/ask/submit", {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-ask-token": token },
+        body: JSON.stringify({ client_batch_id: crypto.randomUUID(), items }),
+      });
+      if (!res.ok) {
+        setSendError(res.status === 429 ? t("error.rateLimited") : t("error.submit"));
+        return;
+      }
+      setTray([]);
+      setPhase("sent");
+    } catch {
+      setSendError(t("error.submit"));
+    } finally {
+      setSending(false);
+    }
+  }
+
   const owner = ask.owner_display_name || "";
   const prompt = ask.prompt?.trim() ? ask.prompt : t("landing.defaultPrompt");
 
@@ -102,10 +131,24 @@ export default function FriendFlow({ token, ask, genreNames }: FriendFlowProps) 
       </header>
 
       {phase === "add" ? (
-        <section className="rounded-3xl border border-[var(--v2-border)] bg-[var(--v2-surface)] p-5">
-          <h1 className="text-xl font-semibold">{prompt}</h1>
-          <p className="mt-3 text-sm text-[var(--v2-text-muted)]">{t("landing.nameHint")}</p>
-        </section>
+        <AddScreen
+          token={token}
+          owner={owner}
+          tray={tray}
+          onChange={setTray}
+          onSend={() => {
+            void send();
+          }}
+          sending={sending}
+          sendError={sendError}
+        />
+      ) : phase === "sent" ? (
+        <ReceiptScreen
+          token={token}
+          owner={owner}
+          onAddMore={() => setPhase("add")}
+          onDeleted={() => setTray([])}
+        />
       ) : (
         <section className="flex flex-col gap-4">
           <h1 className="text-2xl font-semibold leading-tight">{prompt}</h1>

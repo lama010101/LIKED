@@ -151,7 +151,7 @@ export async function requireGuestCookie(
 /** Per-contributor bucket (§4.3) — key is a peppered hash, never the id. */
 export async function hitContributorBucket(
   bucket: "ask_search_c" | "ask_resolve_c" | "ask_submit_c",
-  ctx: GuestAskContext
+  ctx: { contributorId: string; secrets: AskGuardContext["secrets"] }
 ): Promise<boolean> {
   const spec = RATE_LIMITS[bucket];
   const key = hashRlKey("contributor", ctx.contributorId, ctx.secrets.rateLimitPepper);
