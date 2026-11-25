@@ -1,7 +1,5 @@
 "use client";
 
-/* eslint-disable react/jsx-no-literals -- see the FINDING banner in FriendFlow.tsx (v2 rule config rejects every JSX attribute string). */
-
 // After-submit screen (PRD §5.5, task P0-14): one screen with the
 // receipt (the guest's OWN rows only — guest_get_receipt filters by
 // contributor), "Add more titles" and "Delete my data".

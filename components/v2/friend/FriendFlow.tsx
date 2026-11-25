@@ -1,13 +1,5 @@
 "use client";
 
-/* eslint-disable react/jsx-no-literals --
-   FINDING V2-W3-GUEST-API-1124-001: the v2 rule config uses
-   { noStrings: true } without { ignoreProps: true }, so every JSX
-   attribute string (className, type, aria-*) is rejected and no Tailwind
-   component can pass. User-visible strings all go through next-intl and
-   REPO-17 still machine-checks JSX text literals. Fix: add
-   ignoreProps: true to the v2 block in eslint.config.mjs (out of scope). */
-
 // Guest friend flow (PRD §5, tasks P0-13/P0-14).
 // Phase 1 (this PR): landing — owner identity, prompt, note, genre tags,
 // the name field, the PoW + cookie mint, and the language/appearance

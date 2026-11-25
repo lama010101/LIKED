@@ -1,7 +1,5 @@
 "use client";
 
-/* eslint-disable react/jsx-no-literals -- see the FINDING banner in FriendFlow.tsx (v2 rule config rejects every JSX attribute string). */
-
 // Add screen (PRD §5.2-§5.4, task P0-14): one search box (TMDB, 300 ms
 // debounce, ≥2 chars), the paste-a-link row, the "Your picks" tray with
 // collapsed per-item details (score slider, platform, comment) and the
@@ -136,6 +134,7 @@ export default function AddScreen({
 
   const sendLabel =
     tray.length === 1 ? t("sendOne", { owner }) : t("send", { owner, count: tray.length });
+  const trayHeading = `${t("tray")} (${tray.length})`;
 
   return (
     <section className="flex flex-col gap-4">
@@ -238,9 +237,7 @@ export default function AddScreen({
       </div>
 
       <div className="flex flex-col gap-2">
-        <h2 className="text-sm font-medium">
-          {t("tray")} ({tray.length})
-        </h2>
+        <h2 className="text-sm font-medium">{trayHeading}</h2>
         {tray.length === 0 ? (
           <p className="text-sm text-[var(--v2-text-muted)]">{t("trayEmpty")}</p>
         ) : (

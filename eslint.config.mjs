@@ -25,7 +25,7 @@ const eslintConfig = defineConfig([
       "components/v2/**",
     ],
     rules: {
-      "react/jsx-no-literals": ["error", { noStrings: true }],
+      "react/jsx-no-literals": ["error", { noStrings: true, ignoreProps: true }],
     },
   },
   // Override default ignores of eslint-config-next.

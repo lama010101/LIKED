@@ -1,7 +1,5 @@
 "use client";
 
-/* eslint-disable react/jsx-no-literals -- see the FINDING banner in FriendFlow.tsx (v2 rule config rejects every JSX attribute string). */
-
 // Score control (PRD §5.3, §13 item 5; task P0-14).
 // Untouched = null, explicit 0 = 0, Clear = null. Steps of 5, word bands,
 // and an aria-valuetext that reads the number and the band word.
@@ -57,9 +55,9 @@ export default function ScoreSlider({ value, label, onChange }: ScoreSliderProps
         className="h-2 w-full cursor-pointer accent-[var(--v2-accent)]"
       />
       <div className="flex justify-between text-xs text-[var(--v2-text-muted)]">
-        <span aria-hidden="true">0</span>
-        <span aria-hidden="true">50</span>
-        <span aria-hidden="true">100</span>
+        <span aria-hidden="true">{0}</span>
+        <span aria-hidden="true">{50}</span>
+        <span aria-hidden="true">{100}</span>
       </div>
       {value !== null ? (
         <button
