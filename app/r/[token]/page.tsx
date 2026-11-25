@@ -19,7 +19,8 @@ import { RATE_LIMITS, rlHit } from "@/lib/ask/rateLimit";
 import { fetchActiveAsk } from "@/app/api/ask/_lib/guestRequest";
 import { negotiateLocale } from "@/lib/i18n/negotiate";
 import { tmdbTagFor, isLanguageCode } from "@/lib/i18n/languages";
-import { isTmdbTag } from "@/lib/tmdb/client";
+import { isTmdbTag, type TmdbTag } from "@/lib/tmdb/client";
+import { ensureTmdbGenres } from "@/lib/tmdb/genres";
 import FriendFlow from "@/components/v2/friend/FriendFlow";
 import type { FriendAsk } from "@/components/v2/friend/types";
 
@@ -42,6 +43,11 @@ interface LooseClient {
 
 async function genreNames(ids: number[], tag: string): Promise<string[]> {
   if (ids.length === 0) return [];
+  const tmdbTag = tag as TmdbTag;
+  // Lazy catalog sync (§6.3): fetch+sync only when tmdb_genres has no
+  // rows for the media+lang; the existence check short-circuits after.
+  await ensureTmdbGenres("movie", tmdbTag);
+  await ensureTmdbGenres("tv", tmdbTag);
   const client = getSupabaseServiceClient() as unknown as LooseClient;
   const { data, error } = await client
     .from("tmdb_genres")

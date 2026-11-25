@@ -8,11 +8,13 @@
 // guest cookie LIKED_TMDB_LANG when valid, else Accept-Language through
 // the single LANGUAGES config (§6.3) — never from IP (REPO-19).
 //
-// YouTube branch: NOT SERVED in this PR. The guarded search needs the
-// youtube_search_cache write, which has no class-S RPC (REPO-15 forbids
-// direct table writes) — reported as a STOP finding; the UI falls back to
-// the paste-a-link row. `src=youtube` therefore answers {status:'busy'},
-// the same degradation shape §6.4 prescribes for an exhausted budget.
+// YouTube branch (§6.4, migration-147 contract): submit-only guarded
+// search. query_key = sha256(normalized | lang | region); a cache hit
+// costs zero upstream calls and zero budget units; a miss consumes
+// yt_budget_consume, calls search.list once and yt_cache_puts with a
+// TTL <= 12 h. Budget exhaustion answers {status:'busy'} and the TMDB
+// branch keeps working. All DB access goes through the class-S RPCs on
+// the service client (REPO-15/REPO-16).
 
 import { NextResponse } from "next/server";
 import { askErrorResponse } from "@/lib/ask/errors";
@@ -33,6 +35,9 @@ import {
   rateLimited,
   requireGuestAsk,
 } from "../_lib/guestRequest";
+import { getSupabaseServiceClient } from "@/lib/supabase/service";
+import { searchYouTube } from "@/lib/youtube/searchCache";
+import { youtubeConfigured } from "@/lib/youtube/serverKey";
 
 export const dynamic = "force-dynamic";
 
@@ -63,6 +68,19 @@ export async function GET(request: Request): Promise<NextResponse> {
   const q = (url.searchParams.get("q") ?? "").trim();
 
   if (src === "youtube") {
+    if (!youtubeConfigured()) {
+      return askErrorResponse("ASK_UNAVAILABLE");
+    }
+    const outcome = await searchYouTube(q, {
+      contributorId: ctx.contributorId,
+      lang: viewerTag(request),
+      client: getSupabaseServiceClient(),
+    });
+    if (outcome.status === "ok") {
+      return NextResponse.json({
+        youtube: { status: "ok", results: outcome.results },
+      });
+    }
     return NextResponse.json({ youtube: { status: "busy" } });
   }
 

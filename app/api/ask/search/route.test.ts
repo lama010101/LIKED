@@ -24,6 +24,7 @@ beforeEach(() => {
   process.env.GUEST_COOKIE_SECRET = COOKIE_SECRET;
   process.env.RATE_LIMIT_PEPPER = PEPPER;
   process.env.TMDB_API_READ_ACCESS_TOKEN = TMDB_TOKEN;
+  process.env.YOUTUBE_API_KEY = "y".repeat(30);
   mocks.rpc.mockReset();
   mocks.from.mockReset();
   mocks.rpc.mockImplementation(
@@ -48,6 +49,9 @@ beforeEach(() => {
         };
       }
       if (fn === "rl_hit") return { data: true, error: null };
+      if (fn === "yt_cache_get") return { data: null, error: null };
+      if (fn === "yt_budget_consume") return { data: { allowed: false }, error: null };
+      if (fn === "yt_cache_put") return { data: null, error: null };
       return { data: null, error: null };
     }
   );
@@ -184,13 +188,58 @@ describe("GET /api/ask/search", () => {
     expect(res.headers.get("Retry-After")).toBe("60");
   });
 
-  it("serves the YouTube branch as busy (cache RPC unavailable) without an upstream call", async () => {
+  it("serves the YouTube branch as busy when the budget is exhausted, without an upstream call", async () => {
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
     const res = await GET(request("/api/ask/search?q=matrix&src=youtube", authHeaders()));
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ youtube: { status: "busy" } });
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("serves cached YouTube results with zero upstream calls and zero budget units", async () => {
+    mocks.rpc.mockImplementation(async (fn: string) => {
+      if (fn === "guest_verify") {
+        return { data: "\\x" + guestSecretHash(SECRET).toString("hex"), error: null };
+      }
+      if (fn === "guest_get_ask") {
+        return {
+          data: [{ ask_id: ASK_ID, owner_display_name: "Owner", liked_genres: [] }],
+          error: null,
+        };
+      }
+      if (fn === "rl_hit") return { data: true, error: null };
+      if (fn === "yt_cache_get") {
+        return {
+          data: {
+            status: "ok",
+            results: [
+              {
+                source: "youtube",
+                kind: "video",
+                external_id: "dQw4w9WgXcQ",
+                title: "Cached",
+                channel: null,
+                published_at: null,
+                thumb_url: "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
+              },
+            ],
+          },
+          error: null,
+        };
+      }
+      return { data: null, error: null };
+    });
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const res = await GET(request("/api/ask/search?q=matrix&src=youtube", authHeaders()));
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { youtube: { status: string; results: { external_id: string }[] } };
+    expect(body.youtube.status).toBe("ok");
+    expect(body.youtube.results[0].external_id).toBe("dQw4w9WgXcQ");
+    expect(fetchMock).not.toHaveBeenCalled();
+    const fns = mocks.rpc.mock.calls.map((c) => (c as unknown as [string])[0]);
+    expect(fns).not.toContain("yt_budget_consume");
   });
 
   it("fails closed with 503 when TMDB is not configured", async () => {
