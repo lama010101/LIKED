@@ -1,7 +1,10 @@
+import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import DeleteRequestForm from "./_components/DeleteRequestForm";
 
 export const dynamic = "force-dynamic";
+
+const LOGIN_DELETE_HREF = "/login?next=/settings/delete";
 
 export default async function PublicDeleteAccountPage({
   searchParams,
@@ -15,7 +18,7 @@ export default async function PublicDeleteAccountPage({
       <h1>{t("pubTitle")}</h1>
       <p>{t("pubIntro")}</p>
       <p>
-        <a href="/login?next=/settings/delete">{t("pubSignIn")}</a>
+        <Link href={LOGIN_DELETE_HREF}>{t("pubSignIn")}</Link>
       </p>
       <h2>{t("pubFormTitle")}</h2>
       {status === "confirmed" ? <p>{t("pubStatusConfirmed")}</p> : null}

@@ -3,6 +3,10 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 
+const INPUT_TYPE_CHECKBOX = "checkbox";
+const BUTTON_TYPE_BUTTON = "button";
+const ROLE_ALERT = "alert";
+
 export default function DeletePanel() {
   const t = useTranslations("deletion");
   const [checked, setChecked] = useState(false);
@@ -57,7 +61,7 @@ export default function DeletePanel() {
     <div>
       <label>
         <input
-          type="checkbox"
+          type={INPUT_TYPE_CHECKBOX}
           checked={checked}
           onChange={(e) => setChecked(e.target.checked)}
         />
@@ -65,17 +69,17 @@ export default function DeletePanel() {
       </label>
       <div>
         <button
-          type="button"
+          type={BUTTON_TYPE_BUTTON}
           disabled={!checked || busy}
           onClick={deleteAccount}
         >
           {t("deleteButton")}
         </button>
-        <button type="button" disabled={busy} onClick={startReauth}>
+        <button type={BUTTON_TYPE_BUTTON} disabled={busy} onClick={startReauth}>
           {t("reauthButton")}
         </button>
       </div>
-      {error ? <p role="alert">{t("errorGeneric")}</p> : null}
+      {error ? <p role={ROLE_ALERT}>{t("errorGeneric")}</p> : null}
     </div>
   );
 }

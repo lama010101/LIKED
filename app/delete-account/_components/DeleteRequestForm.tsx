@@ -4,6 +4,13 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 
 const DIFFICULTY_BITS = 20;
+const INPUT_TYPE_EMAIL = "email";
+const INPUT_TYPE_TEXT = "text";
+const HONEYPOT_NAME = "website";
+const AUTOCOMPLETE_OFF = "off";
+const ARIA_HIDDEN_TRUE = "true";
+const BUTTON_TYPE_SUBMIT = "submit";
+const ROLE_ALERT = "alert";
 
 async function sha256Hex(s: string): Promise<string> {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
@@ -70,17 +77,17 @@ export default function DeleteRequestForm() {
       <label>
         {t("pubEmail")}
         <input
-          type="email"
+          type={INPUT_TYPE_EMAIL}
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
       </label>
-      <input type="text" name="website" tabIndex={-1} autoComplete="off" hidden aria-hidden="true" />
-      <button type="submit" disabled={busy}>
+      <input type={INPUT_TYPE_TEXT} name={HONEYPOT_NAME} tabIndex={-1} autoComplete={AUTOCOMPLETE_OFF} hidden aria-hidden={ARIA_HIDDEN_TRUE} />
+      <button type={BUTTON_TYPE_SUBMIT} disabled={busy}>
         {t("pubSubmit")}
       </button>
-      {error ? <p role="alert">{error}</p> : null}
+      {error ? <p role={ROLE_ALERT}>{error}</p> : null}
     </form>
   );
 }
