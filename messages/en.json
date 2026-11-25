@@ -570,5 +570,34 @@
       "title": "Language and appearance",
       "hint": "Set from your browser. Titles, genres and descriptions follow this language too."
     }
+  },
+  "deletion": {
+    "sheetTitle": "Delete your account?",
+    "sheetIntro": "This permanently deletes your LIKED account and everything below. This cannot be undone.",
+    "itemInbox": "Your inbox and everything friends recommended to you",
+    "itemLibrary": "Your Library (cards and folders), picks and Ask link",
+    "itemRecommendations": "Recommendations you sent to others",
+    "itemNotifications": "Notifications and settings",
+    "itemGroups": "Groups you own ({count}) — other members lose them",
+    "itemMessages": "Chat messages you sent ({count})",
+    "itemDirectChats": "Direct chats you are in ({count}) — the other person loses that conversation",
+    "cannotUndo": "This can't be undone. You'll be asked to confirm with Google first.",
+    "confirmCheckbox": "I understand this can't be undone",
+    "deleteButton": "Delete my account",
+    "reauthButton": "Confirm with Google",
+    "errorGeneric": "Something went wrong. Please try again.",
+    "deletedTitle": "Your account was deleted",
+    "deletedBody": "Your LIKED account and all associated data have been permanently deleted.",
+    "backHome": "Back to LIKED",
+    "pubTitle": "Delete your LIKED account",
+    "pubIntro": "You can delete your account from the app: Settings → Delete account. Or use the options below.",
+    "pubSignIn": "Sign in with Google to delete your account",
+    "pubFormTitle": "Request deletion by email",
+    "pubEmail": "Email address",
+    "pubSubmit": "Send deletion request",
+    "pubSent": "If an account exists for this address, you will receive a confirmation email.",
+    "pubStatusConfirmed": "Your deletion request was confirmed. It will be processed within 30 days.",
+    "pubStatusInvalid": "That confirmation link is invalid or has expired.",
+    "pubGuestsNote": "Guests have no account: use \"Delete my data\" in the friend sheet to remove guest data immediately."
   }
 }

@@ -570,5 +570,34 @@
       "title": "Idioma y apariencia",
       "hint": "Se define desde tu navegador. Los títulos, géneros y descripciones también siguen este idioma."
     }
+  },
+  "deletion": {
+    "sheetTitle": "¿Eliminar tu cuenta?",
+    "sheetIntro": "Esto elimina permanentemente tu cuenta de LIKED y todo lo siguiente. No se puede deshacer.",
+    "itemInbox": "Tu bandeja y todo lo que tus amigos te recomendaron",
+    "itemLibrary": "Tu Biblioteca (tarjetas y carpetas), picks y enlace Ask",
+    "itemRecommendations": "Las recomendaciones que enviaste",
+    "itemNotifications": "Notificaciones y ajustes",
+    "itemGroups": "Grupos que posees ({count}) — los demás miembros los pierden",
+    "itemMessages": "Mensajes de chat enviados ({count})",
+    "itemDirectChats": "Chats directos ({count}) — la otra persona pierde la conversación",
+    "cannotUndo": "No se puede deshacer. Se te pedirá confirmar con Google.",
+    "confirmCheckbox": "Entiendo que no se puede deshacer",
+    "deleteButton": "Eliminar mi cuenta",
+    "reauthButton": "Confirmar con Google",
+    "errorGeneric": "Algo salió mal. Inténtalo de nuevo.",
+    "deletedTitle": "Tu cuenta fue eliminada",
+    "deletedBody": "Tu cuenta de LIKED y todos los datos asociados fueron eliminados permanentemente.",
+    "backHome": "Volver a LIKED",
+    "pubTitle": "Eliminar tu cuenta de LIKED",
+    "pubIntro": "Puedes eliminar tu cuenta en la app: Ajustes → Eliminar cuenta. O usa las opciones de abajo.",
+    "pubSignIn": "Inicia sesión con Google para eliminar tu cuenta",
+    "pubFormTitle": "Solicitar eliminación por correo",
+    "pubEmail": "Correo electrónico",
+    "pubSubmit": "Enviar solicitud",
+    "pubSent": "Si existe una cuenta para esta dirección, recibirás un correo de confirmación.",
+    "pubStatusConfirmed": "Tu solicitud fue confirmada. Se procesará en 30 días.",
+    "pubStatusInvalid": "Ese enlace de confirmación no es válido o ha expirado.",
+    "pubGuestsNote": "Los invitados no tienen cuenta: usa «Delete my data» en la hoja de amigo para borrar los datos."
   }
 }
