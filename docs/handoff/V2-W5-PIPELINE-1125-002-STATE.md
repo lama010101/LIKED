@@ -64,3 +64,22 @@ Warnings do not fail the requirement of zero errors: TanStack virtual warning in
 - `package*.json` frozen.
 - Do not use `git add -A`/`git add .`, force-push, or `--no-verify`.
 - Scope is restricted by the original prompt; inspect `git diff --name-only` before every commit.
+
+## Update after housekeeping implementation commit
+- Branch is now local/remote `devin/V2-W5-PIPELINE-1125-002` (PR-4 candidate branch), not the PR #73 branch. Push explicitly with `git push origin HEAD:refs/heads/devin/V2-W5-PIPELINE-1125-002` because upstream config is stale/misleading.
+- Commits pushed:
+  - `a282d8a` docs handoff checkpoint
+  - `bee8c7c` deletion-page lint fixes (`npx eslint .` then exited 0 with 2 warnings only)
+  - `05841f1` housekeeping implementation draft
+- Housekeeping implementation now present:
+  - `supabase/migrations/149_v2_housekeeping_enqueue.sql` copied from the rollback-proven draft. It remains unapplied and unmerged.
+  - `app/api/cron/housekeeping/route.ts` and route test. Route order: authorizeCron -> `enrichment_enqueue_stale` -> `processJobs` -> `items_purge_unreferenced` -> `housekeeping_purge` -> `deletion_jobs_claim_stuck` -> `runDeletionPipeline` per row.
+  - `lib/enrich/processJobs.ts` reads `localized`; missing `localized[job.param]` = first fill/`item_apply_details`, present = refresh/`item_refresh_apply`. Mock test added and passed.
+  - `vercel.json` daily entries added: enrich `0 1 * * *`, email `30 1 * * *`, housekeeping `0 2 * * *`. Vercel plan unknown.
+  - `app/api/account/reauth/reauth.routes.test.ts` now has separate start/done no-session 401 tests.
+- Targeted validation after `05841f1` before commit:
+  - `npx tsc --noEmit` exit 0
+  - targeted `npx eslint` on changed TS files exit 0
+  - targeted vitest for processJobs + cron enrich/email/housekeeping: 4 files, 30 tests passed
+  - reauth route test file: 9 tests passed
+- Still pending: delete-requests route status tests; full post-change validation; rollback-only housekeeping SQL proof/counts; end-to-end deletion fixture proof; draft PR creation/CI polling; final evidence report.
