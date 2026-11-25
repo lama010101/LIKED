@@ -76,7 +76,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   const accepted = typeof result.accepted === "number" ? result.accepted : body.items.length;
   // Fire-and-forget: after() runs once the response is sent; a kick
   // failure is logged inside and never surfaces to the guest.
-  kickEnrichment(new URL(request.url).origin);
+  kickEnrichment();
 
   return NextResponse.json({
     submission_id: typeof result.submission_id === "string" ? result.submission_id : null,
