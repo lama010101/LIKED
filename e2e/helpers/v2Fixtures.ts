@@ -115,6 +115,35 @@ export async function deleteGuest(contributorId: string): Promise<void> {
   if (error) throw new Error(`delete_guest_data: ${error.message}`);
 }
 
+export interface OwnerPrefsRow {
+  region_code: string | null;
+  notify_email: boolean;
+  tmdb_lang: string | null;
+  language_set_at: string | null;
+}
+
+/** Direct read of the owner's user_prefs row (service client, select only). */
+export async function readOwnerPrefs(userId: string): Promise<OwnerPrefsRow | null> {
+  const { data, error } = await serviceClient()
+    .from("user_prefs")
+    .select("region_code,notify_email,tmdb_lang,language_set_at")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error) throw new Error(`user_prefs read: ${error.message}`);
+  return (data as OwnerPrefsRow | null) ?? null;
+}
+
+/** True when the owner's public.users row still exists (sign-out deletes nothing). */
+export async function userRowExists(userId: string): Promise<boolean> {
+  const { data, error } = await serviceClient()
+    .from("users")
+    .select("id")
+    .eq("id", userId)
+    .maybeSingle();
+  if (error) throw new Error(`users read: ${error.message}`);
+  return !!data;
+}
+
 /** Removes only the item rows this spec created (catalog rows are shared). */
 export async function deleteItems(itemIds: string[]): Promise<void> {
   if (itemIds.length === 0) return;
