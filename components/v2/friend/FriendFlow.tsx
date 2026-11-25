@@ -1,0 +1,178 @@
+"use client";
+
+/* eslint-disable react/jsx-no-literals --
+   FINDING V2-W3-GUEST-API-1124-001: the v2 rule config uses
+   { noStrings: true } without { ignoreProps: true }, so every JSX
+   attribute string (className, type, aria-*) is rejected and no Tailwind
+   component can pass. User-visible strings all go through next-intl and
+   REPO-17 still machine-checks JSX text literals. Fix: add
+   ignoreProps: true to the v2 block in eslint.config.mjs (out of scope). */
+
+// Guest friend flow (PRD §5, tasks P0-13/P0-14).
+// Phase 1 (this PR): landing — owner identity, prompt, note, genre tags,
+// the name field, the PoW + cookie mint, and the language/appearance
+// sheet. The add/details/send phases land in P0-14.
+
+import { useState } from "react";
+import { useTranslations } from "next-intl";
+import LanguageAppearanceSheet from "./LanguageAppearanceSheet";
+import { solvePow } from "./powClient";
+import { initials, type FriendAsk } from "./types";
+
+type Phase = "landing" | "working" | "add";
+type ErrorKey = "name" | "pow" | "busy" | "token";
+
+interface FriendFlowProps {
+  token: string;
+  ask: FriendAsk;
+  genreNames: string[];
+}
+
+interface SessionChallenge {
+  provider: string;
+  challenge: string;
+  difficulty: number;
+  ttl_seconds: number;
+}
+
+export default function FriendFlow({ token, ask, genreNames }: FriendFlowProps) {
+  const t = useTranslations("friend");
+  const [phase, setPhase] = useState<Phase>("landing");
+  const [name, setName] = useState("");
+  const [error, setError] = useState<ErrorKey | null>(null);
+
+  async function start() {
+    const trimmed = name.trim();
+    if (trimmed.length < 2 || trimmed.length > 50) {
+      setError("name");
+      return;
+    }
+    setError(null);
+    setPhase("working");
+    try {
+      const challengeRes = await fetch("/api/ask/session", { cache: "no-store" });
+      if (!challengeRes.ok) {
+        setError(challengeRes.status === 404 ? "token" : "busy");
+        setPhase("landing");
+        return;
+      }
+      const challenge = (await challengeRes.json()) as SessionChallenge;
+      const solution = await solvePow(challenge.challenge, challenge.difficulty);
+      if (!solution) {
+        setError("pow");
+        setPhase("landing");
+        return;
+      }
+      const res = await fetch("/api/ask/session", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ token, name: trimmed, captchaToken: solution.token }),
+      });
+      if (res.ok) {
+        setPhase("add");
+        return;
+      }
+      setError(res.status === 404 ? "token" : res.status === 403 ? "pow" : res.status === 400 ? "name" : "busy");
+      setPhase("landing");
+    } catch {
+      setError("busy");
+      setPhase("landing");
+    }
+  }
+
+  const owner = ask.owner_display_name || "";
+  const prompt = ask.prompt?.trim() ? ask.prompt : t("landing.defaultPrompt");
+
+  return (
+    <main className="mx-auto flex min-h-dvh w-full max-w-xl flex-col gap-6 px-4 py-6 text-[var(--v2-text)]">
+      <header className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <span
+            aria-hidden="true"
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--v2-surface-raised)] text-sm font-semibold"
+          >
+            {initials(owner)}
+          </span>
+          <div>
+            <p className="text-sm text-[var(--v2-text-muted)]">{t("landing.nameLabel")}</p>
+            <p className="text-base font-semibold">{owner}</p>
+          </div>
+        </div>
+        <LanguageAppearanceSheet />
+      </header>
+
+      {phase === "add" ? (
+        <section className="rounded-3xl border border-[var(--v2-border)] bg-[var(--v2-surface)] p-5">
+          <h1 className="text-xl font-semibold">{prompt}</h1>
+          <p className="mt-3 text-sm text-[var(--v2-text-muted)]">{t("landing.nameHint")}</p>
+        </section>
+      ) : (
+        <section className="flex flex-col gap-4">
+          <h1 className="text-2xl font-semibold leading-tight">{prompt}</h1>
+          {ask.note?.trim() ? (
+            <p className="text-base text-[var(--v2-text)]">{ask.note}</p>
+          ) : null}
+          {genreNames.length > 0 ? (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm text-[var(--v2-text-muted)]">
+                {t("landing.likes", { owner })}
+              </span>
+              {genreNames.map((genre) => (
+                <span
+                  key={genre}
+                  className="rounded-full border border-[var(--v2-border)] px-2.5 py-1 text-xs"
+                >
+                  {genre}
+                </span>
+              ))}
+            </div>
+          ) : null}
+
+          <form
+            className="mt-2 flex flex-col gap-3 rounded-3xl border border-[var(--v2-border)] bg-[var(--v2-surface)] p-5"
+            onSubmit={(event) => {
+              event.preventDefault();
+              if (phase === "working") return;
+              void start();
+            }}
+          >
+            <label htmlFor="friend-name" className="text-sm font-medium">
+              {t("landing.nameLabel")}
+            </label>
+            <input
+              id="friend-name"
+              name="name"
+              type="text"
+              autoComplete="given-name"
+              maxLength={50}
+              value={name}
+              onChange={(event) => {
+                setName(event.target.value);
+                setError(null);
+              }}
+              placeholder={t("landing.namePlaceholder")}
+              aria-describedby="friend-name-hint"
+              aria-invalid={error === "name"}
+              className="rounded-xl border border-[var(--v2-border)] bg-[var(--v2-bg)] px-3 py-2 text-base outline-none focus:border-[var(--v2-accent)]"
+            />
+            <p id="friend-name-hint" className="text-xs text-[var(--v2-text-muted)]">
+              {t("landing.nameHint")}
+            </p>
+            {error ? (
+              <p role="alert" className="text-sm text-[var(--v2-danger)]">
+                {t(`errors.${error}`)}
+              </p>
+            ) : null}
+            <button
+              type="submit"
+              disabled={phase === "working"}
+              className="mt-1 rounded-xl bg-[var(--v2-accent)] px-4 py-2.5 text-base font-semibold text-[var(--v2-on-accent)] disabled:opacity-60"
+            >
+              {phase === "working" ? t("pow.solving") : t("landing.start")}
+            </button>
+          </form>
+        </section>
+      )}
+    </main>
+  );
+}
