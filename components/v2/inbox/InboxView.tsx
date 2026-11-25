@@ -3,9 +3,14 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { getInboxAction } from "@/app/lib/actions/v2-owner";
+import {
+  getFriendRailAction,
+  getInboxAction,
+  markFriendSeenAction,
+} from "@/app/lib/actions/v2-owner";
 import InboxCardView from "./InboxCard";
 import DetailSheet from "./DetailSheet";
+import FriendRail from "./FriendRail";
 import ShareBar from "./ShareBar";
 import { BellIcon, GearIcon, ShareIcon } from "./icons";
 import styles from "./inbox.module.css";
@@ -13,20 +18,22 @@ import { ROUTES, TESTID, UI } from "./ui-constants";
 import {
   mergeCards,
   type AskRow,
+  type FriendRail as FriendRailData,
   type InboxCard,
   type InboxPayload,
 } from "./inbox-utils";
 
-/** Owner inbox (PRD §6.2, P0 scope): top bar, the To watch tab with its count,
- *  the merged card list and its detail sheet. The friend rail is P0-17 and
- *  lands in its own change. */
+/** Owner inbox (PRD §6.2/§6.3, P0-16 + P0-17): top bar, the To watch tab with
+ *  its count, the friend rail, the merged card list and its detail sheet. */
 export default function InboxView({
   initial,
+  initialRail,
   ask,
   region,
   unread,
 }: {
   initial: InboxPayload;
+  initialRail: FriendRailData;
   ask: AskRow;
   region: string;
   unread: number;
@@ -35,21 +42,50 @@ export default function InboxView({
   const [cards, setCards] = useState<InboxCard[]>(initial.cards);
   const [counts, setCounts] = useState(initial.counts);
   const [cursor, setCursor] = useState(initial.next_cursor);
+  const [rail, setRail] = useState<FriendRailData>(initialRail);
+  const [selected, setSelected] = useState<string | null>(null);
   const [askState, setAskState] = useState<AskRow>(ask);
   const [open, setOpen] = useState<InboxCard | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const selectedFriend = selected ? rail.friends.find((f) => f.contributor_id === selected) : null;
+
   const loadMore = async () => {
     if (!cursor || busy) return;
     setBusy(true);
     setError(null);
     try {
-      const page = await getInboxAction({ cursor });
+      const page = await getInboxAction({ friendId: selected, cursor });
       setCards((prev) => mergeCards(prev, page.cards));
       setCounts(page.counts);
       setCursor(page.next_cursor);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t("error"));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const selectFriend = async (contributorId: string | null) => {
+    if (busy) return;
+    // Single-select: tapping the selected avatar (or All) clears the filter.
+    const next = contributorId !== null && contributorId === selected ? null : contributorId;
+    setBusy(true);
+    setError(null);
+    try {
+      const page = await getInboxAction({ friendId: next });
+      setCards(page.cards);
+      setCounts(page.counts);
+      setCursor(page.next_cursor);
+      setSelected(next);
+      // Opening a friend's filtered view marks that friend's submissions seen;
+      // viewing All marks nothing (PRD §6.3).
+      if (next !== null) {
+        await markFriendSeenAction(next);
+        setRail(await getFriendRailAction());
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : t("error"));
     } finally {
@@ -106,9 +142,13 @@ export default function InboxView({
           </button>
         </div>
 
+        <FriendRail rail={rail} selected={selected} disabled={busy} onSelect={selectFriend} />
+
         {cards.length === 0 ? (
           <div className={styles.empty} data-testid={TESTID.empty}>
-            <p className={styles.emptyText}>{t("empty")}</p>
+            <p className={styles.emptyText}>
+              {selectedFriend ? t("emptyFriend", { name: selectedFriend.display_name }) : t("empty")}
+            </p>
             <button type={UI.button} onClick={() => setShareOpen(true)} className={styles.cta}>
               {t("shareLink")}
             </button>

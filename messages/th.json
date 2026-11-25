@@ -615,7 +615,11 @@
     "availabilityPending": "กำลังตรวจสอบช่องทางรับชม",
     "recommendingFriends": "เพื่อนที่แนะนำ",
     "languageLine": "ภาษาต้นฉบับ: {value}",
-    "genresLine": "แนว: {value}"
+    "genresLine": "แนว: {value}",
+    "railAll": "ทั้งหมด",
+    "railAllLabel": "ทั้งหมด, {count} รายการที่ยังไม่เห็น",
+    "railFriendLabel": "{name}, {count} รายการที่ยังไม่เห็น",
+    "emptyFriend": "ยังไม่มีรายการจาก {name}"
   },
   "v2": {
     "language": {

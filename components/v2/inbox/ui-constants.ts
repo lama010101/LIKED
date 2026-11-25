@@ -10,6 +10,7 @@ export const UI = {
   alert: "alert",
   tab: "tab",
   tablist: "tablist",
+  list: "list",
   true: "true",
   empty: "",
   lazy: "lazy",
@@ -52,4 +53,5 @@ export const TESTID = {
   rail: "inbox-rail",
   railAll: "rail-all",
   railFriend: "rail-friend",
+  railBadge: "rail-badge",
 } as const;
