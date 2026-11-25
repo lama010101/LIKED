@@ -32,7 +32,11 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "reauth_unavailable" }, { status: 503 });
   }
 
-  const origin = new URL(request.url).origin;
+  const origin =
+    process.env.NEXT_PUBLIC_APP_URL ||
+    (process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : new URL(request.url).origin);
   const redirectTo = `${origin}/callback?next=${encodeURIComponent("/api/account/reauth/done")}`;
   const authorizeUrl =
     `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/authorize?provider=google` +

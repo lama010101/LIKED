@@ -74,5 +74,5 @@ export async function POST(request: Request) {
   } catch {
     // session cookies may already be invalid post-delete
   }
-  return NextResponse.redirect(new URL("/account-deleted", request.url));
+  return NextResponse.redirect(new URL("/account-deleted", request.url), 303);
 }

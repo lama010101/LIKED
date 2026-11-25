@@ -27,11 +27,20 @@ export async function GET(request: Request) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  if (!user) {
+    return NextResponse.json({ error: "NOT_AUTHENTICATED" }, { status: 401 });
+  }
+
   const state = verifyReauthState(stateToken);
-  // Wrong account / expired / missing state -> normal post-login page,
-  // nothing is deleted, no proof is minted.
-  if (!user || !state || state.uid !== user.id) {
-    const res = NextResponse.redirect(`${origin}/feed`);
+  const lastSignInAt =
+    typeof user.last_sign_in_at === "string" ? Date.parse(user.last_sign_in_at) : Number.NaN;
+  const freshSignIn =
+    state !== null && Number.isFinite(lastSignInAt) && lastSignInAt > state.iat - 5_000;
+
+  // Wrong account / expired or missing state / no fresh Google round trip
+  // -> no proof is minted and the state cookie is cleared.
+  if (!state || state.uid !== user.id || !freshSignIn) {
+    const res = NextResponse.redirect(`${origin}/settings/delete?reauth=failed`);
     res.cookies.set(REAUTH_STATE_COOKIE, "", { path: "/", maxAge: 0 });
     return res;
   }
