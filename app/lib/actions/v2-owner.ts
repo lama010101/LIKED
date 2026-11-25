@@ -6,6 +6,8 @@
 // passed — every RPC resolves auth.uid() server-side.
 
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { cookies } from "next/headers";
+import { isLanguageCode, LOCALE_COOKIE, tmdbTagFor } from "@/lib/i18n/languages";
 import type {
   AskRow,
   FriendRail,
@@ -83,4 +85,32 @@ export async function getFriendRailAction(): Promise<FriendRail> {
  *  all_unseen drops by exactly cleared_recommendations (PRD §13 item 8). */
 export async function markFriendSeenAction(contributorId: string): Promise<MarkSeenResult> {
   return ownerRpc<MarkSeenResult>("mark_friend_seen", { p_contributor_id: contributorId });
+}
+
+export interface MyPrefsPatch {
+  /** undefined = unchanged, null = clear, else an ISO 3166-1 alpha-2 code. */
+  regionCode?: string | null;
+  notifyEmail?: boolean;
+}
+
+/** set_my_prefs: partial update; tmdb_lang is derived by set_language only. */
+export async function setMyPrefsAction(patch: MyPrefsPatch): Promise<void> {
+  await ownerRpc<void>("set_my_prefs", {
+    p_region_code: patch.regionCode === undefined ? null : (patch.regionCode ?? ""),
+    p_notify_email: patch.notifyEmail ?? null,
+    p_theme: null,
+    p_accent: null,
+  });
+}
+
+/** Language switch (PRD §6.8/§7.2): writes the LIKED_LOCALE cookie (single
+ *  source for i18n/request.ts), the TMDB tag cookie, and persists the choice
+ *  through set_language (user_prefs.tmdb_lang + language_set_at). */
+export async function setLanguageAction(code: string): Promise<void> {
+  if (!isLanguageCode(code)) throw new Error("unsupported language");
+  const store = await cookies();
+  const maxAge = 60 * 60 * 24 * 365;
+  store.set(LOCALE_COOKIE, code, { path: "/", maxAge, sameSite: "lax" });
+  store.set("LIKED_TMDB_LANG", tmdbTagFor(code), { path: "/", maxAge, sameSite: "lax" });
+  await ownerRpc<void>("set_language", { p_language_code: code });
 }
