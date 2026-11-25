@@ -214,6 +214,23 @@ describe("processJobs — details", () => {
     });
     expect(summary).toMatchObject({ errored: 1 });
   });
+
+  it("R2: a provider error carrying the API key never reaches p_error", async () => {
+    const { client, calls } = makeClient({
+      jobs: [job()],
+      items: [item({ source: "youtube", kind: "video", external_id: "dQw4w9WgXcQ" })],
+    });
+    const leaky =
+      "network: connect ECONNREFUSED https://www.googleapis.com/youtube/v3/videos?part=snippet&id=dQw4w9WgXcQ&key=yt-key";
+    const fetchImpl = (async () => {
+      throw new Error(leaky);
+    }) as typeof fetch;
+    await processJobs({ client, fetchImpl, env: ENV });
+    const pError = calls.find((c) => c.fn === "enrichment_finish")?.params.p_error;
+    expect(typeof pError).toBe("string");
+    expect(pError).not.toContain("yt-key");
+    expect(pError).toContain("key=<redacted>");
+  });
 });
 
 describe("processJobs — availability", () => {

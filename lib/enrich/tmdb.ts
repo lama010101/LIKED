@@ -4,8 +4,13 @@
 // Stream/Rent/Buy, no prices, per region. Posters stay hotlinks: only the
 // TMDB path text is stored (PRD v2.6 §7).
 import type { EnrichmentItem, ProviderResult } from "./types";
+import { redactSecrets } from "./redact";
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
+// Every provider call is time-boxed (R1): a hung upstream must become a
+// retryable error, never a stuck worker. AbortSignal.timeout rejects with
+// a TimeoutError DOMException, mapped to 'provider_timeout' below.
+export const PROVIDER_TIMEOUT_MS = 8_000;
 
 export interface TmdbDetailsPayload {
   name?: string;
@@ -131,15 +136,23 @@ export function mapTmdbAvailability(
 async function getJson(
   url: string,
   token: string,
-  fetchImpl: typeof fetch
+  fetchImpl: typeof fetch,
+  timeoutMs: number
 ): Promise<ProviderResult<unknown>> {
   let res: Response;
   try {
     res = await fetchImpl(url, {
       headers: { Authorization: `Bearer ${token}`, accept: "application/json" },
+      signal: AbortSignal.timeout(timeoutMs),
     });
   } catch (err) {
-    return { status: "error", message: `network: ${err instanceof Error ? err.message : "fetch failed"}` };
+    const isTimeout =
+      err instanceof DOMException &&
+      (err.name === "TimeoutError" || err.name === "AbortError");
+    const raw = isTimeout
+      ? "provider_timeout"
+      : `network: ${err instanceof Error ? err.message : "fetch failed"}`;
+    return { status: "error", message: redactSecrets(raw, [token]) };
   }
   if (res.status === 404) return { status: "unavailable" };
   if (!res.ok) return { status: "error", message: `tmdb_http_${res.status}` };
@@ -153,7 +166,7 @@ async function getJson(
 export async function fetchTmdbDetails(
   item: EnrichmentItem,
   tag: string,
-  opts: { token: string; fetchImpl?: typeof fetch; baseUrl?: string }
+  opts: { token: string; fetchImpl?: typeof fetch; baseUrl?: string; timeoutMs?: number }
 ): Promise<ProviderResult<TmdbDetailsPayload>> {
   const media = mediaPath(item);
   if (!media) return { status: "error", message: "unsupported_tmdb_kind" };
@@ -161,7 +174,12 @@ export async function fetchTmdbDetails(
   const url = `${base}/${media}/${encodeURIComponent(item.external_id)}?language=${encodeURIComponent(
     tag
   )}&append_to_response=videos`;
-  const res = await getJson(url, opts.token, opts.fetchImpl ?? fetch);
+  const res = await getJson(
+    url,
+    opts.token,
+    opts.fetchImpl ?? fetch,
+    opts.timeoutMs ?? PROVIDER_TIMEOUT_MS
+  );
   if (res.status !== "ok") return res;
   return { status: "ok", value: mapTmdbDetails(res.value as TmdbMedia) };
 }
@@ -169,13 +187,18 @@ export async function fetchTmdbDetails(
 export async function fetchTmdbAvailability(
   item: EnrichmentItem,
   region: string,
-  opts: { token: string; fetchImpl?: typeof fetch; baseUrl?: string }
+  opts: { token: string; fetchImpl?: typeof fetch; baseUrl?: string; timeoutMs?: number }
 ): Promise<ProviderResult<TmdbAvailabilityRow[]>> {
   const media = mediaPath(item);
   if (!media) return { status: "error", message: "unsupported_tmdb_kind" };
   const base = opts.baseUrl ?? TMDB_BASE;
   const url = `${base}/${media}/${encodeURIComponent(item.external_id)}/watch/providers`;
-  const res = await getJson(url, opts.token, opts.fetchImpl ?? fetch);
+  const res = await getJson(
+    url,
+    opts.token,
+    opts.fetchImpl ?? fetch,
+    opts.timeoutMs ?? PROVIDER_TIMEOUT_MS
+  );
   if (res.status !== "ok") return res;
   return { status: "ok", value: mapTmdbAvailability(res.value as TmdbProviders, region) };
 }

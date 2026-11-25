@@ -12,6 +12,7 @@
 // kick (lib/enrich/kick.ts, not part of this task). It must never be
 // called inside a submit request path: submit only enqueues jobs.
 import { getSupabaseServiceClient } from "@/lib/supabase/service";
+import { redactSecrets } from "./redact";
 import { fetchTmdbAvailability, fetchTmdbDetails, type TmdbAvailabilityRow } from "./tmdb";
 import { fetchYoutubeDetails } from "./youtube";
 import {
@@ -46,9 +47,13 @@ export interface ProcessJobsSummary {
 
 const MAX_ERROR_LENGTH = 500;
 
-function errorText(err: unknown): string {
+// R2: every string that reaches last_error (enrichment_finish p_error)
+// or a log line is secret-redacted first — provider errors can embed
+// request URLs (?key=) or credential values. Redact BEFORE truncating
+// so a cut can never leave a partial secret behind.
+function errorText(err: unknown, secrets: readonly (string | null)[]): string {
   const text = err instanceof Error ? err.message : String(err);
-  return text.slice(0, MAX_ERROR_LENGTH);
+  return redactSecrets(text, secrets).slice(0, MAX_ERROR_LENGTH);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -120,17 +125,29 @@ export async function processJobs(
 
   const summary: ProcessJobsSummary = { ...empty, claimed: jobs.length };
 
+  const providerSecrets = [env.tmdbToken, env.youtubeKey] as const;
+
   const finish = async (job: EnrichmentJob, ok: boolean, error?: string) => {
     const res = await client.rpc("enrichment_finish", {
       p_job_id: job.id,
       p_ok: ok,
-      p_error: ok ? null : (error ?? "unknown error"),
+      p_error: ok
+        ? null
+        : redactSecrets(error ?? "unknown error", providerSecrets).slice(
+            0,
+            MAX_ERROR_LENGTH
+          ),
     });
     // A finish failure means the row stayed 'processing' and will be
     // reclaimed as stale after 5 minutes; count it as errored.
     if (res.error) {
       summary.errored += 1;
-      console.warn(`[enrich] enrichment_finish failed for job ${job.id}: ${res.error.message ?? ""}`);
+      console.warn(
+        `[enrich] enrichment_finish failed for job ${job.id}: ${redactSecrets(
+          res.error.message ?? "",
+          providerSecrets
+        )}`
+      );
       return;
     }
     if (ok) summary.done += 1;
@@ -254,7 +271,7 @@ export async function processJobs(
       if (job.job_kind === "details") await applyDetails(item, job);
       else await applyAvailability(item, job);
     } catch (err) {
-      await finish(job, false, errorText(err));
+      await finish(job, false, errorText(err, providerSecrets));
     }
   }
 

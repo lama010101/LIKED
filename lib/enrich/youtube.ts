@@ -3,6 +3,8 @@
 // the housekeeping cron; the video id itself is kept indefinitely. Video
 // thumbnails are derived from the id (i.ytimg.com), never stored.
 import type { EnrichmentItem, ProviderResult } from "./types";
+import { PROVIDER_TIMEOUT_MS } from "./tmdb";
+import { redactSecrets } from "./redact";
 
 const YT_BASE = "https://www.googleapis.com/youtube/v3";
 
@@ -64,7 +66,7 @@ export function mapYoutubeDetails(
 
 export async function fetchYoutubeDetails(
   item: EnrichmentItem,
-  opts: { key: string; fetchImpl?: typeof fetch; baseUrl?: string }
+  opts: { key: string; fetchImpl?: typeof fetch; baseUrl?: string; timeoutMs?: number }
 ): Promise<ProviderResult<YoutubeDetailsPayload>> {
   const isChannel = item.kind === "channel";
   if (item.source !== "youtube" || (!isChannel && item.kind !== "video")) {
@@ -79,12 +81,18 @@ export async function fetchYoutubeDetails(
   const url = `${base}/${isChannel ? "channels" : "videos"}?${params.toString()}`;
   let res: Response;
   try {
-    res = await (opts.fetchImpl ?? fetch)(url, { headers: { accept: "application/json" } });
+    res = await (opts.fetchImpl ?? fetch)(url, {
+      headers: { accept: "application/json" },
+      signal: AbortSignal.timeout(opts.timeoutMs ?? PROVIDER_TIMEOUT_MS),
+    });
   } catch (err) {
-    return {
-      status: "error",
-      message: `network: ${err instanceof Error ? err.message : "fetch failed"}`,
-    };
+    const isTimeout =
+      err instanceof DOMException &&
+      (err.name === "TimeoutError" || err.name === "AbortError");
+    const raw = isTimeout
+      ? "provider_timeout"
+      : `network: ${err instanceof Error ? err.message : "fetch failed"}`;
+    return { status: "error", message: redactSecrets(raw, [opts.key]) };
   }
   if (res.status === 404) return { status: "unavailable" };
   if (!res.ok) return { status: "error", message: `youtube_http_${res.status}` };

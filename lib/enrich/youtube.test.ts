@@ -110,4 +110,23 @@ describe("fetchYoutubeDetails", () => {
     const res = await fetchYoutubeDetails(video, { key: "k", fetchImpl });
     expect(res).toEqual({ status: "error", message: "youtube_http_403" });
   });
+
+  it("passes an AbortSignal and maps a timeout to a retryable error", async () => {
+    let seenSignal: AbortSignal | null = null;
+    const fetchImpl = ((_input: RequestInfo | URL, init?: RequestInit) => {
+      seenSignal = (init?.signal as AbortSignal | null) ?? null;
+      return new Promise<Response>((_resolve, reject) => {
+        init?.signal?.addEventListener("abort", () =>
+          reject(new DOMException("The operation timed out.", "TimeoutError"))
+        );
+      });
+    }) as typeof fetch;
+    const res = await fetchYoutubeDetails(video, {
+      key: "k",
+      fetchImpl,
+      timeoutMs: 30,
+    });
+    expect(seenSignal).toBeInstanceOf(AbortSignal);
+    expect(res).toEqual({ status: "error", message: "provider_timeout" });
+  });
 });

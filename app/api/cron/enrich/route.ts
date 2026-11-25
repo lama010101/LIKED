@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { processJobs } from "@/lib/enrich/processJobs";
+import { readProviderEnv } from "@/lib/enrich/types";
+import { redactSecrets } from "@/lib/enrich/redact";
 import { authorizeCron } from "../_lib/cronAuth";
 
 /**
@@ -24,9 +26,13 @@ export async function GET(request: Request) {
     const summary = await processJobs();
     return NextResponse.json(summary);
   } catch (err) {
+    const env = readProviderEnv();
     console.error(
       "[cron/enrich] run failed:",
-      err instanceof Error ? err.message : "unknown error"
+      redactSecrets(
+        err instanceof Error ? err.message : "unknown error",
+        [env.tmdbToken, env.youtubeKey]
+      )
     );
     return NextResponse.json({ ok: false, error: "enrich_failed" }, { status: 500 });
   }
