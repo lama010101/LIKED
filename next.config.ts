@@ -45,7 +45,7 @@ const nextConfig: NextConfig = {
               "default-src 'self'",
               "script-src 'self' 'unsafe-inline'",
               "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: blob: https://*.supabase.co https://i.ytimg.com https://yt3.ggpht.com https://lh3.googleusercontent.com",
+              "img-src 'self' data: blob: https://*.supabase.co https://i.ytimg.com https://yt3.ggpht.com https://lh3.googleusercontent.com https://image.tmdb.org",
               "font-src 'self'",
               "connect-src 'self' https://*.supabase.co https://www.googleapis.com wss://lzkzfqshnjvlzosnntfx.supabase.co",
               "frame-src https://www.youtube.com https://open.spotify.com https://studio.suno.com https://suno.com",
@@ -73,6 +73,11 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "yt3.ggpht.com",
+      },
+      {
+        protocol: "https",
+        hostname: "image.tmdb.org",
+        pathname: "/t/p/**",
       },
     ],
   },
