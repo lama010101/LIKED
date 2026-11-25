@@ -33,8 +33,22 @@ jobs:
       - name: Type check
         run: npx tsc --noEmit
 
+      # next/font's Google loader intermittently throws a TypeError during
+      # build (transient network flake). Retry up to 3 attempts, 10s apart;
+      # the step fails only when all 3 attempts fail.
       - name: Build
-        run: npm run build
+        run: |
+          for attempt in 1 2 3; do
+            echo "build attempt ${attempt}/3"
+            if npm run build; then
+              exit 0
+            fi
+            if [ "${attempt}" -lt 3 ]; then
+              echo "build failed — retrying in 10s"
+              sleep 10
+            fi
+          done
+          exit 1
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
