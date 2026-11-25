@@ -8,6 +8,12 @@
 // items.enrichment_status transition (pending → partial → complete |
 // failed) are also owned by the SQL functions, not duplicated here.
 //
+// Migration 145/149 re-enqueue a stale item as the same 'details' job
+// kind; there is no separate refresh marker in enrichment_jobs. The
+// DB-backed discriminator is therefore localized[job.param]: absent means
+// FIRST fill (item_apply_details), present means REFRESH
+// (item_refresh_apply).
+//
 // This module is called from /api/cron/enrich and from the guest session's
 // kick (lib/enrich/kick.ts, not part of this task). It must never be
 // called inside a submit request path: submit only enqueues jobs.
@@ -58,6 +64,10 @@ function errorText(err: unknown, secrets: readonly (string | null)[]): string {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
+}
+
+function hasLocalizedTag(item: EnrichmentItem, tag: string): boolean {
+  return isRecord(item.localized) && Object.prototype.hasOwnProperty.call(item.localized, tag);
 }
 
 function asJobs(data: unknown): EnrichmentJob[] {
@@ -116,7 +126,7 @@ export async function processJobs(
   const itemIds = Array.from(new Set(jobs.map((j) => j.item_id)));
   const itemQuery = await client
     .from("items")
-    .select("id,source,kind,external_id")
+    .select("id,source,kind,external_id,localized")
     .in("id", itemIds);
   if (itemQuery.error) {
     throw new Error(`items read: ${itemQuery.error.message ?? "query failed"}`);
@@ -189,13 +199,21 @@ export async function processJobs(
         await markUnavailable(item, job);
         return;
       }
-      const apply = await client.rpc("item_apply_details", {
-        p_item_id: item.id,
-        p_tag: job.param,
-        p_payload: res.value,
-      });
+      const firstFill = !hasLocalizedTag(item, job.param);
+      const apply = firstFill
+        ? await client.rpc("item_apply_details", {
+            p_item_id: item.id,
+            p_tag: job.param,
+            p_payload: res.value,
+          })
+        : await client.rpc("item_refresh_apply", {
+            p_item_id: item.id,
+            p_payload: res.value,
+            p_unavailable: false,
+          });
       if (apply.error) {
-        await finish(job, false, `item_apply_details: ${apply.error.message ?? "rpc failed"}`);
+        const fn = firstFill ? "item_apply_details" : "item_refresh_apply";
+        await finish(job, false, `${fn}: ${apply.error.message ?? "rpc failed"}`);
         return;
       }
       await finish(job, true);

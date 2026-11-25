@@ -144,7 +144,13 @@ describe("account reauth routes", () => {
     expect(setCookieText(res)).not.toContain(`${REAUTH_PROOF_COOKIE}=v1.`);
   });
 
-  it("no session returns 401", async () => {
+  it("start with no session returns 401", async () => {
+    mocks.getUser.mockResolvedValue({ data: { user: null }, error: null });
+    const res = await startGET(req("/api/account/reauth/start"));
+    expect(res.status).toBe(401);
+  });
+
+  it("done with no session returns 401", async () => {
     mocks.getUser.mockResolvedValue({ data: { user: null }, error: null });
     const res = await doneGET(req("/api/account/reauth/done"));
     expect(res.status).toBe(401);

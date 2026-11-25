@@ -19,6 +19,8 @@ export interface EnrichmentItem {
   source: "tmdb" | "youtube";
   kind: "movie" | "series" | "video" | "channel";
   external_id: string;
+  /** Localized display fields already applied, keyed by TMDB language tag. */
+  localized?: Record<string, unknown> | null;
 }
 
 /** Minimal surface of the service-role Supabase client used here. */
