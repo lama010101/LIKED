@@ -459,7 +459,8 @@
     "shareReceived": "{name} แชร์การ์ดกับคุณ",
     "folderShared": "{name} แชร์โฟลเดอร์ \"{folder}\" กับคุณ",
     "permissionChanged": "สิทธิ์ของคุณใน \"{item}\" เปลี่ยนเป็น {permission}",
-    "itemAdded": "{name} เพิ่ม \"{item}\" ลงใน \"{folder}\""
+    "itemAdded": "{name} เพิ่ม \"{item}\" ลงใน \"{folder}\"",
+    "recommendationReceived": "{name} แนะนำ {count} รายการ"
   },
   "trash": {
     "title": "ถังขยะ",
