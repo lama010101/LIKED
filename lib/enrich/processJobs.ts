@@ -70,6 +70,11 @@ function hasLocalizedTag(item: EnrichmentItem, tag: string): boolean {
   return isRecord(item.localized) && Object.prototype.hasOwnProperty.call(item.localized, tag);
 }
 
+function refreshPayload(payload: object, tag: string): Record<string, unknown> {
+  const { localized, ...rest } = payload as Record<string, unknown>;
+  return isRecord(localized) ? { ...rest, localized: { [tag]: localized } } : rest;
+}
+
 function asJobs(data: unknown): EnrichmentJob[] {
   if (!Array.isArray(data)) return [];
   return data.filter(
@@ -208,7 +213,7 @@ export async function processJobs(
           })
         : await client.rpc("item_refresh_apply", {
             p_item_id: item.id,
-            p_payload: res.value,
+            p_payload: refreshPayload(res.value, job.param),
             p_unavailable: false,
           });
       if (apply.error) {

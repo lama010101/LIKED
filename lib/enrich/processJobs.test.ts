@@ -145,7 +145,9 @@ describe("processJobs — details", () => {
       p_item_id: "item-1",
       p_unavailable: false,
     });
-    expect((calls.find((c) => c.fn === "item_refresh_apply")?.params.p_payload as Record<string, unknown>).name).toBe("Matrix");
+    const payload = calls.find((c) => c.fn === "item_refresh_apply")?.params.p_payload as Record<string, unknown>;
+    expect(payload.name).toBe("Matrix");
+    expect((payload.localized as Record<string, { name?: string }>)["fr-FR"].name).toBe("Matrix");
     expect(calls.some((c) => c.fn === "item_apply_details")).toBe(false);
     expect(summary).toMatchObject({ done: 1, errored: 0 });
   });
