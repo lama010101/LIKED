@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { getInboxItemAction } from "@/app/lib/actions/v2-owner";
 import ScoreRing from "./ScoreRing";
 import { CloseIcon, PlayIcon } from "./icons";
 import styles from "./inbox.module.css";
@@ -10,26 +11,25 @@ import {
   cardImageUrl,
   displayableGenres,
   formatPercent,
+  formatRecommenderDate,
   isSkeleton,
   languageName,
   splitRuntime,
   typeKey,
   type InboxCard,
+  type InboxItemDetail,
 } from "./inbox-utils";
 
 const TITLE_ID = "inbox-detail-title";
 
 /** Item detail sheet (PRD §6.2): overview, runtime, original language, genres,
  *  two SEPARATE rings (Friends accent / TMDB neutral — never blended), trailer,
- *  availability where the frozen get_inbox contract exposes it, and one row per
- *  recommending friend returned by get_inbox. */
+ *  and one row per recommending friend returned by get_inbox_item. */
 export default function DetailSheet({
   card,
-  region,
   onClose,
 }: {
   card: InboxCard;
-  region: string;
   onClose: () => void;
 }) {
   const t = useTranslations("inbox");
@@ -45,6 +45,21 @@ export default function DetailSheet({
     card.rater_count > 0
       ? `${t("friendsAverage")} ${t("raters", { count: card.rater_count })}`
       : t("friendsAverage");
+  const [detail, setDetail] = useState<InboxItemDetail | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    getInboxItemAction(card.item_id)
+      .then((value) => {
+        if (active) setDetail(value);
+      })
+      .catch(() => {
+        if (active) setDetail(null);
+      });
+    return () => {
+      active = false;
+    };
+  }, [card.item_id]);
 
   useEffect(() => {
     closeRef.current?.focus();
@@ -176,44 +191,34 @@ export default function DetailSheet({
           </a>
         )}
 
-        <section className={styles.section}>
-          <h3 className={styles.sectionTitle}>{t("whereToWatch")}</h3>
-          {card.platforms.length > 0 ? (
-            <div className={styles.chipsRow}>
-              {card.platforms.map((p) => (
-                <span key={p} className={styles.platformChip}>
-                  {p}
-                </span>
-              ))}
-              <span className={styles.mutedSmall}>{t("viaJustWatch")}</span>
-            </div>
-          ) : (
-            <p className={styles.mutedText}>
-              {skeleton ? t("availabilityPending") : t("notAvailableIn", { region })}
-            </p>
-          )}
-        </section>
-
         <section>
           <h3 className={styles.sectionTitle}>{t("recommendingFriends")}</h3>
           <ul className={styles.friendList}>
-            {card.recommenders.map((r) => (
+            {(detail?.recommenders ?? []).map((r, index) => (
               <li
-                key={r.contributor_id}
+                key={`${r.name}:${r.created_at}:${index}`}
                 className={styles.friendRow}
                 data-testid={TESTID.recommenderRow}
               >
                 <span className={styles.friendAvatar}>{r.initials}</span>
-                <span className={styles.friendName}>{r.display_name}</span>
-                <span className={styles.friendScore}>
-                  {r.rating !== null ? formatPercent(r.rating) : t("noScore")}
+                <span className={styles.friendBody}>
+                  <span className={styles.friendHeader}>
+                    <span className={styles.friendName}>{r.name}</span>
+                    <span className={styles.friendScore}>
+                      {r.rating !== null ? formatPercent(r.rating) : t("noScore")}
+                    </span>
+                  </span>
+                  {r.platform_text && (
+                    <span className={styles.friendPlatform}>{r.platform_text}</span>
+                  )}
+                  {r.comment && <span className={styles.friendComment}>{r.comment}</span>}
+                  <time className={styles.friendDate} dateTime={r.created_at}>
+                    {formatRecommenderDate(r.created_at, locale)}
+                  </time>
                 </span>
               </li>
             ))}
           </ul>
-          {card.more_count > 0 && (
-            <p className={styles.mutedSmall}>{t("moreRecommenders", { count: card.more_count })}</p>
-          )}
         </section>
       </section>
     </div>

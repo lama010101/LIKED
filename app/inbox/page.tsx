@@ -5,7 +5,6 @@ import {
   ensureMyAskAction,
   getFriendRailAction,
   getInboxAction,
-  getMyPrefsAction,
 } from "@/app/lib/actions/v2-owner";
 import InboxView from "@/components/v2/inbox/InboxView";
 
@@ -16,11 +15,10 @@ export default async function InboxPage() {
   const user = await getSessionUser();
   if (!user) redirect("/login");
 
-  const [ask, inbox, rail, prefs, unread] = await Promise.all([
+  const [ask, inbox, rail, unread] = await Promise.all([
     ensureMyAskAction(),
     getInboxAction(),
     getFriendRailAction(),
-    getMyPrefsAction(),
     getUnreadNotificationCountAction().catch(() => 0),
   ]);
 
@@ -29,7 +27,6 @@ export default async function InboxPage() {
       initial={inbox}
       initialRail={rail}
       ask={ask}
-      region={prefs.region_code ?? "US"}
       unread={unread}
     />
   );

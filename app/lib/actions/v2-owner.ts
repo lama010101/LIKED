@@ -11,6 +11,7 @@ import { isLanguageCode, LOCALE_COOKIE, tmdbTagFor } from "@/lib/i18n/languages"
 import type {
   AskRow,
   FriendRail,
+  InboxItemDetail,
   InboxPayload,
   MarkSeenResult,
   UserPrefs,
@@ -51,6 +52,11 @@ export async function getInboxAction(query: InboxQuery = {}): Promise<InboxPaylo
     p_cursor_item: query.cursor?.item_id ?? null,
     p_limit: query.limit ?? 30,
   });
+}
+
+/** get_inbox_item (migration 148): owner detail rows, without offers or region_missing. */
+export async function getInboxItemAction(itemId: string): Promise<InboxItemDetail> {
+  return ownerRpc<InboxItemDetail>("get_inbox_item", { p_item_id: itemId });
 }
 
 /** ensure_my_ask on first load (PRD §6.1: one link per owner, created automatically). */
