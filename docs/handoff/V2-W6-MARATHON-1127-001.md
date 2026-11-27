@@ -24,7 +24,7 @@ Started: 2026-11-27T09:29+07:00
 | WP3 migration 149 | DONE | devin/V2-W6-MIG149-1127-001 | bec2acca62691d014186339de63d571f3c2fa9d4 | PR77 | merged as 4d01614b1087bd5d81e6f145adc918b23dca5833; postmerge proofs pass; next WP6 |
 | WP4 guest stack | PENDING | devin/V2-W3-GUEST-FIX-1125-001-d | f95d4f00c449d368a4f80cb04611888deb9f2e29 | existing draft TBD | wait WP2 live |
 | WP5 pipeline stack | PENDING | stacked branches | pending | #62/#71/#73/#74 | wait WP1+WP2/WP3 |
-| WP6 class A items | PR_OPEN | devin/V2-W6-CLASSA-1127-001 | b0bb0ad885261de7174ebb4f46d25910cffb4e48 | PR78 | wait for CI, then Class A merge if green |
+| WP6 class A items | DONE | devin/V2-W6-CLASSA-1127-001 | b0bb0ad885261de7174ebb4f46d25910cffb4e48 | PR78 | merged as a3eb164b206eb7331bf7cfe18fdde2b00cd0e9f3; next WP4 |
 | WP7 closeout | PENDING | devin/V2-W6-LEDGER-1127-001 | pending | pending | final |
 
 ## WP2 checkpoint 2026-11-27
@@ -74,3 +74,12 @@ Started: 2026-11-27T09:29+07:00
 - Owner inbox e2e passed 9/9. Fixture row counts before and after were equal for contributors, submissions, recommendations, recommendation_notifications, asks, and items.
 - Privacy/Terms report: legal review is still needed.
 - Next action: wait for PR78 CI; merge only if green and scope remains Class A.
+
+## WP6 completion 2026-11-27T05:57Z
+
+- PR78 CI green: build success, e2e success, Vercel Preview Comments success, Supabase Preview skipped.
+- PR78 merged through REST at pinned head `b0bb0ad885261de7174ebb4f46d25910cffb4e48`; merge commit `a3eb164b206eb7331bf7cfe18fdde2b00cd0e9f3`.
+- Ancestry proof: both the pinned head and merge commit are ancestors of `origin/main`; branch push log was empty before merge.
+- Protected-path checker: 0 protected paths touched. Scope matched WP6 owner detail, privacy/terms, and TMDB credits/logo files only.
+- Legal review is still needed for Privacy/Terms.
+- WP6 DONE. Next WP4 guest stack.
