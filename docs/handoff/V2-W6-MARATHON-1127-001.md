@@ -20,9 +20,18 @@ Started: 2026-11-27T09:29+07:00
 |---|---|---|---|---|---|
 | Ledger | ACTIVE | devin/V2-W6-LEDGER-1127-001 | ee85ae392e50bbc6b4d3b11078281f14d4520650 | pending | update after every WP |
 | WP1 CI unblock | MERGED | devin/V2-W5-CISTACK-1126-001 | 41683df040390c286370d5bcd6060843b9a76e36 | PR75 | merged as 9a18b9ebec848efda34eb07f8b76feb4d5600a6e; non-main-base CI proof pending WP5 push |
-| WP2 migrations 147+148 | PR_OPEN | devin/V2-W6-MIG147-1127-001 | 1f96edff2ecda108d3c7e6718692d57c015f95b0 | PR76 | local validation passed; final harness/preauthorization/CI pending |
+| WP2 migrations 147+148 | PREMERGE_CHECK_RUNNING | devin/V2-W6-MIG147-1127-001 | 1f96edff2ecda108d3c7e6718692d57c015f95b0 | PR76 | CI+E2E success; mergeable_state=clean; rollback harness 192/192 pass; check-invariants expected premerge failures DB-7/DB-21 recorded; verify-v2-security premerge run still executing at context pause |
 | WP3 migration 149 | PENDING | devin/V2-W6-MIG149-1127-001 | pending | pending | wait WP2 live |
 | WP4 guest stack | PENDING | devin/V2-W3-GUEST-FIX-1125-001-d | f95d4f00c449d368a4f80cb04611888deb9f2e29 | existing draft TBD | wait WP2 live |
 | WP5 pipeline stack | PENDING | stacked branches | pending | #62/#71/#73/#74 | wait WP1+WP2/WP3 |
 | WP6 class A items | PENDING | TBD | pending | pending | wait dependencies |
 | WP7 closeout | PENDING | devin/V2-W6-LEDGER-1127-001 | pending | pending | final |
+
+## WP2 checkpoint 2026-11-27
+
+- PR76 pinned head `1f96edff2ecda108d3c7e6718692d57c015f95b0`; REST `state=open`, `merged=false`, `mergeable=true`, `mergeable_state=clean`.
+- CI run `45931499228` completed success; E2E run `45931499182` completed success.
+- `check-invariants-001.mjs` premerge exit 1 with exactly expected failures: DB-7 unrecorded 147,148; DB-21 missing 12 class-S functions plus `get_inbox_item`; total `69 passed, 2 failed`.
+- Harness final result remains `192 passed, 0 failed`, rollback issued, zero residue, no `@` or UUID-like output.
+- `verify-v2-security.mjs` premerge was still running when the context checkpoint was reached; log path `D:LIKED-WORKTREESwp2-security-premerge.log`.
+- Resume next action: finish/read premerge security output, verify all WP2 preauthorization conditions, merge PR76 only if conditions pass, then run post-merge proofs and begin WP3.
