@@ -24,7 +24,7 @@ Started: 2026-11-27T09:29+07:00
 | WP3 migration 149 | DONE | devin/V2-W6-MIG149-1127-001 | bec2acca62691d014186339de63d571f3c2fa9d4 | PR77 | merged as 4d01614b1087bd5d81e6f145adc918b23dca5833; postmerge proofs pass; next WP6 |
 | WP4 guest stack | PENDING | devin/V2-W3-GUEST-FIX-1125-001-d | f95d4f00c449d368a4f80cb04611888deb9f2e29 | existing draft TBD | wait WP2 live |
 | WP5 pipeline stack | PENDING | stacked branches | pending | #62/#71/#73/#74 | wait WP1+WP2/WP3 |
-| WP6 class A items | PENDING | TBD | pending | pending | wait dependencies |
+| WP6 class A items | PR_OPEN | devin/V2-W6-CLASSA-1127-001 | b0bb0ad885261de7174ebb4f46d25910cffb4e48 | PR78 | wait for CI, then Class A merge if green |
 | WP7 closeout | PENDING | devin/V2-W6-LEDGER-1127-001 | pending | pending | final |
 
 ## WP2 checkpoint 2026-11-27
@@ -65,3 +65,12 @@ Started: 2026-11-27T09:29+07:00
 - Postmerge verify-v2-security: 124 passed, 0 failed, rollback issued, exit 0.
 - Postmerge check-invariants: 71 passed, 0 failed, exit 0.
 - WP3 DONE. Next WP6.
+
+## WP6 PR checkpoint 2026-11-27T05:52Z
+
+- Branch `devin/V2-W6-CLASSA-1127-001` pushed; `git log origin/devin/V2-W6-CLASSA-1127-001..HEAD` empty after push.
+- PR78 opened non-draft at pinned head `b0bb0ad885261de7174ebb4f46d25910cffb4e48`, base main `4d01614b1087bd5d81e6f145adc918b23dca5833`.
+- Local validation before PR: tsc exit 0; eslint exit 0 with 0 errors/1 pre-existing warning; vitest 21 files/228 tests passed; next build exit 0; protected-path checker reported 0 protected paths.
+- Owner inbox e2e passed 9/9. Fixture row counts before and after were equal for contributors, submissions, recommendations, recommendation_notifications, asks, and items.
+- Privacy/Terms report: legal review is still needed.
+- Next action: wait for PR78 CI; merge only if green and scope remains Class A.
