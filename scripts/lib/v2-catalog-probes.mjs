@@ -14,17 +14,21 @@ import { readFileSync } from "fs";
 import { join } from "path";
 
 // Migrations that introduce the v2 function set (142 creates tables
-// only; 144-146 create no tables).
+// only; 144-146 create no tables; 147 adds functions + one column,
+// 148 adds one function).
 export const V2_FUNCTION_MIGRATIONS = [
   "142_v2_inbox_core.sql",
   "143_v2_inbox_support.sql",
   "144_v2_guest_submit.sql",
   "145_v2_owner_inbox.sql",
   "146_v2_delete_account.sql",
+  "147_v2_support_rpcs.sql",
+  "148_v2_inbox_item_detail.sql",
 ];
 
-// Class O (owner) names fixed by PLAN-V2-002 §1.3/§8 — exactly these
-// 12. Every other derived v2 function is class S (server-only).
+// Class O (owner) names fixed by PLAN-V2-002 §1.3/§8 plus
+// get_inbox_item (migration 148, task V2-W5-MIG147-1125-001).
+// Every other derived v2 function is class S (server-only).
 export const V2_CLASS_O_NAMES = [
   "ensure_my_ask",
   "get_my_ask",
@@ -38,6 +42,7 @@ export const V2_CLASS_O_NAMES = [
   "set_my_prefs",
   "enqueue_stale_enrichment",
   "set_language",
+  "get_inbox_item",
 ];
 
 const FN_RE = /CREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\s+public\.([a-z_][a-z0-9_]*)/gi;
