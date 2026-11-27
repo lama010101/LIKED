@@ -247,6 +247,13 @@
   background: var(--v2-surface);
 }
 
+.tmdbLogo {
+  display: block;
+  width: min(220px, calc(100% - 32px));
+  height: auto;
+  margin: 8px 16px 0;
+}
+
 .toggle {
   position: relative;
   width: 44px;

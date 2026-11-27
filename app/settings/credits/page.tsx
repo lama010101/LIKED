@@ -5,9 +5,8 @@ import { useTranslations } from "next-intl";
 import styles from "@/components/v2/settings/settings.module.css";
 import { ROUTES, TESTID, UI } from "@/components/v2/settings/ui-constants";
 
-/** Credits (PRD §6.9, PLAN P0-19): the exact TMDB and JustWatch notices.
- *  Official logo assets would live under public/ (outside this task's file
- *  scope), so this screen ships the required wording only. */
+/** Credits (PRD §6.9, PLAN P0-19): the exact TMDB attribution sentence with
+ *  the approved TMDB logo, plus the existing product credits. */
 export default function CreditsPage() {
   const t = useTranslations("credits");
   return (
@@ -24,6 +23,8 @@ export default function CreditsPage() {
       <main className={styles.main}>
         <section className={styles.noticeBlock}>
           <h2 className={styles.groupTitle}>{t("tmdb")}</h2>
+          {/* eslint-disable-next-line @next/next/no-img-element -- approved local SVG logo */}
+          <img src={ROUTES.tmdbLogo} alt={UI.empty} className={styles.tmdbLogo} />
           <p className={styles.notice}>{t("tmdbNotice")}</p>
         </section>
         <section className={styles.noticeBlock}>

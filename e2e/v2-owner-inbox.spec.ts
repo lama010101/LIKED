@@ -73,10 +73,10 @@ test("owner /inbox loads and ensure_my_ask creates one link", async ({ page, bas
 test("two guests, same item: ONE card with recommender_count 2", async ({ page, baseURL }) => {
   expect(askToken).not.toBe("");
   await submitRecommendations(askToken, guests[0].contributorId, [
-    { item_id: itemId, rating: 80, comment: "zz-e2e quote A" },
+    { item_id: itemId, rating: 80, comment: "zz-e2e quote A", platform: "zz-e2e cinema" },
   ]);
   await submitRecommendations(askToken, guests[1].contributorId, [
-    { item_id: itemId, rating: 60, comment: "zz-e2e quote B" },
+    { item_id: itemId, rating: 60, comment: "zz-e2e quote B", platform: "zz-e2e disc" },
   ]);
 
   await injectSession(page.context(), baseURL ?? "http://localhost:3001");
@@ -92,11 +92,18 @@ test("two guests, same item: ONE card with recommender_count 2", async ({ page, 
   await expect(page.getByTestId("inbox-tab-count")).toHaveText("1");
 });
 
-test("detail sheet: Friends and TMDB rings stay separate, no TMDB branding", async ({
+test("detail sheet: Friends/TMDB rings and complete recommender rows", async ({
   page,
   baseURL,
 }) => {
-  await injectSession(page.context(), baseURL ?? "http://localhost:3001");
+  const session = await injectSession(page.context(), baseURL ?? "http://localhost:3001");
+  const detailRpc = await rpcAs(session.access_token, "get_inbox_item", { p_item_id: itemId });
+  expect(detailRpc.status).toBe(200);
+  const detailBody = detailRpc.body as Record<string, unknown>;
+  expect(Object.keys(detailBody).sort()).toEqual(["item", "owner_status", "recommenders"]);
+  expect(detailBody).not.toHaveProperty("offers");
+  expect(detailBody).not.toHaveProperty("region_missing");
+
   await page.goto("/inbox");
   const card = page.locator(`[data-testid="inbox-card"][data-item-id="${itemId}"]`);
   await expect(card).toContainText("zz-e2e quote");
@@ -106,7 +113,18 @@ test("detail sheet: Friends and TMDB rings stay separate, no TMDB branding", asy
   await expect(sheet).toBeVisible();
   await expect(sheet.getByTestId("inbox-ring-friends")).toContainText("70%");
   await expect(sheet.getByTestId("inbox-ring-tmdb")).toContainText("74%");
-  await expect(sheet.getByTestId("inbox-recommender-row")).toHaveCount(2);
+  const rows = sheet.getByTestId("inbox-recommender-row");
+  await expect(rows).toHaveCount(2);
+  await expect(rows.filter({ hasText: "zz-e2e-Alice" })).toContainText("80%");
+  await expect(rows.filter({ hasText: "zz-e2e-Alice" })).toContainText("zz-e2e quote A");
+  await expect(rows.filter({ hasText: "zz-e2e-Alice" })).toContainText("zz-e2e cinema");
+  await expect(rows.filter({ hasText: "zz-e2e-Bob" })).toContainText("60%");
+  await expect(rows.filter({ hasText: "zz-e2e-Bob" })).toContainText("zz-e2e quote B");
+  await expect(rows.filter({ hasText: "zz-e2e-Bob" })).toContainText("zz-e2e disc");
+  await expect(rows.locator("time")).toHaveCount(2);
+  expect(await rows.locator("time").first().getAttribute("datetime")).toBeTruthy();
+  await expect(sheet).not.toContainText("offers");
+  await expect(sheet).not.toContainText("region_missing");
   expect(await sheet.locator('img[src*="tmdb"], img[src*="themoviedb"]').count()).toBe(0);
 
   await page.keyboard.press("Escape");

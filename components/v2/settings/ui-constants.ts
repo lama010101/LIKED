@@ -26,6 +26,7 @@ export const ROUTES = {
   terms: "/terms",
   settings: "/settings",
   credits: "/settings/credits",
+  tmdbLogo: "/brand/tmdb-blue-long.svg",
   signout: "/api/auth/signout",
   login: "/login",
   help: "mailto:privacy@liked.app",
