@@ -585,7 +585,7 @@ BEGIN
     JOIN pg_namespace pns ON pns.oid = parent.relnamespace
     JOIN LATERAL (
       SELECT string_agg(
-               format('r.%I = i.%I', ca.attname, pa.attname),
+               format('r.%I = i2.%I', ca.attname, pa.attname),
                ' AND ') AS conds
       FROM unnest(c.conkey) WITH ORDINALITY AS ck(attnum, ord)
       JOIN unnest(c.confkey) WITH ORDINALITY AS pk(attnum, ord)
@@ -597,22 +597,26 @@ BEGIN
      AND cns.nspname = 'public'
      AND pns.nspname = 'public'
      AND parent.relname = 'items';
-  EXECUTE format(
-    'DELETE FROM public.items i
-      WHERE i.id IN (
-        SELECT i2.id
-        FROM public.items i2
-        WHERE COALESCE(i2.fetched_at, i2.created_at) <
-              now() - (CASE i2.source
-                         WHEN ''youtube'' THEN (%L || '' days'')::interval
-                         WHEN ''tmdb''    THEN (%L || '' days'')::interval
-                       END)
-          %s
-        ORDER BY i2.created_at, i2.id
-        LIMIT %s)',
-    p_youtube_days, p_tmdb_days, COALESCE(v_refs, ''),
-    GREATEST(COALESCE(p_limit, 500), 1));
-  GET DIAGNOSTICS v_deleted = ROW_COUNT;
+  BEGIN
+    EXECUTE format(
+      'DELETE FROM public.items i
+        WHERE i.id IN (
+          SELECT i2.id
+          FROM public.items i2
+          WHERE COALESCE(i2.fetched_at, i2.created_at) <
+                now() - (CASE i2.source
+                           WHEN ''youtube'' THEN (%L || '' days'')::interval
+                           WHEN ''tmdb''    THEN (%L || '' days'')::interval
+                         END)
+            %s
+          ORDER BY i2.created_at, i2.id
+          LIMIT %s)',
+      p_youtube_days, p_tmdb_days, COALESCE(v_refs, ''),
+      GREATEST(COALESCE(p_limit, 500), 1));
+    GET DIAGNOSTICS v_deleted = ROW_COUNT;
+  EXCEPTION WHEN foreign_key_violation THEN
+    RETURN 0;
+  END;
   RETURN v_deleted;
 END;
 $function$;

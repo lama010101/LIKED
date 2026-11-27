@@ -21,6 +21,7 @@ import { readFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { randomUUID } from "crypto";
+import { inspect } from "node:util";
 import {
   deriveV2Functions,
   loadV2FunctionCatalog,
@@ -30,6 +31,16 @@ import {
   buildProbeCall,
   probeSql,
 } from "./lib/v2-catalog-probes.mjs";
+
+const scrubText = (value) => String(value)
+  .replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, "[uuid]")
+  .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, "[email]")
+  .replace(/(postgres(?:ql)?:\/\/)[^\s"']+/gi, "$1[redacted-connection]")
+  .replace(/@/g, "(at)");
+for (const method of ["log", "error", "warn"]) {
+  const original = console[method].bind(console);
+  console[method] = (...args) => original(scrubText(args.map((v) => typeof v === "string" ? v : inspect(v)).join(" ")));
+}
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
@@ -47,7 +58,7 @@ if (!process.env.DATABASE_URL) {
 
 const MIG147 = join(root, "supabase", "migrations", "147_v2_support_rpcs.sql");
 const MIG148 = join(root, "supabase", "migrations", "148_v2_inbox_item_detail.sql");
-const sql147 = readFileSync(MIG147, "utf8");
+const sql147 = readFileSync(process.env.MIG147_SQL_PATH || MIG147, "utf8");
 const sql148 = readFileSync(MIG148, "utf8");
 for (const [label, sqlText] of [["147", sql147], ["148", sql148]]) {
   const stripped = sqlText.replace(/\/\*[\s\S]*?\*\//g, "").replace(/--[^\n]*/g, "");
@@ -211,6 +222,7 @@ try {
     check("deletion_jobs_claim_stuck: FOR UPDATE SKIP LOCKED", /FOR UPDATE[\s\S]*SKIP LOCKED/i.test(djs.d));
     const ip = defs.find((x) => x.proname === "items_purge_unreferenced");
     check("items_purge: derives FKs from pg_constraint", /pg_constraint/.test(ip.d) && /confrelid/.test(ip.d));
+    check("items_purge: foreign_key_violation guard", /foreign_key_violation/.test(ip.d));
     const gii = defs.find((x) => x.proname === "get_inbox_item");
     check("get_inbox_item: no contributor_id in output", !/contributor_id'\s*,/.test(gii.d) || true);
     check("get_inbox_item: owner_contributor_blocks exclusion", /owner_contributor_blocks/.test(gii.d));
@@ -623,20 +635,46 @@ try {
     const sB2 = await mkSub(askB, c3);
     await mkRec(UB, itemPurgeR, c3, sB2, 60, "keeps item", null);
     const before = await count(`SELECT count(*)::int AS c FROM public.items`);
-    const del = await one(`SELECT public.items_purge_unreferenced(25, 150, 500) AS n`);
+    const delResult = await trySql(`SELECT public.items_purge_unreferenced(25, 150, 500) AS n`);
     const after = await count(`SELECT count(*)::int AS c FROM public.items`);
     const gone = async (id) => (await count(`SELECT count(*)::int AS c FROM public.items WHERE id=$1`, [id])) === 0;
+    const deletedCount = delResult.rows?.[0]?.n ?? 0;
+    check("base purge callable", !delResult.threw, `${delResult.code ?? "ok"}`);
     check("old unreferenced youtube (30d>25) deleted", await gone(itemPurgeY));
     check("old unreferenced tmdb (200d>150) deleted", await gone(itemPurgeT));
     check("old tmdb with NULL fetched_at (created_at 200d) deleted", await gone(itemPurgeN));
     check("old but REFERENCED tmdb kept", !(await gone(itemPurgeR)));
     check("fresh unreferenced kept", !(await gone(itemPurgeF)));
-    check("deleted count consistent", after === before - del.n, `before=${before} after=${after} del=${del.n}`);
+    check("deleted count consistent", !delResult.threw && after === before - deletedCount, `before=${before} after=${after} del=${deletedCount}`);
+
+    let sweepClear = false;
+    for (let i = 0; i < 10 && !sweepClear; i++) {
+      const sweep = await trySql(`SELECT public.items_purge_unreferenced(25, 150, 1000) AS n`);
+      sweepClear = !sweep.threw && sweep.rows?.[0]?.n === 0;
+    }
+    check("STARVATION setup: pre-sweep leaves no old unreferenced items", sweepClear, "");
+
+    const itemStarveR1 = await mkItem("tmdb", "movie", "880000111", "ZZ E2E StarveR1", "now() - interval '200 days'");
+    const itemStarveR2 = await mkItem("tmdb", "movie", "880000112", "ZZ E2E StarveR2", "now() - interval '200 days'");
+    const itemStarveU = await mkItem("tmdb", "movie", "880000113", "ZZ E2E StarveU", "now() - interval '200 days'");
+    await client.query(`UPDATE public.items SET created_at = now() - interval '10 days' WHERE id = ANY($1)`, [[itemStarveR1, itemStarveR2]]);
+    await client.query(`UPDATE public.items SET created_at = now() - interval '5 days' WHERE id = $1`, [itemStarveU]);
+    const sStarve1 = await mkSub(askB, c3);
+    const sStarve2 = await mkSub(askB, c3);
+    await mkRec(UB, itemStarveR1, c3, sStarve1, 60, "starvation ref 1", null);
+    await mkRec(UB, itemStarveR2, c3, sStarve2, 60, "starvation ref 2", null);
+    const starve = await trySql(`SELECT public.items_purge_unreferenced(25, 150, 1) AS n`);
+    check("STARVATION: p_limit below older referenced count still purges old unreferenced",
+      !starve.threw && await gone(itemStarveU), `${starve.code ?? "ok"}`);
+    check("STARVATION: referenced items not deleted",
+      !(await gone(itemStarveR1)) && !(await gone(itemStarveR2)), "");
+
     // limit respected: only 1
     const itemLim = await mkItem("tmdb", "movie", "880000104", "ZZ E2E Lim", "now() - interval '200 days'");
     const itemLim2 = await mkItem("tmdb", "movie", "880000105", "ZZ E2E Lim2", "now() - interval '200 days'");
-    const del1 = await one(`SELECT public.items_purge_unreferenced(25, 150, 1) AS n`);
-    check("p_limit=1 deletes at most 1", del1.n <= 1, `n=${del1.n}`);
+    const del1Result = await trySql(`SELECT public.items_purge_unreferenced(25, 150, 1) AS n`);
+    const del1 = del1Result.rows?.[0]?.n ?? 999;
+    check("p_limit=1 deletes at most 1", !del1Result.threw && del1 <= 1, `n=${del1}`);
     void itemLim; void itemLim2;
   }
 
@@ -668,12 +706,8 @@ try {
     check("owner A gets detail jsonb", !rA.threw && jA !== null, rA.message);
     check("item.name via fr-FR fallback", jA?.item?.name === "Nom FR", JSON.stringify(jA?.item?.name));
     check("item.source/kind/external_id", jA?.item?.source === "tmdb" && jA?.item?.kind === "movie" && jA?.item?.external_id === "880000001", "");
-    const fl = jA?.offers?.flatrate;
-    check("offers flatrate shape", Array.isArray(fl) && fl.length === 1 && fl[0].provider === "Netflix", JSON.stringify(fl));
-
-    check("offers.rent present", Array.isArray(jA?.offers?.rent) && jA.offers.rent.length === 1, "");
-    check("offers.buy empty array", Array.isArray(jA?.offers?.buy) && jA.offers.buy.length === 0, "");
-    check("region_missing false (fetch row exists)", jA?.region_missing === false, JSON.stringify(jA?.region_missing));
+    check("get_inbox_item result has no offers key", jA && !("offers" in jA), "");
+    check("get_inbox_item result has no region_missing key", jA && !("region_missing" in jA), "");
     const recs = jA?.recommenders ?? [];
     check("recommenders: blocked c2 excluded, c1 kept", recs.length === 1 && recs[0].name === "ZZ E2E Alice" && recs[0].comment === "great film", JSON.stringify(recs));
     check("recommender fields: initials/rating/platform_text/created_at, NO contributor_id",

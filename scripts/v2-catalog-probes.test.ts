@@ -27,17 +27,17 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 describe("deriveV2Functions", () => {
   const derived = deriveV2Functions(root);
 
-  it("derives 30 functions from migrations 142-146", () => {
-    expect(derived).toHaveLength(30);
-    expect(V2_FUNCTION_MIGRATIONS).toHaveLength(5);
+  it("derives 43 functions from migrations 142-148", () => {
+    expect(derived).toHaveLength(43);
+    expect(V2_FUNCTION_MIGRATIONS).toHaveLength(7);
   });
 
-  it("splits into 18 class S and exactly the 12 class O names", () => {
+  it("splits into 30 class S and exactly the 13 class O names", () => {
     const s = derived.filter((f) => f.cls === "S").map((f) => f.name);
     const o = derived.filter((f) => f.cls === "O").map((f) => f.name);
-    expect(s).toHaveLength(18);
+    expect(s).toHaveLength(30);
     expect(o.sort()).toEqual([...V2_CLASS_O_NAMES].sort());
-    expect(o).toHaveLength(12);
+    expect(o).toHaveLength(13);
   });
 
   it("class S = 8 from 143 + 9 from 144 + delete_account from 146", () => {

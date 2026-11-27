@@ -34,14 +34,6 @@
 --            release_date, runtime_min, genres, poster_path,
 --            thumb_url, trailer_url, tmdb_rating, tmdb_votes,
 --            display_status, enrichment_status},
---     offers: {flatrate: [{provider_id, provider, logo_key,
---                          link}],
---              rent: [...], buy: [...]}
---             for the owner's region_code,
---     region_missing: boolean — true when no
---             item_availability_fetch row exists for
---             (item, owner region), i.e. availability was
---             never fetched for that region,
 --     recommenders: [{name, initials, rating, comment,
 --                     platform_text, created_at}]
 --             newest first, max 50; contributors the owner
@@ -90,37 +82,6 @@ BEGIN
       'tmdb_votes',        i.tmdb_votes,
       'display_status',    i.display_status,
       'enrichment_status', i.enrichment_status),
-    'offers', jsonb_build_object(
-      'flatrate', (SELECT COALESCE(jsonb_agg(jsonb_build_object(
-                      'provider_id', a.provider_id,
-                      'provider',    a.provider,
-                      'logo_key',    a.logo_key,
-                      'link',        a.link)
-                    ORDER BY a.provider_id), '[]'::jsonb)
-                   FROM public.item_availability a
-                  WHERE a.item_id = i.id AND a.region_code = v_region
-                    AND a.offer_type = 'flatrate'),
-      'rent',     (SELECT COALESCE(jsonb_agg(jsonb_build_object(
-                      'provider_id', a.provider_id,
-                      'provider',    a.provider,
-                      'logo_key',    a.logo_key,
-                      'link',        a.link)
-                    ORDER BY a.provider_id), '[]'::jsonb)
-                   FROM public.item_availability a
-                  WHERE a.item_id = i.id AND a.region_code = v_region
-                    AND a.offer_type = 'rent'),
-      'buy',      (SELECT COALESCE(jsonb_agg(jsonb_build_object(
-                      'provider_id', a.provider_id,
-                      'provider',    a.provider,
-                      'logo_key',    a.logo_key,
-                      'link',        a.link)
-                    ORDER BY a.provider_id), '[]'::jsonb)
-                   FROM public.item_availability a
-                  WHERE a.item_id = i.id AND a.region_code = v_region
-                    AND a.offer_type = 'buy')),
-    'region_missing', NOT EXISTS (
-      SELECT 1 FROM public.item_availability_fetch f
-      WHERE f.item_id = i.id AND f.region_code = v_region),
     'recommenders', COALESCE((
       SELECT jsonb_agg(jsonb_build_object(
                'name',          x.display_name,
