@@ -18,7 +18,7 @@ Started: 2026-11-27T09:29+07:00
 
 | WP | Status | Branch | Head SHA | PR | Next step |
 |---|---|---|---|---|---|
-| Ledger | IN_PROGRESS | devin/V2-W6-LEDGER-1127-001 | pending | pending | initial commit and push |
+| Ledger | ACTIVE | devin/V2-W6-LEDGER-1127-001 | ee85ae392e50bbc6b4d3b11078281f14d4520650 | pending | update after every WP |
 | WP1 CI unblock | PENDING | devin/V2-W5-CISTACK-1126-001 | 41683df040390c286370d5bcd6060843b9a76e36 | pending | open PR |
 | WP2 migrations 147+148 | PENDING | devin/V2-W6-MIG147-1127-001 | pending | pending | wait WP1 |
 | WP3 migration 149 | PENDING | devin/V2-W6-MIG149-1127-001 | pending | pending | wait WP2 live |
