@@ -22,7 +22,7 @@ Started: 2026-11-27T09:29+07:00
 | WP1 CI unblock | MERGED | devin/V2-W5-CISTACK-1126-001 | 41683df040390c286370d5bcd6060843b9a76e36 | PR75 | merged as 9a18b9ebec848efda34eb07f8b76feb4d5600a6e; non-main-base CI proof pending WP5 push |
 | WP2 migrations 147+148 | DONE | devin/V2-W6-MIG147-1127-001 | 1f96edff2ecda108d3c7e6718692d57c015f95b0 | PR76 | merged as 3fb0527ebf8ff863e9325430e4b48609125d2f76; postmerge production proofs all pass; next WP3 |
 | WP3 migration 149 | DONE | devin/V2-W6-MIG149-1127-001 | bec2acca62691d014186339de63d571f3c2fa9d4 | PR77 | merged as 4d01614b1087bd5d81e6f145adc918b23dca5833; postmerge proofs pass; next WP6 |
-| WP4 guest stack | PENDING | devin/V2-W3-GUEST-FIX-1125-001-d | f95d4f00c449d368a4f80cb04611888deb9f2e29 | existing draft TBD | wait WP2 live |
+| WP4 guest stack | EVIDENCE_READY_WITH_FAILURES | devin/V2-W3-GUEST-FIX-1125-001-d | 403da0411db18ce3ccbea534aed10b8e119bc4a9 | PR72 | green CI; do not merge; race/axe failures documented; next WP5 |
 | WP5 pipeline stack | PENDING | stacked branches | pending | #62/#71/#73/#74 | wait WP1+WP2/WP3 |
 | WP6 class A items | DONE | devin/V2-W6-CLASSA-1127-001 | b0bb0ad885261de7174ebb4f46d25910cffb4e48 | PR78 | merged as a3eb164b206eb7331bf7cfe18fdde2b00cd0e9f3; next WP4 |
 | WP7 closeout | PENDING | devin/V2-W6-LEDGER-1127-001 | pending | pending | final |
@@ -83,3 +83,17 @@ Started: 2026-11-27T09:29+07:00
 - Protected-path checker: 0 protected paths touched. Scope matched WP6 owner detail, privacy/terms, and TMDB credits/logo files only.
 - Legal review is still needed for Privacy/Terms.
 - WP6 DONE. Next WP4 guest stack.
+
+## WP4 evidence checkpoint 2026-11-27T13:45Z
+
+- Branch integrated with current main and pushed: head `403da0411db18ce3ccbea534aed10b8e119bc4a9`; `git log origin/devin/V2-W3-GUEST-FIX-1125-001-d..HEAD` empty.
+- PR72 REST: state=open, draft=true, mergeable=true, mergeable_state=clean, head `403da0411db18ce3ccbea534aed10b8e119bc4a9`, base `a3eb164b206eb7331bf7cfe18fdde2b00cd0e9f3`, merged=false.
+- PR72 checks: build success; e2e success; Vercel Preview Comments success; Supabase Preview skipped.
+- Local validation: tsc exit 0; eslint exit 0 with 0 errors and 1 TanStack Virtual warning; vitest 32 files/318 tests passed; next build exit 0; protected-path checker reported 0.
+- next.config proof: CSP img-src includes image.tmdb.org and remotePatterns includes hostname image.tmdb.org.
+- Live PASS lines: landing 200/no sb cookie; genre sync before=0 after=35; PoW sessions status 200 (2216 ms, 58 ms); TMDB search status 200 count=18; YouTube concurrent identical search all 200/ok with exactly one contributor budget unit; cache hit added zero budget with one cache row; exhausted budget produced busy while TMDB remained 200; flood produced 429 after cached searches; two-guest receipts isolated; delete-my-data removed both guests.
+- Live FAIL lines: concurrent same-batch submit produced statuses 503,200 instead of a replayed pair; axe color-contrast serious violation (7 nodes) in en/fr/es/th.
+- 360px PASS lines: en/fr/es/th scrollWidth=360 innerWidth=360 and zero sb cookies.
+- Preview spoofed-xff proof is NOT DONE/invalid: the protected preview was reachable through vercel curl, but a valid production ask token returned 404 there, so the preview cannot exercise the production guest ask backend. Twenty-four parallel dead-token requests with distinct spoofed x-forwarded-for values all returned 404 and are not evidence of rate-limit behavior.
+- Final production residue counts after audited cleanup: contributors:0, submissions:0, recommendations:0, notifications:146, email_outbox:0, enrichment_jobs:0, items:0, tmdb_genres:0, youtube_search_cache:0, youtube_search_budget:0, rate_limits:0. These equal the pre-fixture baseline.
+- WP4 remains Class B and unmerged. Next WP: WP5 pipeline stack.
