@@ -71,7 +71,7 @@ try {
   await q(sql);
   const def = await one(`SELECT pg_get_functiondef('public.enrichment_enqueue_stale(integer,integer,integer)'::regprocedure) AS d`);
   check('functiondef SECURITY DEFINER', /SECURITY DEFINER/i.test(def.d));
-  check('functiondef search_path=public', /SET search_path = public/i.test(def.d));
+  check('functiondef search_path=public', /SET search_path (TO|=) ''?public''?/i.test(def.d));
   const graph = await makeGraph();
   await q('SAVEPOINT sp_limit_fixture');
   const itemLimit = '00000000-0000-0000-0000-000000149001';
