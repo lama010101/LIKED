@@ -105,3 +105,13 @@ Started: 2026-11-28 ~08:33 +0700 (unattended, Lolo away)
 - CI on merged heads: #62@15024ef build✓e2e✓Vercel✓; #71@1699ae1 ✓✓✓; #73@50d9145 ✓✓✓; #74@57e62f4 ✓✓✓. New heads #73@38aff24 + #74@ff483a7 CI pending.
 - **Fix h LIVE proof** `scripts/verify-delete-pipeline-live.mjs` (committed on #73@38aff24, run vs PROD): `WP7_DELETE_RESULT=PASS pass=24 fail=0` — fixture users+node+folder+edge+grant+rating+guest contribution+thumbnails PNG; delete_account deleted:true; storage purge emptied prefix; auth delete tolerated; ledger done/email NULL; 12 residue checks 0; run2 already:true+purge empty+ledger refuses done→auth ("stage regression"); zero fixture residue, per-table counts equal. NOTE: PROD has a concurrent writer (owner 353c0d1a…, ~1 node/8s) — first run showed +4 external deltas in nodes/edges/causes/folder_edges, all non-fixture; second run zero drift.
 - Orphan cleanup: run-1 fixture (items check-constraint abort) purged manually — users 7903c135 + dependents deleted.
+
+### WP-D — threat-model suite (PR #82, Class A)
+- Branch `devin/V2-W7-THREAT-1128-001`, worktree `w7-threat`, head `cd7f404`. New `app/api/ask/_lib/threatModel.test.ts` (25 tests, T1–T17 rows from PLAN-V2-002 threat table; T15 covered by existing safeNext.test.ts). tsc 0, eslint 0 err, vitest 346/346, protected paths 0. T-number→test map recorded above in ledger. Awaiting CI → merge via REST.
+
+### WP-E — local smoke suite (PR #83, Class A)
+- Branch `devin/V2-W7-SMOKE-1128-001`, worktree `w7-smoke`, head `04b13c3`, base main@15c1664.
+- `e2e/helpers/prodAudit.ts` (21 fixture-owned tables, counts only, assertEqual throws on residue; rate_limits excluded as ephemeral); all 5 `e2e/v2-*.spec.ts` retrofitted; new `e2e/v2-smoke.spec.ts` (5 tests: guest submit via real PoW/cookie/submit routes, two-friend merge → one inbox card count 2, rail badge sum ≤ All, settings sign-out → /login + no sb- cookies, guest delete-my-data → contributor gone); `playwright.v2.config.ts` (v2 specs were absent from playwright.config testMatch — dedicated config keeps them out of CI); `npm run smoke:v2`; `docs/handoff/SMOKE-V2.md`.
+- Validation: tsc 0, eslint clean on touched files, vitest 321/321, protected paths 0.
+- Live run vs local dev :3001 (W3-FIX code + PROD DB): `5 passed (1.0m)`, `PROD AUDIT residue check: PASS (all table counts equal)`. Fix during bring-up: client_batch_id must be UUID (route 400 BAD_REQUEST otherwise).
+- Awaiting CI → merge via REST.
