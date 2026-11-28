@@ -16,6 +16,7 @@ import {
   languageName,
   splitRuntime,
   typeKey,
+  youtubePlaylistUrl,
   type InboxCard,
   type InboxItemDetail,
 } from "./inbox-utils";
@@ -33,6 +34,7 @@ export default function DetailSheet({
   onClose: () => void;
 }) {
   const t = useTranslations("inbox");
+  const tp = useTranslations("playlist");
   const locale = useLocale();
   const closeRef = useRef<HTMLButtonElement>(null);
   const title = card.title || card.original_title || t("untitled");
@@ -91,7 +93,11 @@ export default function DetailSheet({
             </h2>
             <div className={styles.sheetMeta}>
               {card.year !== null && <span>{card.year}</span>}
-              <span className={styles.chip}>{t(typeKey(card.type))}</span>
+              <span className={styles.chip}>
+                {typeKey(card.type, card.kind) === "typePlaylist"
+                  ? tp("typeChip")
+                  : t(typeKey(card.type, card.kind))}
+              </span>
               {runtime && (
                 <span>
                   {runtime.hours > 0
@@ -188,6 +194,19 @@ export default function DetailSheet({
           >
             <PlayIcon />
             {t("trailer")}
+          </a>
+        )}
+
+        {detail?.item.kind === "playlist" && youtubePlaylistUrl(detail.item.external_id) && (
+          <a
+            href={youtubePlaylistUrl(detail.item.external_id) as string}
+            target={UI.blank}
+            rel={UI.noopener}
+            className={styles.trailerBtn}
+            data-testid={TESTID.openPlaylist}
+          >
+            <PlayIcon />
+            {tp("openOnYouTube")}
           </a>
         )}
 

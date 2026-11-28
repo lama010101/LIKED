@@ -624,6 +624,10 @@
     "saveAskSettings": "Save note and genres",
     "askSettingsSaved": "Invite preferences saved."
   },
+  "playlist": {
+    "typeChip": "YouTube playlist",
+    "openOnYouTube": "Open on YouTube"
+  },
   "v2": {
     "language": {
       "title": "Language and appearance",

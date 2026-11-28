@@ -24,9 +24,11 @@ export default function InboxCardView({
   onOpen: (card: InboxCard) => void;
 }) {
   const t = useTranslations("inbox");
+  const tp = useTranslations("playlist");
   const title = card.title || card.original_title || t("untitled");
   const image = cardImageUrl(card);
   const skeleton = isSkeleton(card);
+  const chip = typeKey(card.type, card.kind);
   const visible = card.recommenders.slice(0, 3);
   const platforms = card.platforms.slice(0, 2);
   const posterClass = skeleton ? `${styles.posterImg} ${styles.pulse}` : styles.posterImg;
@@ -61,7 +63,7 @@ export default function InboxCardView({
           <div className={styles.titleRow}>
             <h3 className={styles.cardTitle}>{title}</h3>
             {card.year !== null && <span className={styles.year}>{card.year}</span>}
-            <span className={styles.chip}>{t(typeKey(card.type))}</span>
+            <span className={styles.chip}>{chip === "typePlaylist" ? tp("typeChip") : t(chip)}</span>
           </div>
 
           <div className={styles.avatars} data-testid={TESTID.cardAvatars}>

@@ -624,6 +624,10 @@
     "saveAskSettings": "บันทึกบันทึกและประเภท",
     "askSettingsSaved": "บันทึกการตั้งค่าคำเชิญแล้ว"
   },
+  "playlist": {
+    "typeChip": "เพลย์ลิสต์ YouTube",
+    "openOnYouTube": "เปิดใน YouTube"
+  },
   "v2": {
     "language": {
       "title": "ภาษาและรูปลักษณ์",

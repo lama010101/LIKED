@@ -16,7 +16,7 @@ export interface TrayItem {
   /** items.id returned by /api/ask/resolve. */
   item_id: string;
   source: "tmdb" | "youtube";
-  kind: "movie" | "series" | "video" | "channel";
+  kind: "movie" | "series" | "video" | "channel" | "playlist";
   title: string;
   year: number | null;
   poster_path: string | null;

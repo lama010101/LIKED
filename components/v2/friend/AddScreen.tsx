@@ -45,6 +45,7 @@ export default function AddScreen({
   sendError,
 }: AddScreenProps) {
   const t = useTranslations("ask");
+  const tp = useTranslations("playlist");
   const [query, setQuery] = useState("");
   const [rows, setRows] = useState<SearchRow[]>([]);
   const [searching, setSearching] = useState(false);
@@ -253,6 +254,11 @@ export default function AddScreen({
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium">{item.title}</p>
                       <p className="text-xs text-[var(--v2-text-muted)]">
+                        {item.kind === "playlist" ? (
+                          <span className="mr-1 rounded-full border border-[var(--v2-border)] px-1.5 py-0.5">
+                            {tp("typeChip")}
+                          </span>
+                        ) : null}
                         {item.year ?? ""}
                         {item.rating !== null ? ` · ${item.rating}%` : ""}
                       </p>

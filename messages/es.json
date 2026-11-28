@@ -624,6 +624,10 @@
     "saveAskSettings": "Guardar nota y géneros",
     "askSettingsSaved": "Preferencias de invitación guardadas."
   },
+  "playlist": {
+    "typeChip": "Playlist de YouTube",
+    "openOnYouTube": "Abrir en YouTube"
+  },
   "v2": {
     "language": {
       "title": "Idioma y apariencia",
