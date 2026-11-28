@@ -17,7 +17,7 @@ export interface EnrichmentJob {
 export interface EnrichmentItem {
   id: string;
   source: "tmdb" | "youtube";
-  kind: "movie" | "series" | "video" | "channel";
+  kind: "movie" | "series" | "video" | "channel" | "playlist";
   external_id: string;
   /** Localized display fields already applied, keyed by TMDB language tag. */
   localized?: Record<string, unknown> | null;
