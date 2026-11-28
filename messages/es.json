@@ -653,6 +653,87 @@
     "pubStatusInvalid": "Ese enlace de confirmación no es válido o ha expirado.",
     "pubGuestsNote": "Los invitados no tienen cuenta: usa «Delete my data» en la hoja de amigo para borrar los datos."
   },
+  "friend": {
+    "landing": {
+      "defaultPrompt": "¿Cuál es la última película, serie o documental que recomiendas?",
+      "nameLabel": "Tu nombre",
+      "namePlaceholder": "Nombre",
+      "nameHint": "De 2 a 50 caracteres",
+      "start": "Empezar",
+      "likes": "A {owner} le gusta"
+    },
+    "pow": {
+      "solving": "Comprobando tu navegador…"
+    },
+    "errors": {
+      "name": "Escribe un nombre de 2 a 50 caracteres.",
+      "pow": "No se pudo verificar este navegador. Recarga e inténtalo de nuevo.",
+      "busy": "Algo salió mal. Inténtalo de nuevo en un momento.",
+      "token": "Este enlace ya no está activo."
+    },
+    "language": {
+      "button": "Idioma y apariencia, {code}",
+      "title": "Idioma y apariencia",
+      "hint": "Se define desde tu navegador. Los títulos, géneros y descripciones también siguen este idioma.",
+      "language": "Idioma",
+      "theme": "Tema",
+      "system": "Sistema",
+      "light": "Claro",
+      "dark": "Oscuro",
+      "close": "Cerrar"
+    },
+    "notFound": {
+      "title": "Este enlace ya no está activo",
+      "body": "Pide un enlace nuevo a la persona que lo compartió."
+    }
+  },
+  "ask": {
+    "searchLabel": "Buscar películas y series",
+    "searchPlaceholder": "Buscar un título",
+    "searchBusy": "La búsqueda está ocupada: pega un enlace.",
+    "pasteRow": "O añade un enlace de YouTube o IMDb",
+    "paste": "Pegar",
+    "pastePlaceholder": "Pega un enlace de YouTube, IMDb o TMDB",
+    "add": "Añadir",
+    "tray": "Tus elecciones",
+    "trayEmpty": "Todavía no hay nada.",
+    "remove": "Quitar",
+    "details": "Detalles",
+    "done": "Listo",
+    "score": "Tu puntuación",
+    "scoreClear": "Borrar puntuación",
+    "scoreValue": "{value} por ciento, {band}",
+    "scoreUntouched": "Sin puntuación",
+    "band": {
+      "skip": "Ni te acerques",
+      "weak": "Floja",
+      "mixed": "Irregular",
+      "good": "Buena",
+      "great": "Muy buena",
+      "unmissable": "Imprescindible"
+    },
+    "platform": "¿Dónde la viste?",
+    "comment": "Por qué {owner} la va a adorar",
+    "commentHint": "280 caracteres como máximo",
+    "send": "Enviar a {owner} ({count} títulos)",
+    "sendOne": "Enviar a {owner} (1 título)",
+    "sending": "Enviando…",
+    "sentTitle": "Enviado a {owner}",
+    "receiptTitle": "Lo que enviaste",
+    "addMore": "Añadir más títulos",
+    "deleteData": "Eliminar mis datos",
+    "deleteConfirm": "¿Eliminar todo lo que enviaste a {owner}?",
+    "deleted": "Tus datos se eliminaron.",
+    "receiptEmpty": "Todavía no has enviado nada.",
+    "error": {
+      "empty": "Añade al menos un título.",
+      "tooMany": "Máximo 20 títulos por envío.",
+      "submit": "No se pudo enviar. Inténtalo de nuevo.",
+      "search": "La búsqueda falló. Inténtalo de nuevo.",
+      "resolve": "No se pudo añadir ese enlace.",
+      "rateLimited": "Demasiados intentos. Inténtalo más tarde."
+    }
+  },
   "settings": {
     "title": "Ajustes",
     "back": "Atrás",

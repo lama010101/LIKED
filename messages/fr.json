@@ -653,6 +653,87 @@
     "pubStatusInvalid": "Ce lien de confirmation est invalide ou expiré.",
     "pubGuestsNote": "Les invités n'ont pas de compte : utilisez « Delete my data » dans la feuille ami pour effacer les données invité."
   },
+  "friend": {
+    "landing": {
+      "defaultPrompt": "Quel est le dernier film, série ou documentaire que vous recommandez ?",
+      "nameLabel": "Votre nom",
+      "namePlaceholder": "Prénom",
+      "nameHint": "2 à 50 caractères",
+      "start": "Commencer",
+      "likes": "{owner} aime"
+    },
+    "pow": {
+      "solving": "Vérification de votre navigateur…"
+    },
+    "errors": {
+      "name": "Saisissez un nom de 2 à 50 caractères.",
+      "pow": "Impossible de vérifier ce navigateur. Rechargez et réessayez.",
+      "busy": "Un problème est survenu. Réessayez dans un instant.",
+      "token": "Ce lien n'est plus actif."
+    },
+    "language": {
+      "button": "Langue et apparence, {code}",
+      "title": "Langue et apparence",
+      "hint": "Définie par votre navigateur. Les titres, genres et descriptions suivent aussi cette langue.",
+      "language": "Langue",
+      "theme": "Thème",
+      "system": "Système",
+      "light": "Clair",
+      "dark": "Sombre",
+      "close": "Fermer"
+    },
+    "notFound": {
+      "title": "Ce lien n'est plus actif",
+      "body": "Demandez un nouveau lien à la personne qui l'a partagé."
+    }
+  },
+  "ask": {
+    "searchLabel": "Rechercher des films et des séries",
+    "searchPlaceholder": "Rechercher un titre",
+    "searchBusy": "La recherche est occupée — collez un lien à la place.",
+    "pasteRow": "Ou ajoutez un lien YouTube ou IMDb",
+    "paste": "Coller",
+    "pastePlaceholder": "Collez un lien YouTube, IMDb ou TMDB",
+    "add": "Ajouter",
+    "tray": "Vos choix",
+    "trayEmpty": "Rien d'ajouté pour l'instant.",
+    "remove": "Retirer",
+    "details": "Détails",
+    "done": "Terminé",
+    "score": "Votre note",
+    "scoreClear": "Effacer la note",
+    "scoreValue": "{value} pour cent, {band}",
+    "scoreUntouched": "Aucune note",
+    "band": {
+      "skip": "À éviter",
+      "weak": "Faible",
+      "mixed": "Mitigé",
+      "good": "Bien",
+      "great": "Très bien",
+      "unmissable": "Incontournable"
+    },
+    "platform": "Où l'avez-vous regardé ?",
+    "comment": "Pourquoi {owner} va adorer",
+    "commentHint": "280 caractères maximum",
+    "send": "Envoyer à {owner} ({count} titres)",
+    "sendOne": "Envoyer à {owner} (1 titre)",
+    "sending": "Envoi…",
+    "sentTitle": "Envoyé à {owner}",
+    "receiptTitle": "Ce que vous avez envoyé",
+    "addMore": "Ajouter d'autres titres",
+    "deleteData": "Supprimer mes données",
+    "deleteConfirm": "Supprimer tout ce que vous avez envoyé à {owner} ?",
+    "deleted": "Vos données ont été supprimées.",
+    "receiptEmpty": "Rien d'envoyé pour l'instant.",
+    "error": {
+      "empty": "Ajoutez au moins un titre.",
+      "tooMany": "20 titres maximum par envoi.",
+      "submit": "Impossible d'envoyer. Réessayez.",
+      "search": "La recherche a échoué. Réessayez.",
+      "resolve": "Impossible d'ajouter ce lien.",
+      "rateLimited": "Trop de tentatives. Réessayez plus tard."
+    }
+  },
   "settings": {
     "title": "Paramètres",
     "back": "Retour",
