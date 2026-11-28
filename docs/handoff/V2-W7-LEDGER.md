@@ -27,8 +27,8 @@ Started: 2026-11-28 ~08:33 +0700 (unattended, Lolo away)
 | WP | Title | Status | Branch | Head SHA | PR | Next step |
 |----|-------|--------|--------|----------|----|-----------|
 | WP-A | Fix+merge PR #72 (guest stack) | ✅ MERGED | devin/V2-W3-GUEST-FIX-1125-001-d | 43c11ea | #72 merged f38cbba | DONE — post-merge proofs PASS |
-| WP-B | P0 acceptance matrix (docs) | PENDING | - | - | - | after/parallel with WP-A |
-| WP-C | Pipeline stack evidence PRs (#62->#71->#73->#74) | PENDING | - | - | - | Class B, DO NOT MERGE |
+| WP-B | P0 acceptance matrix (docs) | ✅ PR #80 (CI running) | devin/V2-W7-P0-MATRIX-1128-001 | 70695fc | #80 | merge when CI green (Class A docs) |
+| WP-C | Pipeline stack evidence PRs (#62->#71->#73->#74) | PENDING — recon done | - | - | #62 37da871 / #71 3bcb50f / #73 5d0cabd / #74 7b135fe | heads moved vs spec; see recon below |
 | WP-D | Threat-model tests T1-T17 (P0-23) | PENDING | - | - | - | after WP-A (needs guest routes on main) |
 | WP-E | Local smoke suite smoke:v2 | PENDING | - | - | - | independent |
 | WP-F | Closeout PROGRESS rows + ledger merge | PENDING | - | - | - | last |
@@ -72,3 +72,11 @@ Started: 2026-11-28 ~08:33 +0700 (unattended, Lolo away)
   - (ii) `prod_xff_spoof_bucket_429=PASS statuses=404×20,429×5 first429_at=21` — 25 reqs each with DIFFERENT x-forwarded-for; bucket still tripped at req 21 (Vercel edge IP used, spoof ineffective)
   - (iii) `prod_inbox_poster_renders=PASS tmdb_imgs=1 loaded=1 csp_errors=0` — real TMDB resolve→submit→owner /inbox shows image.tmdb.org poster; live CSP img-src includes image.tmdb.org
   - final_counts contributors=0 items=0 rate_limits=0
+
+### WP-B — P0 acceptance matrix (PR #80, docs-only Class A)
+- `docs/handoff/P0-ACCEPTANCE-MATRIX.md`: C1–C26 (§13 bullets) + P0-21..P0-25, evidence-cited statuses vs origin/main f38cbba. Headline: PASS=13, UNPROVEN=7, NOT DONE=6 (C7 email, C11 enrichment, C13 threat suite, C15 housekeeping, C22/C24 deletion, P0-22/23/24). Ranked MVP blockers listed in doc.
+
+### WP-C — recon (no changes yet)
+- Stack heads (REST): #62 `devin/V2-W4-PIPELINE-1124-001`@37da871 base=main draft; #71 `devin/V2-W5-EMAIL-1125-001`@3bcb50f base=#62 draft; #73 `devin/V2-W5-DELETE-1125-001`@5d0cabd base=#71 draft; #74 `devin/V2-W5-PIPELINE-1125-002`@7b135fe base=#73 draft. Spec SHAs stale (9edef7a, 0a078ce) — branches advanced.
+- File map: #62=enrich worker+cron/enrich+protected-paths; #71=email drain+cron/email; #73=deletion (account/delete, reauth start/done, delete-requests, delete-account page, deletionPipeline, verify-delete-account, verify-deletion-ledger-147); #74=housekeeping cron+reauth tests+processJobs tweaks+vercel.json.
+- Fix routing: a) cherry-pick bee8c7c→#73; b) verify-delete-account.mjs→#73; c) deletion_job_advance ruling→#73 (deletionPipeline+route+test); d) reauth start→#73 (+#74 test file exists); e) ledger proof→#73 verify script vs PROD; f) cron/housekeeping #74 + cron/email #71 vs PROD dry-run; g) vercel.json #74 report only; h) Library deletion proof→#73 deletionPipeline vs PROD fixture.
