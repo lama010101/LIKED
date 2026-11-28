@@ -26,7 +26,7 @@ Started: 2026-11-28 ~08:33 +0700 (unattended, Lolo away)
 
 | WP | Title | Status | Branch | Head SHA | PR | Next step |
 |----|-------|--------|--------|----------|----|-----------|
-| WP-A | Fix+merge PR #72 (guest stack) | IN PROGRESS (A1+A2 done, pushed) | devin/V2-W3-GUEST-FIX-1125-001-d | 43c11ea | #72 (ready, CI running) | A3: CI green; A4: live guest suite + PROD proofs; merge; post-merge proofs |
+| WP-A | Fix+merge PR #72 (guest stack) | ✅ MERGED | devin/V2-W3-GUEST-FIX-1125-001-d | 43c11ea | #72 merged f38cbba | DONE — post-merge proofs PASS |
 | WP-B | P0 acceptance matrix (docs) | PENDING | - | - | - | after/parallel with WP-A |
 | WP-C | Pipeline stack evidence PRs (#62->#71->#73->#74) | PENDING | - | - | - | Class B, DO NOT MERGE |
 | WP-D | Threat-model tests T1-T17 (P0-23) | PENDING | - | - | - | after WP-A (needs guest routes on main) |
@@ -59,3 +59,16 @@ Started: 2026-11-28 ~08:33 +0700 (unattended, Lolo away)
 - Probe script: runAxe retry x4 for the CSP/eval injection flake.
 - AFTER probe: `WP7_AXE_RESULT=PASS failures=none`, 80/80 screen checks `serious_critical_violations=0`, `fixture_cleanup_zero_residue=PASS equal=true`, 0 INJECTION_FAILED.
 - Validation: tsc 0 err; eslint changed-files 0 err; vitest 321/321; next build OK (40 routes); check-protected-paths=0; check-contrast 121/121.
+
+### WP-A3 — merge prep (DONE)
+- origin/main stayed a3eb164 (already merged at 403da04). Pushed 43c11ea; CI on head: build=success, e2e=success, Vercel=success, Supabase=skipped. mergeable_state=clean. Marked ready via GraphQL markPullRequestReadyForReview (isDraft false).
+
+### WP-A4 — live suite + merge + PROD proofs (DONE)
+- Live guest suite `wp4-live-proof.mjs` vs :3001 (branch code + PROD DB): `WP4_LIVE_RESULT=PASS failures=none` — incl `submit_replay_race_atomic=PASS statuses=200,200 replayed=false,true` (A1 live), `browser_axe_{en,fr,es,th}=PASS violations=0` (A2 live), `fixture_cleanup_zero_residue=PASS equal=true`.
+- First run FAILed on leftovers only (genre_sync before=35, residue) — purged 2 ZZ Probe contributors + 17 rate_limits rows; re-run all PASS.
+- Merge: REST PUT /pulls/72/merge merge_method=merge sha=43c11ea… → merge commit `f38cbba3b963b5ada90e0caec8c73fbf6a3a7646`; `git merge-base --is-ancestor` OK for 43c11ea and f38cbba on origin/main.
+- POST-MERGE PROD proofs `wp7-postmerge.mjs` vs https://liked-zeta.vercel.app: `WP7_PM_RESULT=PASS failures=none`:
+  - (i) `prod_landing_200_no_sb_cookie=PASS status=200 cookies=0 sb=0`
+  - (ii) `prod_xff_spoof_bucket_429=PASS statuses=404×20,429×5 first429_at=21` — 25 reqs each with DIFFERENT x-forwarded-for; bucket still tripped at req 21 (Vercel edge IP used, spoof ineffective)
+  - (iii) `prod_inbox_poster_renders=PASS tmdb_imgs=1 loaded=1 csp_errors=0` — real TMDB resolve→submit→owner /inbox shows image.tmdb.org poster; live CSP img-src includes image.tmdb.org
+  - final_counts contributors=0 items=0 rate_limits=0
