@@ -24,6 +24,8 @@ export const V2_FUNCTION_MIGRATIONS = [
   "146_v2_delete_account.sql",
   "147_v2_support_rpcs.sql",
   "148_v2_inbox_item_detail.sql",
+  "152_v2_promote_recommendation.sql",
+  "153_v2_owner_picks.sql",
 ];
 
 // Class O (owner) names fixed by PLAN-V2-002 §1.3/§8 plus
@@ -43,6 +45,12 @@ export const V2_CLASS_O_NAMES = [
   "enqueue_stale_enrichment",
   "set_language",
   "get_inbox_item",
+  "promote_recommendation",
+  "get_promote_folder_choices",
+  "get_node_item_posters",
+  "get_inbox_library_target",
+  "set_pick_visibility",
+  "list_my_picks",
 ];
 
 const FN_RE = /CREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\s+public\.([a-z_][a-z0-9_]*)/gi;

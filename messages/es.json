@@ -622,7 +622,8 @@
     "genresLabel": "Géneros que te gustan",
     "genresHint": "{count}/5 seleccionados",
     "saveAskSettings": "Guardar nota y géneros",
-    "askSettingsSaved": "Preferencias de invitación guardadas."
+    "askSettingsSaved": "Preferencias de invitación guardadas.",
+    "inLibrary": "En la biblioteca"
   },
   "v2": {
     "language": {
@@ -806,5 +807,33 @@
     "green": "Verde",
     "pink": "Rosa",
     "error": "No se pudo guardar la apariencia"
+  },
+  "library": {
+    "addToLibrary": "Añadir a mi biblioteca",
+    "inLibrary": "En la biblioteca",
+    "alreadyInLibrary": "Ya está en tu biblioteca",
+    "chooseFolder": "Carpeta",
+    "defaultFolder": "De amigos",
+    "newFolder": "Nueva carpeta",
+    "folderNamePlaceholder": "Nombre de la carpeta",
+    "createFolder": "Crear carpeta",
+    "add": "Añadir a la biblioteca",
+    "cancel": "Cancelar",
+    "addedTo": "Añadido a {folder}",
+    "open": "Abrir",
+    "error": "No se pudo añadir a tu biblioteca.",
+    "unsupported": "Este tipo no se puede añadir a la biblioteca."
+  },
+  "picks": {
+    "myPick": "Mi selección",
+    "private": "Privado",
+    "friendsWhoRecommend": "Amigos que recomiendan",
+    "settingsRow": "Mis selecciones ({count})",
+    "empty": "Aún no hay selecciones.",
+    "remove": "Quitar",
+    "wantToSee": "¿Quieres ver las selecciones de {owner}?",
+    "yesShow": "Sí, muéstrame",
+    "noThanks": "No, gracias",
+    "openTitle": "Abrir {title}"
   }
 }

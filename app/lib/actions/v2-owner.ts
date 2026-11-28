@@ -188,3 +188,70 @@ export async function setLanguageAction(code: string): Promise<void> {
   store.set("LIKED_TMDB_LANG", tmdbTagFor(code), { path: "/", maxAge, sameSite: "lax" });
   await ownerRpc<void>("set_language", { p_language_code: code });
 }
+
+export interface PromoteFolderChoice {
+  id: string;
+  name: string;
+  parent_folder_id: string | null;
+  depth: number;
+  system_kind: string | null;
+}
+
+export interface PromoteFolderChoices {
+  last_used_folder_id: string | null;
+  folders: PromoteFolderChoice[];
+}
+
+export async function getPromoteFolderChoicesAction(): Promise<PromoteFolderChoices> {
+  return ownerRpc<PromoteFolderChoices>("get_promote_folder_choices");
+}
+
+export interface InboxLibraryTarget {
+  recommendation_id: string | null;
+  library_node_id: string | null;
+}
+
+export async function getInboxLibraryTargetAction(itemId: string): Promise<InboxLibraryTarget | null> {
+  return ownerRpc<InboxLibraryTarget | null>("get_inbox_library_target", { p_item_id: itemId });
+}
+
+export interface PromoteResult {
+  node_id: string;
+  already: boolean;
+}
+
+export async function promoteRecommendationAction(recommendationId: string, folderId: string | null): Promise<PromoteResult> {
+  return ownerRpc<PromoteResult>("promote_recommendation", {
+    p_recommendation_id: recommendationId,
+    p_folder_id: folderId,
+  });
+}
+
+export async function getNodeItemPostersAction(nodeIds: string[]): Promise<Record<string, string>> {
+  const rows = await ownerRpc<{ node_id: string; image_url: string }[]>("get_node_item_posters", { p_node_ids: nodeIds });
+  return Object.fromEntries((rows ?? []).map((row) => [row.node_id, row.image_url]));
+}
+
+export type PickVisibility = "private" | "contributors" | "public";
+
+export interface MyPick {
+  node_id: string;
+  item_id: string;
+  kind: string;
+  external_id: string;
+  source: string;
+  name: string;
+  release_date: string | null;
+  poster_path: string | null;
+  thumb_url: string | null;
+  visibility: Exclude<PickVisibility, "private">;
+  created_at: string;
+}
+
+export async function listMyPicksAction(): Promise<MyPick[]> {
+  return ownerRpc<MyPick[]>("list_my_picks");
+}
+
+export async function setPickVisibilityAction(nodeId: string, visibility: PickVisibility): Promise<void> {
+  await ownerRpc<null>("set_pick_visibility", { p_node_id: nodeId, p_visibility: visibility });
+}

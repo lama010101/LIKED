@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -9,6 +9,7 @@ import {
   moveNodeEverywhereAction, shareNodeAction, trashNodeAction,
 } from "@/app/lib/actions/mvp2";
 import { getFriendBarAction, getGroupBarAction } from "@/app/lib/actions/session";
+import { getNodeItemPostersAction } from "@/app/lib/actions/v2-owner";
 import { toast } from "@/lib/store/toastStore";
 import { youtubeVideoId, youtubeEmbedUrl } from "@/lib/utils/youtube";
 import Avatar from "./Avatar";
@@ -30,6 +31,20 @@ export default function CardItem({ node, folder }: { node: FeedNode; folder?: { 
   // YouTube cards play inline from the thumbnail (UX-BATCH-003).
   const [playing, setPlaying] = useState(false);
   const ytId = youtubeVideoId(node.url);
+  const [itemImage, setItemImage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (node.thumbnail_key) return;
+    let active = true;
+    getNodeItemPostersAction([node.node_id])
+      .then((map) => {
+        if (active) setItemImage(map[node.node_id] ?? null);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [node.node_id, node.thumbnail_key]);
 
   const onTrash = async () => {
     if (!confirm(t("trash.deleteConfirm"))) return;
@@ -69,7 +84,7 @@ export default function CardItem({ node, folder }: { node: FeedNode; folder?: { 
           allow="autoplay; encrypted-media; picture-in-picture"
           allowFullScreen
         />
-      ) : ytId && node.thumbnail_key ? (
+      ) : ytId && (node.thumbnail_key || itemImage) ? (
         <button
           type="button"
           className="card-thumb card-yt-btn"
@@ -77,12 +92,15 @@ export default function CardItem({ node, folder }: { node: FeedNode; folder?: { 
           aria-label={t("card.play")}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={`${THUMB_BASE}${node.thumbnail_key}`} alt="" loading="lazy" />
+          <img src={node.thumbnail_key ? `${THUMB_BASE}${node.thumbnail_key}` : itemImage ?? undefined} alt="" loading="lazy" />
           <span className="card-yt-play" aria-hidden="true">▶</span>
         </button>
       ) : node.thumbnail_key ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img className="card-thumb" src={`${THUMB_BASE}${node.thumbnail_key}`} alt="" loading="lazy" />
+      ) : itemImage ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img className="card-thumb" src={itemImage} alt="" loading="lazy" />
       ) : (
         <div className="card-thumb card-thumb-text">
           {(node.title ?? node.text_content ?? t("card.untitled")).slice(0, 1).toUpperCase()}

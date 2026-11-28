@@ -622,7 +622,8 @@
     "genresLabel": "ประเภทที่คุณชอบ",
     "genresHint": "เลือกแล้ว {count}/5",
     "saveAskSettings": "บันทึกบันทึกและประเภท",
-    "askSettingsSaved": "บันทึกการตั้งค่าคำเชิญแล้ว"
+    "askSettingsSaved": "บันทึกการตั้งค่าคำเชิญแล้ว",
+    "inLibrary": "อยู่ในคลัง"
   },
   "v2": {
     "language": {
@@ -806,5 +807,33 @@
     "green": "เขียว",
     "pink": "ชมพู",
     "error": "ไม่สามารถบันทึกรูปแบบการแสดงผลได้"
+  },
+  "library": {
+    "addToLibrary": "เพิ่มลงในคลังของฉัน",
+    "inLibrary": "อยู่ในคลัง",
+    "alreadyInLibrary": "มีอยู่ในคลังของคุณแล้ว",
+    "chooseFolder": "โฟลเดอร์",
+    "defaultFolder": "จากเพื่อน",
+    "newFolder": "โฟลเดอร์ใหม่",
+    "folderNamePlaceholder": "ชื่อโฟลเดอร์",
+    "createFolder": "สร้างโฟลเดอร์",
+    "add": "เพิ่มลงในคลัง",
+    "cancel": "ยกเลิก",
+    "addedTo": "เพิ่มลงใน {folder} แล้ว",
+    "open": "เปิด",
+    "error": "ไม่สามารถเพิ่มลงในคลังของคุณได้",
+    "unsupported": "ไม่สามารถเพิ่มประเภทนี้ลงในคลังได้"
+  },
+  "picks": {
+    "myPick": "รายการที่ฉันเลือก",
+    "private": "ส่วนตัว",
+    "friendsWhoRecommend": "เพื่อนที่แนะนำ",
+    "settingsRow": "รายการที่ฉันเลือก ({count})",
+    "empty": "ยังไม่มีรายการที่เลือก",
+    "remove": "นำออก",
+    "wantToSee": "ต้องการดูรายการที่ {owner} เลือกไหม?",
+    "yesShow": "ใช่ แสดงให้ฉันดู",
+    "noThanks": "ไม่เป็นไร",
+    "openTitle": "เปิด {title}"
   }
 }

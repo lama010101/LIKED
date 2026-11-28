@@ -622,7 +622,8 @@
     "genresLabel": "Genres you like",
     "genresHint": "{count}/5 selected",
     "saveAskSettings": "Save note and genres",
-    "askSettingsSaved": "Invite preferences saved."
+    "askSettingsSaved": "Invite preferences saved.",
+    "inLibrary": "In library"
   },
   "v2": {
     "language": {
@@ -806,5 +807,33 @@
     "green": "Green",
     "pink": "Pink",
     "error": "Could not save appearance"
+  },
+  "library": {
+    "addToLibrary": "Add to my library",
+    "inLibrary": "In library",
+    "alreadyInLibrary": "Already in your library",
+    "chooseFolder": "Folder",
+    "defaultFolder": "From friends",
+    "newFolder": "New folder",
+    "folderNamePlaceholder": "Folder name",
+    "createFolder": "Create folder",
+    "add": "Add to library",
+    "cancel": "Cancel",
+    "addedTo": "Added to {folder}",
+    "open": "Open",
+    "error": "Could not add to your library.",
+    "unsupported": "This type cannot be added to the library."
+  },
+  "picks": {
+    "myPick": "My pick",
+    "private": "Private",
+    "friendsWhoRecommend": "Friends who recommend",
+    "settingsRow": "My picks ({count})",
+    "empty": "No picks yet.",
+    "remove": "Remove",
+    "wantToSee": "Want to see {owner}’s picks?",
+    "yesShow": "Yes, show me",
+    "noThanks": "No thanks",
+    "openTitle": "Open {title}"
   }
 }

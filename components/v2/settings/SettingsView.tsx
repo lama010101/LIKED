@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { LANGUAGES } from "@/lib/i18n/languages";
-import { setLanguageAction, setMyPrefsAction } from "@/app/lib/actions/v2-owner";
+import { listMyPicksAction, setLanguageAction, setMyPrefsAction, setPickVisibilityAction, type MyPick } from "@/app/lib/actions/v2-owner";
 import { toast } from "@/lib/store/toastStore";
 import type { UserPrefs } from "@/components/v2/inbox/inbox-utils";
 import AppearanceControls from "@/components/v2/theme/AppearanceControls";
@@ -37,6 +37,22 @@ export default function SettingsView({
   const [region, setRegion] = useState(prefs.region_code ?? "");
   const [emailOn, setEmailOn] = useState(prefs.notify_email);
   const [busy, setBusy] = useState(false);
+  const tPicks = useTranslations("picks");
+  const [picks, setPicks] = useState<MyPick[]>([]);
+  const [picksOpen, setPicksOpen] = useState(false);
+
+  useEffect(() => {
+    listMyPicksAction().then(setPicks).catch(() => {});
+  }, []);
+
+  const removePick = async (nodeId: string) => {
+    try {
+      await setPickVisibilityAction(nodeId, "private");
+      setPicks((rows) => rows.filter((row) => row.node_id !== nodeId));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : t("error"));
+    }
+  };
 
   const initials =
     displayName
@@ -186,6 +202,37 @@ export default function SettingsView({
               persist={async (patch) => setMyPrefsAction(patch)}
             />
           </div>
+        </section>
+
+        <section className={styles.group} aria-labelledby="picks-settings">
+          <h2 className={styles.groupTitle} id="picks-settings">{tPicks("myPick")}</h2>
+          <button type={UI.button} className={styles.linkRow} onClick={() => setPicksOpen((v) => !v)} data-testid="picks-settings-row">
+            <span className={styles.rowMain}>{tPicks("settingsRow", { count: picks.length })}</span>
+            <span className={styles.chevron}>{UI.chevron}</span>
+          </button>
+          {picksOpen && (
+            <div>
+              {picks.length === 0 && <p className={styles.rowHint}>{tPicks("empty")}</p>}
+              {picks.map((pick) => (
+                <div key={pick.node_id} className={styles.row} data-testid="pick-settings-item">
+                  {pick.poster_path ? (
+                    // eslint-disable-next-line @next/next/no-img-element -- TMDB hotlink, CSP owns the allowlist
+                    <img src={`https://image.tmdb.org/t/p/w92${pick.poster_path}`} alt={UI.empty} className={styles.avatar} />
+                  ) : pick.thumb_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element -- item thumbnail URL is supplied by SQL
+                    <img src={pick.thumb_url} alt={UI.empty} className={styles.avatar} />
+                  ) : <span className={styles.avatar}>{pick.name.slice(0, 1)}</span>}
+                  <span className={styles.rowMain}>
+                    <span className={styles.rowLabel}>{pick.name}</span>
+                    <span className={styles.rowValue}>{pick.visibility}</span>
+                  </span>
+                  <button type={UI.button} className={styles.smallBtn} onClick={() => removePick(pick.node_id)}>
+                    {tPicks("remove")}
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
 
         <section className={styles.group} aria-labelledby={SECTION.notifications}>

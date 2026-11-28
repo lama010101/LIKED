@@ -35,6 +35,7 @@ export const COVERED_FKS = [
   { child: "organize_batches", column: "user_id", parent: "public.users", on_delete: "CASCADE", handled_by: "cascade" },
   { child: "owner_contributor_blocks", column: "owner_id", parent: "public.users", on_delete: "CASCADE", handled_by: "cascade" },
   { child: "owner_item_state", column: "owner_id", parent: "public.users", on_delete: "CASCADE", handled_by: "cascade" },
+  { child: "owner_picks", column: "owner_id", parent: "public.users", on_delete: "CASCADE", handled_by: "cascade" },
   { child: "recommendations", column: "owner_id", parent: "public.users", on_delete: "CASCADE", handled_by: "cascade" },
   { child: "user_node_preferences", column: "user_id", parent: "public.users", on_delete: "CASCADE", handled_by: "cascade" },
   { child: "user_prefs", column: "user_id", parent: "public.users", on_delete: "CASCADE", handled_by: "cascade" },

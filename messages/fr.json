@@ -622,7 +622,8 @@
     "genresLabel": "Genres que vous aimez",
     "genresHint": "{count}/5 sélectionnés",
     "saveAskSettings": "Enregistrer la note et les genres",
-    "askSettingsSaved": "Préférences d’invitation enregistrées."
+    "askSettingsSaved": "Préférences d’invitation enregistrées.",
+    "inLibrary": "Dans la bibliothèque"
   },
   "v2": {
     "language": {
@@ -806,5 +807,33 @@
     "green": "Vert",
     "pink": "Rose",
     "error": "Impossible d’enregistrer l’apparence"
+  },
+  "library": {
+    "addToLibrary": "Ajouter à ma bibliothèque",
+    "inLibrary": "Dans la bibliothèque",
+    "alreadyInLibrary": "Déjà dans votre bibliothèque",
+    "chooseFolder": "Dossier",
+    "defaultFolder": "Recommandations d’amis",
+    "newFolder": "Nouveau dossier",
+    "folderNamePlaceholder": "Nom du dossier",
+    "createFolder": "Créer le dossier",
+    "add": "Ajouter à la bibliothèque",
+    "cancel": "Annuler",
+    "addedTo": "Ajouté à {folder}",
+    "open": "Ouvrir",
+    "error": "Impossible d’ajouter à votre bibliothèque.",
+    "unsupported": "Ce type ne peut pas être ajouté à la bibliothèque."
+  },
+  "picks": {
+    "myPick": "Ma sélection",
+    "private": "Privé",
+    "friendsWhoRecommend": "Amis qui recommandent",
+    "settingsRow": "Mes sélections ({count})",
+    "empty": "Aucune sélection pour le moment.",
+    "remove": "Retirer",
+    "wantToSee": "Voulez-vous voir les sélections de {owner} ?",
+    "yesShow": "Oui, montrez-moi",
+    "noThanks": "Non merci",
+    "openTitle": "Ouvrir {title}"
   }
 }

@@ -2,7 +2,19 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { getInboxItemAction } from "@/app/lib/actions/v2-owner";
+import { useRouter } from "next/navigation";
+import {
+  getInboxItemAction,
+  getInboxLibraryTargetAction,
+  getPromoteFolderChoicesAction,
+  promoteRecommendationAction,
+  listMyPicksAction,
+  setPickVisibilityAction,
+  type InboxLibraryTarget,
+  type PromoteFolderChoices,
+} from "@/app/lib/actions/v2-owner";
+import { createFolderAction } from "@/app/lib/actions/mvp2";
+import { toast } from "@/lib/store/toastStore";
 import ScoreRing from "./ScoreRing";
 import { CloseIcon, PlayIcon } from "./icons";
 import styles from "./inbox.module.css";
@@ -46,6 +58,27 @@ export default function DetailSheet({
       ? `${t("friendsAverage")} ${t("raters", { count: card.rater_count })}`
       : t("friendsAverage");
   const [detail, setDetail] = useState<InboxItemDetail | null>(null);
+  const router = useRouter();
+  const tLibrary = useTranslations("library");
+  const tPicks = useTranslations("picks");
+  const [target, setTarget] = useState<InboxLibraryTarget | null>(null);
+  const [libraryNode, setLibraryNode] = useState<string | null>(null);
+  const [promoteOpen, setPromoteOpen] = useState(false);
+  const [folderChoices, setFolderChoices] = useState<PromoteFolderChoices | null>(null);
+  const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
+  const [newFolderName, setNewFolderName] = useState("");
+  const [promoteBusy, setPromoteBusy] = useState(false);
+  const [promoteDone, setPromoteDone] = useState<{ nodeId: string; folder: string } | null>(null);
+  const [pickTier, setPickTier] = useState<"private" | "contributors">("private");
+  const refreshPickTier = async (nodeId: string | null) => {
+    if (!nodeId) return;
+    try {
+      const picks = await listMyPicksAction();
+      setPickTier(picks.some((p) => p.node_id === nodeId) ? "contributors" : "private");
+    } catch {}
+  };
+  const canPromote = ["movie", "series", "video", "playlist"].includes(card.kind);
+  const inLibrary = card.in_library || libraryNode !== null;
 
   useEffect(() => {
     let active = true;
@@ -56,10 +89,85 @@ export default function DetailSheet({
       .catch(() => {
         if (active) setDetail(null);
       });
+    getInboxLibraryTargetAction(card.item_id)
+      .then((value) => {
+        if (!active) return;
+        setTarget(value);
+        setLibraryNode(value?.library_node_id ?? null);
+        void refreshPickTier(value?.library_node_id ?? null);
+      })
+      .catch(() => {
+        if (active) setTarget(null);
+      });
     return () => {
       active = false;
     };
   }, [card.item_id]);
+
+  const openPromote = async () => {
+    setPromoteOpen(true);
+    setPromoteDone(null);
+    if (!folderChoices) {
+      try {
+        const choices = await getPromoteFolderChoicesAction();
+        setFolderChoices(choices);
+        setSelectedFolder((current) => current ?? choices.last_used_folder_id);
+      } catch {
+        setFolderChoices({ last_used_folder_id: null, folders: [] });
+      }
+    }
+  };
+
+  const createFolder = async () => {
+    const name = newFolderName.trim();
+    if (!name || promoteBusy) return;
+    setPromoteBusy(true);
+    try {
+      const id = await createFolderAction({ name, parentId: null });
+      const choices = await getPromoteFolderChoicesAction();
+      setFolderChoices(choices);
+      setSelectedFolder(id);
+      setNewFolderName("");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : tLibrary("error"));
+    } finally {
+      setPromoteBusy(false);
+    }
+  };
+
+  const setPick = async (visibility: "private" | "contributors") => {
+    if (!libraryNode || promoteBusy) return;
+    setPromoteBusy(true);
+    try {
+      await setPickVisibilityAction(libraryNode, visibility);
+      setPickTier(visibility);
+    } catch {
+      toast.error(tLibrary("error"));
+    } finally {
+      setPromoteBusy(false);
+    }
+  };
+
+  const promote = async () => {
+    if (!target?.recommendation_id || promoteBusy) return;
+    setPromoteBusy(true);
+    try {
+      const result = await promoteRecommendationAction(target.recommendation_id, selectedFolder);
+      setLibraryNode(result.node_id);
+      void refreshPickTier(result.node_id);
+      const folder = selectedFolder
+        ? folderChoices?.folders.find((f) => f.id === selectedFolder)?.name ?? tLibrary("defaultFolder")
+        : tLibrary("defaultFolder");
+      setPromoteDone({ nodeId: result.node_id, folder });
+      setPromoteOpen(false);
+      if (result.already) toast.info(tLibrary("alreadyInLibrary"));
+      else toast.success(tLibrary("addedTo", { folder }));
+    } catch (e) {
+      toast.error(e instanceof Error && e.message.includes("UNSUPPORTED_KIND") ? tLibrary("unsupported") : tLibrary("error"));
+    } finally {
+      setPromoteBusy(false);
+    }
+  };
 
   useEffect(() => {
     closeRef.current?.focus();
@@ -179,6 +287,63 @@ export default function DetailSheet({
           </section>
         )}
 
+        {canPromote && (
+          <div className={styles.libraryActions} data-testid="library-actions">
+            {inLibrary ? (
+              <button
+                type={UI.button}
+                className={styles.secondaryBtn}
+                onClick={() => libraryNode && router.push(`/card/${libraryNode}`)}
+                disabled={!libraryNode}
+              >
+                {tLibrary("inLibrary")}
+              </button>
+            ) : (
+              <button
+                type={UI.button}
+                className={styles.primaryBtn}
+                onClick={openPromote}
+                disabled={!target?.recommendation_id}
+                data-testid="promote-open"
+              >
+                {tLibrary("addToLibrary")}
+              </button>
+            )}
+            {promoteDone && (
+              <button
+                type={UI.button}
+                className={styles.smallBtn}
+                onClick={() => router.push(`/card/${promoteDone.nodeId}`)}
+                data-testid="promote-open-card"
+              >
+                {tLibrary("open")}
+              </button>
+            )}
+          </div>
+        )}
+
+        {inLibrary && libraryNode && (
+          <div className={styles.libraryActions} data-testid="pick-control">
+            <span className={styles.sheetMeta}>{tPicks("myPick")}</span>
+            <button
+              type={UI.button}
+              className={pickTier === "private" ? styles.primaryBtn : styles.secondaryBtn}
+              disabled={promoteBusy}
+              onClick={() => setPick("private")}
+            >
+              {tPicks("private")}
+            </button>
+            <button
+              type={UI.button}
+              className={pickTier === "contributors" ? styles.primaryBtn : styles.secondaryBtn}
+              disabled={promoteBusy}
+              onClick={() => setPick("contributors")}
+            >
+              {tPicks("friendsWhoRecommend")}
+            </button>
+          </div>
+        )}
+
         {card.trailer_url && (
           <a
             href={card.trailer_url}
@@ -221,6 +386,66 @@ export default function DetailSheet({
           </ul>
         </section>
       </section>
+
+      {promoteOpen && (
+        <section
+          className={styles.promoteSheet}
+          aria-label={tLibrary("addToLibrary")}
+          onClick={(e) => e.stopPropagation()}
+          data-testid="promote-sheet"
+        >
+          <div className={styles.promoteHeader}>
+            <div className={styles.promotePoster}>
+              {image ? (
+                // eslint-disable-next-line @next/next/no-img-element -- TMDB hotlink, CSP owns the allowlist
+                <img src={image} alt={UI.empty} className={styles.posterImg} />
+              ) : null}
+            </div>
+            <div>
+              <h2 className={styles.sheetTitle}>{title}</h2>
+              {card.year !== null && <div className={styles.sheetMeta}>{card.year}</div>}
+            </div>
+          </div>
+
+          <button type={UI.button} className={styles.folderRow} onClick={() => setSelectedFolder(null)}>
+            <span>{tLibrary("chooseFolder")}</span>
+            <strong>{selectedFolder ? folderChoices?.folders.find((f) => f.id === selectedFolder)?.name : tLibrary("defaultFolder")}</strong>
+          </button>
+          <div className={styles.folderList}>
+            {(folderChoices?.folders ?? []).map((folder) => (
+              <button
+                key={folder.id}
+                type={UI.button}
+                className={selectedFolder === folder.id ? `${styles.folderOption} ${styles.folderOptionSelected}` : styles.folderOption}
+                style={{ paddingInlineStart: `${12 + (folder.depth - 1) * 16}px` }}
+                onClick={() => setSelectedFolder(folder.id)}
+              >
+                {folder.name}
+              </button>
+            ))}
+          </div>
+          <div className={styles.newFolderRow}>
+            <input
+              value={newFolderName}
+              onChange={(e) => setNewFolderName(e.target.value)}
+              placeholder={tLibrary("folderNamePlaceholder")}
+              aria-label={tLibrary("newFolder")}
+              className={styles.newFolderInput}
+            />
+            <button type={UI.button} className={styles.smallBtn} disabled={promoteBusy || !newFolderName.trim()} onClick={createFolder}>
+              {tLibrary("createFolder")}
+            </button>
+          </div>
+          <div className={styles.actions}>
+            <button type={UI.button} className={styles.primaryBtn} disabled={promoteBusy} onClick={promote} data-testid="promote-submit">
+              {tLibrary("add")}
+            </button>
+            <button type={UI.button} className={styles.secondaryBtn} disabled={promoteBusy} onClick={() => setPromoteOpen(false)}>
+              {tLibrary("cancel")}
+            </button>
+          </div>
+        </section>
+      )}
     </div>
   );
 }

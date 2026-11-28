@@ -444,7 +444,7 @@ check("REPO-11 RPC-only writes (edges/causes/folder_edges/folder_tree)", directW
 // every write goes through an RPC. (youtube_connections own-row token
 // storage is the single sanctioned exception.) categorization_suggestions
 // is dropped by P2-08 (F6), at which point its writers disappear.
-const domainWriteRe = /\.from\(\s*["'](tag_edges|folders|nodes|blocks|friend_invites|users|notifications|groups|group_members|ratings|folder_grants|folder_ratings|organize_batches|organize_items|user_prefs|contributors|asks|items|item_availability|item_availability_fetch|tmdb_genres|submissions|recommendations|owner_item_state|owner_contributor_blocks|enrichment_jobs|email_outbox|rate_limits|youtube_search_cache|youtube_search_budget|account_deletion_jobs|deletion_requests|node_items)["']\s*\)\s*\.(insert|update|delete|upsert)\(/;
+const domainWriteRe = /\.from\(\s*["'](tag_edges|folders|nodes|blocks|friend_invites|users|notifications|groups|group_members|ratings|folder_grants|folder_ratings|organize_batches|organize_items|user_prefs|contributors|asks|items|item_availability|item_availability_fetch|tmdb_genres|submissions|recommendations|owner_item_state|owner_contributor_blocks|owner_picks|enrichment_jobs|email_outbox|rate_limits|youtube_search_cache|youtube_search_budget|account_deletion_jobs|deletion_requests|node_items)["']\s*\)\s*\.(insert|update|delete|upsert)\(/;
 const domainWrites = srcFiles.filter((f) => domainWriteRe.test(readFileSync(f, "utf8")));
 check("REPO-15 RPC-only writes (all domain tables)", domainWrites.length === 0,
   domainWrites.map((f) => f.replace(root + "\\", "")).join(", ") || "clean");
