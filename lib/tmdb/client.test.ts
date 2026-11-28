@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  details,
   findImdbDetails,
   mapSearchItem,
   posterUrl,
@@ -91,6 +92,13 @@ describe("searchMulti", () => {
     expect((call[1].headers as Record<string, string>).Authorization).toBe(`Bearer ${TOKEN}`);
   });
 
+  it.each(["fr-FR", "es-ES", "th-TH"] as const)("sends language=%s for the viewer tag", async (tag) => {
+    const fetchImpl = vi.fn(async () => jsonResponse({ results: [] })) as unknown as typeof fetch;
+    await searchMulti("matrix", tag, { token: TOKEN, fetchImpl });
+    const call = (fetchImpl as unknown as { mock: { calls: [string, RequestInit][] } }).mock.calls[0];
+    expect(new URL(call[0]).searchParams.get("language")).toBe(tag);
+  });
+
   it("returns [] for a one-character query without a network call", async () => {
     const fetchImpl = vi.fn() as unknown as typeof fetch;
     await expect(searchMulti("a", "en-US", { token: TOKEN, fetchImpl })).resolves.toEqual([]);
@@ -158,6 +166,21 @@ describe("toBaseFacts", () => {
     const base = toBaseFacts({ name: "S", episode_run_time: [45, 50] }, "series");
     expect(base.runtime_min).toBe(45);
     expect(base.name).toBe("S");
+  });
+});
+
+describe("details", () => {
+  it.each(["fr-FR", "es-ES", "th-TH"] as const)("sends viewer language and image fallback for %s", async (tag) => {
+    const fetchImpl = vi.fn(async () =>
+      jsonResponse({ title: "T", release_date: "2020-01-01", genres: [] })
+    ) as unknown as typeof fetch;
+    await details("movie", "603", tag, { token: TOKEN, fetchImpl });
+    const call = (fetchImpl as unknown as { mock: { calls: [string, RequestInit][] } }).mock.calls[0];
+    const url = new URL(call[0]);
+    expect(url.pathname).toBe("/3/movie/603");
+    expect(url.searchParams.get("language")).toBe(tag);
+    expect(url.searchParams.get("append_to_response")).toBe("videos");
+    expect(url.searchParams.get("include_image_language")).toBe(`${tag},en,null`);
   });
 });
 

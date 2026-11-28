@@ -125,8 +125,23 @@ describe("fetchTmdbDetails", () => {
     }) as typeof fetch;
     const res = await fetchTmdbDetails(movie, "fr-FR", { token: "tok", fetchImpl });
     expect(res.status).toBe("ok");
-    expect(seenUrl).toContain("/movie/603?language=fr-FR&append_to_response=videos");
+    expect(seenUrl).toContain(
+      "/movie/603?language=fr-FR&append_to_response=videos&include_image_language=fr-FR%2Cen%2Cnull"
+    );
     expect(seenAuth).toBe("Bearer tok");
+  });
+
+  it.each(["es-ES", "th-TH"] as const)("uses the worker job language tag for %s", async (tag) => {
+    let seenUrl = "";
+    const fetchImpl = (async (input: RequestInfo | URL) => {
+      seenUrl = String(input);
+      return jsonResponse({ title: "T", genres: [] });
+    }) as typeof fetch;
+    const res = await fetchTmdbDetails(movie, tag, { token: "tok", fetchImpl });
+    expect(res.status).toBe("ok");
+    const url = new URL(seenUrl);
+    expect(url.searchParams.get("language")).toBe(tag);
+    expect(url.searchParams.get("include_image_language")).toBe(`${tag},en,null`);
   });
 
   it("maps 404 to unavailable (item gone at the provider)", async () => {

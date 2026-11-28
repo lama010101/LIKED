@@ -339,7 +339,7 @@ export async function details(
   const media = kind === "movie" ? "movie" : "tv";
   const payload = await tmdbGet<Record<string, unknown>>(
     `/${media}/${id}`,
-    { language: tag, append_to_response: "videos" },
+    { language: tag, append_to_response: "videos", include_image_language: `${tag},en,null` },
     deps
   );
   const base = toBaseFacts(payload, kind);

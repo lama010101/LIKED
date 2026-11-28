@@ -1,0 +1,9 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`OAuth scope audit > scope strings snapshot 1`] = `
+{
+  "login": "provider-default-openid-email-profile",
+  "signup": "provider-default-openid-email-profile",
+  "youtubeConnect": "https://www.googleapis.com/auth/youtube.readonly",
+}
+`;
