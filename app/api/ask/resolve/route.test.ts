@@ -207,6 +207,101 @@ describe("POST /api/ask/resolve", () => {
     expect(upsert[1]).toMatchObject({ p_source: "youtube", p_kind: "video", p_external_id: "dQw4w9WgXcQ" });
   });
 
+  it("resolves a pure playlist URL as kind=playlist through playlists.list", async () => {
+    const id = "PLMlG3wbBwCVZ4N44bIm-K_DWRgv8NWNiu";
+    const fetchMock = vi.fn(async () =>
+      jsonResponse({
+        items: [
+          {
+            id,
+            snippet: {
+              title: "A playlist",
+              channelId: "UC38IQsAvIsxxjztdMZQtwHA",
+              channelTitle: "A channel",
+              thumbnails: { high: { url: "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg" } },
+            },
+          },
+        ],
+      })
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const res = await POST(post({ url: `https://www.youtube.com/playlist?list=${id}` }));
+    expect(res.status).toBe(200);
+    const calls = fetchMock.mock.calls as unknown as [string][];
+    expect(calls.length).toBe(1);
+    const url = new URL(calls[0][0]);
+    expect(url.pathname).toBe("/youtube/v3/playlists");
+    expect(url.searchParams.get("part")).toBe("snippet");
+    const upsert = mocks.rpc.mock.calls.find(
+      (c) => (c as unknown as [string])[0] === "upsert_item"
+    ) as unknown as [string, Record<string, unknown>];
+    expect(upsert[1]).toMatchObject({ p_source: "youtube", p_kind: "playlist", p_external_id: id });
+    const base = upsert[1].p_base as Record<string, unknown>;
+    expect(base).toMatchObject({ name: "A playlist", creator_name: "A channel" });
+  });
+
+  it("keeps watch?v=…&list=… a video and rejects RD/LL/WL playlists with 422 and no provider call", async () => {
+    const videoPayload = {
+      items: [
+        {
+          id: "dQw4w9WgXcQ",
+          snippet: { title: "A video", publishedAt: "2009-10-25T06:57:33Z", channelId: "UC38IQsAvIsxxjztdMZQtwHA", channelTitle: "A channel" },
+        },
+      ],
+    };
+    const fetchMock = vi.fn(async () => jsonResponse(videoPayload));
+    vi.stubGlobal("fetch", fetchMock);
+    const list = "PLMlG3wbBwCVZ4N44bIm-K_DWRgv8NWNiu";
+    const res = await POST(post({ url: `https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=${list}` }));
+    expect(res.status).toBe(200);
+    const upsert = mocks.rpc.mock.calls.find(
+      (c) => (c as unknown as [string])[0] === "upsert_item"
+    ) as unknown as [string, Record<string, unknown>];
+    expect(upsert[1]).toMatchObject({ p_kind: "video", p_external_id: "dQw4w9WgXcQ" });
+
+    for (const bad of ["RDDQw4w9WgXcQ", "LL", "WL"]) {
+      mocks.rpc.mockClear();
+      (fetchMock as unknown as { mockClear: () => void }).mockClear();
+      const blocked = await POST(post({ url: `https://www.youtube.com/playlist?list=${bad}` }));
+      expect(blocked.status).toBe(422);
+      expect(await blocked.json()).toEqual({ error: "UNSUPPORTED_URL" });
+      expect(fetchMock).not.toHaveBeenCalled();
+    }
+  });
+
+  it("resolves an explicit {source:youtube, kind:playlist} body", async () => {
+    const id = "PLMlG3wbBwCVZ4N44bIm-K_DWRgv8NWNiu";
+    const fetchMock = vi.fn(async () =>
+      jsonResponse({
+        items: [
+          {
+            id,
+            snippet: {
+              title: "A playlist",
+              channelId: "UC38IQsAvIsxxjztdMZQtwHA",
+              channelTitle: "A channel",
+            },
+          },
+        ],
+      })
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const res = await POST(post({ source: "youtube", kind: "playlist", external_id: id }));
+    expect(res.status).toBe(200);
+    const upsert = mocks.rpc.mock.calls.find(
+      (c) => (c as unknown as [string])[0] === "upsert_item"
+    ) as unknown as [string, Record<string, unknown>];
+    expect(upsert[1]).toMatchObject({ p_kind: "playlist", p_external_id: id });
+  });
+
+  it("answers NOT_FOUND when playlists.list returns an empty items array", async () => {
+    const id = "PLMlG3wbBwCVZ4N44bIm-K_DWRgv8NWNiu";
+    const fetchMock = vi.fn(async () => jsonResponse({ items: [] }));
+    vi.stubGlobal("fetch", fetchMock);
+    const res = await POST(post({ url: `https://www.youtube.com/playlist?list=${id}` }));
+    expect(res.status).toBe(404);
+  });
+
   it("answers {status:'busy'} when the resolve budget is exhausted, with no upstream call", async () => {
     mocks.rpc.mockImplementation(async (fn: string) => {
       if (fn === "guest_verify") {
