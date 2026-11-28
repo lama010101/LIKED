@@ -23,7 +23,7 @@ Started: 2026-11-27T09:29+07:00
 | WP2 migrations 147+148 | DONE | devin/V2-W6-MIG147-1127-001 | 1f96edff2ecda108d3c7e6718692d57c015f95b0 | PR76 | merged as 3fb0527ebf8ff863e9325430e4b48609125d2f76; postmerge production proofs all pass; next WP3 |
 | WP3 migration 149 | DONE | devin/V2-W6-MIG149-1127-001 | bec2acca62691d014186339de63d571f3c2fa9d4 | PR77 | merged as 4d01614b1087bd5d81e6f145adc918b23dca5833; postmerge proofs pass; next WP6 |
 | WP4 guest stack | EVIDENCE_READY_WITH_FAILURES | devin/V2-W3-GUEST-FIX-1125-001-d | 403da0411db18ce3ccbea534aed10b8e119bc4a9 | PR72 | green CI; do not merge; race/axe failures documented; next WP5 |
-| WP5 pipeline stack | PENDING | stacked branches | pending | #62/#71/#73/#74 | wait WP1+WP2/WP3 |
+| WP5 pipeline stack | EVIDENCE_READY | devin/V2-W4-PIPELINE-1124-001 + devin/V2-W5-EMAIL-1125-001 + devin/V2-W5-DELETE-1125-001 + devin/V2-W5-PIPELINE-1125-002 | 37da871 / 3bcb50f / 5d0cabd / 7b135fe | #62/#71/#73/#74 | all green draft Class B PRs; do not merge; next WP7 |
 | WP6 class A items | DONE | devin/V2-W6-CLASSA-1127-001 | b0bb0ad885261de7174ebb4f46d25910cffb4e48 | PR78 | merged as a3eb164b206eb7331bf7cfe18fdde2b00cd0e9f3; next WP4 |
 | WP7 closeout | PENDING | devin/V2-W6-LEDGER-1127-001 | pending | pending | final |
 
@@ -97,3 +97,18 @@ Started: 2026-11-27T09:29+07:00
 - Preview spoofed-xff proof is NOT DONE/invalid: the protected preview was reachable through vercel curl, but a valid production ask token returned 404 there, so the preview cannot exercise the production guest ask backend. Twenty-four parallel dead-token requests with distinct spoofed x-forwarded-for values all returned 404 and are not evidence of rate-limit behavior.
 - Final production residue counts after audited cleanup: contributors:0, submissions:0, recommendations:0, notifications:146, email_outbox:0, enrichment_jobs:0, items:0, tmdb_genres:0, youtube_search_cache:0, youtube_search_budget:0, rate_limits:0. These equal the pre-fixture baseline.
 - WP4 remains Class B and unmerged. Next WP: WP5 pipeline stack.
+
+## WP5 evidence checkpoint 2026-11-28T09:55Z
+
+- Ordered stack integrated and pushed: PR62 head `37da87187696136bfd8560c8058d906dcf934834` base `main` `a3eb164`; PR71 head `3bcb50f8fe83b9d23685a2d6c0402c5483091fb2` base `devin/V2-W4-PIPELINE-1124-001` `37da871`; PR73 head `5d0cabdb7a1821d66f40d9bedbe5ee96bcbcfa7c` base `devin/V2-W5-EMAIL-1125-001` `3bcb50f`; PR74 head `7b135fe151099e49c3232a25eeab79b7100e99bb` base `devin/V2-W5-DELETE-1125-001` `5d0cabd`.
+- REST state after pushes: all four PRs remain `state=open`, `draft=true`, `merged=false`; final mergeable_state is `clean` for each. Checks on each final head: build success, e2e success, Vercel Preview Comments success, Supabase Preview skipped.
+- Local validation: PR62 tsc 0, eslint 0 errors/1 warning, vitest 273/273, webpack build exit 0 after the dependency-junction Turbopack limitation (CI `next build` also green); PR71 tsc 0, eslint 0 errors/1 warning, vitest 285/285, webpack build exit 0 on retry after the known next/font transient; PR73 tsc 0, eslint 0 errors/2 warnings, vitest 303/303, next build exit 0; PR74 tsc 0, eslint 0 errors/2 warnings, vitest 316/316, next build exit 0.
+- Protected paths are intentionally Class B: PR62 11 paths, PR71 21 paths, PR73 31 paths, PR74 37 paths by `scripts/check-protected-paths.mjs`; all four remain unmerged for CTO review.
+- Required fix a: `bee8c7c` cherry-picked into PR73; lint is green.
+- Required fix b: `scripts/verify-delete-account.mjs` now skips migration-146 apply when `public.delete_account(uuid,text)` exists. Live run: `119 passed, 0 failed`, rollback issued, zero residue.
+- Required fix c: `deletion_job_advance` errors now abort `runDeletionPipeline`; the API route still maps `ok:false` to HTTP 500. Fail-before test result was `expected true to be false`; pass-after result is `5 passed`. The standalone deletion-request drainer now propagates the same failure instead of marking the request done.
+- Required ruling d: `/api/account/reauth/start` already forces a Google round trip: `app/api/account/reauth/start/route.ts` builds `&prompt=select_account consent` and `&max_age=0`; route tests assert both query params, and `done` still requires `last_sign_in_at` newer than state iat.
+- Required proof e: `scripts/verify-deletion-ledger-147.mjs` on PROD passed `7/7`: storage→auth, equal-stage allowed, backward rejected, done completed/email NULL, done→email rejected, rollback cleanup equal.
+- Required proof f: `scripts/verify-housekeeping-email-live.mjs` on PROD passed `13/13`: housekeeping missing/wrong bearer 401, authenticated 200 `{enqueued:2, claimed:2, done:2, unavailable:1}`, email route missing bearer 401 and authenticated dry `{reason:email_not_configured, claimed:0}`, rollback email_claim/email_finish success, audited table counts equal. REAL send remains NOT DONE because `RESEND_API_KEY` and `EMAIL_FROM` are absent.
+- Required report g: `vercel.json` schedules are `/api/youtube/sync` twice daily (`0 6 * * *`, `0 18 * * *`), `/api/cron/enrich` once daily (`0 1 * * *`), `/api/cron/email` once daily (`30 1 * * *`), and `/api/cron/housekeeping` once daily (`0 2 * * *`). Owner email drain therefore runs once daily and can delay queued owner mail by up to ~24 hours; housekeeping does not replace the email drain.
+- WP5 is EVIDENCE_READY, not merged. Next WP: WP7 closeout.
