@@ -60,11 +60,7 @@ async function findUserIdByEmail(email) {
 }
 
 async function advance(userId, stage, error = null) {
-  try {
-    await rpc("deletion_job_advance", { p_user_id: userId, p_stage: stage, p_error: error });
-  } catch (e) {
-    console.log(`  advance(${stage}) failed: ${e.message}`);
-  }
+  await rpc("deletion_job_advance", { p_user_id: userId, p_stage: stage, p_error: error });
 }
 
 async function revokeGoogle(userId) {
