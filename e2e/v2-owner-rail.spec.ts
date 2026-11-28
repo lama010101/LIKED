@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { injectSession } from "./helpers/auth";
+import { startProdAudit, type ProdAudit } from "./helpers/prodAudit";
 import {
   createGuest,
   deleteGuest,
@@ -27,8 +28,10 @@ let aliceId = "";
 let bobId = "";
 let askToken = "";
 let before: FixtureRowCounts;
+let audit: ProdAudit;
 
 test.beforeAll(async () => {
+  audit = await startProdAudit();
   before = await fixtureRowCounts();
   const alice = await createGuest("zz-e2e-RailAlice");
   const bob = await createGuest("zz-e2e-RailBob");
@@ -60,6 +63,7 @@ test.afterAll(async () => {
   const after = await fixtureRowCounts();
   console.log(`FIXTURE ROW COUNTS before=${JSON.stringify(before)}`);
   console.log(`FIXTURE ROW COUNTS after=${JSON.stringify(after)}`);
+  await audit.assertEqual();
 });
 
 test("fixtures land in the rail: All = sum of friend counts", async ({ page, baseURL }) => {
