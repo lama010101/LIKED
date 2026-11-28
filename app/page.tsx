@@ -10,6 +10,7 @@ import LandingV2 from "@/components/landing/LandingV2";
 import LandingV2b from "@/components/landing/v2b/LandingV2b";
 import LegacyLanding from "@/components/landing/LegacyLanding";
 import { resolveLandingVariant, type LandingResolution } from "@/lib/landing/resolve";
+import { SIGNED_IN_HOME } from "@/lib/v2/home";
 
 // Landing switch (V2-LANDING-002-A). "/" resolves its variant per request with
 // the pure resolver: ?landing= > cookie "liked.landing" > env LANDING_VARIANT >
@@ -88,9 +89,10 @@ export default async function RootPage({ searchParams }: { searchParams: SearchP
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Logged-in users go straight to their feed.
+  // Logged-in users go straight to the v2 home (P0-16 switch: one constant
+  // in lib/v2/home.ts; the legacy app stays reachable by URL).
   if (user) {
-    redirect("/feed");
+    redirect(SIGNED_IN_HOME);
   }
 
   return (

@@ -68,10 +68,12 @@ export default function TermsOfServicePage() {
           <section>
             <h3 style={sectionHeading}>1. Acceptance of Terms</h3>
             <p>
-              By creating an account or otherwise accessing or using LIKED (the
-              &quot;Service&quot;), you agree to be bound by these Terms of
-              Service. If you do not agree, you may not access or use the
-              Service.
+              By creating an account, using a guest recommendation link, or
+              otherwise accessing or using LIKED (the &quot;Service&quot;), you
+              agree to be bound by these Terms of Service. These Terms apply to
+              signed-in owners and to guests or contributors who submit
+              recommendations through an owner&apos;s shared link. If you do not
+              agree, you may not access or use the Service.
             </p>
           </section>
 
@@ -89,11 +91,15 @@ export default function TermsOfServicePage() {
           <section>
             <h3 style={sectionHeading}>3. Your Content</h3>
             <p>
-              You retain ownership of the content you submit to LIKED. You are
-              solely responsible for your content and for ensuring you have the
-              rights to share it. By submitting content, you grant LIKED a
-              worldwide, non-exclusive, royalty-free license to host, store,
-              display, and transmit that content as necessary to operate the
+              You retain ownership of the content you submit to LIKED, including
+              guest contributor ratings, comments, platform notes, and
+              recommendations. You are solely responsible for your content and
+              for ensuring you have the rights to share it. By submitting
+              content, you grant LIKED a worldwide, non-exclusive, royalty-free
+              license to host, store, display, and transmit that content as
+              necessary to operate the Service. Metadata, posters, ratings, and
+              video information retrieved from TMDB or YouTube remain subject to
+              those providers&apos; terms and are displayed only as part of the
               Service.
             </p>
           </section>
@@ -124,9 +130,13 @@ export default function TermsOfServicePage() {
           <section>
             <h3 style={sectionHeading}>6. Termination</h3>
             <p>
-              You may delete your account at any time. We may suspend or
-              terminate your access to the Service if you violate these Terms or
-              if we believe your conduct harms the Service or other users.
+              You may delete your account at any time in the app or through the
+              public /delete-account page. Guest contributors may delete their
+              submitted data through the deletion control in the guest
+              recommendation flow. Verified deletion requests sent by email are
+              processed within 30 days. We may suspend or terminate your access
+              to the Service if you violate these Terms or if we believe your
+              conduct harms the Service or other users.
             </p>
           </section>
 
