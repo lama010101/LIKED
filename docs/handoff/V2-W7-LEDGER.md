@@ -26,7 +26,7 @@ Started: 2026-11-28 ~08:33 +0700 (unattended, Lolo away)
 
 | WP | Title | Status | Branch | Head SHA | PR | Next step |
 |----|-------|--------|--------|----------|----|-----------|
-| WP-A | Fix+merge PR #72 (guest stack) | IN PROGRESS | devin/V2-W3-GUEST-FIX-1125-001-d | 403da04 | #72 | A1 route retry fix + test; A2 axe contrast; A3 merge main+CI; A4 live suite; merge; post-merge proofs |
+| WP-A | Fix+merge PR #72 (guest stack) | IN PROGRESS (A1+A2 done, pushed) | devin/V2-W3-GUEST-FIX-1125-001-d | 43c11ea | #72 (ready, CI running) | A3: CI green; A4: live guest suite + PROD proofs; merge; post-merge proofs |
 | WP-B | P0 acceptance matrix (docs) | PENDING | - | - | - | after/parallel with WP-A |
 | WP-C | Pipeline stack evidence PRs (#62->#71->#73->#74) | PENDING | - | - | - | Class B, DO NOT MERGE |
 | WP-D | Threat-model tests T1-T17 (P0-23) | PENDING | - | - | - | after WP-A (needs guest routes on main) |
@@ -42,3 +42,20 @@ Started: 2026-11-28 ~08:33 +0700 (unattended, Lolo away)
 ## Evidence log
 
 (entries appended per WP with decisive lines only)
+
+### WP-A1 — submit 23505 retry (DONE, commit 2f2093a)
+- `app/api/ask/submit/route.ts`: RPC wrapped in retry-once on `error?.code === "23505"` (idempotency SELECT/INSERT race, migration 144 unchanged).
+- `app/api/ask/_lib/writeRoutes.test.ts`: +2 tests (23505→retry→replayed; double-23505→503). FAIL-before: 2 failed/14 passed. PASS-after: 16/16.
+- Live bug found+fixed same commit: first version referenced undefined `rpc` → 500 on POST /api/ask/submit; restructured to `svc.rpc(...)` binding.
+
+### WP-A2 — axe color-contrast (DONE, commits e157825 + 43c11ea)
+- Probe `wp7-axe-probe.mjs` BEFORE: 120 serious/critical nodes. Root causes (decisive NODE lines):
+  - `fg=#1a1a2e/#6b6b80 bg=#0a0a12` (85): v2 tokens light under system+light OS while globals.css page bg stayed dark — v2 routes have no ThemeSync.
+  - `fg=#f0f0f5 bg=#f2f2f6/#ffffff` (27): globals.css:2223 `input,select,textarea{color:var(--text-1)}` pins dark text on light v2 surfaces.
+  - `fg=#ff3b30 bg=#f2f2f6 ratio=3.17` (8): --v2-danger (also warn/success) had no light-theme value (script gap: pairs unchecked).
+- Fixes: V2Shell `min-h-dvh bg-[var(--v2-bg)] text-[var(--v2-text)]`; v2-tokens.css scoped input color + light overrides success #166534 / warn #92400E / danger #B42318; check-contrast.mjs +12 pairs (121 checks).
+- FAIL-before: check-contrast on old tokens = 6 FAIL (danger 3.18, warn 1.97, success 1.99 on light). PASS-after: 121/121.
+- i18n bug fixed (43c11ea): FriendFlow used `t("error.*")` under `friend` ns — keys absent in all 4 catalogs → MISSING_MESSAGE crash on submit error. Repointed to existing `ask.error.*` via second useTranslations hook.
+- Probe script: runAxe retry x4 for the CSP/eval injection flake.
+- AFTER probe: `WP7_AXE_RESULT=PASS failures=none`, 80/80 screen checks `serious_critical_violations=0`, `fixture_cleanup_zero_residue=PASS equal=true`, 0 INJECTION_FAILED.
+- Validation: tsc 0 err; eslint changed-files 0 err; vitest 321/321; next build OK (40 routes); check-protected-paths=0; check-contrast 121/121.
