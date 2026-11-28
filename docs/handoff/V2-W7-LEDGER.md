@@ -115,3 +115,10 @@ Started: 2026-11-28 ~08:33 +0700 (unattended, Lolo away)
 - Validation: tsc 0, eslint clean on touched files, vitest 321/321, protected paths 0.
 - Live run vs local dev :3001 (W3-FIX code + PROD DB): `5 passed (1.0m)`, `PROD AUDIT residue check: PASS (all table counts equal)`. Fix during bring-up: client_batch_id must be UUID (route 400 BAD_REQUEST otherwise).
 - Awaiting CI → merge via REST.
+
+### WP-D merge (DONE)
+- PR #82 merged via REST merge_method=merge sha=cd7f404… → merge commit `c191ee4349efe95d8b88d40e795e20882ddccbf0`. CI on head: build/e2e/Vercel success, Supabase skipped. `git merge-base --is-ancestor` OK for cd7f404 and c191ee4 on origin/main. origin/main = c191ee4.
+
+### WP-C final state (DONE — Class B hold)
+- All four stack heads merged with origin/main and pushed; CI green on every head: #62@15024ef, #71@1699ae1, #73@38aff24, #74@ff483a7 (build+e2e+Vercel success, Supabase skipped). All mergeable_state=clean, all draft → REVIEW QUEUE, no merge per Class B.
+- Fix h LIVE proof PASS (see WP-C section above): verify-delete-pipeline-live.mjs 24/24 vs PROD.
