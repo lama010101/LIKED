@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { injectSession } from "./helpers/auth";
+import { startProdAudit, type ProdAudit } from "./helpers/prodAudit";
 import {
   createFixtureUser,
   createGuest,
@@ -31,8 +32,10 @@ const createdItemIds: string[] = [];
 let itemId = "";
 let askToken = "";
 let before: FixtureRowCounts;
+let audit: ProdAudit;
 
 test.beforeAll(async () => {
+  audit = await startProdAudit();
   before = await fixtureRowCounts();
   guests.push(await createGuest("zz-e2e-Alice"), await createGuest("zz-e2e-Bob"));
   itemId = await upsertTmdbItem(itemExternalId, {
@@ -60,6 +63,7 @@ test.afterAll(async () => {
   const after = await fixtureRowCounts();
   console.log(`FIXTURE ROW COUNTS before=${JSON.stringify(before)}`);
   console.log(`FIXTURE ROW COUNTS after=${JSON.stringify(after)}`);
+  await audit.assertEqual();
 });
 
 test("owner /inbox loads and ensure_my_ask creates one link", async ({ page, baseURL }) => {
