@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { injectSession } from "./helpers/auth";
+import { startProdAudit, type ProdAudit } from "./helpers/prodAudit";
 import {
   createGuest,
   deleteGuest,
@@ -22,8 +23,10 @@ const itemExternalId = "97" + String(Date.now()).slice(-8);
 let guest: FixtureGuest | null = null;
 let itemId = "";
 let before: FixtureRowCounts;
+let audit: ProdAudit;
 
 test.beforeAll(async () => {
+  audit = await startProdAudit();
   before = await fixtureRowCounts();
   guest = await createGuest("zz-e2e-Notif");
   itemId = await upsertTmdbItem(itemExternalId, {
@@ -45,6 +48,7 @@ test.afterAll(async () => {
   const after = await fixtureRowCounts();
   console.log(`FIXTURE ROW COUNTS before=${JSON.stringify(before)}`);
   console.log(`FIXTURE ROW COUNTS after=${JSON.stringify(after)}`);
+  await audit.assertEqual();
 });
 
 test("recommendation_received renders and links to the inbox", async ({ page, baseURL }) => {
