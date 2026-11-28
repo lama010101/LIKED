@@ -616,7 +616,23 @@
     "railAll": "Todos",
     "railAllLabel": "Todos, {count} sin ver",
     "railFriendLabel": "{name}, {count} sin ver",
-    "emptyFriend": "Nada de {name} todavía."
+    "emptyFriend": "Nada de {name} todavía.",
+    "filters": "Filtros",
+    "filtersTitle": "Filtros y orden",
+    "sortLabel": "Orden",
+    "sort_recent": "Recomendados recientemente",
+    "sort_most_recommended": "Más recomendados",
+    "sort_friend_score": "Puntuación de amigos",
+    "sort_release_date": "Fecha de estreno",
+    "sort_tmdb_score": "Puntuación TMDB",
+    "filterPlatform": "Plataforma",
+    "filterType": "Tipo",
+    "filterDecade": "Década de estreno",
+    "filterLanguage": "Idioma original",
+    "filterGenre": "Género",
+    "filterMultiRecommended": "Recomendado por 2+ amigos",
+    "clearAll": "Borrar todo",
+    "applyFilters": "Aplicar"
   },
   "v2": {
     "language": {

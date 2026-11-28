@@ -616,7 +616,23 @@
     "railAll": "Tous",
     "railAllLabel": "Tous, {count} non vus",
     "railFriendLabel": "{name}, {count} non vus",
-    "emptyFriend": "Rien de {name} pour l'instant."
+    "emptyFriend": "Rien de {name} pour l'instant.",
+    "filters": "Filtres",
+    "filtersTitle": "Filtres et tri",
+    "sortLabel": "Tri",
+    "sort_recent": "Recommandés récemment",
+    "sort_most_recommended": "Les plus recommandés",
+    "sort_friend_score": "Score des amis",
+    "sort_release_date": "Date de sortie",
+    "sort_tmdb_score": "Score TMDB",
+    "filterPlatform": "Plateforme",
+    "filterType": "Type",
+    "filterDecade": "Décennie de sortie",
+    "filterLanguage": "Langue originale",
+    "filterGenre": "Genre",
+    "filterMultiRecommended": "Recommandé par 2+ amis",
+    "clearAll": "Tout effacer",
+    "applyFilters": "Appliquer"
   },
   "v2": {
     "language": {

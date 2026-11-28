@@ -6,6 +6,9 @@
 // passed — every RPC resolves auth.uid() server-side.
 
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { getSupabaseServiceClient } from "@/lib/supabase/service";
+import { ensureTmdbGenres } from "@/lib/tmdb/genres";
+import { isTmdbTag, type TmdbTag } from "@/lib/tmdb/client";
 import { cookies } from "next/headers";
 import { isLanguageCode, LOCALE_COOKIE, tmdbTagFor } from "@/lib/i18n/languages";
 import type {
@@ -35,8 +38,21 @@ async function ownerRpc<T>(fn: string, args?: RpcArgs): Promise<T> {
   return data as T;
 }
 
+export interface InboxFilters {
+  platforms?: string[];
+  types?: string[];
+  decades?: number[];
+  languages?: string[];
+  genres?: string[];
+  multi_recommended?: boolean;
+}
+
+export type InboxSort = "recent" | "most_recommended" | "friend_score" | "release_date" | "tmdb_score";
+
 export interface InboxQuery {
   friendId?: string | null;
+  filters?: InboxFilters;
+  sort?: InboxSort;
   cursor?: { key: number; item_id: string } | null;
   limit?: number;
 }
@@ -46,8 +62,8 @@ export async function getInboxAction(query: InboxQuery = {}): Promise<InboxPaylo
   return ownerRpc<InboxPayload>("get_inbox", {
     p_status: "to_watch",
     p_friend_id: query.friendId ?? null,
-    p_filters: {},
-    p_sort: "recent",
+    p_filters: query.filters ?? {},
+    p_sort: query.sort ?? "recent",
     p_cursor_key: query.cursor?.key ?? null,
     p_cursor_item: query.cursor?.item_id ?? null,
     p_limit: query.limit ?? 30,
@@ -75,6 +91,51 @@ export async function regenerateMyAskAction(): Promise<string> {
 
 export async function setAskActiveAction(active: boolean): Promise<void> {
   await ownerRpc<void>("set_ask_active", { p_active: active });
+}
+
+
+export interface GenreOption {
+  id: number;
+  name: string;
+}
+
+interface LooseGenreChain {
+  eq(column: string, value: string): LooseGenreChain;
+  then<T>(onfulfilled: (value: { data: unknown; error: unknown }) => T): Promise<T>;
+}
+
+interface LooseGenreClient {
+  from(table: string): {
+    select(columns: string): LooseGenreChain;
+  };
+}
+
+/** Localized TMDB genre catalog for filter chips. Rows are non-secret class-S
+ *  reference data synchronized lazily from TMDB. */
+export async function getGenreCatalogAction(): Promise<GenreOption[]> {
+  const prefs = await getMyPrefsAction();
+  const store = await cookies();
+  const cookieTag = store.get("LIKED_TMDB_LANG")?.value;
+  const candidate = prefs.tmdb_lang ?? cookieTag ?? "en-US";
+  const tag: TmdbTag = isTmdbTag(candidate) ? candidate : "en-US";
+  const service = getSupabaseServiceClient();
+  await Promise.all([ensureTmdbGenres("movie", tag, service), ensureTmdbGenres("tv", tag, service)]);
+  const db = service as unknown as LooseGenreClient;
+  const byId = new Map<number, string>();
+  for (const media of ["movie", "tv"]) {
+    const query = db.from("tmdb_genres").select("id,name").eq("media", media).eq("lang", tag) as unknown as Promise<{ data: unknown; error: unknown }>;
+    const { data, error } = await query;
+    if (error || !Array.isArray(data)) continue;
+    for (const row of data) {
+      if (!row || typeof row !== "object") continue;
+      const id = (row as { id?: unknown }).id;
+      const name = (row as { name?: unknown }).name;
+      if (typeof id === "number" && typeof name === "string" && name && !byId.has(id)) byId.set(id, name);
+    }
+  }
+  return [...byId.entries()]
+    .map(([id, name]) => ({ id, name }))
+    .sort((a, b) => a.name.localeCompare(b.name));
 }
 
 /** Defaults are returned when the owner has no user_prefs row (no write). */
