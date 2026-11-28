@@ -21,21 +21,26 @@ export default function NotificationsView({ items }: { items: NotificationRow[] 
 
   const text = (n: NotificationRow): string => {
     const p = n.payload ?? {};
-    const name = String(p.name ?? p.sender_name ?? p.sender_id ?? "").slice(0, 24);
+    const name = String(p.name ?? p.sender_name ?? p.contributor_name ?? p.sender_id ?? "").slice(0, 24);
     const item = String(p.item ?? p.item_name ?? p.node_title ?? p.folder_name ?? "");
     const folder = String(p.folder ?? p.folder_name ?? "");
     const permission = String(p.permission ?? "");
+    const count = Number(p.count ?? 0);
     switch (n.type) {
       case "share_received": return t("notifications.shareReceived", { name });
       case "folder_share": return t("notifications.folderShared", { name, folder });
       case "permission_changed": return t("notifications.permissionChanged", { item: item || folder, permission });
       case "item_added": return t("notifications.itemAdded", { name, item, folder });
+      // PLAN-V2-002 P0-18: one notification per submission (migration 144 payload
+      // carries contributor_name + count). The email sender is a separate task.
+      case "recommendation_received": return t("notifications.recommendationReceived", { name, count });
       default: return n.type;
     }
   };
 
   const linkFor = (n: NotificationRow): string | null => {
     const p = n.payload ?? {};
+    if (n.type === "recommendation_received") return "/inbox";
     if (p.folder_id) return `/folders/${p.folder_id}`;
     if (p.node_id) return `/card/${p.node_id}`;
     return null;
