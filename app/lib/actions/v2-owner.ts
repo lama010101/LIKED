@@ -97,6 +97,8 @@ export interface MyPrefsPatch {
   /** undefined = unchanged, null = clear, else an ISO 3166-1 alpha-2 code. */
   regionCode?: string | null;
   notifyEmail?: boolean;
+  theme?: "light" | "dark" | "system";
+  accent?: string;
 }
 
 /** set_my_prefs: partial update; tmdb_lang is derived by set_language only. */
@@ -104,9 +106,13 @@ export async function setMyPrefsAction(patch: MyPrefsPatch): Promise<void> {
   await ownerRpc<void>("set_my_prefs", {
     p_region_code: patch.regionCode === undefined ? null : (patch.regionCode ?? ""),
     p_notify_email: patch.notifyEmail ?? null,
-    p_theme: null,
-    p_accent: null,
+    p_theme: patch.theme ?? null,
+    p_accent: patch.accent ?? null,
   });
+  const store = await cookies();
+  const maxAge = 60 * 60 * 24 * 365;
+  if (patch.theme) store.set("LIKED_THEME", patch.theme, { path: "/", maxAge, sameSite: "lax" });
+  if (patch.accent) store.set("LIKED_ACCENT", patch.accent, { path: "/", maxAge, sameSite: "lax" });
 }
 
 /** Language switch (PRD §6.8/§7.2): writes the LIKED_LOCALE cookie (single

@@ -9,6 +9,8 @@
 
 import { expect, test } from "@playwright/test";
 import { startProdAudit, type ProdAudit } from "./helpers/prodAudit";
+import { injectSession } from "./helpers/auth";
+import { getOwnerAskToken } from "./helpers/v2Fixtures";
 
 const DEAD_TOKEN_A = "zz-e2e-dead-token-aaaaaaaaaaaaaaaaaaaa";
 const DEAD_TOKEN_B = "zz-e2e-dead-token-bbbbbbbbbbbbbbbbbbbb";
@@ -36,5 +38,31 @@ test.describe("guest landing /r/[token]", () => {
     expect(first.status()).toBe(404);
     expect(second.status()).toBe(404);
     expect(await first.text()).toBe(await second.text());
+  });
+
+  test("guest appearance controls apply instantly and persist on the device", async ({ page, context, baseURL }) => {
+    const origin = baseURL ?? "http://localhost:3001";
+    const session = await injectSession(context, origin);
+    await page.goto("/inbox");
+    const token = await getOwnerAskToken(session.user.id as string);
+    expect(token).toBeTruthy();
+    await context.clearCookies();
+
+    await page.goto(`/r/${token}`);
+    await page.locator('button[aria-haspopup="dialog"]').click();
+    await expect(page.getByTestId("appearance-controls")).toBeVisible();
+    await page.getByTestId("theme-dark").click();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    await page.getByTestId("accent-teal").click();
+    await expect(page.locator("html")).toHaveAttribute("data-accent", "teal");
+
+    let cookies = await context.cookies();
+    expect(cookies.find((c) => c.name === "LIKED_THEME")?.value).toBe("dark");
+    expect(cookies.find((c) => c.name === "LIKED_ACCENT")?.value).toBe("teal");
+    await page.reload();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    await expect(page.locator("html")).toHaveAttribute("data-accent", "teal");
+    cookies = await context.cookies();
+    expect(cookies.filter((cookie) => cookie.name.startsWith("sb-"))).toEqual([]);
   });
 });
