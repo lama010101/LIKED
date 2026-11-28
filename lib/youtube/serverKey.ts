@@ -20,6 +20,7 @@ export const YOUTUBE_LIST_UNITS = 1;
 const YOUTUBE_KEY_MIN_LENGTH = 20;
 const VIDEO_ID_RE = /^[A-Za-z0-9_-]{11}$/;
 const CHANNEL_ID_RE = /^UC[A-Za-z0-9_-]{22}$/;
+const PLAYLIST_ID_RE = /^(PL|OL|UU|FL)[A-Za-z0-9_-]{11,62}$/;
 const HANDLE_RE = /^@?[A-Za-z0-9._-]{3,30}$/;
 
 export type YouTubeErrorCode = "YT_NOT_CONFIGURED" | "YT_UPSTREAM" | "YT_NOT_FOUND";
@@ -85,6 +86,7 @@ export async function youtubeGet<T>(
 
 export type ParsedYouTubeTarget =
   | { kind: "video"; external_id: string }
+  | { kind: "playlist"; external_id: string }
   | { kind: "channel"; external_id: string }
   | { kind: "channel"; handle: string };
 
@@ -109,6 +111,10 @@ export function parseYouTubeUrl(raw: string): ParsedYouTubeTarget | null {
   }
   if (host !== "youtube.com" && host !== "youtube-nocookie.com") return null;
 
+  if (path === "/playlist") {
+    const list = url.searchParams.get("list") ?? "";
+    return PLAYLIST_ID_RE.test(list) ? { kind: "playlist", external_id: list } : null;
+  }
   if (path === "/watch") {
     const v = url.searchParams.get("v") ?? "";
     return VIDEO_ID_RE.test(v) ? { kind: "video", external_id: v } : null;
@@ -144,7 +150,7 @@ export interface YouTubeBaseFacts {
 
 export interface YouTubeResolved {
   source: "youtube";
-  kind: "video" | "channel";
+  kind: "video" | "channel" | "playlist";
   external_id: string;
   title: string;
   year: number | null;
@@ -253,6 +259,47 @@ export async function fetchYouTubeChannel(
     source: "youtube",
     kind: "channel",
     external_id: channelId,
+    title,
+    year: null,
+    thumb_url: thumb,
+    base,
+  };
+}
+
+/** playlists.list?part=snippet&id=<id> — 1 quota unit. */
+export async function fetchYouTubePlaylist(
+  playlistId: string,
+  deps: YouTubeDeps = {}
+): Promise<YouTubeResolved> {
+  if (!PLAYLIST_ID_RE.test(playlistId)) throw new YouTubeError("YT_NOT_FOUND");
+  const item = firstItem(
+    await youtubeGet("/playlists", { part: "snippet", id: playlistId, maxResults: 1 }, deps)
+  );
+  const snippet = item ? asRecord(item.snippet) : null;
+  const title = snippet ? asString(snippet.title) : null;
+  if (!item || !snippet || !title) throw new YouTubeError("YT_NOT_FOUND");
+  const channelId = asString(snippet.channelId);
+  const channelTitle = asString(snippet.channelTitle);
+  const thumbs = asRecord(snippet.thumbnails);
+  const high = thumbs ? asRecord(thumbs.high) : null;
+  const medium = thumbs ? asRecord(thumbs.medium) : null;
+  const fallback = thumbs ? asRecord(thumbs.default) : null;
+  const thumb = httpsOrNull(
+    (high ? asString(high.url) : null) ??
+      (medium ? asString(medium.url) : null) ??
+      (fallback ? asString(fallback.url) : null)
+  );
+  const base: YouTubeBaseFacts = {
+    name: title,
+    release_date: null,
+    thumb_url: thumb,
+    creator_id: channelId,
+    creator_name: channelTitle,
+  };
+  return {
+    source: "youtube",
+    kind: "playlist",
+    external_id: playlistId,
     title,
     year: null,
     thumb_url: thumb,
