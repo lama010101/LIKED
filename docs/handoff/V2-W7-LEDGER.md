@@ -29,7 +29,7 @@ Started: 2026-11-28 ~08:33 +0700 (unattended, Lolo away)
 | WP-A | Fix+merge PR #72 (guest stack) | ✅ MERGED | devin/V2-W3-GUEST-FIX-1125-001-d | 43c11ea | #72 merged f38cbba | DONE — post-merge proofs PASS |
 | WP-B | P0 acceptance matrix (docs) | ✅ MERGED | devin/V2-W7-P0-MATRIX-1128-001 | 70695fc | #80 merged b63510f | DONE — ancestry verified |
 | WP-C | Pipeline stack evidence PRs (#62->#71->#73->#74) | ✅ evidence-ready, CI re-running on final heads | detached wp5-pr* worktrees | #62 15024ef / #71 1699ae1 / #73 38aff24 / #74 ff483a7 | #62/#71/#73/#74 draft Class B | fixes a-h verified; await CI on 38aff24+ff483a7 |
-| WP-D | Threat-model tests T1-T17 (P0-23) | PENDING | - | - | - | after WP-A (needs guest routes on main) |
+| WP-D | Threat-model tests T1-T17 (P0-23) | ✅ PR #82 (CI running) | devin/V2-W7-THREAT-1128-001 | cd7f404 | #82 | Class A: merge when CI green |
 | WP-E | Local smoke suite smoke:v2 | PENDING | - | - | - | independent |
 | WP-F | Closeout PROGRESS rows + ledger merge | PENDING | - | - | - | last |
 
@@ -37,7 +37,23 @@ Started: 2026-11-28 ~08:33 +0700 (unattended, Lolo away)
 
 | T# | Test name | Status |
 |----|-----------|--------|
-| T1-T17 | pending | - |
+| T1 | threatModel.test.ts › T1 dead tokens return byte-identical 404 bodies; T1 the 21st miss in the hour is 429 | ✅ PR #82 |
+| T2 | T2 tampered-signature cookie → 401 zero DB; T2 signature-valid wrong-secret → only guest_verify then 401; T2 guest A cookie queries only contributor A | ✅ PR #82 |
+| T3 | T3 foreign owner_id in body ignored; ask token selects owner | ✅ PR #82 |
+| T4 | T4 21 items→400; T4 rating 101/-1/1.5→400 INVALID_RATING; T4 281-char comment→400 FIELD_TOO_LONG; T4 body >64KB→413 | ✅ PR #82 |
+| T5 | T5 101st title→429 DAILY_CAP; T5 11th submit/hour→429 ask_submit_c | ✅ PR #82 |
+| T6 | T6 failed PoW→403 CAPTCHA_FAILED; T6 honeypot→403; T6 11th mint/h/IP→429 ask_session_ip; T6 PoW solution replays only once | ✅ PR #82 |
+| T7 | T7 same client_batch_id replays → replayed:true, single RPC shape | ✅ PR #82 |
+| T8 | T8 fabricated item_id→400 INVALID_ITEM; route never mints ids | ✅ PR #82 |
+| T9 | — | NOT AUTOMATABLE: claim route not on main (needs Supabase session + intent cookie; e2e-level) |
+| T10 | T10 cross-site Origin→403 zero DB; T10 missing Origin→403; T10 non-JSON Content-Type→400 | ✅ PR #82 |
+| T11 | — | NOT AUTOMATABLE in vitest: needs live DB/RLS probe; covered by scripts/verify-rls-*.mjs + P0-06 CI probe |
+| T12 | T12 search without guest cookie→401 zero DB | ✅ PR #82 |
+| T13 | T13 blocked contributor→403 CONTRIBUTOR_BLOCKED; T13 markup name stored opaque (React escapes) | ✅ PR #82 |
+| T14 | — | NOT AUTOMATABLE: public deletion form route not on main (arrives with unmerged PR #73) |
+| T15 | T15 evil next values → safeNext fallback | ✅ PR #82 (unit-level; vectors already in safeNext.test.ts) |
+| T16 | — | NOT AUTOMATABLE beyond limits: one-email-per-submission is SQL/trigger-side; ask_submit_* buckets covered by T5 |
+| T17 | — | NOT AUTOMATABLE at route layer: schema/static check (no inet/raw-IP column); hashed-IP keys covered by lib/ask/clientIp.test.ts + peppered rl_hit design |
 
 ## Evidence log
 
