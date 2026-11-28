@@ -69,11 +69,12 @@ export default function PrivacyPolicyPage() {
           <section>
             <p>
               LIKED (&quot;we&quot;, &quot;us&quot;, or &quot;the app&quot;) is a
-              content-sharing web application that lets you save links and notes
-              as cards, organize them with folders and tags, and share them with
-              other users through connections you explicitly create. This
-              Privacy Policy explains what information we collect, how we use it,
-              who we share it with, and the choices you have.
+              recommendation-sharing web application that lets signed-in owners
+              ask friends for film, series, documentary, and YouTube
+              recommendations. Friends can contribute as guests through a shared
+              link without creating an account. This Privacy Policy explains what
+              information we collect about owners, guests, and contributors, how
+              we use it, who we share it with, and the choices you have.
             </p>
           </section>
 
@@ -92,14 +93,23 @@ export default function PrivacyPolicyPage() {
             </p>
             <p style={{ marginBottom: 12 }}>
               <strong style={{ color: "var(--text-1)" }}>
+                Guest contributor information:
+              </strong>{" "}
+              When an owner shares a recommendation link, guests may provide a
+              display name and submit ratings, platform notes, comments, and
+              titles they recommend. Guest contributors do not create a LIKED
+              account or provide an email address to use that link.
+            </p>
+            <p style={{ marginBottom: 12 }}>
+              <strong style={{ color: "var(--text-1)" }}>
                 Content you create:
               </strong>{" "}
-              We store the cards, folders, tags, text notes, and the connections
-              (edges) you create between your content and other users. Cards may
-              include URLs, titles, descriptions, images, and metadata about the
-              pages you save. For YouTube links, we may retrieve and store the
-              video title, thumbnail, and duration so the card can display a
-              preview and inline playback.
+              We store recommendations, ratings, comments, platform notes,
+              owner inbox state, sharing links, and the connections needed to
+              show each owner the recommendations intended for them. For YouTube
+              videos, we may retrieve and temporarily store display metadata such
+              as the video title, thumbnail, duration, and trailer link so the
+              recommendation can be displayed.
             </p>
             <p style={{ marginBottom: 12 }}>
               <strong style={{ color: "var(--text-1)" }}>Usage data:</strong>{" "}
@@ -177,7 +187,25 @@ export default function PrivacyPolicyPage() {
                 <a href="https://policies.google.com/privacy" style={linkStyle} target="_blank" rel="noopener noreferrer">
                   Google&apos;s Privacy Policy
                 </a>
+                . You can revoke LIKED&apos;s access to your Google account at any
+                time from your Google Account permissions page at{" "}
+                <a href="https://myaccount.google.com/permissions" style={linkStyle} target="_blank" rel="noopener noreferrer">
+                  myaccount.google.com/permissions
+                </a>
                 .
+              </li>
+              <li>
+                <strong style={{ color: "var(--text-1)" }}>The Movie Database (TMDB)</strong> —
+                used to retrieve film, series, documentary, genre, rating, poster,
+                and metadata shown in recommendations. TMDB does not receive your
+                account email address or guest contributor identity from LIKED.
+              </li>
+              <li>
+                <strong style={{ color: "var(--text-1)" }}>YouTube</strong> —
+                used to retrieve video titles, thumbnails, durations, and trailer
+                links for YouTube recommendations. YouTube is a Google service;
+                see Google&apos;s Privacy Policy linked above. We store YouTube
+                display metadata only as described in the retention section.
               </li>
               <li>
                 <strong style={{ color: "var(--text-1)" }}>Supabase</strong> —
@@ -224,12 +252,16 @@ export default function PrivacyPolicyPage() {
           <section>
             <h3 style={sectionHeading}>6. Data Retention</h3>
             <p>
-              We retain your account information and content for as long as your
-              account is active. Content you delete is moved to trash and may be
-              permanently removed after a grace period during which you can
-              restore it. Authentication logs and error logs are retained for a
-              limited period for security and debugging. You may request deletion
-              of your account and associated data at any time by contacting us.
+              We retain owner account information and recommendations for as long
+              as the owner account is active. Guest contributors who remain
+              inactive for 18 months are purged. YouTube display metadata is
+              retained for no more than 30 days before it is refreshed or
+              deleted. Security logs, authentication logs, and error logs are
+              retained for no more than 30 days unless a longer retention period
+              is required by law or an active security investigation. Backup
+              copies are retained according to the backup retention policy of
+              our database and hosting providers, and are deleted when those
+              provider backups expire.
             </p>
           </section>
 
@@ -247,14 +279,16 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section>
-            <h3 style={sectionHeading}>8. Your Rights</h3>
+            <h3 style={sectionHeading}>8. Your Rights and Deletion</h3>
             <p>
               Depending on your jurisdiction, you may have the right to access,
               correct, export, or delete your personal information, and to object
-              to or restrict certain processing. You can update your profile
-              information within the app, and you can delete content directly
-              from your library. To exercise other rights, including full account
-              deletion, contact us using the details below.
+              to or restrict certain processing. Owners can delete their account
+              in the app or through the public <Link href="/delete-account" style={linkStyle}>/delete-account</Link> page.
+              Guest contributors can use the deletion control provided in the
+              guest recommendation flow. You may also request deletion by email
+              using the contact address below; verified email deletion requests
+              are processed within 30 days.
             </p>
           </section>
 
