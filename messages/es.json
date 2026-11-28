@@ -785,5 +785,20 @@
     "tmdbNotice": "Este producto usa la API de TMDB pero no está respaldado ni certificado por TMDB.",
     "justwatchNotice": "Los datos de disponibilidad en streaming los proporciona JustWatch.",
     "openSource": "Software de código abierto: Next.js, React, Supabase y next-intl (licencias MIT/Apache-2.0)."
+  },
+  "appearance": {
+    "theme": "Tema",
+    "system": "Sistema",
+    "light": "Claro",
+    "dark": "Oscuro",
+    "primaryColor": "Color principal",
+    "custom": "Personalizado",
+    "orange": "Naranja",
+    "blue": "Azul",
+    "violet": "Violeta",
+    "teal": "Verde azulado",
+    "green": "Verde",
+    "pink": "Rosa",
+    "error": "No se pudo guardar la apariencia"
   }
 }

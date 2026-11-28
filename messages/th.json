@@ -785,5 +785,20 @@
     "tmdbNotice": "ผลิตภัณฑ์นี้ใช้ TMDB API แต่ไม่ได้รับการรับรองหรือรับรองโดย TMDB",
     "justwatchNotice": "ข้อมูลช่องทางรับชมให้บริการโดย JustWatch",
     "openSource": "ซอฟต์แวร์โอเพนซอร์ส: Next.js, React, Supabase และ next-intl (สัญญาอนุญาต MIT/Apache-2.0)"
+  },
+  "appearance": {
+    "theme": "ธีม",
+    "system": "ตามระบบ",
+    "light": "สว่าง",
+    "dark": "มืด",
+    "primaryColor": "สีหลัก",
+    "custom": "กำหนดเอง",
+    "orange": "ส้ม",
+    "blue": "น้ำเงิน",
+    "violet": "ม่วง",
+    "teal": "เขียวอมน้ำเงิน",
+    "green": "เขียว",
+    "pink": "ชมพู",
+    "error": "ไม่สามารถบันทึกรูปแบบการแสดงผลได้"
   }
 }
