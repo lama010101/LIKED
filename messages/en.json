@@ -143,6 +143,19 @@
     "demo": {
       "owner": "Mira",
       "friends": {
+    "manage": {
+      "button": "Manage {name}",
+      "title": "Manage {name}",
+      "close": "Close",
+      "removeAction": "Remove their recommendations",
+      "blockAction": "Block {name}",
+      "confirmRemove": "This permanently removes every recommendation {name} sent you, from your inbox and from your friend counts. They are not notified, and they can send you new ones later.",
+      "confirmBlock": "This permanently removes every recommendation {name} sent you and blocks them from sending new ones. They are never told they are blocked.",
+      "confirmYes": "Yes, do it",
+      "confirmBack": "Back",
+      "working": "Working…",
+      "failed": "Something went wrong. Try again."
+    },
         "f1": "Amara",
         "f2": "Kenji",
         "f3": "Sofía",

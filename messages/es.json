@@ -143,6 +143,19 @@
     "demo": {
       "owner": "Mira",
       "friends": {
+    "manage": {
+      "button": "Gestionar a {name}",
+      "title": "Gestionar a {name}",
+      "close": "Cerrar",
+      "removeAction": "Eliminar sus recomendaciones",
+      "blockAction": "Bloquear a {name}",
+      "confirmRemove": "Esto elimina permanentemente todas las recomendaciones que {name} te envió, de tu bandeja y de tus conteos. No se le avisa y puede enviarte otras más adelante.",
+      "confirmBlock": "Esto elimina permanentemente todas las recomendaciones que {name} te envió y le impide enviarte nuevas. Nunca se le informa del bloqueo.",
+      "confirmYes": "Sí, hacerlo",
+      "confirmBack": "Volver",
+      "working": "En curso…",
+      "failed": "Algo salió mal. Inténtalo de nuevo."
+    },
         "f1": "Amara",
         "f2": "Kenji",
         "f3": "Sofía",

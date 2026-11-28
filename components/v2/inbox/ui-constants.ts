@@ -54,4 +54,5 @@ export const TESTID = {
   railAll: "rail-all",
   railFriend: "rail-friend",
   railBadge: "rail-badge",
+  manageFriend: "inbox-manage-friend",
 } as const;
