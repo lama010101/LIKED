@@ -31,6 +31,7 @@ interface SessionChallenge {
 
 export default function FriendFlow({ token, ask, genreNames }: FriendFlowProps) {
   const t = useTranslations("friend");
+  const tAsk = useTranslations("ask");
   const [phase, setPhase] = useState<Phase>("landing");
   const [name, setName] = useState("");
   const [error, setError] = useState<ErrorKey | null>(null);
@@ -79,7 +80,7 @@ export default function FriendFlow({ token, ask, genreNames }: FriendFlowProps) 
 
   async function send() {
     if (tray.length === 0) {
-      setSendError(t("error.empty"));
+      setSendError(tAsk("error.empty"));
       return;
     }
     setSending(true);
@@ -97,13 +98,13 @@ export default function FriendFlow({ token, ask, genreNames }: FriendFlowProps) 
         body: JSON.stringify({ client_batch_id: crypto.randomUUID(), items }),
       });
       if (!res.ok) {
-        setSendError(res.status === 429 ? t("error.rateLimited") : t("error.submit"));
+        setSendError(res.status === 429 ? tAsk("error.rateLimited") : tAsk("error.submit"));
         return;
       }
       setTray([]);
       setPhase("sent");
     } catch {
-      setSendError(t("error.submit"));
+      setSendError(tAsk("error.submit"));
     } finally {
       setSending(false);
     }
