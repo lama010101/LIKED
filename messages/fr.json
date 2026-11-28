@@ -616,7 +616,13 @@
     "railAll": "Tous",
     "railAllLabel": "Tous, {count} non vus",
     "railFriendLabel": "{name}, {count} non vus",
-    "emptyFriend": "Rien de {name} pour l'instant."
+    "emptyFriend": "Rien de {name} pour l'instant.",
+    "noteLabel": "Note pour vos amis",
+    "noteHint": "140 caractères maximum. Affichée sur votre page d’invitation.",
+    "genresLabel": "Genres que vous aimez",
+    "genresHint": "{count}/5 sélectionnés",
+    "saveAskSettings": "Enregistrer la note et les genres",
+    "askSettingsSaved": "Préférences d’invitation enregistrées."
   },
   "v2": {
     "language": {

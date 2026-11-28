@@ -6,6 +6,9 @@
 // passed — every RPC resolves auth.uid() server-side.
 
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { getSupabaseServiceClient } from "@/lib/supabase/service";
+import { ensureTmdbGenres } from "@/lib/tmdb/genres";
+import { isTmdbTag, type TmdbTag } from "@/lib/tmdb/client";
 import { cookies } from "next/headers";
 import { isLanguageCode, LOCALE_COOKIE, tmdbTagFor } from "@/lib/i18n/languages";
 import type {
@@ -75,6 +78,65 @@ export async function regenerateMyAskAction(): Promise<string> {
 
 export async function setAskActiveAction(active: boolean): Promise<void> {
   await ownerRpc<void>("set_ask_active", { p_active: active });
+}
+
+
+export interface GenreOption {
+  id: number;
+  name: string;
+}
+
+interface LooseGenreChain {
+  eq(column: string, value: string): LooseGenreChain;
+  then<T>(onfulfilled: (value: { data: unknown; error: unknown }) => T): Promise<T>;
+}
+
+interface LooseGenreClient {
+  from(table: string): {
+    select(columns: string): LooseGenreChain;
+  };
+}
+
+/** Localized TMDB genre catalog for the owner picker/filter UI. The rows are
+ *  non-secret reference data; the service client is required because
+ *  tmdb_genres is class-S storage. Catalog synchronization remains lazy. */
+export async function getGenreCatalogAction(): Promise<GenreOption[]> {
+  const prefs = await getMyPrefsAction();
+  const store = await cookies();
+  const cookieTag = store.get("LIKED_TMDB_LANG")?.value;
+  const candidate = prefs.tmdb_lang ?? cookieTag ?? "en-US";
+  const tag: TmdbTag = isTmdbTag(candidate) ? candidate : "en-US";
+  const service = getSupabaseServiceClient();
+  await Promise.all([ensureTmdbGenres("movie", tag, service), ensureTmdbGenres("tv", tag, service)]);
+  const db = service as unknown as LooseGenreClient;
+  const byId = new Map<number, string>();
+  for (const media of ["movie", "tv"]) {
+    const { data, error } = await (db.from("tmdb_genres").select("id,name").eq("media", media).eq("lang", tag) as unknown as Promise<{ data: unknown; error: unknown }>);
+    if (error || !Array.isArray(data)) continue;
+    for (const row of data) {
+      if (!row || typeof row !== "object") continue;
+      const id = (row as { id?: unknown }).id;
+      const name = (row as { name?: unknown }).name;
+      if (typeof id === "number" && typeof name === "string" && name && !byId.has(id)) byId.set(id, name);
+    }
+  }
+  return [...byId.entries()]
+    .map(([id, name]) => ({ id, name }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/** update_ask_settings (migration 145): prompt/note/genre cap validation lives
+ *  in the RPC; the UI passes the current prompt through unchanged. */
+export async function updateAskSettingsAction(input: {
+  prompt: string | null;
+  note: string | null;
+  likedGenres: number[];
+}): Promise<void> {
+  await ownerRpc<void>("update_ask_settings", {
+    p_prompt: input.prompt,
+    p_note: input.note,
+    p_liked_genres: input.likedGenres,
+  });
 }
 
 /** Defaults are returned when the owner has no user_prefs row (no write). */

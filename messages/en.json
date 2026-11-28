@@ -616,7 +616,13 @@
     "railAll": "All",
     "railAllLabel": "All, {count} unseen",
     "railFriendLabel": "{name}, {count} unseen",
-    "emptyFriend": "Nothing from {name} yet."
+    "emptyFriend": "Nothing from {name} yet.",
+    "noteLabel": "Note for your friends",
+    "noteHint": "140 characters max. Shown on your invite page.",
+    "genresLabel": "Genres you like",
+    "genresHint": "{count}/5 selected",
+    "saveAskSettings": "Save note and genres",
+    "askSettingsSaved": "Invite preferences saved."
   },
   "v2": {
     "language": {

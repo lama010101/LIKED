@@ -819,3 +819,56 @@
   color: var(--v2-text);
   font-weight: 600;
 }
+
+.askSettings {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--v2-border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fieldLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--v2-text);
+}
+
+.noteInput {
+  width: 100%;
+  resize: vertical;
+  border: 1px solid var(--v2-border);
+  border-radius: 10px;
+  background: var(--v2-bg);
+  color: var(--v2-text);
+  padding: 8px 10px;
+  font-size: 14px;
+}
+
+.genreGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.genreOption,
+.genreSelected {
+  border: 1px solid var(--v2-border);
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 13px;
+  color: var(--v2-text);
+  background: transparent;
+}
+
+.genreSelected {
+  border-color: var(--v2-accent);
+  background: var(--v2-surface-raised);
+  font-weight: 600;
+}
+
+.genreOption:disabled,
+.genreSelected:disabled {
+  opacity: 0.45;
+}
