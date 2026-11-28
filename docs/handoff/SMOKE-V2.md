@@ -1,0 +1,3 @@
+# V2 smoke suite (`npm run smoke:v2`)
+
+The v2 e2e specs write to the production Supabase project, so they are intentionally not wired into CI. `npm run smoke:v2` runs `e2e/v2-smoke.spec.ts` — the core v2 flows (guest submit through the real PoW/cookie/submit routes, two friends merging on one title in the owner inbox, friend rail counts, settings sign-out, guest delete-my-data) — against the local dev server (`BASE_URL`, default `http://localhost:3001`). Every v2 spec, including the smoke spec, snapshots per-table row counts via `e2e/helpers/prodAudit.ts` before running and asserts equality after cleanup, failing loudly on any residue (counts only, never PII). To run it: start the dev server (`npm run dev` on port 3001), then `npm run smoke:v2`.

@@ -8,9 +8,20 @@
 // in the task report (not silently skipped here).
 
 import { expect, test } from "@playwright/test";
+import { startProdAudit, type ProdAudit } from "./helpers/prodAudit";
 
 const DEAD_TOKEN_A = "zz-e2e-dead-token-aaaaaaaaaaaaaaaaaaaa";
 const DEAD_TOKEN_B = "zz-e2e-dead-token-bbbbbbbbbbbbbbbbbbbb";
+
+let audit: ProdAudit;
+
+test.beforeAll(async () => {
+  audit = await startProdAudit();
+});
+
+test.afterAll(async () => {
+  await audit.assertEqual();
+});
 
 test.describe("guest landing /r/[token]", () => {
   test("sets no Supabase cookie on /r/*", async ({ page, context }) => {

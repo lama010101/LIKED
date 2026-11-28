@@ -14,6 +14,7 @@
     "seed:demo": "node scripts/seed-demo-user.mjs",
     "dev:extension": "npm --prefix extension run dev",
     "test:e2e": "npx playwright test",
+    "smoke:v2": "npx playwright test --config playwright.v2.config.ts e2e/v2-smoke.spec.ts",
     "test:e2e:ui": "npx playwright test --ui",
     "test:e2e:headed": "npx playwright test --headed",
     "test": "vitest run",
