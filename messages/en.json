@@ -632,7 +632,13 @@
     "filterGenre": "Genre",
     "filterMultiRecommended": "Recommended by 2+ friends",
     "clearAll": "Clear all",
-    "applyFilters": "Apply"
+    "applyFilters": "Apply",
+    "noteLabel": "Note for your friends",
+    "noteHint": "140 characters max. Shown on your invite page.",
+    "genresLabel": "Genres you like",
+    "genresHint": "{count}/5 selected",
+    "saveAskSettings": "Save note and genres",
+    "askSettingsSaved": "Invite preferences saved."
   },
   "v2": {
     "language": {

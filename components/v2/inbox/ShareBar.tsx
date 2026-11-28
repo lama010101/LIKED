@@ -2,7 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { regenerateMyAskAction, setAskActiveAction } from "@/app/lib/actions/v2-owner";
+import {
+  getGenreCatalogAction,
+  regenerateMyAskAction,
+  setAskActiveAction,
+  updateAskSettingsAction,
+  type GenreOption,
+} from "@/app/lib/actions/v2-owner";
 import { toast } from "@/lib/store/toastStore";
 import { CloseIcon, CopyIcon, ShareIcon } from "./icons";
 import styles from "./inbox.module.css";
@@ -24,7 +30,24 @@ export default function ShareBar({
 }) {
   const t = useTranslations("inbox");
   const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState(ask.note ?? "");
+  const [selectedGenres, setSelectedGenres] = useState<number[]>(ask.liked_genres ?? []);
+  const [catalog, setCatalog] = useState<GenreOption[]>([]);
   const link = typeof window === "undefined" ? "" : buildAskUrl(window.location.origin, ask.token);
+
+  useEffect(() => {
+    let live = true;
+    getGenreCatalogAction()
+      .then((rows) => {
+        if (live) setCatalog(rows);
+      })
+      .catch(() => {
+        if (live) setCatalog([]);
+      });
+    return () => {
+      live = false;
+    };
+  }, []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -62,6 +85,35 @@ export default function ShareBar({
       const token = await regenerateMyAskAction();
       onAskChange({ ...ask, token, is_active: true });
       toast.success(t("regenerateDone"));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : t("error"));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+
+  const toggleGenre = (id: number) => {
+    setSelectedGenres((current) =>
+      current.includes(id)
+        ? current.filter((genre) => genre !== id)
+        : current.length < 5
+          ? [...current, id]
+          : current
+    );
+  };
+
+  const saveSettings = async () => {
+    setBusy(true);
+    try {
+      const nextNote = note.trim() ? note.trim() : null;
+      await updateAskSettingsAction({
+        prompt: ask.prompt,
+        note: nextNote,
+        likedGenres: selectedGenres,
+      });
+      onAskChange({ ...ask, note: nextNote, liked_genres: selectedGenres });
+      toast.success(t("askSettingsSaved"));
     } catch (e) {
       toast.error(e instanceof Error ? e.message : t("error"));
     } finally {
@@ -123,6 +175,55 @@ export default function ShareBar({
           <button type={UI.button} onClick={share} className={styles.secondaryBtn}>
             <ShareIcon />
             {t("share")}
+          </button>
+        </div>
+
+
+        <div className={styles.askSettings} data-testid="ask-settings">
+          <label className={styles.fieldLabel} htmlFor="ask-owner-note">
+            {t("noteLabel")}
+          </label>
+          <textarea
+            id="ask-owner-note"
+            value={note}
+            maxLength={140}
+            rows={2}
+            onChange={(event) => setNote(event.target.value)}
+            className={styles.noteInput}
+            data-testid="ask-note-input"
+          />
+          <p className={styles.hint}>{t("noteHint")}</p>
+
+          <span className={styles.fieldLabel}>{t("genresLabel")}</span>
+          <div className={styles.genreGrid} data-testid="ask-genre-picker">
+            {catalog.map((genre) => {
+              const selected = selectedGenres.includes(genre.id);
+              const blocked = !selected && selectedGenres.length >= 5;
+              return (
+                <button
+                  key={genre.id}
+                  type={UI.button}
+                  aria-pressed={selected}
+                  disabled={busy || blocked}
+                  onClick={() => toggleGenre(genre.id)}
+                  className={selected ? styles.genreSelected : styles.genreOption}
+                  data-testid="ask-genre-option"
+                  data-genre-id={genre.id}
+                >
+                  {genre.name}
+                </button>
+              );
+            })}
+          </div>
+          <p className={styles.hint}>{t("genresHint", { count: selectedGenres.length })}</p>
+          <button
+            type={UI.button}
+            disabled={busy}
+            onClick={saveSettings}
+            className={styles.primaryBtn}
+            data-testid="ask-settings-save"
+          >
+            {t("saveAskSettings")}
           </button>
         </div>
 

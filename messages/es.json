@@ -632,7 +632,13 @@
     "filterGenre": "Género",
     "filterMultiRecommended": "Recomendado por 2+ amigos",
     "clearAll": "Borrar todo",
-    "applyFilters": "Aplicar"
+    "applyFilters": "Aplicar",
+    "noteLabel": "Nota para tus amigos",
+    "noteHint": "Máximo 140 caracteres. Se muestra en tu página de invitación.",
+    "genresLabel": "Géneros que te gustan",
+    "genresHint": "{count}/5 seleccionados",
+    "saveAskSettings": "Guardar nota y géneros",
+    "askSettingsSaved": "Preferencias de invitación guardadas."
   },
   "v2": {
     "language": {

@@ -110,8 +110,9 @@ interface LooseGenreClient {
   };
 }
 
-/** Localized TMDB genre catalog for filter chips. Rows are non-secret class-S
- *  reference data synchronized lazily from TMDB. */
+/** Localized TMDB genre catalog for the owner picker/filter UI. The rows are
+ *  non-secret reference data; the service client is required because
+ *  tmdb_genres is class-S storage. Catalog synchronization remains lazy. */
 export async function getGenreCatalogAction(): Promise<GenreOption[]> {
   const prefs = await getMyPrefsAction();
   const store = await cookies();
@@ -123,8 +124,7 @@ export async function getGenreCatalogAction(): Promise<GenreOption[]> {
   const db = service as unknown as LooseGenreClient;
   const byId = new Map<number, string>();
   for (const media of ["movie", "tv"]) {
-    const query = db.from("tmdb_genres").select("id,name").eq("media", media).eq("lang", tag) as unknown as Promise<{ data: unknown; error: unknown }>;
-    const { data, error } = await query;
+    const { data, error } = await (db.from("tmdb_genres").select("id,name").eq("media", media).eq("lang", tag) as unknown as Promise<{ data: unknown; error: unknown }>);
     if (error || !Array.isArray(data)) continue;
     for (const row of data) {
       if (!row || typeof row !== "object") continue;
@@ -136,6 +136,20 @@ export async function getGenreCatalogAction(): Promise<GenreOption[]> {
   return [...byId.entries()]
     .map(([id, name]) => ({ id, name }))
     .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/** update_ask_settings (migration 145): prompt/note/genre cap validation lives
+ *  in the RPC; the UI passes the current prompt through unchanged. */
+export async function updateAskSettingsAction(input: {
+  prompt: string | null;
+  note: string | null;
+  likedGenres: number[];
+}): Promise<void> {
+  await ownerRpc<void>("update_ask_settings", {
+    p_prompt: input.prompt,
+    p_note: input.note,
+    p_liked_genres: input.likedGenres,
+  });
 }
 
 /** Defaults are returned when the owner has no user_prefs row (no write). */

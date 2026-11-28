@@ -632,7 +632,13 @@
     "filterGenre": "ประเภท",
     "filterMultiRecommended": "แนะนำโดยเพื่อน 2+ คน",
     "clearAll": "ล้างทั้งหมด",
-    "applyFilters": "ใช้ตัวกรอง"
+    "applyFilters": "ใช้ตัวกรอง",
+    "noteLabel": "บันทึกถึงเพื่อนของคุณ",
+    "noteHint": "สูงสุด 140 ตัวอักษร แสดงในหน้าคำเชิญของคุณ",
+    "genresLabel": "ประเภทที่คุณชอบ",
+    "genresHint": "เลือกแล้ว {count}/5",
+    "saveAskSettings": "บันทึกบันทึกและประเภท",
+    "askSettingsSaved": "บันทึกการตั้งค่าคำเชิญแล้ว"
   },
   "v2": {
     "language": {
