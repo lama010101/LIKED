@@ -4,8 +4,10 @@
 // receipt (the guest's OWN rows only — guest_get_receipt filters by
 // contributor), "Add more titles" and "Delete my data".
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
+import { supabaseBrowser } from "@/lib/supabase/client";
 import type { ReceiptRow } from "./types";
 
 interface ReceiptScreenProps {
@@ -23,10 +25,16 @@ function posterFor(path: string | null): string | null {
 
 export default function ReceiptScreen({ token, owner, onAddMore, onDeleted }: ReceiptScreenProps) {
   const t = useTranslations("ask");
+  const tClaim = useTranslations("claim");
+  const router = useRouter();
   const [rows, setRows] = useState<ReceiptRow[]>([]);
   const [deleting, setDeleting] = useState(false);
   const [deleted, setDeleted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [claiming, setClaiming] = useState(false);
+  const [claimError, setClaimError] = useState<string | null>(null);
+  const [ownLink, setOwnLink] = useState(false);
+  const claimAttempted = useRef(false);
 
   const load = useCallback(async () => {
     try {
@@ -48,6 +56,75 @@ export default function ReceiptScreen({ token, owner, onAddMore, onDeleted }: Re
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    if (claimAttempted.current) return;
+    if (new URLSearchParams(window.location.search).get("claim") !== "1") return;
+    claimAttempted.current = true;
+    void (async () => {
+      const {
+        data: { session },
+      } = await supabaseBrowser.auth.getSession();
+      if (!session) return;
+      setClaiming(true);
+      setClaimError(null);
+      try {
+        const res = await fetch("/api/ask/claim", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ token }),
+        });
+        if (res.ok) {
+          const body = (await res.json()) as { state?: string };
+          if (body.state === "own_link") {
+            setOwnLink(true);
+            return;
+          }
+          if (body.state === "claimed") {
+            router.replace("/inbox");
+            return;
+          }
+        }
+        setClaimError(tClaim("error"));
+      } catch {
+        setClaimError(tClaim("error"));
+      } finally {
+        setClaiming(false);
+      }
+    })();
+  }, [token, router, tClaim]);
+
+  async function continueWithGoogle() {
+    setClaiming(true);
+    setClaimError(null);
+    setOwnLink(false);
+    try {
+      const intentRes = await fetch("/api/ask/claim/intent", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ token }),
+      });
+      if (!intentRes.ok) {
+        setClaimError(tClaim("error"));
+        return;
+      }
+      const intent = (await intentRes.json()) as { returnPath?: string };
+      if (typeof intent.returnPath !== "string") {
+        setClaimError(tClaim("error"));
+        return;
+      }
+      const callbackUrl = `${window.location.origin}/callback?next=${encodeURIComponent(intent.returnPath)}`;
+      const { error: oauthError } = await supabaseBrowser.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: callbackUrl },
+      });
+      if (oauthError) setClaimError(tClaim("error"));
+    } catch {
+      setClaimError(tClaim("error"));
+    } finally {
+      setClaiming(false);
+    }
+  }
 
   async function deleteMine() {
     setDeleting(true);
@@ -119,6 +196,39 @@ export default function ReceiptScreen({ token, owner, onAddMore, onDeleted }: Re
           {t("deleted")}
         </p>
       ) : null}
+
+      {/* V2-W9-CLAIM-1128-001 START — Make your own list */}
+      <section
+        data-testid="claim-own-list"
+        aria-labelledby="claim-own-list-title"
+        className="flex flex-col gap-2 rounded-xl border border-[var(--v2-border)] bg-[var(--v2-surface)] p-4"
+      >
+        <h2 id="claim-own-list-title" className="text-base font-semibold">
+          {tClaim("title")}
+        </h2>
+        <p className="text-sm text-[var(--v2-text-muted)]">{tClaim("body")}</p>
+        {ownLink ? (
+          <p role="status" className="text-sm text-[var(--v2-warn)]">
+            {tClaim("ownLink")}
+          </p>
+        ) : null}
+        {claimError ? (
+          <p role="alert" className="text-sm text-[var(--v2-danger)]">
+            {claimError}
+          </p>
+        ) : null}
+        <button
+          type="button"
+          disabled={claiming}
+          onClick={() => {
+            void continueWithGoogle();
+          }}
+          className="rounded-xl bg-[var(--v2-accent)] px-4 py-2.5 text-base font-semibold text-[var(--v2-on-accent)] disabled:opacity-50"
+        >
+          {claiming ? tClaim("working") : tClaim("continue")}
+        </button>
+      </section>
+      {/* V2-W9-CLAIM-1128-001 END */}
 
       <div className="flex flex-col gap-2 sm:flex-row">
         <button

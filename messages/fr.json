@@ -663,6 +663,14 @@
     "confirmBusy": "Confirmation…",
     "pubGuestsNote": "Les invités n'ont pas de compte : utilisez « Delete my data » dans la feuille ami pour effacer les données invité."
   },
+  "claim": {
+    "title": "Créez votre propre liste",
+    "body": "Gardez ce que vous avez envoyé et commencez votre propre liste avec Google.",
+    "continue": "Continuer avec Google",
+    "working": "Redirection…",
+    "ownLink": "Ceci est votre propre lien",
+    "error": "Impossible de continuer. Réessayez."
+  },
   "friend": {
     "landing": {
       "defaultPrompt": "Quel est le dernier film, série ou documentaire que vous recommandez ?",

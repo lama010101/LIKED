@@ -663,6 +663,14 @@
     "confirmBusy": "Confirmando…",
     "pubGuestsNote": "Los invitados no tienen cuenta: usa «Delete my data» en la hoja de amigo para borrar los datos."
   },
+  "claim": {
+    "title": "Crea tu propia lista",
+    "body": "Conserva lo que enviaste y empieza tu propia lista con Google.",
+    "continue": "Continuar con Google",
+    "working": "Redirigiendo…",
+    "ownLink": "Este es tu propio enlace",
+    "error": "No se pudo continuar. Inténtalo de nuevo."
+  },
   "friend": {
     "landing": {
       "defaultPrompt": "¿Cuál es la última película, serie o documental que recomiendas?",
