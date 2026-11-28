@@ -54,6 +54,16 @@ export function mapYoutubeDetails(
       localized: { name },
     };
   }
+  if (kind === "playlist") {
+    return {
+      name,
+      release_date: published ? published.slice(0, 10) : undefined,
+      creator_id: str(s.channelId),
+      creator_name: str(s.channelTitle),
+      thumb_url: str(s.thumbnails?.high?.url) ?? str(s.thumbnails?.default?.url),
+      localized: { name },
+    };
+  }
   return {
     name,
     release_date: published ? published.slice(0, 10) : undefined,
@@ -69,7 +79,8 @@ export async function fetchYoutubeDetails(
   opts: { key: string; fetchImpl?: typeof fetch; baseUrl?: string; timeoutMs?: number }
 ): Promise<ProviderResult<YoutubeDetailsPayload>> {
   const isChannel = item.kind === "channel";
-  if (item.source !== "youtube" || (!isChannel && item.kind !== "video")) {
+  const isPlaylist = item.kind === "playlist";
+  if (item.source !== "youtube" || (!isChannel && !isPlaylist && item.kind !== "video")) {
     return { status: "error", message: "unsupported_youtube_kind" };
   }
   const base = opts.baseUrl ?? YT_BASE;
@@ -78,7 +89,8 @@ export async function fetchYoutubeDetails(
     id: item.external_id,
     key: opts.key,
   });
-  const url = `${base}/${isChannel ? "channels" : "videos"}?${params.toString()}`;
+  const endpoint = isChannel ? "channels" : isPlaylist ? "playlists" : "videos";
+  const url = `${base}/${endpoint}?${params.toString()}`;
   let res: Response;
   try {
     res = await (opts.fetchImpl ?? fetch)(url, {

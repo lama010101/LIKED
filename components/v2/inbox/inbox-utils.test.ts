@@ -13,6 +13,7 @@ import {
   tmdbPosterUrl,
   typeKey,
   unseenTotal,
+  youtubePlaylistUrl,
   type InboxCard,
   type InboxItemDetail,
 } from "./inbox-utils";
@@ -81,6 +82,21 @@ describe("display helpers", () => {
     expect(typeKey("documentary")).toBe("typeDocumentary");
     expect(typeKey("youtube")).toBe("typeYoutube");
     expect(typeKey("unknown")).toBe("typeMovie");
+  });
+
+  it("maps kind playlist to the playlist namespace key regardless of type", () => {
+    expect(typeKey("youtube", "playlist")).toBe("typePlaylist");
+    expect(typeKey("youtube", "video")).toBe("typeYoutube");
+    expect(typeKey("youtube", "channel")).toBe("typeYoutube");
+  });
+
+  it("builds the canonical playlist URL only for valid playlist ids", () => {
+    expect(youtubePlaylistUrl("PLMlG3wbBwCVZ4N44bIm-K_DWRgv8NWNiu")).toBe(
+      "https://www.youtube.com/playlist?list=PLMlG3wbBwCVZ4N44bIm-K_DWRgv8NWNiu"
+    );
+    expect(youtubePlaylistUrl("RDDQw4w9WgXcQ")).toBeNull();
+    expect(youtubePlaylistUrl(null)).toBeNull();
+    expect(youtubePlaylistUrl("dQw4w9WgXcQ")).toBeNull();
   });
 
   it("splits runtime only when the enrichment filled it", () => {

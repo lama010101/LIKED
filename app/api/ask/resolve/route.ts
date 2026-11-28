@@ -31,6 +31,7 @@ import {
 import { parsePasteUrl } from "@/lib/tmdb/parse";
 import {
   fetchYouTubeChannel,
+  fetchYouTubePlaylist,
   fetchYouTubeVideo,
   parseYouTubeUrl,
   YouTubeError,
@@ -50,6 +51,7 @@ export const dynamic = "force-dynamic";
 const TMDB_LANG_COOKIE = "LIKED_TMDB_LANG";
 const YOUTUBE_VIDEO_RE = /^[A-Za-z0-9_-]{11}$/;
 const YOUTUBE_CHANNEL_RE = /^UC[A-Za-z0-9_-]{22}$/;
+const YOUTUBE_PLAYLIST_RE = /^(PL|OL|UU|FL)[A-Za-z0-9_-]{11,62}$/;
 
 interface LooseSelectChain {
   eq(column: string, value: string): LooseSelectChain;
@@ -138,7 +140,7 @@ function isFresh(fetchedAt: string | null, freshMs: number, now = Date.now()): b
 async function findExistingItem(
   client: LooseClient,
   source: "tmdb" | "youtube",
-  kind: "movie" | "series" | "video" | "channel",
+  kind: "movie" | "series" | "video" | "channel" | "playlist",
   externalId: string
 ): Promise<ItemRow | null> {
   const { data, error } = await client
@@ -155,7 +157,7 @@ async function findExistingItem(
 async function upsertItem(
   client: LooseClient,
   source: "tmdb" | "youtube",
-  kind: "movie" | "series" | "video" | "channel",
+  kind: "movie" | "series" | "video" | "channel" | "playlist",
   externalId: string,
   base: TmdbBaseFacts | Record<string, unknown>
 ): Promise<NextResponse> {
@@ -175,6 +177,7 @@ type Target =
   | { provider: "tmdb"; kind: "movie" | "series"; external_id: string }
   | { provider: "imdb"; imdb_id: string }
   | { provider: "youtube"; kind: "video"; external_id: string }
+  | { provider: "youtube"; kind: "playlist"; external_id: string }
   | { provider: "youtube"; kind: "channel"; external_id: string }
   | { provider: "youtube"; kind: "channel"; handle: string };
 
@@ -186,9 +189,13 @@ function targetFromBody(body: Record<string, unknown>): Target | null {
     const yt = parseYouTubeUrl(url);
     if (!yt) return null;
     if ("external_id" in yt) {
-      return yt.kind === "video"
-        ? { provider: "youtube", kind: "video", external_id: yt.external_id }
-        : { provider: "youtube", kind: "channel", external_id: yt.external_id };
+      if (yt.kind === "video") {
+        return { provider: "youtube", kind: "video", external_id: yt.external_id };
+      }
+      if (yt.kind === "playlist") {
+        return { provider: "youtube", kind: "playlist", external_id: yt.external_id };
+      }
+      return { provider: "youtube", kind: "channel", external_id: yt.external_id };
     }
     return { provider: "youtube", kind: "channel", handle: yt.handle };
   }
@@ -207,6 +214,9 @@ function targetFromBody(body: Record<string, unknown>): Target | null {
     }
     if (kind === "channel" && YOUTUBE_CHANNEL_RE.test(externalId)) {
       return { provider: "youtube", kind: "channel", external_id: externalId };
+    }
+    if (kind === "playlist" && YOUTUBE_PLAYLIST_RE.test(externalId)) {
+      return { provider: "youtube", kind: "playlist", external_id: externalId };
     }
     return null;
   }
@@ -266,6 +276,8 @@ async function resolveYouTube(
   let resolved: YouTubeResolved;
   if (target.kind === "video") {
     resolved = await fetchYouTubeVideo(target.external_id);
+  } else if (target.kind === "playlist") {
+    resolved = await fetchYouTubePlaylist(target.external_id);
   } else if ("external_id" in target) {
     resolved = await fetchYouTubeChannel({ id: target.external_id });
   } else {

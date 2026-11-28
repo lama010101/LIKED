@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   fetchYouTubeChannel,
+  fetchYouTubePlaylist,
   fetchYouTubeVideo,
   parseYouTubeUrl,
   youtubeThumbUrl,
@@ -42,6 +43,20 @@ const CHANNEL_ITEM = {
   ],
 };
 
+const PLAYLIST_ITEM = {
+  items: [
+    {
+      id: "PLMlG3wbBwCVZ4N44bIm-K_DWRgv8NWNiu",
+      snippet: {
+        title: "A playlist",
+        channelId: "UC38IQsAvIsxxjztdMZQtwHA",
+        channelTitle: "A channel",
+        thumbnails: { high: { url: "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg" } },
+      },
+    },
+  ],
+};
+
 describe("parseYouTubeUrl", () => {
   it("accepts every supported video shape", () => {
     const id = "dQw4w9WgXcQ";
@@ -67,6 +82,37 @@ describe("parseYouTubeUrl", () => {
       handle: "@SomeHandle",
     });
     expect(parseYouTubeUrl("https://www.youtube.com/c/SomeName")).toBeNull();
+  });
+
+  it("parses a pure playlist URL as a playlist", () => {
+    const id = "PLMlG3wbBwCVZ4N44bIm-K_DWRgv8NWNiu";
+    expect(parseYouTubeUrl(`https://www.youtube.com/playlist?list=${id}`)).toEqual({
+      kind: "playlist",
+      external_id: id,
+    });
+  });
+
+  it("keeps watch and youtu.be URLs with a list parameter as videos", () => {
+    const video = "dQw4w9WgXcQ";
+    const list = "PLMlG3wbBwCVZ4N44bIm-K_DWRgv8NWNiu";
+    for (const url of [
+      `https://www.youtube.com/watch?v=${video}&list=${list}`,
+      `https://youtu.be/${video}?list=${list}`,
+    ]) {
+      expect(parseYouTubeUrl(url)).toEqual({ kind: "video", external_id: video });
+    }
+  });
+
+  it("rejects RD, LL, WL, short and malformed playlist ids", () => {
+    for (const id of [
+      "RDDQw4w9WgXcQ",
+      "LL",
+      "WL",
+      "PLshort",
+      "PL!!!!!!!!!!!",
+    ]) {
+      expect(parseYouTubeUrl(`https://www.youtube.com/playlist?list=${id}`)).toBeNull();
+    }
   });
 
   it("rejects foreign hosts and bad ids", () => {
@@ -140,5 +186,40 @@ describe("fetchYouTubeChannel", () => {
       external_id: "UC38IQsAvIsxxjztdMZQtwHA",
       thumb_url: "https://yt3.ggpht.com/abc=s800",
     });
+  });
+});
+
+describe("fetchYouTubePlaylist", () => {
+  it("calls playlists.list once and maps only playlist display facts", async () => {
+    const id = "PLMlG3wbBwCVZ4N44bIm-K_DWRgv8NWNiu";
+    const fetchImpl = vi.fn(async () => jsonResponse(PLAYLIST_ITEM)) as unknown as typeof fetch;
+    const out = await fetchYouTubePlaylist(id, { key: KEY, fetchImpl });
+    const calls = (fetchImpl as unknown as { mock: { calls: [string][] } }).mock.calls;
+    expect(calls.length).toBe(1);
+    const url = new URL(calls[0][0]);
+    expect(url.pathname).toBe("/youtube/v3/playlists");
+    expect(url.searchParams.get("part")).toBe("snippet");
+    expect(url.searchParams.get("id")).toBe(id);
+    expect(out).toMatchObject({
+      kind: "playlist",
+      external_id: id,
+      title: "A playlist",
+      year: null,
+      thumb_url: "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
+      base: {
+        name: "A playlist",
+        release_date: null,
+        creator_id: "UC38IQsAvIsxxjztdMZQtwHA",
+        creator_name: "A channel",
+      },
+    });
+  });
+
+  it("rejects unsupported playlist families before any upstream call", async () => {
+    const fetchImpl = vi.fn(async () => jsonResponse(PLAYLIST_ITEM)) as unknown as typeof fetch;
+    await expect(fetchYouTubePlaylist("RDDQw4w9WgXcQ", { key: KEY, fetchImpl })).rejects.toMatchObject({
+      code: "YT_NOT_FOUND",
+    });
+    expect(fetchImpl).not.toHaveBeenCalled();
   });
 });

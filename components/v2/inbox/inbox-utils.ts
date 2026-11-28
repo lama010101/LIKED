@@ -160,8 +160,14 @@ export function ringDash(percent: number | null | undefined): {
 
 // ── Display helpers ─────────────────────────────────────────────────────
 
-/** i18n key for the card type chip (PRD §6.2: Movie / Series / Documentary / YouTube). */
-export function typeKey(type: InboxCardType): "typeMovie" | "typeSeries" | "typeDocumentary" | "typeYoutube" {
+/** i18n key for the card type chip (PRD §6.2: Movie / Series / Documentary / YouTube).
+ *  kind "playlist" (D32) maps to the playlist.* namespace — the SQL type stays
+ *  'youtube' so the W8 type filter keeps grouping playlists with videos. */
+export function typeKey(
+  type: InboxCardType,
+  kind?: string
+): "typeMovie" | "typeSeries" | "typeDocumentary" | "typeYoutube" | "typePlaylist" {
+  if (kind === "playlist") return "typePlaylist";
   switch (type) {
     case "series":
       return "typeSeries";
@@ -197,6 +203,12 @@ export function cardImageUrl(card: Pick<InboxCard, "source" | "poster_path" | "t
 /** "87%" — percentage formatting kept out of JSX text (react/jsx-no-literals). */
 export function formatPercent(value: number): string {
   return `${value}%`;
+}
+
+/** Canonical YouTube playlist URL for the detail-sheet Open action (D32). */
+export function youtubePlaylistUrl(externalId: string | null | undefined): string | null {
+  if (!externalId || !/^(PL|OL|UU|FL)[A-Za-z0-9_-]{11,62}$/.test(externalId)) return null;
+  return `https://www.youtube.com/playlist?list=${externalId}`;
 }
 
 /** Locale rendering for the recommendation timestamp returned by get_inbox_item. */
