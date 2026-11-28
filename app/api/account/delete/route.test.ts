@@ -98,4 +98,15 @@ describe("POST /api/account/delete", () => {
     expect(mocks.runDeletionPipeline).toHaveBeenCalledTimes(1);
     expect(mocks.signOut).toHaveBeenCalledTimes(1);
   });
+
+  it("pipeline failure returns non-2xx without signing out", async () => {
+    mockUser();
+    mocks.jar.set(REAUTH_PROOF_COOKIE, createReauthProof("u1")!);
+    mocks.runDeletionPipeline.mockResolvedValue({ ok: false, stage: "auth" });
+
+    const res = await POST(req());
+    expect(res.status).toBe(500);
+    expect(await res.json()).toEqual({ error: "DELETION_FAILED", stage: "auth" });
+    expect(mocks.signOut).not.toHaveBeenCalled();
+  });
 });
