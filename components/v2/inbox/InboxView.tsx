@@ -15,7 +15,7 @@ import DetailSheet from "./DetailSheet";
 import FiltersSheet from "./FiltersSheet";
 import FriendRail from "./FriendRail";
 import ShareBar from "./ShareBar";
-import { BellIcon, GearIcon, ShareIcon } from "./icons";
+import { BellIcon, CloseIcon, GearIcon, ShareIcon } from "./icons";
 import styles from "./inbox.module.css";
 import { ROUTES, TESTID, UI } from "./ui-constants";
 import {
@@ -192,12 +192,12 @@ export default function InboxView({
           </button>
           {activeFilterCount > 0 && (
             <div className={styles.chipRow} data-testid="active-filter-chips">
-              {filters.platforms?.length ? <button type={UI.button} onClick={() => clearFilterCategory("platforms")} className={styles.filterChip}>{t("filterPlatform")} ×</button> : null}
-              {filters.types?.length ? <button type={UI.button} onClick={() => clearFilterCategory("types")} className={styles.filterChip}>{t("filterType")} ×</button> : null}
-              {filters.decades?.length ? <button type={UI.button} onClick={() => clearFilterCategory("decades")} className={styles.filterChip}>{t("filterDecade")} ×</button> : null}
-              {filters.languages?.length ? <button type={UI.button} onClick={() => clearFilterCategory("languages")} className={styles.filterChip}>{t("filterLanguage")} ×</button> : null}
-              {filters.genres?.length ? <button type={UI.button} onClick={() => clearFilterCategory("genres")} className={styles.filterChip}>{t("filterGenre")} ×</button> : null}
-              {filters.multi_recommended ? <button type={UI.button} onClick={() => clearFilterCategory("multi_recommended")} className={styles.filterChip}>{t("filterMultiRecommended")} ×</button> : null}
+              {filters.platforms?.length ? <button type={UI.button} onClick={() => clearFilterCategory("platforms")} className={styles.filterChip}>{t("filterPlatform")}<CloseIcon /></button> : null}
+              {filters.types?.length ? <button type={UI.button} onClick={() => clearFilterCategory("types")} className={styles.filterChip}>{t("filterType")}<CloseIcon /></button> : null}
+              {filters.decades?.length ? <button type={UI.button} onClick={() => clearFilterCategory("decades")} className={styles.filterChip}>{t("filterDecade")}<CloseIcon /></button> : null}
+              {filters.languages?.length ? <button type={UI.button} onClick={() => clearFilterCategory("languages")} className={styles.filterChip}>{t("filterLanguage")}<CloseIcon /></button> : null}
+              {filters.genres?.length ? <button type={UI.button} onClick={() => clearFilterCategory("genres")} className={styles.filterChip}>{t("filterGenre")}<CloseIcon /></button> : null}
+              {filters.multi_recommended ? <button type={UI.button} onClick={() => clearFilterCategory("multi_recommended")} className={styles.filterChip}>{t("filterMultiRecommended")}<CloseIcon /></button> : null}
             </div>
           )}
         </div>
