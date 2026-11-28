@@ -80,10 +80,10 @@ async function advance(
     p_error: error ?? null,
   });
   if (res.error) {
-    // Ledger write failure must not kill the pipeline; housekeeping's
-    // claim_stuck will still see the job at its last committed stage.
-    console.warn(
-      `[deletion] deletion_job_advance(${stage}) failed for ${userId}: ${res.error.message ?? ""}`
+    // A failed ledger write leaves the job at its last committed stage;
+    // abort so the route reports failure and housekeeping can resume it.
+    throw new Error(
+      `deletion_job_advance(${stage}): ${res.error.message ?? "rpc failed"}`
     );
   }
 }

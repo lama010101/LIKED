@@ -74,6 +74,8 @@ describe("account reauth routes", () => {
     expect(authorize.searchParams.get("redirect_to")).toBe(
       `https://app.example/callback?next=${encodeURIComponent("/api/account/reauth/done")}`
     );
+    expect(authorize.searchParams.get("prompt")).toBe("select_account consent");
+    expect(authorize.searchParams.get("max_age")).toBe("0");
     expect(mocks.jar.has(REAUTH_STATE_COOKIE)).toBe(true);
   });
 

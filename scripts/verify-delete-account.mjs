@@ -166,9 +166,16 @@ async function residueFor(uid) {
 
 try {
   await client.query("BEGIN");
-  console.log("== applying migration 146 inside transaction ==");
-  await client.query(sqlText);
-  console.log("migration applied (uncommitted)");
+  const existing = await one(
+    `SELECT to_regprocedure('public.delete_account(uuid,text)') IS NOT NULL AS exists`
+  );
+  if (existing.exists) {
+    console.log("== public.delete_account already exists; skipping migration 146 apply ==");
+  } else {
+    console.log("== applying migration 146 inside transaction ==");
+    await client.query(sqlText);
+    console.log("migration applied (uncommitted)");
+  }
   await client.query(`SELECT set_config('request.jwt.claims','{"role":"service_role"}',true)`);
 
   // ---------------- (9) static checks on pg_get_functiondef ----------------
