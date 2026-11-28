@@ -29,4 +29,5 @@ app/api/cron/**
 app/api/delete-requests/**
 lib/enrich/**
 lib/email/**
+lib/account/**
 vercel.json
