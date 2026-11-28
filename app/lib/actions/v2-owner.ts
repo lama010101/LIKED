@@ -155,6 +155,40 @@ export async function markFriendSeenAction(contributorId: string): Promise<MarkS
   return ownerRpc<MarkSeenResult>("mark_friend_seen", { p_contributor_id: contributorId });
 }
 
+export interface RemoveContributorResult {
+  removed_recommendations: number;
+  removed_submissions: number;
+}
+
+export interface BlockContributorResult extends RemoveContributorResult {
+  blocked: boolean;
+}
+
+/** remove_contributor_recommendations (migration 155): delete one contributor's
+ *  recommendations + submissions for the caller only. NOT_FOUND when the
+ *  contributor never submitted to the caller (same error as unknown ids). */
+export async function removeContributorAction(contributorId: string): Promise<RemoveContributorResult> {
+  return ownerRpc<RemoveContributorResult>("remove_contributor_recommendations", {
+    p_contributor_id: contributorId,
+  });
+}
+
+/** block_contributor (migration 155): remove + insert the block row; future
+ *  submits raise CONTRIBUTOR_BLOCKED which the guest sees as a neutral error. */
+export async function blockContributorAction(contributorId: string): Promise<BlockContributorResult> {
+  return ownerRpc<BlockContributorResult>("block_contributor", {
+    p_contributor_id: contributorId,
+  });
+}
+
+/** unblock_contributor (migration 155): delete the block row only; removed
+ *  recommendations are not restored. */
+export async function unblockContributorAction(contributorId: string): Promise<{ unblocked: boolean }> {
+  return ownerRpc<{ unblocked: boolean }>("unblock_contributor", {
+    p_contributor_id: contributorId,
+  });
+}
+
 export interface MyPrefsPatch {
   /** undefined = unchanged, null = clear, else an ISO 3166-1 alpha-2 code. */
   regionCode?: string | null;

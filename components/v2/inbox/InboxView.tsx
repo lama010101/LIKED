@@ -11,6 +11,7 @@ import {
 import InboxCardView from "./InboxCard";
 import DetailSheet from "./DetailSheet";
 import FriendRail from "./FriendRail";
+import ManageFriendSheet from "./ManageFriendSheet";
 import ShareBar from "./ShareBar";
 import { BellIcon, GearIcon, ShareIcon } from "./icons";
 import styles from "./inbox.module.css";
@@ -37,6 +38,7 @@ export default function InboxView({
   unread: number;
 }) {
   const t = useTranslations("inbox");
+  const tm = useTranslations("friends.manage");
   const [cards, setCards] = useState<InboxCard[]>(initial.cards);
   const [counts, setCounts] = useState(initial.counts);
   const [cursor, setCursor] = useState(initial.next_cursor);
@@ -45,6 +47,7 @@ export default function InboxView({
   const [askState, setAskState] = useState<AskRow>(ask);
   const [open, setOpen] = useState<InboxCard | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
+  const [manageOpen, setManageOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -84,6 +87,26 @@ export default function InboxView({
         await markFriendSeenAction(next);
         setRail(await getFriendRailAction());
       }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t("error"));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const manageDone = async () => {
+    setManageOpen(false);
+    // The removed/blocked contributor disappears from the rail; clear the
+    // selection and reload the unfiltered inbox + rail counts.
+    setBusy(true);
+    setError(null);
+    try {
+      const page = await getInboxAction({ friendId: null });
+      setCards(page.cards);
+      setCounts(page.counts);
+      setCursor(page.next_cursor);
+      setSelected(null);
+      setRail(await getFriendRailAction());
     } catch (e) {
       setError(e instanceof Error ? e.message : t("error"));
     } finally {
@@ -142,6 +165,20 @@ export default function InboxView({
 
         <FriendRail rail={rail} selected={selected} disabled={busy} onSelect={selectFriend} />
 
+        {selectedFriend && (
+          <div>
+            <button
+              type={UI.button}
+              onClick={() => setManageOpen(true)}
+              disabled={busy}
+              data-testid={TESTID.manageFriend}
+              className={styles.loadMore}
+            >
+              {tm("button", { name: selectedFriend.display_name })}
+            </button>
+          </div>
+        )}
+
         {cards.length === 0 ? (
           <div className={styles.empty} data-testid={TESTID.empty}>
             <p className={styles.emptyText}>
@@ -183,6 +220,16 @@ export default function InboxView({
       </main>
 
       {open && <DetailSheet card={open} onClose={() => setOpen(null)} />}
+      {manageOpen && selectedFriend && (
+        <ManageFriendSheet
+          contributorId={selectedFriend.contributor_id}
+          displayName={selectedFriend.display_name}
+          onClose={() => setManageOpen(false)}
+          onDone={() => {
+            void manageDone();
+          }}
+        />
+      )}
       {shareOpen && (
         <ShareBar ask={askState} onAskChange={setAskState} onClose={() => setShareOpen(false)} />
       )}

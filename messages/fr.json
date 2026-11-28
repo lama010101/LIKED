@@ -143,6 +143,19 @@
     "demo": {
       "owner": "Mira",
       "friends": {
+    "manage": {
+      "button": "Gérer {name}",
+      "title": "Gérer {name}",
+      "close": "Fermer",
+      "removeAction": "Retirer ses recommandations",
+      "blockAction": "Bloquer {name}",
+      "confirmRemove": "Cela retire définitivement toutes les recommandations que {name} vous a envoyées, de votre boîte et de vos compteurs. La personne n’est pas prévenue et peut vous en envoyer de nouvelles plus tard.",
+      "confirmBlock": "Cela retire définitivement toutes les recommandations que {name} vous a envoyées et l’empêche d’en envoyer de nouvelles. La personne n’est jamais informée du blocage.",
+      "confirmYes": "Oui, confirmer",
+      "confirmBack": "Retour",
+      "working": "En cours…",
+      "failed": "Une erreur est survenue. Réessayez."
+    },
         "f1": "Amara",
         "f2": "Kenji",
         "f3": "Sofía",
