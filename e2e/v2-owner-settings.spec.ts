@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { getE2ESession, injectSession } from "./helpers/auth";
+import { startProdAudit, type ProdAudit } from "./helpers/prodAudit";
 import {
   fixtureRowCounts,
   readOwnerPrefs,
@@ -14,10 +15,16 @@ import {
 test.describe.configure({ mode: "serial" });
 
 let ownerId = "";
+let audit: ProdAudit;
 
 test.beforeAll(async () => {
+  audit = await startProdAudit();
   const session = await getE2ESession();
   ownerId = session.user.id as string;
+});
+
+test.afterAll(async () => {
+  await audit.assertEqual();
 });
 
 test("settings shows every §6.9 group; P1 and delete rows stay hidden", async ({
