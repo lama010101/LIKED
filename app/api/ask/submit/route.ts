@@ -60,16 +60,20 @@ export async function POST(request: Request): Promise<NextResponse> {
   if (body.items.length === 0) return askErrorResponse("EMPTY_BATCH");
   if (body.items.length > MAX_ITEMS) return askErrorResponse("TOO_MANY_ITEMS");
 
-  const client = getSupabaseServiceClient();
-  const { data, error } = await (client as unknown as { rpc: LooseRpc }).rpc(
-    "submit_recommendations",
-    {
-      p_ask_token: ctx.token,
-      p_contributor_id: ctx.contributorId,
-      p_client_batch_id: batchId,
-      p_items: body.items,
-    }
-  );
+  const client = getSupabaseServiceClient() as unknown as { rpc: LooseRpc };
+  const params = {
+    p_ask_token: ctx.token,
+    p_contributor_id: ctx.contributorId,
+    p_client_batch_id: batchId,
+    p_items: body.items,
+  };
+  // A concurrent same-batch submit can win the unique-constraint race
+  // between the RPC's idempotency SELECT and its INSERT (23505). Retry
+  // once: the second call takes the idempotency path → replayed:true.
+  let { data, error } = await client.rpc("submit_recommendations", params);
+  if (error?.code === "23505") {
+    ({ data, error } = await client.rpc("submit_recommendations", params));
+  }
   if (error) return mapAskRpcError(error);
 
   const result = asRecord(data) ?? {};

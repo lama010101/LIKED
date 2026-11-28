@@ -177,6 +177,77 @@ describe("POST /api/ask/submit", () => {
     }
   });
 
+  it("retries once on a 23505 unique-violation race and returns replayed:true", async () => {
+    let submitCalls = 0;
+    mocks.rpc.mockImplementation(async (fn: string) => {
+      if (fn === "guest_verify") {
+        return { data: "\\x" + guestSecretHash(SECRET).toString("hex"), error: null };
+      }
+      if (fn === "guest_get_ask") {
+        return { data: [{ ask_id: ASK_ID, owner_display_name: "Owner", liked_genres: [] }], error: null };
+      }
+      if (fn === "rl_hit") return { data: true, error: null };
+      if (fn === "submit_recommendations") {
+        submitCalls += 1;
+        if (submitCalls === 1) {
+          return { data: null, error: { code: "23505", message: "duplicate key value" } };
+        }
+        return {
+          data: { submission_id: "523e4567-e89b-42d3-a456-426614174000", accepted: 1, replayed: true },
+          error: null,
+        };
+      }
+      return { data: null, error: null };
+    });
+    const res = await submitPost(submitRequest(VALID_BATCH));
+    expect(res.status).toBe(200);
+    expect(((await res.json()) as { replayed: boolean }).replayed).toBe(true);
+    expect(submitCalls).toBe(2);
+  });
+
+  it("maps a second 23505 to ASK_UNAVAILABLE without a third RPC call", async () => {
+    let submitCalls = 0;
+    mocks.rpc.mockImplementation(async (fn: string) => {
+      if (fn === "guest_verify") {
+        return { data: "\\x" + guestSecretHash(SECRET).toString("hex"), error: null };
+      }
+      if (fn === "guest_get_ask") {
+        return { data: [{ ask_id: ASK_ID, owner_display_name: "Owner", liked_genres: [] }], error: null };
+      }
+      if (fn === "rl_hit") return { data: true, error: null };
+      if (fn === "submit_recommendations") {
+        submitCalls += 1;
+        return { data: null, error: { code: "23505", message: "duplicate key value" } };
+      }
+      return { data: null, error: null };
+    });
+    const res = await submitPost(submitRequest(VALID_BATCH));
+    expect(res.status).toBe(503);
+    expect(((await res.json()) as { error: string }).error).toBe("ASK_UNAVAILABLE");
+    expect(submitCalls).toBe(2);
+  });
+
+  it("does not retry a non-23505 RPC error", async () => {
+    let submitCalls = 0;
+    mocks.rpc.mockImplementation(async (fn: string) => {
+      if (fn === "guest_verify") {
+        return { data: "\\x" + guestSecretHash(SECRET).toString("hex"), error: null };
+      }
+      if (fn === "guest_get_ask") {
+        return { data: [{ ask_id: ASK_ID, owner_display_name: "Owner", liked_genres: [] }], error: null };
+      }
+      if (fn === "rl_hit") return { data: true, error: null };
+      if (fn === "submit_recommendations") {
+        submitCalls += 1;
+        return { data: null, error: { code: "XX000", message: "SOME_OTHER" } };
+      }
+      return { data: null, error: null };
+    });
+    const res = await submitPost(submitRequest(VALID_BATCH));
+    expect(res.status).toBe(503);
+    expect(submitCalls).toBe(1);
+  });
+
   it("rejects a batch over 20 items with 400 before the RPC", async () => {
     const items = Array.from({ length: 21 }, () => ({ item_id: ITEM_ID, rating: null }));
     const res = await submitPost(submitRequest({ client_batch_id: BATCH_ID, items }));
