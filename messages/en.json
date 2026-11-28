@@ -663,6 +663,14 @@
     "confirmBusy": "Confirming…",
     "pubGuestsNote": "Guests have no account: use \"Delete my data\" in the friend sheet to remove guest data immediately."
   },
+  "claim": {
+    "title": "Make your own list",
+    "body": "Keep what you sent and start your own list with Google.",
+    "continue": "Continue with Google",
+    "working": "Redirecting…",
+    "ownLink": "This is your own link",
+    "error": "Could not continue. Try again."
+  },
   "friend": {
     "landing": {
       "defaultPrompt": "What's the last movie, show or documentary you recommend?",
