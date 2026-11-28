@@ -112,3 +112,10 @@ Started: 2026-11-27T09:29+07:00
 - Required proof f: `scripts/verify-housekeeping-email-live.mjs` on PROD passed `13/13`: housekeeping missing/wrong bearer 401, authenticated 200 `{enqueued:2, claimed:2, done:2, unavailable:1}`, email route missing bearer 401 and authenticated dry `{reason:email_not_configured, claimed:0}`, rollback email_claim/email_finish success, audited table counts equal. REAL send remains NOT DONE because `RESEND_API_KEY` and `EMAIL_FROM` are absent.
 - Required report g: `vercel.json` schedules are `/api/youtube/sync` twice daily (`0 6 * * *`, `0 18 * * *`), `/api/cron/enrich` once daily (`0 1 * * *`), `/api/cron/email` once daily (`30 1 * * *`), and `/api/cron/housekeeping` once daily (`0 2 * * *`). Owner email drain therefore runs once daily and can delay queued owner mail by up to ~24 hours; housekeeping does not replace the email drain.
 - WP5 is EVIDENCE_READY, not merged. Next WP: WP7 closeout.
+
+## WP7 closeout 2026-11-28
+
+- PROGRESS closeout commit `298f5cb6b57b80ed88a405a6f0f54120939fbf56` added new `V2-W6 (2026-11-28)` rows citing WP1-WP6 merge/head SHAs and evidence outcomes; protected-path checker reported 0.
+- Docs-only Class A PR #79 was opened from `devin/V2-W6-LEDGER-1127-001` to `main` at pinned head `298f5cb6b57b80ed88a405a6f0f54120939fbf56`; checks completed successfully (build success, e2e success, Vercel Preview Comments success, Supabase Preview skipped); REST merge commit `81d8d927bff23f8210e3ba79a53de6b64c3d7ef4`.
+- Ledger branch fast-forwarded to `origin/main` before this closeout note; `298f5cb` ancestry on `origin/main` verified after merge.
+- Final state: WP1/WP2/WP3/WP6 merged and live; WP4 PR72 evidence-ready with recorded race/axe failures and invalid spoofed-xff preview proof; WP5 PR62/PR71/PR73/PR74 evidence-ready draft Class B stack awaiting CTO merge; REAL email send remains NOT DONE pending `RESEND_API_KEY` and `EMAIL_FROM`; Privacy/Terms legal review remains needed.
