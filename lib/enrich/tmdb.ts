@@ -173,7 +173,7 @@ export async function fetchTmdbDetails(
   const base = opts.baseUrl ?? TMDB_BASE;
   const url = `${base}/${media}/${encodeURIComponent(item.external_id)}?language=${encodeURIComponent(
     tag
-  )}&append_to_response=videos`;
+  )}&append_to_response=videos&include_image_language=${encodeURIComponent(`${tag},en,null`)}`;
   const res = await getJson(
     url,
     opts.token,

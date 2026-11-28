@@ -96,6 +96,24 @@ test("two guests, same item: ONE card with recommender_count 2", async ({ page, 
   await expect(page.getByTestId("inbox-tab-count")).toHaveText("1");
 });
 
+test("C9: To watch count equals list length; quote follows PRD 6.2", async ({ page, baseURL }) => {
+  await injectSession(page.context(), baseURL ?? "http://localhost:3001");
+  await page.goto("/inbox");
+
+  const countText = (await page.getByTestId("inbox-tab-count").textContent())?.trim() ?? "";
+  const count = Number(countText);
+  expect(Number.isInteger(count)).toBe(true);
+  await expect(page.getByTestId("inbox-list").locator("li")).toHaveCount(count);
+
+  const card = page.locator(`[data-testid="inbox-card"][data-item-id="${itemId}"]`);
+  await expect(card).toContainText("zz-e2e quote B");
+  await expect(card).not.toContainText("zz-e2e quote A");
+
+  await page.locator(`[data-testid="rail-friend"][data-contributor-id="${guests[0].contributorId}"]`).click();
+  await expect(card).toContainText("zz-e2e quote A");
+  await expect(card).not.toContainText("zz-e2e quote B");
+});
+
 test("detail sheet: Friends/TMDB rings and complete recommender rows", async ({
   page,
   baseURL,
