@@ -74,6 +74,10 @@ html[data-theme="light"] [data-ui="v2"] {
   --v2-accent: var(--v2-accent-lt);
   --v2-on-accent: var(--v2-on-lt);
   --v2-ring-tmdb: #6B6B80;
+  /* Status colours need >= 4.5:1 on light surfaces (axe color-contrast) */
+  --v2-success: #166534;
+  --v2-warn: #92400E;
+  --v2-danger: #B42318;
 }
 
 /* ── System theme (resolved in pure CSS, no flash) ───────────────────── */
@@ -88,6 +92,9 @@ html[data-theme="light"] [data-ui="v2"] {
     --v2-accent: var(--v2-accent-lt);
     --v2-on-accent: var(--v2-on-lt);
     --v2-ring-tmdb: #6B6B80;
+    --v2-success: #166534;
+    --v2-warn: #92400E;
+    --v2-danger: #B42318;
   }
 }
 @media (prefers-color-scheme: dark) {
@@ -102,6 +109,15 @@ html[data-theme="light"] [data-ui="v2"] {
     --v2-on-accent: var(--v2-on-dk);
     --v2-ring-tmdb: #8E8E93;
   }
+}
+
+/* globals.css pins `input, select, textarea { color: var(--text-1) }`, which
+   stays dark under data-theme="system" on v2 routes (no ThemeSync). Restore
+   the themed v2 text colour inside the scope. */
+[data-ui="v2"] input,
+[data-ui="v2"] select,
+[data-ui="v2"] textarea {
+  color: var(--v2-text);
 }
 
 /* ── Landing-only tokens (V2-LANDING-001-R2) ─────────────────────────────
