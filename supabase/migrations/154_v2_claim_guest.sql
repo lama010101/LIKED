@@ -143,6 +143,16 @@ BEGIN
     WHERE n.type = 'recommendation_received'
       AND n.payload->>'contributor_id' = p_contributor_id::text;
 
+    -- owner_contributor_blocks.contributor_id is ON DELETE CASCADE
+    -- (migration 142): deleting the guest row below would silently lift
+    -- every owner block (PRD 10.1). Re-point each block to the surviving
+    -- contributor first; ON CONFLICT keeps an existing (owner,T) row.
+    INSERT INTO public.owner_contributor_blocks (owner_id, contributor_id)
+    SELECT b.owner_id, v_target_id
+    FROM public.owner_contributor_blocks b
+    WHERE b.contributor_id = p_contributor_id
+    ON CONFLICT (owner_id, contributor_id) DO NOTHING;
+
     DELETE FROM public.contributors c
     WHERE c.id = p_contributor_id;
   END IF;

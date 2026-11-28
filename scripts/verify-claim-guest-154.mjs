@@ -59,7 +59,7 @@ async function trySql(text, params) {
   }
 }
 
-const RESIDUE_TABLES = ["users", "asks", "contributors", "items", "submissions", "recommendations", "notifications"];
+const RESIDUE_TABLES = ["users", "asks", "contributors", "items", "submissions", "recommendations", "notifications", "owner_contributor_blocks"];
 const baseline = {};
 for (const t of RESIDUE_TABLES) baseline[t] = await count(`SELECT count(*)::int AS c FROM public.${t}`);
 
@@ -164,6 +164,57 @@ try {
   check("notification payload contributor_id re-pointed", noteAfter?.cid === target, JSON.stringify(noteAfter));
   const targetIdem = (await one(`SELECT public.claim_guest($1,$2) AS j`, [target, userA])).j;
   check("idempotent re-run surviving contributor", targetIdem?.merged_into === target && targetIdem?.moved_recommendations === 0 && targetIdem?.merged_conflicts === 0, JSON.stringify(targetIdem));
+
+  // ---------- owner blocks survive the T-path merge ----------
+  console.log("\n== owner_contributor_blocks carried across merge ==");
+  const mkBlock = async (owner, contributor) => client.query(
+    `INSERT INTO public.owner_contributor_blocks (owner_id, contributor_id) VALUES ($1,$2)`, [owner, contributor]
+  );
+
+  // (a) T-path: owner O blocks guest G; after claim the block must sit on T
+  const userBa = await mkUser("Harness Blocks User A");
+  const ownerBa = await mkUser("Harness Blocks Owner A");
+  const targetBa = await mkContributor("Harness Blocks Target A", userBa);
+  const guestBa = await mkContributor("Harness Blocks Guest A");
+  await mkBlock(ownerBa, guestBa);
+  const claimBa = (await one(`SELECT public.claim_guest($1,$2) AS j`, [guestBa, userBa])).j;
+  check("blocks(a) merged_into target", claimBa?.merged_into === targetBa, JSON.stringify(claimBa));
+  check("blocks(a) block carried to target", await count(`SELECT count(*)::int AS c FROM public.owner_contributor_blocks WHERE owner_id=$1 AND contributor_id=$2`, [ownerBa, targetBa]) === 1);
+  check("blocks(a) no block row references deleted guest", await count(`SELECT count(*)::int AS c FROM public.owner_contributor_blocks WHERE contributor_id=$1`, [guestBa]) === 0);
+
+  // (b) T-path idempotent: (O,T) already present -> no error, exactly one row
+  const userBb = await mkUser("Harness Blocks User B");
+  const ownerBb = await mkUser("Harness Blocks Owner B");
+  const targetBb = await mkContributor("Harness Blocks Target B", userBb);
+  const guestBb = await mkContributor("Harness Blocks Guest B");
+  await mkBlock(ownerBb, targetBb);
+  await mkBlock(ownerBb, guestBb);
+  const claimBb = await trySql(`SELECT public.claim_guest($1,$2)`, [guestBb, userBb]);
+  check("blocks(b) claim does not error with existing (O,T)", !claimBb.threw, `${claimBb.code} ${claimBb.message}`);
+  check("blocks(b) exactly one (O,T) row", await count(`SELECT count(*)::int AS c FROM public.owner_contributor_blocks WHERE owner_id=$1 AND contributor_id=$2`, [ownerBb, targetBb]) === 1);
+  check("blocks(b) no block row references deleted guest", await count(`SELECT count(*)::int AS c FROM public.owner_contributor_blocks WHERE contributor_id=$1`, [guestBb]) === 0);
+
+  // (c) no-T path: claim in place keeps contributor id; block (O,G) persists
+  const userBc = await mkUser("Harness Blocks User C");
+  const ownerBc = await mkUser("Harness Blocks Owner C");
+  const guestBc = await mkContributor("Harness Blocks Guest C");
+  await mkBlock(ownerBc, guestBc);
+  const claimBc = (await one(`SELECT public.claim_guest($1,$2) AS j`, [guestBc, userBc])).j;
+  check("blocks(c) merged_into same contributor (no-T path)", claimBc?.merged_into === guestBc, JSON.stringify(claimBc));
+  check("blocks(c) block (O,G) still exists", await count(`SELECT count(*)::int AS c FROM public.owner_contributor_blocks WHERE owner_id=$1 AND contributor_id=$2`, [ownerBc, guestBc]) === 1);
+
+  // (d) different owner O2's block carried to T only for O2; O1 never blocked
+  const userBd = await mkUser("Harness Blocks User D");
+  const ownerBd1 = await mkUser("Harness Blocks Owner D1");
+  const ownerBd2 = await mkUser("Harness Blocks Owner D2");
+  const targetBd = await mkContributor("Harness Blocks Target D", userBd);
+  const guestBd = await mkContributor("Harness Blocks Guest D");
+  await mkBlock(ownerBd2, guestBd);
+  const claimBd = (await one(`SELECT public.claim_guest($1,$2) AS j`, [guestBd, userBd])).j;
+  check("blocks(d) merged_into target", claimBd?.merged_into === targetBd, JSON.stringify(claimBd));
+  check("blocks(d) O2 block carried to (O2,T)", await count(`SELECT count(*)::int AS c FROM public.owner_contributor_blocks WHERE owner_id=$1 AND contributor_id=$2`, [ownerBd2, targetBd]) === 1);
+  check("blocks(d) no cross-owner leak: O1 has no (O1,T) block", await count(`SELECT count(*)::int AS c FROM public.owner_contributor_blocks WHERE owner_id=$1 AND contributor_id=$2`, [ownerBd1, targetBd]) === 0);
+  check("blocks(d) no block row references deleted guest", await count(`SELECT count(*)::int AS c FROM public.owner_contributor_blocks WHERE contributor_id=$1`, [guestBd]) === 0);
 
   // ---------- claimed by another user ----------
   console.log("\n== claimed by another user ==");
