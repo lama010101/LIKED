@@ -27,7 +27,7 @@ Started: 2026-11-28 ~08:33 +0700 (unattended, Lolo away)
 | WP | Title | Status | Branch | Head SHA | PR | Next step |
 |----|-------|--------|--------|----------|----|-----------|
 | WP-A | Fix+merge PR #72 (guest stack) | ✅ MERGED | devin/V2-W3-GUEST-FIX-1125-001-d | 43c11ea | #72 merged f38cbba | DONE — post-merge proofs PASS |
-| WP-B | P0 acceptance matrix (docs) | ✅ PR #80 (CI running) | devin/V2-W7-P0-MATRIX-1128-001 | 70695fc | #80 | merge when CI green (Class A docs) |
+| WP-B | P0 acceptance matrix (docs) | ✅ MERGED | devin/V2-W7-P0-MATRIX-1128-001 | 70695fc | #80 merged b63510f | DONE — ancestry verified |
 | WP-C | Pipeline stack evidence PRs (#62->#71->#73->#74) | PENDING — recon done | - | - | #62 37da871 / #71 3bcb50f / #73 5d0cabd / #74 7b135fe | heads moved vs spec; see recon below |
 | WP-D | Threat-model tests T1-T17 (P0-23) | PENDING | - | - | - | after WP-A (needs guest routes on main) |
 | WP-E | Local smoke suite smoke:v2 | PENDING | - | - | - | independent |
