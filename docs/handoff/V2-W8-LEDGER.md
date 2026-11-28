@@ -4,7 +4,7 @@
 |---|---|---|---|---|---|
 | STEP ZERO | DONE | devin/V2-W8-LEDGER-1128-001 | 2f658c4 | n/a | Ledger/spec pushed |
 | WP-1 | MERGES_DONE / PROOFS_PARTIAL | stack branches merged to `main` | #62 cd97f99; #71 36f6437; #73 a482cb9; #74 ddd8b7f | #62/#71/#73/#74 closed-merged | Secret-backed fixture/database proofs pending constraints; continue WP-2 |
-| WP-2 | PR_OPEN | devin/V2-W8-WP2-EVIDENCE-1128-002 | d5f3b82c840dd0265633d906e2c66067d8a97a4f | #85 open | Wait for green CI, verify scope/mergeability, merge as Class A |
+| WP-2 | DONE | devin/V2-W8-WP2-EVIDENCE-1128-002 | d5f3b82c840dd0265633d906e2c66067d8a97a4f | #85 merged 51f05f5449fc320e744a50b9d9263668bbb28b9d | Continue WP-3 P1 UI without migrations |
 | WP-3 | PENDING | pending | pending | pending | P1 UI without migrations |
 | WP-4 | PENDING | pending | pending | pending | P1 migration draft PR only |
 | WP-5 | PENDING | pending | pending | pending | Closeout PROGRESS rows and final evidence |
@@ -29,3 +29,5 @@
 - WP-1 secret/fixture-dependent proofs NOT DONE under the binding secret-safety rule: shell `DATABASE_URL`/`SUPABASE_SECRET_KEY`/`CRON_SECRET` absent, `.env.local` was not read or copied, and the Supabase MCP is connected to a foreign project migration history, so no PROD table mutation/cleanup proof was run. Real Google reauth remains NOT DONE for Lolo.
 
 - WP-2 evidence branch committed and pushed at `d5f3b82c840dd0265633d906e2c66067d8a97a4f`; PR #85 open against `main`. Local validation: `npx tsc --noEmit` exit 0; `npx eslint .` exit 0 with 0 errors; `npx vitest run` 49 files/447 tests passed; `npm run build` exit 0; protected paths touched 0; migration diff count 0. Live rollback proof `scripts/verify-score-rpc.mjs` output `C5_RPC_RESULT=PASS pass=7 fail=0`.
+
+- WP-2 PR #85 merged to `main` as `51f05f5449fc320e744a50b9d9263668bbb28b9d` after CI build/e2e success, Vercel success, Supabase skipped; pinned head `d5f3b82c840dd0265633d906e2c66067d8a97a4f`; post-fetch ancestry check = PASS. PR file scope contained only matrix/e2e/auth-test/TMDB/score-proof files; protected paths 0; migrations 0.
