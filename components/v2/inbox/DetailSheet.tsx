@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { getInboxItemAction } from "@/app/lib/actions/v2-owner";
+import { getInboxItemAction, setItemStatusAction, type InboxStatus } from "@/app/lib/actions/v2-owner";
 import ScoreRing from "./ScoreRing";
 import { CloseIcon, PlayIcon } from "./icons";
 import styles from "./inbox.module.css";
@@ -28,9 +28,11 @@ const TITLE_ID = "inbox-detail-title";
 export default function DetailSheet({
   card,
   onClose,
+  onStatus,
 }: {
   card: InboxCard;
   onClose: () => void;
+  onStatus: (itemId: string, status: InboxStatus) => void;
 }) {
   const t = useTranslations("inbox");
   const locale = useLocale();
@@ -46,6 +48,7 @@ export default function DetailSheet({
       ? `${t("friendsAverage")} ${t("raters", { count: card.rater_count })}`
       : t("friendsAverage");
   const [detail, setDetail] = useState<InboxItemDetail | null>(null);
+  const [statusBusy, setStatusBusy] = useState<InboxStatus | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -74,6 +77,16 @@ export default function DetailSheet({
       document.body.style.overflow = previous;
     };
   }, [onClose]);
+
+  const changeStatus = async (nextStatus: InboxStatus) => {
+    setStatusBusy(nextStatus);
+    try {
+      await setItemStatusAction(card.item_id, nextStatus);
+      onStatus(card.item_id, nextStatus);
+    } catch {
+      setStatusBusy(null);
+    }
+  };
 
   return (
     <div className={styles.overlay} onClick={onClose} data-testid={TESTID.detailOverlay}>
@@ -190,6 +203,27 @@ export default function DetailSheet({
             {t("trailer")}
           </a>
         )}
+
+        <div className={styles.actions} data-testid="detail-status-actions">
+          <button
+            type={UI.button}
+            disabled={statusBusy !== null}
+            onClick={() => changeStatus("watched")}
+            className={styles.primaryBtn}
+            data-testid="mark-watched"
+          >
+            {t("markWatched")}
+          </button>
+          <button
+            type={UI.button}
+            disabled={statusBusy !== null}
+            onClick={() => changeStatus("dismissed")}
+            className={styles.secondaryBtn}
+            data-testid="mark-dismissed"
+          >
+            {t("notInterested")}
+          </button>
+        </div>
 
         <section>
           <h3 className={styles.sectionTitle}>{t("recommendingFriends")}</h3>

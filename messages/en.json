@@ -638,7 +638,12 @@
     "genresLabel": "Genres you like",
     "genresHint": "{count}/5 selected",
     "saveAskSettings": "Save note and genres",
-    "askSettingsSaved": "Invite preferences saved."
+    "askSettingsSaved": "Invite preferences saved.",
+    "watched": "Watched",
+    "dismissed": "Dismissed",
+    "markWatched": "Watched",
+    "notInterested": "Not interested",
+    "recommendedAgain": "Recommended again"
   },
   "v2": {
     "language": {

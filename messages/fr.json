@@ -638,7 +638,12 @@
     "genresLabel": "Genres que vous aimez",
     "genresHint": "{count}/5 sélectionnés",
     "saveAskSettings": "Enregistrer la note et les genres",
-    "askSettingsSaved": "Préférences d’invitation enregistrées."
+    "askSettingsSaved": "Préférences d’invitation enregistrées.",
+    "watched": "Vus",
+    "dismissed": "Écartés",
+    "markWatched": "Vu",
+    "notInterested": "Pas intéressé",
+    "recommendedAgain": "Recommandé à nouveau"
   },
   "v2": {
     "language": {

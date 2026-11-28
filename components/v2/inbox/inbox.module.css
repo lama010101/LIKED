@@ -126,6 +126,15 @@
   margin-bottom: 16px;
 }
 
+.tab {
+  border: 1px solid var(--v2-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--v2-text);
+  padding: 6px 12px;
+  font-size: 14px;
+}
+
 .tabActive {
   border: 0;
   border-radius: 999px;

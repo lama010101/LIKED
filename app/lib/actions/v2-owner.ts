@@ -49,7 +49,10 @@ export interface InboxFilters {
 
 export type InboxSort = "recent" | "most_recommended" | "friend_score" | "release_date" | "tmdb_score";
 
+export type InboxStatus = "to_watch" | "watched" | "dismissed";
+
 export interface InboxQuery {
+  status?: InboxStatus;
   friendId?: string | null;
   filters?: InboxFilters;
   sort?: InboxSort;
@@ -60,7 +63,7 @@ export interface InboxQuery {
 /** get_inbox, To watch + recent only (P0 scope; Watched/Dismissed are P1). */
 export async function getInboxAction(query: InboxQuery = {}): Promise<InboxPayload> {
   return ownerRpc<InboxPayload>("get_inbox", {
-    p_status: "to_watch",
+    p_status: query.status ?? "to_watch",
     p_friend_id: query.friendId ?? null,
     p_filters: query.filters ?? {},
     p_sort: query.sort ?? "recent",
@@ -68,6 +71,11 @@ export async function getInboxAction(query: InboxQuery = {}): Promise<InboxPaylo
     p_cursor_item: query.cursor?.item_id ?? null,
     p_limit: query.limit ?? 30,
   });
+}
+
+/** Migration-150 draft write: owner-scoped upsert into owner_item_state. */
+export async function setItemStatusAction(itemId: string, status: InboxStatus): Promise<void> {
+  await ownerRpc<void>("set_item_status", { p_item_id: itemId, p_status: status });
 }
 
 /** get_inbox_item (migration 148): owner detail rows, without offers or region_missing. */

@@ -9,13 +9,14 @@ import {
   markFriendSeenAction,
   type InboxFilters,
   type InboxSort,
+  type InboxStatus,
 } from "@/app/lib/actions/v2-owner";
 import InboxCardView from "./InboxCard";
 import DetailSheet from "./DetailSheet";
 import FiltersSheet from "./FiltersSheet";
 import FriendRail from "./FriendRail";
 import ShareBar from "./ShareBar";
-import { BellIcon, GearIcon, ShareIcon } from "./icons";
+import { BellIcon, CloseIcon, GearIcon, ShareIcon } from "./icons";
 import styles from "./inbox.module.css";
 import { ROUTES, TESTID, UI } from "./ui-constants";
 import {
@@ -51,6 +52,7 @@ export default function InboxView({
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [filters, setFilters] = useState<InboxFilters>({});
   const [sort, setSort] = useState<InboxSort>("recent");
+  const [status, setStatus] = useState<InboxStatus>("to_watch");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -61,7 +63,7 @@ export default function InboxView({
     setBusy(true);
     setError(null);
     try {
-      const page = await getInboxAction({ friendId: selected, filters, sort, cursor });
+      const page = await getInboxAction({ status, friendId: selected, filters, sort, cursor });
       setCards((prev) => mergeCards(prev, page.cards));
       setCounts(page.counts);
       setCursor(page.next_cursor);
@@ -79,7 +81,7 @@ export default function InboxView({
     setBusy(true);
     setError(null);
     try {
-      const page = await getInboxAction({ friendId: next, filters, sort });
+      const page = await getInboxAction({ status, friendId: next, filters, sort });
       setCards(page.cards);
       setCounts(page.counts);
       setCursor(page.next_cursor);
@@ -111,7 +113,7 @@ export default function InboxView({
     setBusy(true);
     setError(null);
     try {
-      const page = await getInboxAction({ friendId: selected, filters: nextFilters, sort: nextSort });
+      const page = await getInboxAction({ status, friendId: selected, filters: nextFilters, sort: nextSort });
       setCards(page.cards);
       setCounts(page.counts);
       setCursor(page.next_cursor);
@@ -128,6 +130,33 @@ export default function InboxView({
   const clearFilterCategory = (key: keyof InboxFilters) => {
     const next = { ...filters, [key]: Array.isArray(filters[key]) ? [] : false };
     void applyFilters(next, sort);
+  };
+
+  const selectStatus = async (nextStatus: InboxStatus) => {
+    if (busy || nextStatus === status) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const page = await getInboxAction({ status: nextStatus, friendId: selected, filters, sort });
+      setCards(page.cards);
+      setCounts(page.counts);
+      setCursor(page.next_cursor);
+      setStatus(nextStatus);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t("error"));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const itemStatusChanged = (itemId: string, nextStatus: InboxStatus) => {
+    setCards((current) => current.filter((card) => card.item_id !== itemId));
+    setCounts((current) => ({
+      ...current,
+      [status]: Math.max(0, current[status] - 1),
+      [nextStatus]: current[nextStatus] + 1,
+    }));
+    setOpen(null);
   };
 
   return (
@@ -168,15 +197,19 @@ export default function InboxView({
 
       <main className={styles.main}>
         <div className={styles.tabs} role={UI.tablist} aria-label={t("title")}>
-          <button
-            type={UI.button}
-            role={UI.tab}
-            aria-selected={UI.true}
-            data-testid={TESTID.tabToWatch}
-            className={styles.tabActive}
-          >
-            {t("toWatch")} <span className={styles.tabCount} data-testid={TESTID.tabCount}>{counts.to_watch}</span>
-          </button>
+          {(["to_watch", "watched", "dismissed"] as InboxStatus[]).map((value) => (
+            <button
+              key={value}
+              type={UI.button}
+              role={UI.tab}
+              aria-selected={status === value}
+              onClick={() => selectStatus(value)}
+              data-testid={`tab-${value}`}
+              className={status === value ? styles.tabActive : styles.tab}
+            >
+              {t(value === "to_watch" ? "toWatch" : value === "watched" ? "watched" : "dismissed")} <span className={styles.tabCount} data-testid={value === "to_watch" ? TESTID.tabCount : `count-${value}`}>{counts[value]}</span>
+            </button>
+          ))}
         </div>
 
 
@@ -192,12 +225,12 @@ export default function InboxView({
           </button>
           {activeFilterCount > 0 && (
             <div className={styles.chipRow} data-testid="active-filter-chips">
-              {filters.platforms?.length ? <button type={UI.button} onClick={() => clearFilterCategory("platforms")} className={styles.filterChip}>{t("filterPlatform")} ×</button> : null}
-              {filters.types?.length ? <button type={UI.button} onClick={() => clearFilterCategory("types")} className={styles.filterChip}>{t("filterType")} ×</button> : null}
-              {filters.decades?.length ? <button type={UI.button} onClick={() => clearFilterCategory("decades")} className={styles.filterChip}>{t("filterDecade")} ×</button> : null}
-              {filters.languages?.length ? <button type={UI.button} onClick={() => clearFilterCategory("languages")} className={styles.filterChip}>{t("filterLanguage")} ×</button> : null}
-              {filters.genres?.length ? <button type={UI.button} onClick={() => clearFilterCategory("genres")} className={styles.filterChip}>{t("filterGenre")} ×</button> : null}
-              {filters.multi_recommended ? <button type={UI.button} onClick={() => clearFilterCategory("multi_recommended")} className={styles.filterChip}>{t("filterMultiRecommended")} ×</button> : null}
+              {filters.platforms?.length ? <button type={UI.button} onClick={() => clearFilterCategory("platforms")} className={styles.filterChip}>{t("filterPlatform")}<CloseIcon /></button> : null}
+              {filters.types?.length ? <button type={UI.button} onClick={() => clearFilterCategory("types")} className={styles.filterChip}>{t("filterType")}<CloseIcon /></button> : null}
+              {filters.decades?.length ? <button type={UI.button} onClick={() => clearFilterCategory("decades")} className={styles.filterChip}>{t("filterDecade")}<CloseIcon /></button> : null}
+              {filters.languages?.length ? <button type={UI.button} onClick={() => clearFilterCategory("languages")} className={styles.filterChip}>{t("filterLanguage")}<CloseIcon /></button> : null}
+              {filters.genres?.length ? <button type={UI.button} onClick={() => clearFilterCategory("genres")} className={styles.filterChip}>{t("filterGenre")}<CloseIcon /></button> : null}
+              {filters.multi_recommended ? <button type={UI.button} onClick={() => clearFilterCategory("multi_recommended")} className={styles.filterChip}>{t("filterMultiRecommended")}<CloseIcon /></button> : null}
             </div>
           )}
         </div>
@@ -244,7 +277,7 @@ export default function InboxView({
         )}
       </main>
 
-      {open && <DetailSheet card={open} onClose={() => setOpen(null)} />}
+      {open && <DetailSheet card={open} onClose={() => setOpen(null)} onStatus={itemStatusChanged} />}
       {filtersOpen && (
         <FiltersSheet
           initialFilters={filters}

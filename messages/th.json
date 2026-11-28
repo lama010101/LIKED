@@ -638,7 +638,12 @@
     "genresLabel": "ประเภทที่คุณชอบ",
     "genresHint": "เลือกแล้ว {count}/5",
     "saveAskSettings": "บันทึกบันทึกและประเภท",
-    "askSettingsSaved": "บันทึกการตั้งค่าคำเชิญแล้ว"
+    "askSettingsSaved": "บันทึกการตั้งค่าคำเชิญแล้ว",
+    "watched": "ดูแล้ว",
+    "dismissed": "ไม่สนใจ",
+    "markWatched": "ดูแล้ว",
+    "notInterested": "ไม่สนใจ",
+    "recommendedAgain": "แนะนำอีกครั้ง"
   },
   "v2": {
     "language": {

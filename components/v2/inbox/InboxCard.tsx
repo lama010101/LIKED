@@ -62,6 +62,9 @@ export default function InboxCardView({
             <h3 className={styles.cardTitle}>{title}</h3>
             {card.year !== null && <span className={styles.year}>{card.year}</span>}
             <span className={styles.chip}>{t(typeKey(card.type))}</span>
+            {card.status === "dismissed" && card.recommended_again && (
+              <span className={styles.chip} data-testid="recommended-again">{t("recommendedAgain")}</span>
+            )}
           </div>
 
           <div className={styles.avatars} data-testid={TESTID.cardAvatars}>
