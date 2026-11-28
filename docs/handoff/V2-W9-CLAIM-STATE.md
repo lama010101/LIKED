@@ -50,14 +50,22 @@ Those are foreign/active-session changes. The shared checkout was not edited.
 - check-invariants: 66 passed, 5 failed. Expected/blocking facts: DB-7 fails only because migration 154 is intentionally unapplied/unrecorded. REPO-15 initially failed due a direct contributors update; fixed by adding class-S guest_rotate_secret and regex recheck is clean. Remaining non-154 failures observed in same run: REPO-17 AppearanceControls baseline, REPO-18 oauthScopes test literal, REPO-20 threatModel test literal.
 - Real Google round trip: MANUAL-VERIFY.
 
-## Not done yet
+## Review state
 
-- No commit, push, PR, or merge yet.
+- Initial commit/head: `fc63fdba0805348582f9368fd61111031c01531b`. Push proof: `git ls-remote origin refs/heads/devin/V2-W9-CLAIM-1128-001` returned the same SHA.
+- `git merge origin/main --no-edit`: Already up to date, exit 0.
+- DRAFT PR #89 created: https://github.com/lama010101/LIKED/pull/89.
+- Migration NOT applied; nothing merged.
+
+## MANUAL-VERIFY for Lolo
+
+1. Apply migration 154 only after approval (not done here).
+2. Open a valid `/r/<token>` in a browser profile with no LIKED Google session, submit one recommendation, press **Continue with Google** in **Make your own list**, complete a real Google consent round trip.
+3. Confirm return lands on `/r/<token>?claim=1`, then automatically redirects to `/inbox`.
+4. Confirm the submitted recommendation still appears for the owner and the Google account now has its own Ask link/contributor history.
+5. Shared-device negative check: copy only `/r/<token>?claim=1` into a browser signed into a different LIKED account without pressing the guest button; confirm no claim occurs.
+6. Owner negative check: sign in as the Ask owner, press the guest button and return; confirm the UI shows **This is your own link** and no claim occurs.
 
 ## Resume instructions
 
-1. Run `git status --porcelain` in the worktree; expected modified/untracked files listed above plus further test files.
-2. Add route/unit tests, rollback harness, e2e spec.
-3. Install dependencies if needed with npm using explicit lockfile flow; do not add dependencies.
-4. Run validation: `npx tsc --noEmit`, `npx next lint`, `node scripts/check-invariants-001.mjs`, `node scripts/check-protected-paths.mjs`, `node scripts/check-languages.mjs`, `npx vitest run`, `npm run build`, scoped `git diff --name-only origin/main...HEAD`.
-5. Commit explicit paths only, push, merge `origin/main`, open DRAFT PR, update docs/PROGRESS.md and this file.
+Review PR #89. Do not apply migration 154 or merge unless explicitly authorized.
