@@ -122,3 +122,6 @@ Started: 2026-11-28 ~08:33 +0700 (unattended, Lolo away)
 ### WP-C final state (DONE — Class B hold)
 - All four stack heads merged with origin/main and pushed; CI green on every head: #62@15024ef, #71@1699ae1, #73@38aff24, #74@ff483a7 (build+e2e+Vercel success, Supabase skipped). All mergeable_state=clean, all draft → REVIEW QUEUE, no merge per Class B.
 - Fix h LIVE proof PASS (see WP-C section above): verify-delete-pipeline-live.mjs 24/24 vs PROD.
+
+### WP-F merge (DONE — marathon closeout)
+- PR #84 (docs-only: PROGRESS V2-W7 rows + this ledger branch merged in) head `0f4c70d546637ed117c71ca3a5edfb30b5c40993`, REST merge commit `1e6150b54388dd8dcb331b93ea57945740becd4f` = current origin/main. Ancestry verified for 0f4c70d and 1e6150b. Marathon V2-W7-MARATHON-1128-001/002 complete: WP-A/B/D/E/F merged to PROD-verified main; WP-C held as Class B REVIEW QUEUE (4 green draft PRs).
