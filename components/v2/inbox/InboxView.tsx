@@ -29,13 +29,11 @@ export default function InboxView({
   initial,
   initialRail,
   ask,
-  region,
   unread,
 }: {
   initial: InboxPayload;
   initialRail: FriendRailData;
   ask: AskRow;
-  region: string;
   unread: number;
 }) {
   const t = useTranslations("inbox");
@@ -184,7 +182,7 @@ export default function InboxView({
         )}
       </main>
 
-      {open && <DetailSheet card={open} region={region} onClose={() => setOpen(null)} />}
+      {open && <DetailSheet card={open} onClose={() => setOpen(null)} />}
       {shareOpen && (
         <ShareBar ask={askState} onAskChange={setAskState} onClose={() => setShareOpen(false)} />
       )}

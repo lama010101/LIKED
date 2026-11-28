@@ -4,6 +4,7 @@ import {
   cardImageUrl,
   clampPercent,
   displayableGenres,
+  formatRecommenderDate,
   languageName,
   mergeCards,
   RING_CIRCUMFERENCE,
@@ -13,6 +14,7 @@ import {
   typeKey,
   unseenTotal,
   type InboxCard,
+  type InboxItemDetail,
 } from "./inbox-utils";
 
 function card(partial: Partial<InboxCard> & Pick<InboxCard, "item_id">): InboxCard {
@@ -130,5 +132,58 @@ describe("display helpers", () => {
     expect(languageName(null, "en")).toBeNull();
     expect(languageName("fr", "en")).toBe("French");
     expect(languageName("xx-unknown", "en")).toBe("xx-unknown");
+  });
+});
+
+describe("get_inbox_item detail contract", () => {
+  const detail: InboxItemDetail = {
+    item: {
+      id: "00000000-0000-0000-0000-000000000001",
+      source: "tmdb",
+      kind: "movie",
+      external_id: "1",
+      name: "fixture",
+      overview: null,
+      release_date: null,
+      runtime_min: null,
+      genres: [],
+      poster_path: null,
+      thumb_url: null,
+      trailer_url: null,
+      tmdb_rating: null,
+      tmdb_votes: null,
+      display_status: "ok",
+      enrichment_status: "complete",
+    },
+    recommenders: [
+      {
+        name: "Fixture Friend",
+        initials: "FF",
+        rating: 80,
+        comment: "fixture comment",
+        platform_text: "fixture platform",
+        created_at: "2020-05-01T00:00:00.000Z",
+      },
+    ],
+    owner_status: "to_watch",
+  };
+
+  it("has recommender row fields and no availability keys", () => {
+    expect(Object.keys(detail).sort()).toEqual(["item", "owner_status", "recommenders"]);
+    expect(detail).not.toHaveProperty("offers");
+    expect(detail).not.toHaveProperty("region_missing");
+    expect(detail.recommenders[0]).toMatchObject({
+      name: "Fixture Friend",
+      initials: "FF",
+      rating: 80,
+      comment: "fixture comment",
+      platform_text: "fixture platform",
+    });
+  });
+
+  it("formats the recommender date in the requested locale", () => {
+    const rendered = formatRecommenderDate("2020-05-01T00:00:00.000Z", "en-US");
+    expect(rendered).toContain("2020");
+    expect(rendered.length).toBeGreaterThan(0);
   });
 });

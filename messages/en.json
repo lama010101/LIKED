@@ -610,10 +610,6 @@
     "runtimeValue": "{minutes} min",
     "runtimeHm": "{hours} h {minutes} min",
     "trailer": "Watch trailer",
-    "whereToWatch": "Where to watch",
-    "viaJustWatch": "via JustWatch",
-    "notAvailableIn": "Not available in {region}",
-    "availabilityPending": "Availability is being checked.",
     "recommendingFriends": "Friends who recommended it",
     "languageLine": "Original language: {value}",
     "genresLine": "Genres: {value}",
@@ -626,6 +622,87 @@
     "language": {
       "title": "Language and appearance",
       "hint": "Set from your browser. Titles, genres and descriptions follow this language too."
+    }
+  },
+  "friend": {
+    "landing": {
+      "defaultPrompt": "What's the last movie, show or documentary you recommend?",
+      "nameLabel": "Your name",
+      "namePlaceholder": "First name",
+      "nameHint": "2 to 50 characters",
+      "start": "Start",
+      "likes": "{owner} likes"
+    },
+    "pow": {
+      "solving": "Checking your browser…"
+    },
+    "errors": {
+      "name": "Enter a name of 2 to 50 characters.",
+      "pow": "Could not verify this browser. Reload and try again.",
+      "busy": "Something went wrong. Try again in a moment.",
+      "token": "This link is no longer active."
+    },
+    "language": {
+      "button": "Language and appearance, {code}",
+      "title": "Language and appearance",
+      "hint": "Set from your browser. Titles, genres and descriptions follow this language too.",
+      "language": "Language",
+      "theme": "Theme",
+      "system": "System",
+      "light": "Light",
+      "dark": "Dark",
+      "close": "Close"
+    },
+    "notFound": {
+      "title": "This link is no longer active",
+      "body": "Ask the person who shared it for a new link."
+    }
+  },
+  "ask": {
+    "searchLabel": "Search movies and series",
+    "searchPlaceholder": "Search a title",
+    "searchBusy": "Search is busy — paste a link instead.",
+    "pasteRow": "Or add a YouTube or IMDb link",
+    "paste": "Paste",
+    "pastePlaceholder": "Paste a YouTube, IMDb or TMDB link",
+    "add": "Add",
+    "tray": "Your picks",
+    "trayEmpty": "Nothing added yet.",
+    "remove": "Remove",
+    "details": "Details",
+    "done": "Done",
+    "score": "Your score",
+    "scoreClear": "Clear score",
+    "scoreValue": "{value} percent, {band}",
+    "scoreUntouched": "No score",
+    "band": {
+      "skip": "Skip it",
+      "weak": "Weak",
+      "mixed": "Mixed",
+      "good": "Good",
+      "great": "Great",
+      "unmissable": "Unmissable"
+    },
+    "platform": "Where did you watch it?",
+    "comment": "Why {owner} will love it",
+    "commentHint": "280 characters max",
+    "send": "Send to {owner} ({count} titles)",
+    "sendOne": "Send to {owner} (1 title)",
+    "sending": "Sending…",
+    "sentTitle": "Sent to {owner}",
+    "receiptTitle": "What you sent",
+    "addMore": "Add more titles",
+    "deleteData": "Delete my data",
+    "deleteConfirm": "Delete everything you sent to {owner}?",
+    "deleted": "Your data was deleted.",
+    "receiptEmpty": "Nothing sent yet.",
+    "error": {
+      "empty": "Add at least one title.",
+      "tooMany": "Up to 20 titles per send.",
+      "submit": "Could not send. Try again.",
+      "search": "Search failed. Try again.",
+      "resolve": "Could not add that link.",
+      "rateLimited": "Too many attempts. Try again later."
     }
   },
   "settings": {

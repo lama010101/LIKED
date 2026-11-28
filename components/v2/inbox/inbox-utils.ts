@@ -12,6 +12,40 @@ export interface Recommender {
   rating: number | null;
 }
 
+export interface InboxItemDetailItem {
+  id: string;
+  source: string;
+  kind: string;
+  external_id: string;
+  name: string | null;
+  overview: string | null;
+  release_date: string | null;
+  runtime_min: number | null;
+  genres: string[];
+  poster_path: string | null;
+  thumb_url: string | null;
+  trailer_url: string | null;
+  tmdb_rating: number | null;
+  tmdb_votes: number | null;
+  display_status: string;
+  enrichment_status: string;
+}
+
+export interface InboxItemDetailRecommender {
+  name: string;
+  initials: string;
+  rating: number | null;
+  comment: string | null;
+  platform_text: string | null;
+  created_at: string;
+}
+
+export interface InboxItemDetail {
+  item: InboxItemDetailItem;
+  recommenders: InboxItemDetailRecommender[];
+  owner_status: string;
+}
+
 export interface InboxCard {
   item_id: string;
   status: string;
@@ -163,6 +197,11 @@ export function cardImageUrl(card: Pick<InboxCard, "source" | "poster_path" | "t
 /** "87%" — percentage formatting kept out of JSX text (react/jsx-no-literals). */
 export function formatPercent(value: number): string {
   return `${value}%`;
+}
+
+/** Locale rendering for the recommendation timestamp returned by get_inbox_item. */
+export function formatRecommenderDate(value: string, locale: string): string {
+  return new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(new Date(value));
 }
 
 /** Public Ask link for a token. */
