@@ -38,8 +38,21 @@ async function ownerRpc<T>(fn: string, args?: RpcArgs): Promise<T> {
   return data as T;
 }
 
+export interface InboxFilters {
+  platforms?: string[];
+  types?: string[];
+  decades?: number[];
+  languages?: string[];
+  genres?: string[];
+  multi_recommended?: boolean;
+}
+
+export type InboxSort = "recent" | "most_recommended" | "friend_score" | "release_date" | "tmdb_score";
+
 export interface InboxQuery {
   friendId?: string | null;
+  filters?: InboxFilters;
+  sort?: InboxSort;
   cursor?: { key: number; item_id: string } | null;
   limit?: number;
 }
@@ -49,8 +62,8 @@ export async function getInboxAction(query: InboxQuery = {}): Promise<InboxPaylo
   return ownerRpc<InboxPayload>("get_inbox", {
     p_status: "to_watch",
     p_friend_id: query.friendId ?? null,
-    p_filters: {},
-    p_sort: "recent",
+    p_filters: query.filters ?? {},
+    p_sort: query.sort ?? "recent",
     p_cursor_key: query.cursor?.key ?? null,
     p_cursor_item: query.cursor?.item_id ?? null,
     p_limit: query.limit ?? 30,

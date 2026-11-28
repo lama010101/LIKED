@@ -214,6 +214,32 @@ async function contextClearOnlySupabaseSession(page: import("@playwright/test").
   if (keep.length > 0) await context.addCookies(keep);
 }
 
+test("P1-02: filters sheet applies RPC filters, badge and removable chips", async ({
+  page,
+  baseURL,
+}) => {
+  await injectSession(page.context(), baseURL ?? "http://localhost:3001");
+  await page.goto("/inbox");
+  await expect(page.getByTestId("filters-open")).toBeVisible();
+  await page.getByTestId("filters-open").click();
+  await expect(page.getByTestId("filters-sheet")).toBeVisible();
+  await page.getByTestId("filter-type-youtube").click();
+  await page.getByTestId("filters-apply").click();
+  await expect(page.getByTestId("filters-badge")).toHaveText("1");
+  await expect(page.getByTestId("active-filter-chips")).toContainText("Type");
+  await expect(page.getByTestId("inbox-empty")).toBeVisible();
+
+  await page.getByTestId("active-filter-chips").getByRole("button").first().click();
+  await expect(page.getByTestId("filters-badge")).toHaveCount(0);
+  await expect(page.locator(`[data-testid="inbox-card"][data-item-id="${itemId}"]`)).toBeVisible();
+
+  await page.getByTestId("filters-open").click();
+  await page.getByTestId("filter-sort-tmdb_score").click();
+  await page.getByTestId("filters-apply").click();
+  await expect(page.locator(`[data-testid="inbox-card"][data-item-id="${itemId}"]`)).toBeVisible();
+  await expect(page.getByTestId("filters-badge")).toHaveCount(0);
+});
+
 test("share bar: regenerate kills the old token, the new one resolves", async ({
   page,
   baseURL,

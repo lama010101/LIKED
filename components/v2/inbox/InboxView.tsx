@@ -7,12 +7,15 @@ import {
   getFriendRailAction,
   getInboxAction,
   markFriendSeenAction,
+  type InboxFilters,
+  type InboxSort,
 } from "@/app/lib/actions/v2-owner";
 import InboxCardView from "./InboxCard";
 import DetailSheet from "./DetailSheet";
+import FiltersSheet from "./FiltersSheet";
 import FriendRail from "./FriendRail";
 import ShareBar from "./ShareBar";
-import { BellIcon, GearIcon, ShareIcon } from "./icons";
+import { BellIcon, CloseIcon, GearIcon, ShareIcon } from "./icons";
 import styles from "./inbox.module.css";
 import { ROUTES, TESTID, UI } from "./ui-constants";
 import {
@@ -45,6 +48,9 @@ export default function InboxView({
   const [askState, setAskState] = useState<AskRow>(ask);
   const [open, setOpen] = useState<InboxCard | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [filters, setFilters] = useState<InboxFilters>({});
+  const [sort, setSort] = useState<InboxSort>("recent");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -55,7 +61,7 @@ export default function InboxView({
     setBusy(true);
     setError(null);
     try {
-      const page = await getInboxAction({ friendId: selected, cursor });
+      const page = await getInboxAction({ friendId: selected, filters, sort, cursor });
       setCards((prev) => mergeCards(prev, page.cards));
       setCounts(page.counts);
       setCursor(page.next_cursor);
@@ -73,7 +79,7 @@ export default function InboxView({
     setBusy(true);
     setError(null);
     try {
-      const page = await getInboxAction({ friendId: next });
+      const page = await getInboxAction({ friendId: next, filters, sort });
       setCards(page.cards);
       setCounts(page.counts);
       setCursor(page.next_cursor);
@@ -89,6 +95,39 @@ export default function InboxView({
     } finally {
       setBusy(false);
     }
+  };
+
+  const activeFilterCount = [
+    filters.platforms,
+    filters.types,
+    filters.decades,
+    filters.languages,
+    filters.genres,
+  ].filter((values) => Array.isArray(values) && values.length > 0).length + (filters.multi_recommended ? 1 : 0);
+
+  const platformOptions = [...new Set(cards.flatMap((card) => card.platforms))];
+
+  const applyFilters = async (nextFilters: InboxFilters, nextSort: InboxSort) => {
+    setBusy(true);
+    setError(null);
+    try {
+      const page = await getInboxAction({ friendId: selected, filters: nextFilters, sort: nextSort });
+      setCards(page.cards);
+      setCounts(page.counts);
+      setCursor(page.next_cursor);
+      setFilters(nextFilters);
+      setSort(nextSort);
+      setFiltersOpen(false);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t("error"));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const clearFilterCategory = (key: keyof InboxFilters) => {
+    const next = { ...filters, [key]: Array.isArray(filters[key]) ? [] : false };
+    void applyFilters(next, sort);
   };
 
   return (
@@ -140,6 +179,29 @@ export default function InboxView({
           </button>
         </div>
 
+
+        <div className={styles.filterBar}>
+          <button
+            type={UI.button}
+            onClick={() => setFiltersOpen(true)}
+            className={styles.smallBtn}
+            data-testid="filters-open"
+          >
+            {t("filters")}
+            {activeFilterCount > 0 && <span className={styles.badge} data-testid="filters-badge">{activeFilterCount}</span>}
+          </button>
+          {activeFilterCount > 0 && (
+            <div className={styles.chipRow} data-testid="active-filter-chips">
+              {filters.platforms?.length ? <button type={UI.button} onClick={() => clearFilterCategory("platforms")} className={styles.filterChip}>{t("filterPlatform")}<CloseIcon /></button> : null}
+              {filters.types?.length ? <button type={UI.button} onClick={() => clearFilterCategory("types")} className={styles.filterChip}>{t("filterType")}<CloseIcon /></button> : null}
+              {filters.decades?.length ? <button type={UI.button} onClick={() => clearFilterCategory("decades")} className={styles.filterChip}>{t("filterDecade")}<CloseIcon /></button> : null}
+              {filters.languages?.length ? <button type={UI.button} onClick={() => clearFilterCategory("languages")} className={styles.filterChip}>{t("filterLanguage")}<CloseIcon /></button> : null}
+              {filters.genres?.length ? <button type={UI.button} onClick={() => clearFilterCategory("genres")} className={styles.filterChip}>{t("filterGenre")}<CloseIcon /></button> : null}
+              {filters.multi_recommended ? <button type={UI.button} onClick={() => clearFilterCategory("multi_recommended")} className={styles.filterChip}>{t("filterMultiRecommended")}<CloseIcon /></button> : null}
+            </div>
+          )}
+        </div>
+
         <FriendRail rail={rail} selected={selected} disabled={busy} onSelect={selectFriend} />
 
         {cards.length === 0 ? (
@@ -183,6 +245,15 @@ export default function InboxView({
       </main>
 
       {open && <DetailSheet card={open} onClose={() => setOpen(null)} />}
+      {filtersOpen && (
+        <FiltersSheet
+          initialFilters={filters}
+          initialSort={sort}
+          platformOptions={platformOptions}
+          onApply={applyFilters}
+          onClose={() => setFiltersOpen(false)}
+        />
+      )}
       {shareOpen && (
         <ShareBar ask={askState} onAskChange={setAskState} onClose={() => setShareOpen(false)} />
       )}
