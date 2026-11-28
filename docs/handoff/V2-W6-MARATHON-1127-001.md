@@ -119,3 +119,9 @@ Started: 2026-11-27T09:29+07:00
 - Docs-only Class A PR #79 was opened from `devin/V2-W6-LEDGER-1127-001` to `main` at pinned head `298f5cb6b57b80ed88a405a6f0f54120939fbf56`; checks completed successfully (build success, e2e success, Vercel Preview Comments success, Supabase Preview skipped); REST merge commit `81d8d927bff23f8210e3ba79a53de6b64c3d7ef4`.
 - Ledger branch fast-forwarded to `origin/main` before this closeout note; `298f5cb` ancestry on `origin/main` verified after merge.
 - Final state: WP1/WP2/WP3/WP6 merged and live; WP4 PR72 evidence-ready with recorded race/axe failures and invalid spoofed-xff preview proof; WP5 PR62/PR71/PR73/PR74 evidence-ready draft Class B stack awaiting CTO merge; REAL email send remains NOT DONE pending `RESEND_API_KEY` and `EMAIL_FROM`; Privacy/Terms legal review remains needed.
+
+## WP7 post-closeout correction 2026-11-28
+
+- After PR #79 merged, REST showed owner-side merges: PR #72 merged at `2026-11-28T02:32:12Z` with merge commit `f38cbba3b963b5ada90e0caec8c73fbf6a3a7646`, head `43c11ea36a402da22250ed10475d59dabb8a700e`; PR #80 (`docs(handoff): P0 acceptance matrix`) merged at `2026-11-28T02:46:21Z` with merge commit `b63510f980895cae11d2ca76064ffe47ba43689f`.
+- A new additive PROGRESS row recorded the PR #72 merge; docs-only PR #81 merged at `15c1664437e4440ed6dd0d524b0f76076912fcd3` and its head `e186c8c36c41d71a22ba4eafbefc2b96ed452659` is an ancestor of `origin/main`.
+- Current merged/live state now includes WP1/WP2/WP3/WP6, owner-merged WP4 PR #72, owner-merged PR #80 docs, and closeout docs PRs #79/#81. WP5 PRs #62/#71/#73/#74 remain evidence-ready draft Class B PRs awaiting CTO merge.
