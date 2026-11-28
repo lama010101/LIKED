@@ -22,6 +22,17 @@ import { getHumanCheckProvider, honeypotTripped } from "@/lib/ask/humanCheck";
 const GENERIC_OK = { ok: true, message: "If an account exists for this address you will receive an email." };
 
 export async function POST(request: Request) {
+  let appOrigin: string;
+  try {
+    const raw = process.env.NEXT_PUBLIC_APP_URL;
+    if (!raw) throw new Error("missing NEXT_PUBLIC_APP_URL");
+    const parsed = new URL(raw);
+    if (parsed.protocol !== "https:") throw new Error("NEXT_PUBLIC_APP_URL must be https");
+    appOrigin = parsed.origin;
+  } catch {
+    return NextResponse.json({ error: "ASK_UNAVAILABLE" }, { status: 503 });
+  }
+
   const guard = guardAskRequest(request);
   if (!guard.ok) return guard.response;
   const { ctx } = guard;
@@ -67,8 +78,7 @@ export async function POST(request: Request) {
 
   const confirmToken = randomBytes(32);
   const tokenHash = createHash("sha256").update(confirmToken).digest();
-  const origin = new URL(request.url).origin;
-  const confirmUrl = `${origin}/api/delete-requests/confirm?t=${confirmToken.toString("base64url")}`;
+  const confirmUrl = `${appOrigin}/delete-account/confirm?t=${confirmToken.toString("base64url")}`;
 
   const client = getSupabaseServiceClient() as never;
   const { error } = await (client as {

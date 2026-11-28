@@ -651,6 +651,10 @@
     "pubSent": "If an account exists for this address, you will receive a confirmation email.",
     "pubStatusConfirmed": "Your deletion request was confirmed. It will be processed within 30 days.",
     "pubStatusInvalid": "That confirmation link is invalid or has expired.",
+    "confirmTitle": "Confirm account deletion",
+    "confirmIntro": "Press the button only if you requested deletion of your LIKED account. This confirms the request; it does not delete the account immediately.",
+    "confirmButton": "Confirm deletion request",
+    "confirmBusy": "Confirming…",
     "pubGuestsNote": "Guests have no account: use \"Delete my data\" in the friend sheet to remove guest data immediately."
   },
   "friend": {
