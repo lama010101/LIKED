@@ -31,6 +31,14 @@ const nextConfig: NextConfig = {
         headers: overrideHeaders,
       },
       {
+        source: "/delete-account/confirm",
+        headers: [
+          { key: "Cache-Control", value: "private, no-store" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+          { key: "Referrer-Policy", value: "no-referrer" },
+        ],
+      },
+      {
         source: "/(.*)",
         headers: [
           { key: "X-Frame-Options", value: "DENY" },

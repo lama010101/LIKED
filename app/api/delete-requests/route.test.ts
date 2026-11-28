@@ -1,76 +1,76 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
-  issue: vi.fn(),
-  verify: vi.fn(),
   rpc: vi.fn(),
-  getSupabaseServiceClient: vi.fn(),
+  verify: vi.fn(),
   rlBucket: vi.fn(),
   rlHit: vi.fn(),
-  honeypotTripped: vi.fn(),
 }));
 
 vi.mock("@/lib/supabase/service", () => ({
-  getSupabaseServiceClient: mocks.getSupabaseServiceClient,
+  getSupabaseServiceClient: () => ({ rpc: mocks.rpc }),
 }));
-vi.mock("@/lib/ask/guard", () => ({
-  guardAskRequest: () => ({
-    ok: true,
-    ctx: { ipKeyHash: "ip-hash", secrets: { rateLimitPepper: "pepper" } },
-  }),
-  readAskJsonBody: async (request: Request) => ({ ok: true, body: await request.json() }),
-}));
+
 vi.mock("@/lib/ask/rateLimit", () => ({
   rlBucket: mocks.rlBucket,
   rlHit: mocks.rlHit,
 }));
-vi.mock("@/lib/ask/clientIp", () => ({ hashRlKey: () => "addr-hash" }));
+
 vi.mock("@/lib/ask/humanCheck", () => ({
-  getHumanCheckProvider: () => ({ issue: mocks.issue, verify: mocks.verify }),
-  honeypotTripped: mocks.honeypotTripped,
+  getHumanCheckProvider: () => ({ verify: mocks.verify, issue: vi.fn() }),
+  honeypotTripped: () => false,
 }));
 
 import { POST } from "./route";
 
-function req(body: unknown) {
-  return new Request("https://liked.test/api/delete-requests", {
+const COOKIE_SECRET = "c".repeat(40);
+const PEPPER = "p".repeat(40);
+const APP_URL = "https://liked.example.com";
+
+function deletionRequest(
+  url = "https://spoofed.example.com/api/delete-requests",
+  origin = APP_URL
+): Request {
+  return new Request(url, {
     method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(body),
+    headers: { origin, "content-type": "application/json" },
+    body: JSON.stringify({ email: "fixture@example.com", token: "pow-ok" }),
   });
 }
 
-describe("POST /api/delete-requests", () => {
-  afterEach(() => {
+describe("POST /api/delete-requests confirm link origin", () => {
+  beforeEach(() => {
     vi.clearAllMocks();
-  });
-
-  it("unauthenticated challenge request -> 200 with a PoW challenge", async () => {
-    mocks.issue.mockReturnValue("challenge-value");
-    const res = await POST(req({ action: "challenge" }));
-    expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ challenge: "challenge-value" });
-  });
-
-  it("unauthenticated malformed submission -> 400", async () => {
-    const res = await POST(req({ email: "", token: "" }));
-    expect(res.status).toBe(400);
-    expect(mocks.rpc).not.toHaveBeenCalled();
-  });
-
-  it("unauthenticated valid submission -> 200 generic non-oracle response", async () => {
-    mocks.honeypotTripped.mockReturnValue(false);
+    vi.stubEnv("GUEST_COOKIE_SECRET", COOKIE_SECRET);
+    vi.stubEnv("RATE_LIMIT_PEPPER", PEPPER);
+    vi.stubEnv("NEXT_PUBLIC_APP_URL", APP_URL);
+    mocks.verify.mockResolvedValue(true);
     mocks.rlBucket.mockResolvedValue(true);
     mocks.rlHit.mockResolvedValue(true);
-    mocks.verify.mockResolvedValue(true);
     mocks.rpc.mockResolvedValue({ error: null });
-    mocks.getSupabaseServiceClient.mockReturnValue({ rpc: mocks.rpc });
-    const res = await POST(req({ email: "person@example.com", token: "pow-token" }));
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("uses only NEXT_PUBLIC_APP_URL and points to the confirm page", async () => {
+    const res = await POST(deletionRequest());
     expect(res.status).toBe(200);
-    expect(await res.json()).toMatchObject({ ok: true });
-    expect(mocks.rpc).toHaveBeenCalledWith(
-      "deletion_request_create",
-      expect.objectContaining({ p_email: "person@example.com", p_ip_hash: "ip-hash" })
-    );
+    const call = mocks.rpc.mock.calls.find(
+      (c) => (c as unknown as [string])[0] === "deletion_request_create"
+    ) as unknown as [string, { p_confirm_payload: { confirm_url: string } }];
+    expect(call).toBeDefined();
+    const confirmUrl = call[1].p_confirm_payload.confirm_url;
+    expect(confirmUrl.startsWith(`${APP_URL}/delete-account/confirm?t=`)).toBe(true);
+    expect(confirmUrl).not.toContain("spoofed.example.com");
+    expect(confirmUrl).not.toContain("/api/delete-requests/confirm");
+  });
+
+  it("answers 503 without NEXT_PUBLIC_APP_URL and does not write", async () => {
+    vi.stubEnv("NEXT_PUBLIC_APP_URL", "");
+    const res = await POST(deletionRequest());
+    expect(res.status).toBe(503);
+    expect(mocks.rpc).not.toHaveBeenCalled();
   });
 });

@@ -8,8 +8,10 @@
 // replace interactive re-auth. No auth user -> 'rejected'; pipeline
 // errors are logged and left claimed-expired for the next run.
 //
-// Usage: node scripts/process-deletion-requests.mjs [--limit N]
-// Requires .env.local: NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SECRET_KEY.
+// Usage: node scripts/process-deletion-requests.mjs [--limit N] [--yes]
+// Default is a DRY RUN: it only lists claimable request ids. Execution
+// requires the explicit --yes flag. Requires .env.local:
+// NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SECRET_KEY.
 
 import { config } from "dotenv";
 import { join, dirname } from "path";
@@ -31,6 +33,7 @@ if (!process.env.SUPABASE_SECRET_KEY) {
 
 const limitArg = process.argv.indexOf("--limit");
 const limit = limitArg > -1 ? Number(process.argv[limitArg + 1]) || 10 : 10;
+const execute = process.argv.includes("--yes");
 
 const { createClient } = await import("@supabase/supabase-js");
 const { decryptToken } = await import("../lib/youtube/token-crypto.ts").catch(() => ({ decryptToken: null }));
@@ -121,6 +124,24 @@ async function pipeline(userId, email) {
   await advance(userId, "done");
 }
 
+if (!execute) {
+  const { data, error } = await supabase
+    .from("deletion_requests")
+    .select("id")
+    .eq("status", "confirmed")
+    .order("created_at", { ascending: true })
+    .order("id", { ascending: true })
+    .limit(limit);
+  if (error) throw new Error(`dry_run_select: ${error.message}`);
+  const candidates = Array.isArray(data) ? data : [];
+  console.log(`dry run: ${candidates.length} claimable deletion request(s)`);
+  for (const row of candidates) {
+    console.log(`dry-run candidate request=${row.id}`);
+  }
+  console.log("dry run only: re-run with --yes to execute");
+  process.exit(0);
+}
+
 const claimed = await rpc("deletion_requests_claim", { p_limit: limit });
 const requests = Array.isArray(claimed) ? claimed : [];
 console.log(`claimed ${requests.length} deletion request(s)`);
@@ -133,16 +154,16 @@ for (const req of requests) {
     if (!userId) {
       await rpc("deletion_request_finish", { p_id: req.id, p_status: "rejected" });
       rejected++;
-      console.log(`rejected ${req.id} (${email}): no auth user`);
+      console.log(`rejected request=${req.id} user=none`);
       continue;
     }
     await pipeline(userId, email);
     await rpc("deletion_request_finish", { p_id: req.id, p_status: "done" });
     done++;
-    console.log(`done ${req.id} (${email})`);
-  } catch (e) {
+    console.log(`done request=${req.id} user=${userId}`);
+  } catch {
     failed++;
-    console.log(`FAILED ${req.id} (${email}): ${e?.message ?? e} — left for next run`);
+    console.log(`FAILED request=${req.id} — left for next run`);
   }
 }
 console.log(`summary: done=${done} rejected=${rejected} failed=${failed}`);

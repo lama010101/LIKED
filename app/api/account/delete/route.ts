@@ -16,6 +16,19 @@ import { hashRlKey } from "@/lib/ask/clientIp";
  * signed out and the browser is redirected to /account-deleted.
  */
 export async function POST(request: Request) {
+  let expectedOrigin: string;
+  try {
+    const raw = process.env.NEXT_PUBLIC_APP_URL;
+    if (!raw) throw new Error("missing NEXT_PUBLIC_APP_URL");
+    expectedOrigin = new URL(raw).origin;
+  } catch {
+    return NextResponse.json({ error: "ASK_UNAVAILABLE" }, { status: 503 });
+  }
+  const origin = request.headers.get("origin");
+  if (!origin || origin !== expectedOrigin) {
+    return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
+  }
+
   const supabase = await getSupabaseServerClient();
   const {
     data: { user },

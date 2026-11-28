@@ -43,10 +43,14 @@ vi.mock("@/lib/ask/rateLimit", () => ({
 import { POST } from "./route";
 import { REAUTH_PROOF_COOKIE, createReauthProof } from "@/lib/account/reauth";
 
-function req() {
-  return new Request("https://liked.test/api/account/delete", {
+const APP_ORIGIN = "https://liked.test";
+
+function req(origin: string | null = APP_ORIGIN) {
+  const headers: Record<string, string> = { "content-type": "application/json" };
+  if (origin !== null) headers.origin = origin;
+  return new Request(`${APP_ORIGIN}/api/account/delete`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers,
     body: JSON.stringify({ confirmed: true }),
   });
 }
@@ -64,6 +68,7 @@ describe("POST /api/account/delete", () => {
     mocks.jar.clear();
     vi.stubEnv("ACCOUNT_REAUTH_SECRET", "test-reauth-secret-0123456789abcdef");
     vi.stubEnv("RATE_LIMIT_PEPPER", "test-rate-limit-pepper-0123456789");
+    vi.stubEnv("NEXT_PUBLIC_APP_URL", APP_ORIGIN);
     mocks.rlHit.mockResolvedValue(true);
     mocks.runDeletionPipeline.mockResolvedValue({ ok: true, stage: "done" });
     mocks.signOut.mockResolvedValue({ error: null });
@@ -86,6 +91,34 @@ describe("POST /api/account/delete", () => {
     expect(res.status).toBe(401);
     expect(await res.json()).toEqual({ error: "REAUTH_REQUIRED" });
     expect(mocks.runDeletionPipeline).not.toHaveBeenCalled();
+  });
+
+  it("foreign Origin returns 403 before the proof is burned", async () => {
+    mockUser();
+    const proof = createReauthProof("u1")!;
+    mocks.jar.set(REAUTH_PROOF_COOKIE, proof);
+    const res = await POST(req("https://evil.example.com"));
+    expect(res.status).toBe(403);
+    expect(mocks.jar.get(REAUTH_PROOF_COOKIE)).toBe(proof);
+    expect(mocks.runDeletionPipeline).not.toHaveBeenCalled();
+  });
+
+  it("missing Origin returns 403 before the proof is burned", async () => {
+    mockUser();
+    const proof = createReauthProof("u1")!;
+    mocks.jar.set(REAUTH_PROOF_COOKIE, proof);
+    const res = await POST(req(null));
+    expect(res.status).toBe(403);
+    expect(mocks.jar.get(REAUTH_PROOF_COOKIE)).toBe(proof);
+    expect(mocks.runDeletionPipeline).not.toHaveBeenCalled();
+  });
+
+  it("correct Origin passes the Origin gate", async () => {
+    mockUser();
+    mocks.jar.set(REAUTH_PROOF_COOKIE, createReauthProof("u1")!);
+    const res = await POST(req(APP_ORIGIN));
+    expect(res.status).toBe(303);
+    expect(mocks.runDeletionPipeline).toHaveBeenCalledTimes(1);
   });
 
   it("success redirects to /account-deleted with status 303", async () => {

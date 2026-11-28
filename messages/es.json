@@ -651,6 +651,10 @@
     "pubSent": "Si existe una cuenta para esta dirección, recibirás un correo de confirmación.",
     "pubStatusConfirmed": "Tu solicitud fue confirmada. Se procesará en 30 días.",
     "pubStatusInvalid": "Ese enlace de confirmación no es válido o ha expirado.",
+    "confirmTitle": "Confirmar eliminación de cuenta",
+    "confirmIntro": "Pulsa el botón solo si solicitaste la eliminación de tu cuenta de LIKED. Esto confirma la solicitud; no elimina la cuenta de inmediato.",
+    "confirmButton": "Confirmar solicitud",
+    "confirmBusy": "Confirmando…",
     "pubGuestsNote": "Los invitados no tienen cuenta: usa «Delete my data» en la hoja de amigo para borrar los datos."
   },
   "friend": {

@@ -651,6 +651,10 @@
     "pubSent": "Si un compte existe pour cette adresse, vous recevrez un e-mail de confirmation.",
     "pubStatusConfirmed": "Votre demande a été confirmée. Elle sera traitée sous 30 jours.",
     "pubStatusInvalid": "Ce lien de confirmation est invalide ou expiré.",
+    "confirmTitle": "Confirmer la suppression du compte",
+    "confirmIntro": "N'appuyez sur le bouton que si vous avez demandé la suppression de votre compte LIKED. Cela confirme la demande ; le compte n'est pas supprimé immédiatement.",
+    "confirmButton": "Confirmer la demande",
+    "confirmBusy": "Confirmation…",
     "pubGuestsNote": "Les invités n'ont pas de compte : utilisez « Delete my data » dans la feuille ami pour effacer les données invité."
   },
   "friend": {
