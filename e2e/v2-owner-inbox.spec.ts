@@ -12,6 +12,7 @@ import {
   getOwnerAskToken,
   rpcAnon,
   rpcAs,
+  serviceClient,
   signInFixtureUser,
   submitRecommendations,
   upsertTmdbItem,
@@ -152,6 +153,66 @@ test("detail sheet: Friends/TMDB rings and complete recommender rows", async ({
   await page.keyboard.press("Escape");
   await expect(sheet).toBeHidden();
 });
+
+test("P1-03: owner note and five-genre cap save and render on guest landing", async ({
+  page,
+  baseURL,
+}) => {
+  const session = await injectSession(page.context(), baseURL ?? "http://localhost:3001");
+  const ownerId = session.user.id as string;
+  const before = await serviceClient()
+    .from("asks")
+    .select("prompt,note,liked_genres")
+    .eq("owner_id", ownerId)
+    .maybeSingle();
+  const original = before.data as { prompt: string | null; note: string | null; liked_genres: number[] } | null;
+
+  try {
+    await page.goto("/inbox");
+    await page.getByTestId("inbox-share-button").click();
+    await expect(page.getByTestId("ask-note-input")).toBeVisible();
+    await page.getByTestId("ask-note-input").fill("zz-e2e owner note fixture");
+    await expect(page.getByTestId("ask-genre-option").first()).toBeVisible({ timeout: 15000 });
+
+    const options = page.getByTestId("ask-genre-option");
+    const firstName = (await options.nth(0).textContent())?.trim() ?? "";
+    for (let i = 0; i < 5; i++) await options.nth(i).click();
+    await expect(page.getByTestId("ask-genre-picker")).toContainText("5/5");
+    if ((await options.count()) > 5) await expect(options.nth(5)).toBeDisabled();
+
+    await page.getByTestId("ask-settings-save").click();
+    await expect.poll(async () => {
+      const row = await serviceClient()
+        .from("asks")
+        .select("note,liked_genres")
+        .eq("owner_id", ownerId)
+        .maybeSingle();
+      const data = row.data as { note?: string; liked_genres?: number[] } | null;
+      return data?.note === "zz-e2e owner note fixture" && data.liked_genres?.length;
+    }).toBe(5);
+
+    await contextClearOnlySupabaseSession(page);
+    await page.goto(`/r/${askToken}`);
+    await expect(page.getByText("zz-e2e owner note fixture")).toBeVisible();
+    await expect(page.getByText(firstName, { exact: true })).toBeVisible();
+  } finally {
+    if (original) {
+      await serviceClient().from("asks").update({
+        prompt: original.prompt,
+        note: original.note,
+        liked_genres: original.liked_genres,
+      }).eq("owner_id", ownerId);
+    }
+  }
+});
+
+async function contextClearOnlySupabaseSession(page: import("@playwright/test").Page): Promise<void> {
+  const context = page.context();
+  const cookies = await context.cookies();
+  await context.clearCookies();
+  const keep = cookies.filter((cookie) => !cookie.name.startsWith("sb-"));
+  if (keep.length > 0) await context.addCookies(keep);
+}
 
 test("share bar: regenerate kills the old token, the new one resolves", async ({
   page,
