@@ -652,7 +652,7 @@
     "pubStatusConfirmed": "Your deletion request was confirmed. It will be processed within 30 days.",
     "pubStatusInvalid": "That confirmation link is invalid or has expired.",
     "pubGuestsNote": "Guests have no account: use \"Delete my data\" in the friend sheet to remove guest data immediately."
-,
+  },
   "settings": {
     "title": "Settings",
     "back": "Back",

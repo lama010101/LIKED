@@ -652,7 +652,7 @@
     "pubStatusConfirmed": "Votre demande a été confirmée. Elle sera traitée sous 30 jours.",
     "pubStatusInvalid": "Ce lien de confirmation est invalide ou expiré.",
     "pubGuestsNote": "Les invités n'ont pas de compte : utilisez « Delete my data » dans la feuille ami pour effacer les données invité."
-,
+  },
   "settings": {
     "title": "Paramètres",
     "back": "Retour",

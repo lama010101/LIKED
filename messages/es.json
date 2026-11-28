@@ -652,7 +652,7 @@
     "pubStatusConfirmed": "Tu solicitud fue confirmada. Se procesará en 30 días.",
     "pubStatusInvalid": "Ese enlace de confirmación no es válido o ha expirado.",
     "pubGuestsNote": "Los invitados no tienen cuenta: usa «Delete my data» en la hoja de amigo para borrar los datos."
-,
+  },
   "settings": {
     "title": "Ajustes",
     "back": "Atrás",
