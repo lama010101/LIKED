@@ -127,6 +127,31 @@ describe("processJobs — details", () => {
     expect(summary).toMatchObject({ claimed: 1, done: 1, errored: 0, unavailable: 0 });
   });
 
+  it("TMDB stale re-enqueue: an existing localized tag uses item_refresh_apply", async () => {
+    const { client, calls } = makeClient({
+      jobs: [job()],
+      items: [item({ localized: { "fr-FR": { name: "Ancien titre" } } })],
+    });
+    const fetchImpl = (async () =>
+      jsonResponse({
+        title: "Matrix",
+        genres: [{ id: 28, name: "Action" }],
+        poster_path: "/abc.jpg",
+        vote_average: 8.2,
+      })) as typeof fetch;
+    const summary = await processJobs({ client, fetchImpl, env: ENV });
+
+    expect(calls.find((c) => c.fn === "item_refresh_apply")?.params).toMatchObject({
+      p_item_id: "item-1",
+      p_unavailable: false,
+    });
+    const payload = calls.find((c) => c.fn === "item_refresh_apply")?.params.p_payload as Record<string, unknown>;
+    expect(payload.name).toBe("Matrix");
+    expect((payload.localized as Record<string, { name?: string }>)["fr-FR"].name).toBe("Matrix");
+    expect(calls.some((c) => c.fn === "item_apply_details")).toBe(false);
+    expect(summary).toMatchObject({ done: 1, errored: 0 });
+  });
+
   it("TMDB 404: nulls the display fields and finishes ok (unavailable, not retried)", async () => {
     const { client, calls } = makeClient({ jobs: [job()], items: [item()] });
     const fetchImpl = (async () => jsonResponse({}, 404)) as typeof fetch;
@@ -172,6 +197,23 @@ describe("processJobs — details", () => {
     expect(urls[0]).toContain("googleapis.com/youtube/v3/videos");
     expect(calls.find((c) => c.fn === "item_apply_details")?.params.p_tag).toBe("en-US");
     expect(summary).toMatchObject({ done: 1 });
+  });
+
+  it("YouTube stale re-enqueue: an existing localized tag uses item_refresh_apply", async () => {
+    const { client, calls } = makeClient({
+      jobs: [job({ param: "en-US" })],
+      items: [item({ source: "youtube", kind: "video", external_id: "dQw4w9WgXcQ", localized: { "en-US": { name: "Old video" } } })],
+    });
+    const fetchImpl = (async () => jsonResponse({
+      items: [{ id: "dQw4w9WgXcQ", snippet: { title: "Fresh video", channelId: "UCx", channelTitle: "Channel" } }],
+    })) as typeof fetch;
+    const summary = await processJobs({ client, fetchImpl, env: ENV });
+
+    const payload = calls.find((c) => c.fn === "item_refresh_apply")?.params.p_payload as Record<string, unknown>;
+    expect(payload.name).toBe("Fresh video");
+    expect((payload.localized as Record<string, { name?: string }>)["en-US"].name).toBe("Fresh video");
+    expect(calls.some((c) => c.fn === "item_apply_details")).toBe(false);
+    expect(summary).toMatchObject({ done: 1, errored: 0 });
   });
 
   it("YouTube empty result: unavailable path", async () => {
