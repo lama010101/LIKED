@@ -1,18 +1,15 @@
 "use client";
 
 // Guest "Language and appearance" sheet (PRD §6.8, task P0-13/P0-14).
-// Language and theme are device preferences: two non-identifying cookies
-// (LIKED_LOCALE, LIKED_THEME) that the root layout already reads — no DB
+// Language, theme and accent are device preferences: non-identifying cookies
+// (LIKED_LOCALE, LIKED_THEME, LIKED_ACCENT) that the root layout reads — no DB
 // call, no account, no redirect. Strings switch on router.refresh().
 
 import { useEffect, useId, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { LANGUAGES, LOCALE_COOKIE } from "@/lib/i18n/languages";
-
-const THEME_COOKIE = "LIKED_THEME";
-const THEMES = ["system", "light", "dark"] as const;
-type ThemeValue = (typeof THEMES)[number];
+import AppearanceControls from "@/components/v2/theme/AppearanceControls";
 
 const ONE_YEAR = 60 * 60 * 24 * 365;
 
@@ -20,18 +17,11 @@ function writeCookie(name: string, value: string) {
   document.cookie = `${name}=${value}; path=/; max-age=${ONE_YEAR}; samesite=lax`;
 }
 
-function currentTheme(): ThemeValue {
-  if (typeof document === "undefined") return "system";
-  const attr = document.documentElement.getAttribute("data-theme");
-  return attr === "light" || attr === "dark" ? attr : "system";
-}
-
 export default function LanguageAppearanceSheet() {
   const t = useTranslations("friend.language");
   const locale = useLocale();
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [theme, setTheme] = useState<ThemeValue>("system");
   const titleId = useId();
 
   useEffect(() => {
@@ -44,7 +34,6 @@ export default function LanguageAppearanceSheet() {
   }, [open]);
 
   function openSheet() {
-    setTheme(currentTheme());
     setOpen(true);
   }
 
@@ -52,12 +41,6 @@ export default function LanguageAppearanceSheet() {
     if (code === locale) return;
     writeCookie(LOCALE_COOKIE, code);
     router.refresh();
-  }
-
-  function chooseTheme(value: ThemeValue) {
-    setTheme(value);
-    writeCookie(THEME_COOKIE, value);
-    document.documentElement.setAttribute("data-theme", value);
   }
 
   const active = LANGUAGES.find((l) => l.code === locale) ?? LANGUAGES[0];
@@ -122,26 +105,7 @@ export default function LanguageAppearanceSheet() {
               </div>
             </fieldset>
 
-            <fieldset>
-              <legend className="mb-2 text-sm font-medium">{t("theme")}</legend>
-              <div className="grid grid-cols-3 gap-2">
-                {THEMES.map((value) => (
-                  <button
-                    key={value}
-                    type="button"
-                    aria-pressed={value === theme}
-                    onClick={() => chooseTheme(value)}
-                    className={`rounded-xl border px-3 py-2 text-sm ${
-                      value === theme
-                        ? "border-[var(--v2-accent)] bg-[var(--v2-surface-raised)] font-semibold"
-                        : "border-[var(--v2-border)]"
-                    }`}
-                  >
-                    {t(value)}
-                  </button>
-                ))}
-              </div>
-            </fieldset>
+            <AppearanceControls />
           </div>
         </div>
       ) : null}

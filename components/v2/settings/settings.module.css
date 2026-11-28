@@ -227,6 +227,10 @@
   color: var(--v2-text-muted);
 }
 
+.appearanceBlock {
+  padding: 8px 16px 16px;
+}
+
 .footer {
   text-align: center;
   font-size: 12px;

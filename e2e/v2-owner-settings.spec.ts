@@ -4,6 +4,7 @@ import { startProdAudit, type ProdAudit } from "./helpers/prodAudit";
 import {
   fixtureRowCounts,
   readOwnerPrefs,
+  serviceClient,
   userRowExists,
   type FixtureRowCounts,
 } from "./helpers/v2Fixtures";
@@ -27,7 +28,7 @@ test.afterAll(async () => {
   await audit.assertEqual();
 });
 
-test("settings shows every §6.9 group; P1 and delete rows stay hidden", async ({
+test("settings shows every §6.9 group; appearance controls are present and delete rows stay hidden", async ({
   page,
   baseURL,
 }) => {
@@ -44,9 +45,10 @@ test("settings shows every §6.9 group; P1 and delete rows stay hidden", async (
   await expect(page.getByRole("link", { name: "Terms of use" })).toHaveAttribute("href", "/terms");
   await expect(page.getByTestId("settings-credits-link")).toHaveAttribute("href", "/settings/credits");
 
-  // P1 theme/colour rows and the not-yet-built delete row are not rendered.
-  await expect(page.getByText("Theme", { exact: true })).toHaveCount(0);
-  await expect(page.getByText("Primary color", { exact: true })).toHaveCount(0);
+  // P1-09 appearance controls are rendered; the not-yet-built delete row is not.
+  await expect(page.getByText("Theme", { exact: true })).toBeVisible();
+  await expect(page.getByText("Primary color", { exact: true })).toBeVisible();
+  await expect(page.getByTestId("appearance-controls")).toBeVisible();
   await expect(page.getByTestId("settings-delete-account")).toHaveCount(0);
   await expect(page.locator('a[href*="/settings/delete"]')).toHaveCount(0);
 });
@@ -68,6 +70,40 @@ test("language switch updates strings instantly and persists to user_prefs", asy
   await page.locator('[data-testid="settings-language-option"][data-language="en"]').click();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Settings");
   await expect.poll(async () => (await readOwnerPrefs(ownerId))?.tmdb_lang).toBe("en-US");
+});
+
+test("theme, preset accent and custom accent apply instantly and persist", async ({ page, baseURL }) => {
+  await injectSession(page.context(), baseURL ?? "http://localhost:3001");
+  const before = await readOwnerPrefs(ownerId);
+  await page.goto("/settings");
+
+  await page.getByTestId("theme-light").click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await expect.poll(async () => (await readOwnerPrefs(ownerId))?.theme).toBe("light");
+
+  await page.getByTestId("accent-blue").click();
+  await expect(page.locator("html")).toHaveAttribute("data-accent", "blue");
+  await expect.poll(async () => (await readOwnerPrefs(ownerId))?.accent).toBe("blue");
+
+  await page.getByTestId("accent-custom").evaluate((el) => {
+    const input = el as HTMLInputElement;
+    input.value = "#00AAFF";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+  await expect(page.locator("html")).toHaveAttribute("data-accent", "custom");
+  await expect.poll(async () => (await readOwnerPrefs(ownerId))?.accent).toBe("#00AAFF");
+  const inlineAccent = await page.locator("html").evaluate((el) => el.style.getPropertyValue("--v2-accent-lt"));
+  expect(inlineAccent).toMatch(/^#[0-9A-F]{6}$/i);
+
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await expect(page.locator("html")).toHaveAttribute("data-accent", "custom");
+
+  await serviceClient().from("user_prefs").update({
+    theme: before?.theme ?? "system",
+    accent: before?.accent ?? "orange",
+  }).eq("user_id", ownerId);
 });
 
 test("region suggestion comes from x-vercel-ip-country and saves", async ({ page, baseURL }) => {

@@ -8,6 +8,7 @@ import { LANGUAGES } from "@/lib/i18n/languages";
 import { setLanguageAction, setMyPrefsAction } from "@/app/lib/actions/v2-owner";
 import { toast } from "@/lib/store/toastStore";
 import type { UserPrefs } from "@/components/v2/inbox/inbox-utils";
+import AppearanceControls from "@/components/v2/theme/AppearanceControls";
 import styles from "./settings.module.css";
 import { DELETE_ACCOUNT_ENABLED, ROUTES, SECTION, TESTID, UI } from "./ui-constants";
 
@@ -177,6 +178,13 @@ export default function SettingsView({
                 <span>{lang.nativeName}</span>
               </label>
             ))}
+          </div>
+          <div className={styles.appearanceBlock}>
+            <AppearanceControls
+              initialTheme={prefs.theme}
+              initialAccent={prefs.accent}
+              persist={async (patch) => setMyPrefsAction(patch)}
+            />
           </div>
         </section>
 

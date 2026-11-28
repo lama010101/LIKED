@@ -118,6 +118,8 @@ export async function deleteGuest(contributorId: string): Promise<void> {
 export interface OwnerPrefsRow {
   region_code: string | null;
   notify_email: boolean;
+  theme: string;
+  accent: string;
   tmdb_lang: string | null;
   language_set_at: string | null;
 }
@@ -126,7 +128,7 @@ export interface OwnerPrefsRow {
 export async function readOwnerPrefs(userId: string): Promise<OwnerPrefsRow | null> {
   const { data, error } = await serviceClient()
     .from("user_prefs")
-    .select("region_code,notify_email,tmdb_lang,language_set_at")
+    .select("region_code,notify_email,theme,accent,tmdb_lang,language_set_at")
     .eq("user_id", userId)
     .maybeSingle();
   if (error) throw new Error(`user_prefs read: ${error.message}`);
